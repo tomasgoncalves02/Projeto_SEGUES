@@ -1,0 +1,30 @@
+## --- Compilação e Build (Obrigatório) ---
+# Nunca enviar estes. São gerados pelo computador de cada um.
+bin/
+obj/
+
+## --- Visual Studio ---
+# Configurações pessoais e temporárias do VS
+.vs/
+.vscode/
+*.user
+*.userosscache
+*.suo
+*.opensdf
+*.sdf
+*.cache
+
+## --- Base de Dados (Local) ---
+# O código vai para o Git, mas a base de dados física (.mdf) fica no PC de cada um.
+*.mdf
+*.ldf
+*.db
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+
+## --- Logs e Temporários ---
+*.log
+thumbs.db
+.DS_Store
+
