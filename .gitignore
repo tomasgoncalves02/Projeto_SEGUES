@@ -27,4 +27,4 @@ obj/
 *.log
 thumbs.db
 .DS_Store
-
+.idea
