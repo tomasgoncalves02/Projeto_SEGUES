@@ -2,10 +2,27 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models;
-var builder = WebApplication.CreateBuilder(args);
-var connectionString = builder.Configuration.GetConnectionString("Projeto_SEGUESContextConnection") ?? throw new InvalidOperationException("Connection string 'Projeto_SEGUESContextConnection' not found.");
 
-builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    if (builder.Environment.IsDevelopment())
+    {
+        if (OperatingSystem.IsWindows())
+            options.UseSqlServer(
+                builder.Configuration.GetConnectionString("LocalSQLServer") ?? 
+                throw new InvalidOperationException("Connection string 'LocalSQLServer' not found.")
+            );
+        else
+            options.UseSqlServer(
+                builder.Configuration.GetConnectionString("DockerSQLServer") ?? 
+                throw new InvalidOperationException("Connection string 'DockerSQLServer' not found.")
+            );
+    }
+    else
+        options.UseSqlServer(builder.Configuration.GetConnectionString("AzureSQL") ?? throw new InvalidOperationException("Connection string 'AzureSQL' not found."));
+});
 
 //builder.Services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<AppDbContext>();
 
@@ -32,7 +49,6 @@ builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
 
-// Configura��es padr�o...
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
