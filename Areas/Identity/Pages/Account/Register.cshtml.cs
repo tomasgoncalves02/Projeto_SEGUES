@@ -18,7 +18,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
-using Projeto_SEGUES.Models;
+using Projeto_SEGUES.Models; // OBRIGATÓRIO
 
 namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 {
@@ -46,60 +46,37 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             _emailSender = emailSender;
         }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         [BindProperty]
         public InputModel Input { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         public string ReturnUrl { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         public IList<AuthenticationScheme> ExternalLogins { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         public class InputModel
         {
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
+            // === CAMPO ADICIONADO: PRIMEIRO NOME ===
+            [Required]
+            [Display(Name = "Primeiro Nome")]
+            public string FirstName { get; set; }
+            // =======================================
+
             [Required]
             [EmailAddress]
             [Display(Name = "Email")]
             public string Email { get; set; }
 
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
             [Required]
-            [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+            [StringLength(100, ErrorMessage = "A {0} deve ter pelo menos {2} e no máximo {1} caracteres.", MinimumLength = 6)]
             [DataType(DataType.Password)]
             [Display(Name = "Password")]
             public string Password { get; set; }
 
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
             [DataType(DataType.Password)]
-            [Display(Name = "Confirm password")]
-            [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+            [Display(Name = "Confirmar password")]
+            [Compare("Password", ErrorMessage = "A password e a confirmação não coincidem.")]
             public string ConfirmPassword { get; set; }
         }
-
 
         public async Task OnGetAsync(string returnUrl = null)
         {
@@ -114,36 +91,39 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 
             if (ModelState.IsValid)
             {
-                // --- INÍCIO DA VALIDAÇÃO RF01 / RF32 ---
-                var email = Input.Email.ToLower();
-
-                // RF01: Permitir apenas e-mails institucionais (exemplo: @ips.pt ou @estudantes.ips.pt)
-                if (!email.EndsWith("@ips.pt") && !email.EndsWith("@estudantes.ips.pt"))
-                {
-                    ModelState.AddModelError("Input.Email", "O registo deve ser feito com um e-mail institucional válido.");
-                    return Page();
-                }
-
-                // RF32: Lógica preliminar para distinguir tipos de conta (opcional agora, útil depois)
-                string tipoUtilizador = email.Contains("@estudantes.") ? "Estudante" : "Docente";
-                // ---------------------------------------
-
                 var user = CreateUser();
+
+                // ============================================================
+                // PREENCHIMENTO AUTOMÁTICO PARA EVITAR ERROS DE SQL
+                // ============================================================
+
+                // 1. O que o utilizador escreveu
+                user.FirstName = Input.FirstName;
+
+                // 2. Valores Padrão (Defaults)
+                user.Balance = 0m;                   // Saldo começa a 0
+                user.CreationDate = DateTime.Now;    // Data de agora
+                user.Status = Models.Enums.Enums.UserStatus.Active;// Ativo
+
+                // 3. Dados Obrigatórios Falsos (Para não dar erro NULL)
+                user.LastName = "Sobrenome";
+                user.Nif = "999999990";
+                user.BirthDate = DateTime.Now.AddYears(-18); // Data válida
+                user.Gender = 0;
+                user.Role = 0;
+
+                // 4. ATENÇÃO: Chave Estrangeira (Tem de existir ID 1 na tabela PostalCodes!)
+                user.PostalCodeId = 1;
+                // ============================================================
 
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
-
-                // Se a sua classe 'User' tiver a propriedade TipoInstitucional, pode preenchê-la aqui:
-                // user.TipoInstitucional = tipoUtilizador; 
 
                 var result = await _userManager.CreateAsync(user, Input.Password);
 
                 if (result.Succeeded)
                 {
-                    _logger.LogInformation("User created a new account with password.");
-
-                    // RF19: Atribuir uma Role padrão (ex: "Utente") logo no registo
-                    // await _userManager.AddToRoleAsync(user, "Utente");
+                    _logger.LogInformation("Nova conta criada com sucesso.");
 
                     var userId = await _userManager.GetUserIdAsync(user);
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -154,8 +134,8 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                         values: new { area = "Identity", userId = userId, code = code, returnUrl = returnUrl },
                         protocol: Request.Scheme);
 
-                    await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
-                        $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+                    await _emailSender.SendEmailAsync(Input.Email, "Confirme o seu email",
+                        $"Por favor confirme a sua conta <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicando aqui</a>.");
 
                     if (_userManager.Options.SignIn.RequireConfirmedAccount)
                     {
@@ -173,7 +153,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                 }
             }
 
-            // If we got this far, something failed, redisplay form
+            // Se algo falhar, mostra o formulário outra vez
             return Page();
         }
 
