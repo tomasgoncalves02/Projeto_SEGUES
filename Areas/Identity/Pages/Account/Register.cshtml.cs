@@ -2,14 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Text.Encodings.Web;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -19,6 +11,15 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Projeto_SEGUES.Models; // OBRIGATÓRIO
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Text.Encodings.Web;
+using System.Threading;
+using System.Threading.Tasks;
+using static Projeto_SEGUES.Models.Enums.Enums;
 
 namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 {
@@ -59,7 +60,17 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             [Required]
             [Display(Name = "Primeiro Nome")]
             public string FirstName { get; set; }
+
+
+            [Required]
+            [Display(Name = "Sobrenome")]
+            public string LastName { get; set; }
             // =======================================
+            
+            [Required]
+            [Display(Name = "Género")]
+            public Gender Gender { get; set; }
+
 
             [Required]
             [EmailAddress]
@@ -106,14 +117,13 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                 user.Status = Models.Enums.Enums.UserStatus.Active;// Ativo
 
                 // 3. Dados Obrigatórios Falsos (Para não dar erro NULL)
-                user.LastName = "Sobrenome";
-                user.Nif = "999999990";
-                user.BirthDate = DateTime.Now.AddYears(-18); // Data válida
-                user.Gender = 0;
-                user.Role = 0;
+                user.LastName = Input.LastName;
+                
+                
+                user.Gender = Input.Gender;
+                user.Role = Models.Enums.Enums.UserRole.ExternalEmployee;
 
-                // 4. ATENÇÃO: Chave Estrangeira (Tem de existir ID 1 na tabela PostalCodes!)
-                user.PostalCodeId = 1;
+             
                 // ============================================================
 
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);

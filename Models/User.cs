@@ -12,13 +12,13 @@ namespace Projeto_SEGUES.Models
         public UserStatus Status { get; set; }
         public decimal Balance { get; set; }
         public UserRole Role { get; set; }
-        public string Nif { get; set; }
-        public DateTime BirthDate { get; set; }
+        public string? Nif { get; set; }
+        public DateTime? BirthDate { get; set; }
         public Gender Gender { get; set; }
         public DateTime CreationDate { get; set; }
 
         // Foreign Key para PostalCode
-        public int PostalCodeId { get; set; }
+        public int? PostalCodeId { get; set; }
         [ForeignKey("PostalCodeId")]
         public PostalCode? PostalCode { get; set; }
     }

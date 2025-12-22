@@ -1,4 +1,5 @@
 ﻿@page
+@using static Projeto_SEGUES.Models.Enums.Enums
 @model RegisterModel
 @{
     ViewData["Title"] = "Register";
@@ -18,9 +19,21 @@
                 <span asp-validation-for="Input.FirstName" class="text-danger"></span>
             </div>
             <div class="form-floating mb-3">
+                <input asp-for="Input.LastName" class="form-control" autocomplete="given-name" aria-required="true" placeholder="Nome" />
+                <label asp-for="Input.LastName">Sobrenome</label>
+                <span asp-validation-for="Input.LastName" class="text-danger"></span>
+            </div>
+            <div class="form-floating mb-3">
                 <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
                 <label asp-for="Input.Email">Email</label>
                 <span asp-validation-for="Input.Email" class="text-danger"></span>
+            </div>
+            <div class="form-floating mb-3">
+                <select asp-for="Input.Gender" class="form-control" asp-items="Html.GetEnumSelectList<Gender>()">
+                    <option selected="selected" value="">Selecione o Género.</option>
+                </select>
+                <label asp-for="Input.Gender">Género</label>
+                <span asp-validation-for="Input.Gender" class="text-danger"></span>
             </div>
             <div class="form-floating mb-3">
                 <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
