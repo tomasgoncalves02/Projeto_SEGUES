@@ -14,19 +14,21 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
-using Projeto_SEGUES.Models; // Garante que este using está correto
+using Projeto_SEGUES.Models;
 
 namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 {
     public class LoginModel : PageModel
     {
         private readonly SignInManager<User> _signInManager;
+        private readonly UserManager<User> _userManager; // <--- ADICIONADO PARA VERIFICAR ROLES
         private readonly ILogger<LoginModel> _logger;
 
-        public LoginModel(SignInManager<User> signInManager, ILogger<LoginModel> logger)
+        public LoginModel(SignInManager<User> signInManager, ILogger<LoginModel> logger, UserManager<User> userManager)
         {
             _signInManager = signInManager;
             _logger = logger;
+            _userManager = userManager; // <--- INJEÇÃO
         }
 
         [BindProperty]
@@ -62,10 +64,11 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 
             returnUrl ??= Url.Content("~/");
 
+            // === CÓDIGO MICROSOFT COMENTADO (FUTURO) ===
             // Clear the existing external cookie to ensure a clean login process
-            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
-
-            ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+            // await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+            // ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+            // ============================================
 
             ReturnUrl = returnUrl;
         }
@@ -74,17 +77,21 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         {
             returnUrl ??= Url.Content("~/");
 
-            ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+            // === CÓDIGO MICROSOFT COMENTADO (FUTURO) ===
+            // ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+            // ============================================
 
             if (ModelState.IsValid)
             {
-                // === VALIDAÇÃO IPS: FORÇAR USO DO BOTÃO MICROSOFT ===
+                // === VALIDAÇÃO IPS COMENTADA (PARA PERMITIR LOGIN LOCAL AGORA) ===
+                /*
                 if (Input.Email.ToLower().EndsWith("@ips.pt") || Input.Email.ToLower().EndsWith("@estudantes.ips.pt"))
                 {
                     ModelState.AddModelError(string.Empty, "Contas IPS devem utilizar o botão 'Entrar com Microsoft' abaixo.");
                     return Page();
                 }
-                // ====================================================
+                */
+                // =================================================================
 
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
@@ -92,6 +99,23 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User logged in.");
+
+                    // === LÓGICA DE REDIRECIONAMENTO POR ROLE ===
+                    var user = await _userManager.FindByEmailAsync(Input.Email);
+
+                    if (user != null)
+                    {
+                        if (await _userManager.IsInRoleAsync(user, "Student"))
+                        {
+                            return RedirectToAction("Index", "Student"); // Vai para o Controller Student
+                        }
+                        if (await _userManager.IsInRoleAsync(user, "ExternalEmployee"))
+                        {
+                            return RedirectToAction("Index", "Employee"); // Vai para o Controller Employee
+                        }
+                    }
+                    // ===========================================
+
                     return LocalRedirect(returnUrl);
                 }
                 if (result.RequiresTwoFactor)

@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
-using Projeto_SEGUES.Models; // OBRIGATÓRIO
+using Projeto_SEGUES.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -19,7 +19,7 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading;
 using System.Threading.Tasks;
-using static Projeto_SEGUES.Models.Enums.Enums;
+using static Projeto_SEGUES.Models.Enums.Enums; // Para aceder aos Enums
 
 namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 {
@@ -31,13 +31,15 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         private readonly IUserEmailStore<User> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
         public RegisterModel(
             UserManager<User> userManager,
             IUserStore<User> userStore,
             SignInManager<User> signInManager,
             ILogger<RegisterModel> logger,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            RoleManager<IdentityRole> roleManager)
         {
             _userManager = userManager;
             _userStore = userStore;
@@ -45,6 +47,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
+            _roleManager = roleManager;
         }
 
         [BindProperty]
@@ -56,21 +59,17 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 
         public class InputModel
         {
-            // === CAMPO ADICIONADO: PRIMEIRO NOME ===
             [Required]
             [Display(Name = "Primeiro Nome")]
             public string FirstName { get; set; }
 
-
             [Required]
             [Display(Name = "Sobrenome")]
             public string LastName { get; set; }
-            // =======================================
-            
+
             [Required]
             [Display(Name = "Género")]
             public Gender Gender { get; set; }
-
 
             [Required]
             [EmailAddress]
@@ -105,35 +104,54 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                 var user = CreateUser();
 
                 // ============================================================
-                // PREENCHIMENTO AUTOMÁTICO PARA EVITAR ERROS DE SQL
+                // LÓGICA DE ROLES (Definir antes de criar o user)
                 // ============================================================
+                string roleNameString = "ExternalEmployee"; // Valor por defeito
+                UserRole roleEnum = UserRole.ExternalEmployee; // Valor por defeito
 
-                // 1. O que o utilizador escreveu
+                // Verifica se é estudante
+                if (Input.Email.ToLower().Contains("@estudantes."))
+                {
+                    roleNameString = "Student"; // Nome da Role para o Identity
+                    roleEnum = UserRole.Student; // Nome do Enum da tua Classe
+                }
+
+                // ============================================================
+                // PREENCHIMENTO DE DADOS
+                // ============================================================
                 user.FirstName = Input.FirstName;
-
-                // 2. Valores Padrão (Defaults)
-                user.Balance = 0m;                   // Saldo começa a 0
-                user.CreationDate = DateTime.Now;    // Data de agora
-                user.Status = Models.Enums.Enums.UserStatus.Active;// Ativo
-
-                // 3. Dados Obrigatórios Falsos (Para não dar erro NULL)
                 user.LastName = Input.LastName;
-                
-                
                 user.Gender = Input.Gender;
-                user.Role = Models.Enums.Enums.UserRole.ExternalEmployee;
+                user.Balance = 0m;
+                user.CreationDate = DateTime.Now;
+                user.Status = UserStatus.Active;
 
-             
-                // ============================================================
+                // Aqui definimos o Enum na base de dados do User
+                user.Role = roleEnum;
 
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
 
+                // Cria o utilizador na BD
                 var result = await _userManager.CreateAsync(user, Input.Password);
 
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("Nova conta criada com sucesso.");
+
+                    // ============================================================
+                    // ATRIBUIÇÃO DA ROLE DO IDENTITY (Permissões de Login)
+                    // ============================================================
+                    // 1. Garante que a Role existe na BD, se não, cria-a
+                    if (!await _roleManager.RoleExistsAsync(roleNameString))
+                    {
+                        await _roleManager.CreateAsync(new IdentityRole(roleNameString));
+                    }
+
+                    // 2. Adiciona o utilizador à Role
+                    await _userManager.AddToRoleAsync(user, roleNameString);
+
+                    // ============================================================
 
                     var userId = await _userManager.GetUserIdAsync(user);
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -154,7 +172,24 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                     else
                     {
                         await _signInManager.SignInAsync(user, isPersistent: false);
-                        return LocalRedirect(returnUrl);
+
+                        // ============================================================
+                        // REDIRECIONAMENTO INTELIGENTE (ATUALIZADO)
+                        // ============================================================
+
+                        // Se for estudante, vai para a área de estudante
+                        if (roleNameString == "Student")
+                        {
+                            // Redireciona para o StudentController, ação Index
+                            return RedirectToAction("Index", "Student");
+                        }
+                        // Se for funcionário externo
+                        else
+                        {
+                            // Redireciona para o EmployeeController, ação Index
+                            return RedirectToAction("Index", "ExternalEmployee");
+                        }
+                        // ============================================================
                     }
                 }
                 foreach (var error in result.Errors)
@@ -163,7 +198,6 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                 }
             }
 
-            // Se algo falhar, mostra o formulário outra vez
             return Page();
         }
 
