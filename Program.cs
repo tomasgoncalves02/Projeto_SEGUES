@@ -1,58 +1,61 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models;
-using Microsoft.AspNetCore.Identity.UI.Services; // <--- NECESSÁRIO
-using Projeto_SEGUES.Services; // <--- NECESSÁRIO (para encontrar a classe EmailSender)
+using Projeto_SEGUES.Services;
+// === ESTE É O IMPORTANTE ===
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Configuração da Base de Dados
+// 1. Base de Dados
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     if (builder.Environment.IsDevelopment())
     {
         if (OperatingSystem.IsWindows())
-            options.UseSqlServer(
-                builder.Configuration.GetConnectionString("LocalSQLServer") ??
-                throw new InvalidOperationException("Connection string 'LocalSQLServer' not found.")
-            );
+            options.UseSqlServer(builder.Configuration.GetConnectionString("LocalSQLServer"));
         else
-            options.UseSqlServer(
-                builder.Configuration.GetConnectionString("DockerSQLServer") ??
-                throw new InvalidOperationException("Connection string 'DockerSQLServer' not found.")
-            );
+            options.UseSqlServer(builder.Configuration.GetConnectionString("DockerSQLServer"));
     }
     else
-        options.UseSqlServer(builder.Configuration.GetConnectionString("AzureSQL") ?? throw new InvalidOperationException("Connection string 'AzureSQL' not found."));
+    {
+        options.UseSqlServer(builder.Configuration.GetConnectionString("AzureSQL"));
+    }
 });
 
-// 2. Configuração do Identity (Login)
+// 2. Identity
 builder.Services.AddIdentity<User, IdentityRole>(options => {
-    options.SignIn.RequireConfirmedAccount = false; // False para não bloquear o login enquanto testas
+    options.SignIn.RequireConfirmedAccount = false;
     options.User.RequireUniqueEmail = true;
-
-    // Podes relaxar a password para testes se quiseres:
     options.Password.RequireDigit = false;
+    options.Password.RequiredLength = 4;
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequireUppercase = false;
-    options.Password.RequiredLength = 4;
 })
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
 
-// 3. REGISTO DO EMAIL SENDER (A CORREÇÃO DO ERRO)
-// Isto diz ao programa: "Usa a classe EmailSender que está na pasta Services"
+// 3. Autenticação Microsoft
+// Se der erro aqui depois de limpar as pastas bin/obj, é bruxedo ou cache do Windows
+builder.Services.AddAuthentication()
+    .AddMicrosoftAccount(options =>
+    {
+        options.ClientId = builder.Configuration["Authentication:Microsoft:ClientId"];
+        options.ClientSecret = builder.Configuration["Authentication:Microsoft:ClientSecret"];
+    });
+
+// 4. Email
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 
-// 4. Serviços MVC e Razor Pages
-builder.Services.AddControllersWithViews(); // Usei 'WithViews' que é melhor para MVC
+// 5. MVC
+builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
-builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
 
-// 5. Pipeline de Erros
+// 6. Pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -64,11 +67,9 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// 6. AUTENTICAÇÃO E AUTORIZAÇÃO (A ORDEM É CRÍTICA!)
-app.UseAuthentication(); // <--- FALTAVA ESTA LINHA (Sem isto o login não funciona)
+app.UseAuthentication();
 app.UseAuthorization();
 
-// 7. Redirecionar a raiz "/" para o Login (Opcional, conforme o teu código original)
 app.MapGet("/", context => {
     context.Response.Redirect("/Identity/Account/Login");
     return Task.CompletedTask;
