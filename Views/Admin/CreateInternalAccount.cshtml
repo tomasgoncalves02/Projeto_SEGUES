@@ -1,0 +1,83 @@
+﻿@model Projeto_SEGUES.Models.CreateInternalUserViewModel
+
+@{
+    ViewData["Title"] = "Criar Conta Interna";
+}
+
+<div class="container mt-5">
+    <h2>🛠️ Criar Conta Administrativa ou Funcionário</h2>
+    <hr />
+
+    <div class="row">
+        <div class="col-md-6">
+            <form asp-action="CreateInternalAccount" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="row mb-3">
+                    <div class="col">
+                        <label asp-for="FirstName" class="form-label"></label>
+                        <input asp-for="FirstName" class="form-control" placeholder="Ex: João" />
+                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                    </div>
+                    <div class="col">
+                        <label asp-for="LastName" class="form-label"></label>
+                        <input asp-for="LastName" class="form-control" placeholder="Ex: Silva" />
+                        <span asp-validation-for="LastName" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="UsernameStub" class="form-label">Identificador</label>
+                    <div class="input-group">
+                        <input asp-for="UsernameStub" class="form-control" placeholder="Ex: joao.silva" />
+                        <span class="input-group-text bg-light text-muted">Será gerado: @@admin.com ou @@func.com</span>
+                    </div>
+                    @* ATUALIZADO: Explicação correta *@
+                    <small class="text-muted">Podes usar pontos e números. Apenas o símbolo '@@' será removido.</small>
+                    <span asp-validation-for="UsernameStub" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="AccountType" class="form-label">Função</label>
+                    <select asp-for="AccountType" class="form-select">
+                        <option value="Admin">Administrador (@@admin.com)</option>
+                        <option value="Funcionario">Funcionário do Bar (@@func.com)</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Gender" class="form-label">Género</label>
+                    <select asp-for="Gender" class="form-select" asp-items="Html.GetEnumSelectList<Projeto_SEGUES.Models.Enums.Enums.Gender>()">
+                        <option value="">Selecione...</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label">Senha Inicial</label>
+                    <input asp-for="Password" class="form-control" />
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Criar Conta</button>
+            </form>
+        </div>
+
+        <div class="col-md-6 d-flex align-items-center justify-content-center bg-light rounded">
+            <div class="text-center p-4">
+                <h4>Como funciona?</h4>
+
+                @* ATUALIZADO: Exemplos que mostram que os caracteres SÃO mantidos *@
+                <p>Se escreveres <strong>joao.silva</strong> e escolheres <strong>Admin</strong>:</p>
+                <p>O sistema cria: <br /> <code class="fs-5 text-primary">joao.silva@admin.com</code></p>
+
+                <hr />
+
+                <p>Se escreveres <strong>maria_123</strong> e escolheres <strong>Funcionário</strong>:</p>
+                <p>O sistema cria: <br /> <code class="fs-5 text-success">maria_123@func.com</code></p>
+
+                <hr />
+                <p class="small text-muted">Nota: Se escreveres "ze@@carlos", o sistema remove o "@@" e cria "zecarlos".</p>
+            </div>
+        </div>
+    </div>
+</div>

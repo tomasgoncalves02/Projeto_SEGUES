@@ -109,6 +109,10 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                         {
                             return RedirectToAction("Index", "Student"); // Vai para o Controller Student
                         }
+                        if (await _userManager.IsInRoleAsync(user, "Admin"))
+                        {
+                            return RedirectToAction("Index", "Admin"); // Vai para o Controller Student
+                        }
                         if (await _userManager.IsInRoleAsync(user, "ExternalEmployee"))
                         {
                             return RedirectToAction("Index", "Employee"); // Vai para o Controller Employee

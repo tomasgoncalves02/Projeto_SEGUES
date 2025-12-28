@@ -1,0 +1,59 @@
+﻿@{
+    ViewData["Title"] = "Painel de Administração";
+}
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>⚙️ Painel de Administração</h1>
+        <span class="badge bg-dark">Olá, @User.Identity?.Name</span>
+    </div>
+
+    @* 1. MENSAGEM DE SUCESSO (Aparece quando acabas de criar uma conta) *@
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <strong>Sucesso!</strong> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row">
+        @* CARTÃO 1: CRIAR CONTAS *@
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm h-100 border-start border-4 border-primary">
+                <div class="card-body text-center">
+                    <div class="mb-3" style="font-size: 3rem;">
+                        👤
+                    </div>
+                    <h5 class="card-title fw-bold">Gestão de Staff</h5>
+                    <p class="card-text text-muted">
+                        Registar novos Administradores (admin.com) ou Funcionários do Bar (func.com).
+                    </p>
+
+                    @* O BOTÃO QUE PEDISTE *@
+                    <a asp-action="CreateInternalAccount" class="btn btn-primary w-100 stretched-link">
+                        + Criar Nova Conta
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        @* CARTÃO 2: ESTATÍSTICAS (Exemplo Futuro) *@
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm h-100 border-start border-4 border-secondary">
+                <div class="card-body text-center">
+                    <div class="mb-3" style="font-size: 3rem;">
+                        📊
+                    </div>
+                    <h5 class="card-title fw-bold">Relatórios</h5>
+                    <p class="card-text text-muted">
+                        Consultar estatísticas de registos e atividade (Em breve).
+                    </p>
+                    <button class="btn btn-outline-secondary w-100" disabled>
+                        Em Desenvolvimento
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
