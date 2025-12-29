@@ -12,20 +12,60 @@
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
+                @* O Brand (Logo) leva para a Home genérica ou Login *@
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Projeto_SEGUES</a>
+
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
+
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
+
+                        @* LÓGICA DE NAVEGAÇÃO INTELIGENTE *@
+
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark fw-bold" asp-controller="Admin" asp-action="Index">⚙️ Painel Admin</a>
+                            </li>
+                        }
+                        else if (User.IsInRole("Teacher"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark fw-bold" asp-controller="Teacher" asp-action="Index">👨‍🏫 Portal Docente</a>
+                            </li>
+                        }
+                        else if (User.IsInRole("Student"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark fw-bold" asp-controller="Student" asp-action="Index">🎓 Área do Estudante</a>
+                            </li>
+                        }
+                        else if (User.IsInRole("Employee") )
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark fw-bold" asp-controller="Employee" asp-action="Index">💼 Área do Funcionário</a>
+                            </li>
+                        }
+                        else if (User.IsInRole("ExternalEmployee"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark fw-bold" asp-controller="ExternalEmployee" asp-action="Index">💼 Área do Colaborador</a>
+                            </li>
+                        }
+                        else
+                        {
+                            @* Se não tiver login feito, mostra a Home normal *@
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Home" asp-action="Index">Início</a>
+                            </li>
+                        }
+
                     </ul>
+
+                    @* Botões de Login/Logout *@
                     <partial name="_LoginPartial" />
                 </div>
             </div>
@@ -39,7 +79,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2025 - Projeto_SEGUES - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2025 - Projeto_SEGUES
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

@@ -14,7 +14,7 @@ namespace Projeto_SEGUES.Data
             var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
 
             // 1. CRIAR AS ROLES (Se não existirem)
-            string[] rolesNames = { "Admin", "Employee", "Student", "ExternalEmployee" };
+            string[] rolesNames = { "Admin", "Employee", "Student", "ExternalEmployee", "Teacher" };
 
             foreach (var roleName in rolesNames)
             {

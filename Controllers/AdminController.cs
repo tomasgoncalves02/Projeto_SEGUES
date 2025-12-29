@@ -179,40 +179,70 @@ namespace Projeto_SEGUES.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(EditUserViewModel model)
         {
-            if (!ModelState.IsValid)
-            {
-                ViewBag.Roles = _roleManager.Roles.Select(r => r.Name).ToList();
-                return View(model);
-            }
+            // Carrega as roles para o caso de dar erro e ter de voltar à página
+            ViewBag.Roles = _roleManager.Roles.Select(r => r.Name).ToList();
+
+            if (!ModelState.IsValid) return View(model);
 
             var user = await _userManager.FindByIdAsync(model.Id);
             if (user == null) return NotFound();
 
-            // Atualizar dados básicos
+            // ============================================================
+            // 1. ATUALIZAR DADOS BÁSICOS
+            // ============================================================
             user.FirstName = model.FirstName;
             user.LastName = model.LastName;
             user.Email = model.Email;
-            user.UserName = model.Email; // Mantém o username igual ao email
+            user.UserName = model.Email;
             user.Balance = model.Balance;
 
+            // ============================================================
+            // 2. ATUALIZAR O ENUM (Para o crachá aparecer correto na lista)
+            // ============================================================
+            // Isto garante que se escolheres "Teacher", ele fica com UserRole.Teacher
+            switch (model.Role)
+            {
+                case "Admin":
+                    user.Role = UserRole.Admin;
+                    break;
+                case "Teacher":
+                    user.Role = UserRole.Teacher; 
+                    break;
+                case "Employee":
+                    user.Role = UserRole.Employee;
+                    break;
+                case "Student":
+                    user.Role = UserRole.Student;
+                    break;
+                default:
+                    user.Role = UserRole.ExternalEmployee;
+                    break;
+            }
+
+            // Grava as alterações na tabela de Utilizadores (User + Enum)
             var result = await _userManager.UpdateAsync(user);
 
             if (result.Succeeded)
             {
-                // Atualizar a Role (Remove a antiga e mete a nova)
+                // ============================================================
+                // 3. ATUALIZAR A ROLE DO IDENTITY (Permissões de Login)
+                // ============================================================
                 var oldRoles = await _userManager.GetRolesAsync(user);
+
+                // Remove as roles antigas
                 if (oldRoles.Count > 0)
                 {
                     await _userManager.RemoveFromRolesAsync(user, oldRoles);
                 }
 
+                // Adiciona a nova role (ex: "Teacher")
                 if (!string.IsNullOrEmpty(model.Role))
                 {
                     await _userManager.AddToRoleAsync(user, model.Role);
                 }
 
                 TempData["Success"] = "Utilizador atualizado com sucesso!";
-                return RedirectToAction(nameof(Index)); // Assume que tens uma lista Index
+                return RedirectToAction("ListUsers"); // Redireciona para a lista
             }
 
             foreach (var error in result.Errors)
@@ -220,7 +250,6 @@ namespace Projeto_SEGUES.Controllers
                 ModelState.AddModelError("", error.Description);
             }
 
-            ViewBag.Roles = _roleManager.Roles.Select(r => r.Name).ToList();
             return View(model);
         }
 

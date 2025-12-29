@@ -115,7 +115,11 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                         }
                         if (await _userManager.IsInRoleAsync(user, "ExternalEmployee"))
                         {
-                            return RedirectToAction("Index", "Employee"); // Vai para o Controller Employee
+                            return RedirectToAction("Index", "ExternalEmployee"); 
+                        }
+                        if (await _userManager.IsInRoleAsync(user, "Employee"))
+                        {
+                            return RedirectToAction("Index", "Employee");
                         }
                     }
                     // ===========================================
