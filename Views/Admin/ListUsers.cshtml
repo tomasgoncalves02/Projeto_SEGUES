@@ -1,0 +1,71 @@
+﻿@model IEnumerable<Projeto_SEGUES.Models.User>
+
+@{
+    ViewData["Title"] = "Lista de Utilizadores";
+}
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>📋 Lista de Utilizadores</h1>
+        <a asp-action="Index" class="btn btn-outline-secondary">⬅️ Voltar ao Painel</a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nome</th>
+                        <th>Email</th>
+                        <th>Perfil</th>
+                        <th>Saldo</th>
+                        <th class="text-end">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                        @user.FirstName.Substring(0, 1).ToUpper()
+                                    </div>
+                                    <div class="fw-bold">@user.FirstName @user.LastName</div>
+                                </div>
+                            </td>
+                            <td>@user.Email</td>
+                            <td>
+                                @if (user.Role == Projeto_SEGUES.Models.Enums.Enums.UserRole.Admin)
+                                {
+                                    <span class="badge bg-danger">ADMIN</span>
+                                }
+                                else if (user.Role == Projeto_SEGUES.Models.Enums.Enums.UserRole.Employee)
+                                {
+
+                                    <span class="badge bg-warning text-dark">STAFF</span>
+                                }
+                                else if (user.Role == Projeto_SEGUES.Models.Enums.Enums.UserRole.Student)
+                                {
+
+                                    <span class="badge bg-info text-dark">ALUNO</span>
+                                }
+                                else
+                                {
+
+                                    <span class="badge bg-secondary">EXTERNO</span>
+                                }
+                            </td>
+                            <td class="text-success fw-bold">@user.Balance.ToString("C")</td>
+                            <td class="text-end">
+                                <a asp-action="Details" asp-route-id="@user.Id" class="btn btn-sm btn-primary">
+                                    Ver Detalhes ➡️
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

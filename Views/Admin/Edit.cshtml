@@ -1,0 +1,63 @@
+﻿@model Projeto_SEGUES.Models.EditUserViewModel
+
+@{
+    ViewData["Title"] = "Editar Utilizador";
+    var roles = ViewBag.Roles as List<string>;
+}
+
+<div class="container mt-4">
+    <h1>Editar Utilizador</h1>
+    <hr />
+
+    <div class="row">
+        <div class="col-md-6">
+            <form asp-action="Edit">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <input type="hidden" asp-for="Id" />
+
+                <div class="row mb-3">
+                    <div class="col">
+                        <label asp-for="FirstName" class="control-label"></label>
+                        <input asp-for="FirstName" class="form-control" />
+                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                    </div>
+                    <div class="col">
+                        <label asp-for="LastName" class="control-label"></label>
+                        <input asp-for="LastName" class="form-control" />
+                        <span asp-validation-for="LastName" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Email" class="control-label"></label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Balance" class="control-label"></label>
+                    <div class="input-group">
+                        <span class="input-group-text">€</span>
+                        <input asp-for="Balance" class="form-control" type="number" step="0.01" />
+                    </div>
+                    <span asp-validation-for="Balance" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Role" class="control-label">Perfil de Acesso</label>
+                    <select asp-for="Role" class="form-select">
+                        @foreach (var role in roles)
+                        {
+                            <option value="@role">@role</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-group mt-4">
+                    <input type="submit" value="Guardar Alterações" class="btn btn-primary" />
+                    <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
