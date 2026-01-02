@@ -5,6 +5,11 @@ VisualStudioVersion = 17.14.36511.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Projeto_SEGUES", "Projeto_SEGUES.csproj", "{CC636DA6-AE04-40DF-A313-B56A5189B8C3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeguesTests", "..\SeguesTests\SeguesTests.csproj", "{80C0CF6D-038F-4355-8E78-F9E5B238BF0E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{CC636DA6-AE04-40DF-A313-B56A5189B8C3} = {CC636DA6-AE04-40DF-A313-B56A5189B8C3}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +20,10 @@ Global
 		{CC636DA6-AE04-40DF-A313-B56A5189B8C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CC636DA6-AE04-40DF-A313-B56A5189B8C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CC636DA6-AE04-40DF-A313-B56A5189B8C3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80C0CF6D-038F-4355-8E78-F9E5B238BF0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80C0CF6D-038F-4355-8E78-F9E5B238BF0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80C0CF6D-038F-4355-8E78-F9E5B238BF0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80C0CF6D-038F-4355-8E78-F9E5B238BF0E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

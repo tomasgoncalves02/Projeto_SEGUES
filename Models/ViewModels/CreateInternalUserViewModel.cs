@@ -28,5 +28,10 @@ namespace Projeto_SEGUES.Models
         [Required]
         [DataType(DataType.Password)]
         public string Password { get; set; }
+
+        [Required]
+        [DataType(DataType.Date)] // Isto faz aparecer o calendário no browser
+        [Display(Name = "Data de Nascimento")]
+        public DateTime BirthDate { get; set; }
     }
 }

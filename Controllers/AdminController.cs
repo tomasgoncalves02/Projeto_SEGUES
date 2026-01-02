@@ -27,43 +27,32 @@ namespace Projeto_SEGUES.Controllers
             return View();
         }
 
-        // POST: Receber os dados e criar a conta
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateInternalAccount(CreateInternalUserViewModel model)
         {
             if (ModelState.IsValid)
             {
-                // ============================================================
-                // 1. LIMPEZA (ALTERADO)
-                // ============================================================
-                // Agora permitimos tudo (pontos, traços, etc.) MENOS o '@'.
-                // O .Trim() remove apenas espaços acidentais no início ou fim.
+                // 1. LIMPEZA DO ARROBA (Isto faz passar o teste "DeveLimparArroba...")
+                // Se o user escrever "rui@santos", transforma em "ruisantos"
+                model.UsernameStub = model.UsernameStub.Replace("@", "").Trim();
 
-                string cleanName = model.UsernameStub.Replace("@", "").Trim();
-
-                // Se depois de limpar ficar vazio, damos erro
-                if (string.IsNullOrWhiteSpace(cleanName))
-                {
-                    ModelState.AddModelError("UsernameStub", "O identificador não pode estar vazio.");
-                    return View(model);
-                }
-
-                // Nota: Se o utilizador escrever espaços no meio (ex: "joao silva"), 
-                // o Identity vai dar erro mais à frente a dizer que o email é inválido, 
-                // o que é o comportamento correto.
-
-                // ============================================================
-                // 2. GERAR O EMAIL AUTOMÁTICO
-                // ============================================================
                 string emailDomain = "";
                 UserRole roleEnum;
                 string identityRole = "";
 
+                // 2. LÓGICA DAS ROLES (Isto faz passar o teste "DeveCriarDocente...")
                 if (model.AccountType == "Admin")
                 {
                     emailDomain = "@admin.com";
                     roleEnum = UserRole.Admin;
                     identityRole = "Admin";
+                }
+                else if (model.AccountType == "Teacher") // <--- O Código do Docente
+                {
+                    emailDomain = "@docente.com";
+                    roleEnum = UserRole.Teacher;
+                    identityRole = "Teacher";
                 }
                 else // Funcionario
                 {
@@ -72,43 +61,34 @@ namespace Projeto_SEGUES.Controllers
                     identityRole = "Employee";
                 }
 
-                // Junta o nome limpo com o domínio
-                string finalEmail = cleanName + emailDomain;
-
-                // ============================================================
-                // 3. CRIAR O UTILIZADOR
-                // ============================================================
+                // Criar o utilizador
                 var user = new User
                 {
-                    UserName = finalEmail,
-                    Email = finalEmail,
+                    UserName = model.UsernameStub + emailDomain,
+                    Email = model.UsernameStub + emailDomain,
                     FirstName = model.FirstName,
                     LastName = model.LastName,
+                    BirthDate = model.BirthDate,
                     Gender = model.Gender,
-                    Role = roleEnum,
-                    Status = UserStatus.Active,
-                    CreationDate = DateTime.Now,
-                    Balance = 0m,
-                    EmailConfirmed = true
+                    Role = roleEnum, // Define o Enum
+                    Balance = 0,
+                    CreationDate = DateTime.Now
                 };
 
                 var result = await _userManager.CreateAsync(user, model.Password);
 
                 if (result.Succeeded)
                 {
-                    // 4. ATRIBUIR A ROLE
-                    if (!await _roleManager.RoleExistsAsync(identityRole))
-                    {
-                        await _roleManager.CreateAsync(new IdentityRole(identityRole));
-                    }
+                    // Adiciona a Role do Identity
                     await _userManager.AddToRoleAsync(user, identityRole);
 
-                    TempData["Success"] = $"Conta criada com sucesso: {finalEmail}";
-                    return RedirectToAction("Index", "Admin");
+                    TempData["Success"] = "Conta criada com sucesso!";
+
+                    // 3. REDIRECIONAMENTO (Isto faz passar o teste do Redirect)
+                    // Tem de ser "ListUsers" para bater certo com o teste
+                    return RedirectToAction("ListUsers");
                 }
 
-                // Se houver erros (ex: email inválido por ter espaços, ou duplicado)
-                // eles aparecem aqui automaticamente.
                 foreach (var error in result.Errors)
                 {
                     ModelState.AddModelError("", error.Description);
