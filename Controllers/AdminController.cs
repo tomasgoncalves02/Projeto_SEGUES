@@ -100,30 +100,36 @@ namespace Projeto_SEGUES.Controllers
         {
             return View();
         }
-
-        // 2. NOVA AÇÃO PARA A LISTA
-        public async Task<IActionResult> ListUsers(string roleFilter)
+       
+        // 2. AÇÃO ATUALIZADA PARA A LISTA COM PESQUISA
+        public async Task<IActionResult> ListUsers(string roleFilter, string searchString)
         {
-            // 1. Começamos com "Todos os utilizadores" (Query base)
+            // 1. Começamos com a Query base
             var usersQuery = _userManager.Users.AsQueryable();
 
-            // 2. Se o utilizador escolheu uma Role, aplicamos o filtro
+            // 2. Filtro por Nome ou Email (Texto)
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                usersQuery = usersQuery.Where(u => u.FirstName.Contains(searchString)
+                                                || u.LastName.Contains(searchString)
+                                                || u.Email.Contains(searchString));
+            }
+
+            // 3. Filtro por Perfil (Dropdown)
             if (!string.IsNullOrEmpty(roleFilter))
             {
-                // Convertemos o texto (ex: "1") para o Enum correto
                 if (Enum.TryParse(typeof(Projeto_SEGUES.Models.Enums.Enums.UserRole), roleFilter, out var roleEnum))
                 {
-                    // Filtra onde a Role é igual à escolhida
-                    // Nota: precisamos de fazer cast para o tipo Enum correto
                     var roleValue = (Projeto_SEGUES.Models.Enums.Enums.UserRole)roleEnum;
                     usersQuery = usersQuery.Where(u => u.Role == roleValue);
                 }
             }
 
-            // 3. Guardamos o filtro atual para o Dropdown não "esquecer" o que escolheste
+            // 4. Guardamos os filtros na ViewData para a View os mostrar nos campos
             ViewData["CurrentFilter"] = roleFilter;
+            ViewData["SearchString"] = searchString;
 
-            // 4. Executa a query e manda a lista filtrada
+            // 5. Executa a query
             var users = await usersQuery.ToListAsync();
             return View(users);
         }

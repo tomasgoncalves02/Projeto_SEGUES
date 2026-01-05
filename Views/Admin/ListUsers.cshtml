@@ -14,17 +14,37 @@
     <div class="card mb-4 bg-light">
         <div class="card-body py-3">
             <form method="get" asp-action="ListUsers" class="row g-3 align-items-center">
-                <div class="col-auto">
+
+                <div class="col-md-auto">
                     <label class="col-form-label fw-bold">Filtrar por Perfil:</label>
                 </div>
-                <div class="col-auto">
+                <div class="col-md-auto">
                     <select name="roleFilter" class="form-select"
-                            asp-items="Html.GetEnumSelectList<Enums.UserRole>()"
+                            asp-items="Html.GetEnumSelectList<Projeto_SEGUES.Models.Enums.Enums.UserRole>()"
                             onchange="this.form.submit()">
                         <option value="">Todos os Utilizadores</option>
                     </select>
                 </div>
 
+                <div class="col-md-auto ms-md-3">
+                    <label class="col-form-label fw-bold">Pesquisar:</label>
+                </div>
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <input type="text" name="searchString" class="form-control"
+                               placeholder="Nome ou email..."
+                               value="@ViewData["SearchString"]" />
+                        <button class="btn btn-primary" type="submit">
+                            Pesquisar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="col-md-auto">
+                    <a asp-action="ListUsers" class="btn btn-outline-secondary">Limpar</a>
+                </div>
+
+                @* Script para manter o valor do Dropdown selecionado *@
                 @if (ViewData["CurrentFilter"] != null)
                 {
                     <script>
