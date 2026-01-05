@@ -4,7 +4,17 @@ namespace Projeto_SEGUES.Models.Enums
 {
     public class Enums
     {
-        public enum UserRole { Student, Admin, Employee, ExternalEmployee, Teacher }
+        public enum UserRole {
+            [Display(Name = "Estudante")]
+            Student,
+            [Display(Name = "Administrador")]
+            Admin,
+            [Display(Name = "Funcionário")]
+            Employee,
+            [Display(Name = "Funcionário Externo")]
+            ExternalEmployee,
+            [Display(Name = "Professor")]
+            Teacher }
         public enum UserStatus { Active, Inactive, Suspended }
         public enum Gender {
             [Display(Name = "Masculino")]

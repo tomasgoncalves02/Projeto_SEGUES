@@ -1,17 +1,31 @@
 ﻿using Microsoft.AspNetCore.Identity.UI.Services;
-using System.Threading.Tasks;
+using System.Net;
+using System.Net.Mail;
 
 namespace Projeto_SEGUES.Services
 {
-    // Esta classe finge que envia o email, mas não faz nada.
-    // Serve apenas para o site não dar erro.
     public class EmailSender : IEmailSender
     {
         public Task SendEmailAsync(string email, string subject, string htmlMessage)
         {
-            // Aqui futuramente podes meter lógica real.
-            // Por agora, retorna "Tarefa Concluída" para enganar o sistema.
-            return Task.CompletedTask;
+            
+            string mailServer = "smtp.gmail.com";
+            int port = 587;
+            string myEmail = "segues2026@gmail.com"; 
+            string myPassword = "vuih xnzi kalq yivw"; 
+
+            var client = new SmtpClient(mailServer, port)
+            {
+                Credentials = new NetworkCredential(myEmail, myPassword),
+                EnableSsl = true,
+            };
+
+            var mailMessage = new MailMessage(myEmail, email, subject, htmlMessage)
+            {
+                IsBodyHtml = true
+            };
+
+            return client.SendMailAsync(mailMessage);
         }
     }
 }

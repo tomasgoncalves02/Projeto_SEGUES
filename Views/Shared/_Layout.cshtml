@@ -28,31 +28,31 @@
                         @if (User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark fw-bold" asp-controller="Admin" asp-action="Index">⚙️ Painel Admin</a>
+                                <a class="nav-link text-dark fw-bold" asp-controller="Admin" asp-action="Index">Painel Admin</a>
                             </li>
                         }
                         else if (User.IsInRole("Teacher"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark fw-bold" asp-controller="Teacher" asp-action="Index">👨‍🏫 Portal Docente</a>
+                                <a class="nav-link text-dark fw-bold" asp-controller="Teacher" asp-action="Index">Portal Docente</a>
                             </li>
                         }
                         else if (User.IsInRole("Student"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark fw-bold" asp-controller="Student" asp-action="Index">🎓 Área do Estudante</a>
+                                <a class="nav-link text-dark fw-bold" asp-controller="Student" asp-action="Index">Área do Estudante</a>
                             </li>
                         }
                         else if (User.IsInRole("Employee") )
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark fw-bold" asp-controller="Employee" asp-action="Index">💼 Área do Funcionário</a>
+                                <a class="nav-link text-dark fw-bold" asp-controller="Employee" asp-action="Index">Área do Funcionário</a>
                             </li>
                         }
                         else if (User.IsInRole("ExternalEmployee"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark fw-bold" asp-controller="ExternalEmployee" asp-action="Index">💼 Área do Colaborador</a>
+                                <a class="nav-link text-dark fw-bold" asp-controller="ExternalEmployee" asp-action="Index">Área do Colaborador</a>
                             </li>
                         }
                         else

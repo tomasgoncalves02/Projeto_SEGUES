@@ -26,14 +26,13 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // 2. Identity (Configuração relaxada para testes)
 builder.Services.AddIdentity<User, IdentityRole>(options => {
-    options.SignIn.RequireConfirmedAccount = false;
-    options.User.RequireUniqueEmail = true;
-    // Senhas fáceis para teste
-    options.Password.RequireDigit = false;
-    options.Password.RequiredLength = 4;
-    options.Password.RequireNonAlphanumeric = false;
-    options.Password.RequireUppercase = false;
-    options.Password.RequireLowercase = false;
+    options.SignIn.RequireConfirmedAccount = true;
+    options.Password.RequireDigit = true;           
+    options.Password.RequireLowercase = true;     
+    options.Password.RequireUppercase = true;       
+    options.Password.RequireNonAlphanumeric = true; 
+    options.Password.RequiredLength = 6;            
+    options.Password.RequiredUniqueChars = 1;
 })
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
@@ -49,8 +48,10 @@ builder.Services.AddAuthentication()
     });
 */
 
-// 4. Email Sender (Simulado)
+
+
 builder.Services.AddTransient<IEmailSender, EmailSender>();
+
 
 // 5. MVC e Razor Pages
 builder.Services.AddControllersWithViews();
@@ -58,10 +59,7 @@ builder.Services.AddRazorPages();
 
 var app = builder.Build();
 
-// ==============================================================
-// 🟢 SEEDING AUTOMÁTICO (CRIA O ADMIN MESTRE)
-// ==============================================================
-// Isto corre sempre que a aplicação inicia para garantir que o Admin existe
+
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;

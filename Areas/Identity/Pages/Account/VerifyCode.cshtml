@@ -1,0 +1,33 @@
+﻿@page
+@model Projeto_SEGUES.Areas.Identity.Pages.Account.VerifyCodeModel
+@{
+    ViewData["Title"] = "Validar Conta";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <h1>Validar Conta</h1>
+            <p>Enviámos um código de 6 dígitos para o seu email.</p>
+            <hr />
+
+            <form method="post" class="card p-4 shadow-sm text-start">
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                <div class="mb-3">
+                    <label class="form-label">O seu Email</label>
+                    <input type="text" class="form-control" value="@Model.UserEmailDisplay" readonly />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Código de Validação</label>
+                    <input asp-for="Input.Code" class="form-control form-control-lg text-center tracking-widest"
+                           placeholder="000000" maxlength="6" style="letter-spacing: 5px; font-size: 24px;" />
+                    <span asp-validation-for="Input.Code" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg w-100">Confirmar e Entrar</button>
+            </form>
+        </div>
+    </div>
+</div>

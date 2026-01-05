@@ -3,13 +3,13 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using Projeto_SEGUES.Models;
-using Projeto_SEGUES.Models.Enums; // Para aceder aos Enums
+using Projeto_SEGUES.Models.Enums; 
 using System.Text.RegularExpressions;
 using static Projeto_SEGUES.Models.Enums.Enums;
 
 namespace Projeto_SEGUES.Controllers
 {
-    [Authorize(Roles = "Admin")] // <--- SÓ O ADMIN ENTRA AQUI
+    [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
         private readonly UserManager<User> _userManager;
@@ -33,35 +33,34 @@ namespace Projeto_SEGUES.Controllers
         {
             if (ModelState.IsValid)
             {
-                // 1. LIMPEZA DO ARROBA (Isto faz passar o teste "DeveLimparArroba...")
-                // Se o user escrever "rui@santos", transforma em "ruisantos"
+               
                 model.UsernameStub = model.UsernameStub.Replace("@", "").Trim();
 
                 string emailDomain = "";
                 UserRole roleEnum;
                 string identityRole = "";
 
-                // 2. LÓGICA DAS ROLES (Isto faz passar o teste "DeveCriarDocente...")
+               
                 if (model.AccountType == "Admin")
                 {
                     emailDomain = "@admin.com";
                     roleEnum = UserRole.Admin;
                     identityRole = "Admin";
                 }
-                else if (model.AccountType == "Teacher") // <--- O Código do Docente
+                else if (model.AccountType == "Teacher") 
                 {
                     emailDomain = "@docente.com";
                     roleEnum = UserRole.Teacher;
                     identityRole = "Teacher";
                 }
-                else // Funcionario
+                else 
                 {
                     emailDomain = "@func.com";
                     roleEnum = UserRole.Employee;
                     identityRole = "Employee";
                 }
 
-                // Criar o utilizador
+              
                 var user = new User
                 {
                     UserName = model.UsernameStub + emailDomain,
@@ -79,13 +78,12 @@ namespace Projeto_SEGUES.Controllers
 
                 if (result.Succeeded)
                 {
-                    // Adiciona a Role do Identity
+                   
                     await _userManager.AddToRoleAsync(user, identityRole);
 
                     TempData["Success"] = "Conta criada com sucesso!";
 
-                    // 3. REDIRECIONAMENTO (Isto faz passar o teste do Redirect)
-                    // Tem de ser "ListUsers" para bater certo com o teste
+                  
                     return RedirectToAction("ListUsers");
                 }
 
@@ -104,9 +102,29 @@ namespace Projeto_SEGUES.Controllers
         }
 
         // 2. NOVA AÇÃO PARA A LISTA
-        public async Task<IActionResult> ListUsers()
+        public async Task<IActionResult> ListUsers(string roleFilter)
         {
-            var users = await _userManager.Users.ToListAsync();
+            // 1. Começamos com "Todos os utilizadores" (Query base)
+            var usersQuery = _userManager.Users.AsQueryable();
+
+            // 2. Se o utilizador escolheu uma Role, aplicamos o filtro
+            if (!string.IsNullOrEmpty(roleFilter))
+            {
+                // Convertemos o texto (ex: "1") para o Enum correto
+                if (Enum.TryParse(typeof(Projeto_SEGUES.Models.Enums.Enums.UserRole), roleFilter, out var roleEnum))
+                {
+                    // Filtra onde a Role é igual à escolhida
+                    // Nota: precisamos de fazer cast para o tipo Enum correto
+                    var roleValue = (Projeto_SEGUES.Models.Enums.Enums.UserRole)roleEnum;
+                    usersQuery = usersQuery.Where(u => u.Role == roleValue);
+                }
+            }
+
+            // 3. Guardamos o filtro atual para o Dropdown não "esquecer" o que escolheste
+            ViewData["CurrentFilter"] = roleFilter;
+
+            // 4. Executa a query e manda a lista filtrada
+            var users = await usersQuery.ToListAsync();
             return View(users);
         }
 
@@ -159,70 +177,54 @@ namespace Projeto_SEGUES.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(EditUserViewModel model)
         {
-            // Carrega as roles para o caso de dar erro e ter de voltar à página
-            ViewBag.Roles = _roleManager.Roles.Select(r => r.Name).ToList();
-
+         
             if (!ModelState.IsValid) return View(model);
 
             var user = await _userManager.FindByIdAsync(model.Id);
             if (user == null) return NotFound();
 
-            // ============================================================
-            // 1. ATUALIZAR DADOS BÁSICOS
-            // ============================================================
+        
             user.FirstName = model.FirstName;
             user.LastName = model.LastName;
             user.Email = model.Email;
             user.UserName = model.Email;
             user.Balance = model.Balance;
 
-            // ============================================================
-            // 2. ATUALIZAR O ENUM (Para o crachá aparecer correto na lista)
-            // ============================================================
-            // Isto garante que se escolheres "Teacher", ele fica com UserRole.Teacher
-            switch (model.Role)
-            {
-                case "Admin":
-                    user.Role = UserRole.Admin;
-                    break;
-                case "Teacher":
-                    user.Role = UserRole.Teacher; 
-                    break;
-                case "Employee":
-                    user.Role = UserRole.Employee;
-                    break;
-                case "Student":
-                    user.Role = UserRole.Student;
-                    break;
-                default:
-                    user.Role = UserRole.ExternalEmployee;
-                    break;
-            }
+           
 
-            // Grava as alterações na tabela de Utilizadores (User + Enum)
+            
+            int roleId = int.Parse(model.Role);
+
+           
+            var roleEnum = (Projeto_SEGUES.Models.Enums.Enums.UserRole)roleId;
+            user.Role = roleEnum;
+
+          
+            string roleName = roleEnum.ToString();
+     
+
             var result = await _userManager.UpdateAsync(user);
 
             if (result.Succeeded)
             {
-                // ============================================================
-                // 3. ATUALIZAR A ROLE DO IDENTITY (Permissões de Login)
-                // ============================================================
+            
+
                 var oldRoles = await _userManager.GetRolesAsync(user);
 
-                // Remove as roles antigas
+                
                 if (oldRoles.Count > 0)
                 {
                     await _userManager.RemoveFromRolesAsync(user, oldRoles);
                 }
 
-                // Adiciona a nova role (ex: "Teacher")
-                if (!string.IsNullOrEmpty(model.Role))
+               
+                if (!string.IsNullOrEmpty(roleName))
                 {
-                    await _userManager.AddToRoleAsync(user, model.Role);
+                    await _userManager.AddToRoleAsync(user, roleName);
                 }
 
                 TempData["Success"] = "Utilizador atualizado com sucesso!";
-                return RedirectToAction("ListUsers"); // Redireciona para a lista
+                return RedirectToAction("ListUsers");
             }
 
             foreach (var error in result.Errors)
@@ -233,9 +235,7 @@ namespace Projeto_SEGUES.Controllers
             return View(model);
         }
 
-        // ============================================================
-        // 3. DELETE (Apagar)
-        // ============================================================
+
         public async Task<IActionResult> Delete(string id)
         {
             if (id == null) return NotFound();
