@@ -3,6 +3,28 @@
 @{
     ViewData["Title"] = "Criar Conta Interna";
 }
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const togglePassword = document.querySelector('#togglePassword');
+            const passwordField = document.querySelector('#passwordInput');
+            const icon = togglePassword.querySelector('i');
+
+            togglePassword.addEventListener('click', function () {
+                // Alterna o tipo do input
+                const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordField.setAttribute('type', type);
+
+                // Alterna o ícone (olho aberto / olho cortado)
+                icon.classList.toggle('bi-eye');
+                icon.classList.toggle('bi-eye-slash');
+            });
+        });
+    </script>
+
+    @* Se ainda não tiveres as validações padrão do ASP.NET *@
+    <partial name="_ValidationScriptsPartial" />
+}
 
 <div class="container mt-5">
     <h2>Criar Conta Administrativa ou Funcionário</h2>
@@ -54,7 +76,14 @@
 
                 <div class="mb-3">
                     <label asp-for="Password" class="form-label">Senha Inicial</label>
-                    <input asp-for="Password" class="form-control" />
+                    <div class="input-group">
+                        @* Mantemos o asp-for para o ASP.NET reconhecer o campo no POST *@
+                        <input asp-for="Password" class="form-control" id="passwordInput" type="password" />
+
+                        <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
                     <span asp-validation-for="Password" class="text-danger"></span>
                 </div>
 
