@@ -1,0 +1,182 @@
+﻿@model IEnumerable<Projeto_SEGUES.Models.Ticket>
+@using static Projeto_SEGUES.Models.Enums.Enums
+
+@{
+    ViewData["Title"] = "Gestão de Refeições - SEGUES";
+    var userRole = ViewBag.UserRole;
+    var balance = ViewBag.UserBalance ?? 0m;
+    var price = ViewBag.CurrentPrice ?? 0m;
+    bool isAdmin = (userRole == UserRole.Admin);
+}
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<div class="container mt-4">
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-8">
+            <h2 class="fw-bold">
+                <i class="bi bi-ticket-perforated text-primary"></i>
+                @(isAdmin ? "Painel de Auditoria Global" : "As Minhas Senhas")
+            </h2>
+            <p class="text-muted small">Sistema de Gestão de Refeições - Sprint 2</p>
+        </div>
+
+        @if (!isAdmin)
+        {
+            <div class="col-md-4 text-end">
+                <div class="card bg-primary text-white border-0 shadow-sm">
+                    <div class="card-body py-2">
+                        <small class="d-block opacity-75">Saldo Disponível</small>
+                        <span class="fs-3 fw-bold">@balance.ToString("C")</span>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="row">
+        @if (!isAdmin)
+        {
+            <div class="col-lg-4">
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0 text-success"><i class="bi bi-cart-plus me-2"></i>Comprar Senha</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-light border-0 small mb-3">
+                            <i class="bi bi-info-circle me-1"></i> Preço para o seu perfil: <strong>@price.ToString("C")</strong>
+                        </div>
+
+                        <form asp-action="BuyTicket" method="post" id="formCompra">
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Quantidade de Refeições</label>
+                                <select name="quantity" class="form-select">
+                                    <option value="1">1 Unidade (@price.ToString("C"))</option>
+                                    <option value="2">2 Unidades (@((price * 2).ToString("C")))</option>
+                                </select>
+                                <div class="form-text text-danger" style="font-size: 0.75rem;">
+                                    * Limite diário: 2 senhas.
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-success w-100 py-2 fw-bold shadow-sm"
+                                    @(balance < price ? "disabled" : "")>
+                                <i class="bi bi-credit-card me-2"></i>Confirmar Compra
+                            </button>
+                        </form>
+
+                        @if (balance < price)
+                        {
+                            <p class="text-danger small mt-2 text-center">Saldo insuficiente para comprar.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="@(isAdmin ? "col-lg-12" : "col-lg-8")">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i>Histórico de Registos</h5>
+                    @if (isAdmin)
+                    {
+                        <span class="badge bg-dark">Visualização Global</span>
+                    }
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                @if (isAdmin)
+                                {
+                                    <th>Utilizador</th>
+                                }
+                                <th>Código</th>
+                                <th>Compra</th>
+                                <th>Validade (RF16)</th>
+                                <th>Estado</th>
+                                <th class="text-center">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    @if (isAdmin)
+                                    {
+                                        <td>
+                                            <div class="fw-bold small">@item.Owner?.FirstName @item.Owner?.LastName</div>
+                                            <div class="text-muted" style="font-size: 0.7rem;">@item.Owner?.Email</div>
+                                        </td>
+                                    }
+                                    <td><code class="fw-bold text-primary">@item.ValidationCode</code></td>
+                                    <td class="small">@item.PurchaseDate.ToString("dd/MM/yyyy")</td>
+                                    <td class="small">@item.ExpirationDate.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        @if (item.State == TicketState.Available)
+                                        {
+                                            <span class="badge bg-success shadow-none">Disponível</span>
+                                        }
+                                        else if (item.State == TicketState.Used)
+                                        {
+                                            <span class="badge bg-secondary">Consumida</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Expirada</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        @if (item.State == TicketState.Available && !isAdmin)
+                                        {
+                                            <button class="btn btn-sm btn-outline-primary" onclick="verCodigo('@item.ValidationCode')">
+                                                <i class="bi bi-qr-code"></i> Ver QR
+                                            </button>
+                                        }
+                                        else if (isAdmin)
+                                        {
+                                            <span class="text-muted small">Apenas Leitura</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                            @if (!Model.Any())
+                            {
+                                <tr>
+                                    <td colspan="6" class="text-center py-5 text-muted italic">Nenhuma senha encontrada no sistema.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Lógica de Popups para mensagens do Controller
+        document.addEventListener("DOMContentLoaded", function () {
+            var successMsg = '@TempData["Success"]';
+            var errorMsg = '@TempData["Error"]';
+
+            if (successMsg) {
+                Swal.fire({ icon: 'success', title: 'Sucesso!', text: successMsg, confirmButtonColor: '#198754' });
+            }
+            if (errorMsg) {
+                Swal.fire({ icon: 'error', title: 'Erro!', text: errorMsg, confirmButtonColor: '#dc3545' });
+            }
+        });
+
+        // Popup para exibir o código da senha
+        function verCodigo(code) {
+            Swal.fire({
+                title: 'Código de Validação',
+                html: '<div class="p-4 bg-light border"><h3>' + code + '</h3></div><p class="mt-3">Apresente este código no refeitório.</p>',
+                icon: 'info',
+                confirmButtonText: 'Fechar'
+            });
+        }
+    </script>
+}

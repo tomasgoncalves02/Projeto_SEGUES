@@ -50,7 +50,7 @@ namespace Projeto_SEGUES.Controllers
                 else if (model.AccountType == "Teacher") 
                 {
                     emailDomain = "@docente.com";
-                    roleEnum = UserRole.Teacher;
+                    roleEnum = UserRole.DocenteNaoDocente;
                     identityRole = "Teacher";
                 }
                 else 
@@ -181,63 +181,44 @@ namespace Projeto_SEGUES.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [HttpPost]       
         public async Task<IActionResult> Edit(EditUserViewModel model)
         {
-         
             if (!ModelState.IsValid) return View(model);
 
             var user = await _userManager.FindByIdAsync(model.Id);
             if (user == null) return NotFound();
 
-        
             user.FirstName = model.FirstName;
             user.LastName = model.LastName;
             user.Email = model.Email;
             user.UserName = model.Email;
             user.Balance = model.Balance;
 
-           
-
-            
-            int roleId = int.Parse(model.Role);
-
-           
-            var roleEnum = (Projeto_SEGUES.Models.Enums.Enums.UserRole)roleId;
-            user.Role = roleEnum;
-
-          
-            string roleName = roleEnum.ToString();
-     
-
-            var result = await _userManager.UpdateAsync(user);
-
-            if (result.Succeeded)
+            // Converte o ID do Dropdown para o Enum correto
+            if (int.TryParse(model.Role, out int roleId))
             {
-            
+                var roleEnum = (UserRole)roleId;
+                user.Role = roleEnum;
+                string roleName = roleEnum.ToString(); // Ex: "External" ou "DocenteNaoDocente"
 
-                var oldRoles = await _userManager.GetRolesAsync(user);
-
-                
-                if (oldRoles.Count > 0)
+                // Garante que a Role existe na BD antes de tentar associar
+                if (!await _roleManager.RoleExistsAsync(roleName))
                 {
+                    await _roleManager.CreateAsync(new IdentityRole(roleName));
+                }
+
+                var result = await _userManager.UpdateAsync(user);
+                if (result.Succeeded)
+                {
+                    var oldRoles = await _userManager.GetRolesAsync(user);
                     await _userManager.RemoveFromRolesAsync(user, oldRoles);
-                }
-
-               
-                if (!string.IsNullOrEmpty(roleName))
-                {
                     await _userManager.AddToRoleAsync(user, roleName);
+
+                    TempData["Success"] = "Utilizador atualizado com sucesso!";
+                    return RedirectToAction("ListUsers");
                 }
-
-                TempData["Success"] = "Utilizador atualizado com sucesso!";
-                return RedirectToAction("ListUsers");
             }
-
-            foreach (var error in result.Errors)
-            {
-                ModelState.AddModelError("", error.Description);
-            }
-
             return View(model);
         }
 

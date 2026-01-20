@@ -17,7 +17,7 @@ namespace Projeto_SEGUES.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.22")
+                .HasAnnotation("ProductVersion", "8.0.23")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -473,6 +473,10 @@ namespace Projeto_SEGUES.Migrations
 
                     b.Property<DateTime?>("UsedDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("ValidationCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 

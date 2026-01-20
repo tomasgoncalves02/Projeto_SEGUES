@@ -11,10 +11,11 @@ namespace Projeto_SEGUES.Models.Enums
             Admin,
             [Display(Name = "Funcionário")]
             Employee,
-            [Display(Name = "Funcionário Externo")]
-            ExternalEmployee,
-            [Display(Name = "Professor")]
-            Teacher }
+            [Display(Name = "Externo")]
+            External,
+            [Display(Name = "Docente/NaoDocente")]
+            DocenteNaoDocente
+        }
         public enum UserStatus { Active, Inactive, Suspended }
         public enum Gender {
             [Display(Name = "Masculino")]
@@ -24,7 +25,7 @@ namespace Projeto_SEGUES.Models.Enums
             [Display(Name = "Outro")]
             Other }
         public enum DiscountType { Percentage, Fixed }
-        public enum TicketState { Valid, Used, Expired }
-        public enum TicketType { Student, Admin, Employee , ExternalEmployee }
+        public enum TicketState { Available = 0, Used = 1, Expired = 2 }
+        public enum TicketType { Student, Admin, Employee , External, DocenteNaoDocente }
     }
 }

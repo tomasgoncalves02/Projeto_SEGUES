@@ -109,7 +109,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             };
 
             string roleNameString = "ExternalEmployee";
-            UserRole roleEnum = UserRole.ExternalEmployee;
+            UserRole roleEnum = UserRole.External;
 
             if (data.Email.ToLower().Contains("@estudantes."))
             {
