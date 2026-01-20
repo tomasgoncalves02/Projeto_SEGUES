@@ -45,6 +45,24 @@ namespace Projeto_SEGUES.Controllers
                 foreach (var ticket in expiredTickets) { ticket.State = TicketState.Expired; }
                 await _context.SaveChangesAsync();
             }
+            if (user.Role == UserRole.Admin)
+            {
+                var allPrices = await _context.TicketPrices.ToListAsync();
+
+                // Se a tabela estiver vazia (primeira vez), criamos os registos base
+                if (!allPrices.Any())
+                {
+                    allPrices = new List<TicketPrice>
+            {
+                new TicketPrice { TicketType = TicketType.Student, Price = 2.90m, InitialDatePrice = now, EndDatePrice = now.AddYears(1) },
+                new TicketPrice { TicketType = TicketType.DocenteNaoDocente, Price = 5.20m, InitialDatePrice = now, EndDatePrice = now.AddYears(1) },
+                new TicketPrice { TicketType = TicketType.External, Price = 5.50m, InitialDatePrice = now, EndDatePrice = now.AddYears(1) }
+            };
+                    _context.TicketPrices.AddRange(allPrices);
+                    await _context.SaveChangesAsync();
+                }
+                ViewBag.Prices = allPrices;
+            }
 
             // 2. RF17: PREÇO DINÂMICO (Baseado no Admin)
             var userTicketType = GetTicketTypeByUserRole(user.Role);
@@ -189,6 +207,39 @@ namespace Projeto_SEGUES.Controllers
                 .FirstOrDefaultAsync();
 
             return priceEntry?.Price ?? 0m;
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdatePrices(List<TicketPrice> updatedPrices)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    foreach (var price in updatedPrices)
+                    {
+                        // Parte 3: Operadores do domínio sendo atualizados
+                        _context.TicketPrices.Update(price);
+                    }
+                    await _context.SaveChangesAsync();
+
+                    // Esta mensagem será lida pelo SweetAlert no Scripts da View
+                    TempData["Success"] = "O precario foi atualizado com sucesso!";
+                }
+                catch (Exception)
+                {
+                    TempData["Error"] = "Ocorreu um erro ao gravar os novos precos na base de dados.";
+                }
+            }
+            else
+            {
+                TempData["Error"] = "Os dados introduzidos são invalidos.";
+            }
+
+            // CORREÇÃO DA ROTA: Força o retorno para a página de Gestão de Senhas
+            return RedirectToAction("Index", "Tickets");
         }
     }
 

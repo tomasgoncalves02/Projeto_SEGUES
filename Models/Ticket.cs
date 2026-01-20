@@ -14,7 +14,6 @@ namespace Projeto_SEGUES.Models
         public string OwnerId { get; set; }
         [ForeignKey("OwnerId")]
         public User Owner { get; set; }
-
         // Exemplo de relação com TicketPurchase (Assumindo 1:N ou 1:1)
         public int TicketPurchaseId { get; set; }       
         public string ValidationCode { get; set; } = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();

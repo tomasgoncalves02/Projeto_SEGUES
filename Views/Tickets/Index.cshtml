@@ -19,6 +19,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <div class="container mt-4">
+    @* --- CABEÇALHO --- *@
     <div class="row mb-4 align-items-center">
         <div class="col-md-8">
             <h2 class="fw-bold text-dark">
@@ -41,7 +42,51 @@
         }
     </div>
 
+    @* --- SECÇÃO EXCLUSIVA PARA ADMIN: DEFINIÇÃO DE PREÇOS (RF17) --- *@
+    @if (userRole == UserRole.Admin)
+    {
+        var prices = ViewBag.Prices as List<Projeto_SEGUES.Models.TicketPrice>;
+
+        <div class="card shadow-sm border-0 mb-5 border-top border-4 border-warning">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-bold text-warning"><i class="bi bi-currency-euro me-2"></i>Definição de Preçário (RF17)</h5>
+            </div>
+            <div class="card-body p-4 bg-light">
+                <form asp-controller="Tickets" asp-action="UpdatePrices" method="post" class="row align-items-end g-3">
+                    @if (prices != null)
+                    {
+                        @for (int i = 0; i < prices.Count; i++)
+                        {
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold text-muted">@prices[i].TicketType.ToString()</label>
+
+                                @* CAMPOS HIDDEN CRUCIAL: Sem isto dá erro de sistema *@
+                                <input type="hidden" name="updatedPrices[@i].Id" value="@prices[i].Id" />
+                                <input type="hidden" name="updatedPrices[@i].TicketType" value="@prices[i].TicketType" />
+                                <input type="hidden" name="updatedPrices[@i].InitialDatePrice" value="@prices[i].InitialDatePrice.ToString("yyyy-MM-ddTHH:mm:ss")" />
+                                <input type="hidden" name="updatedPrices[@i].EndDatePrice" value="@prices[i].EndDatePrice.ToString("yyyy-MM-ddTHH:mm:ss")" />
+
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white">€</span>
+                                    <input type="text" name="updatedPrices[@i].Price"
+                                           class="form-control fw-bold"
+                                           value="@prices[i].Price.ToString("F2")" />
+                                </div>
+                            </div>
+                        }
+                    }
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-warning w-100 fw-bold text-dark shadow-sm">
+                            <i class="bi bi-arrow-repeat me-1"></i> ATUALIZAR PREÇOS
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    }
+
     <div class="row">
+        @* --- COMPRA DE SENHA (Utentes) --- *@
         @if (podeComprar)
         {
             <div class="col-lg-4">
@@ -75,6 +120,7 @@
             </div>
         }
 
+        @* --- REGISTO/AUDITORIA DE SENHAS --- *@
         <div class="@(podeComprar ? "col-lg-8" : "col-lg-12")">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
@@ -92,8 +138,8 @@
                                 {
                                     <th class="ps-3">Utente</th>
                                 }
-                                <th>Código (RF05)</th>
-                                <th>Expiração (RF16)</th>
+                                <th>Código</th>
+                                <th>Expiração</th>
                                 <th>Estado</th>
                                 <th class="text-center">Ação</th>
                             </tr>
@@ -156,20 +202,18 @@
 
 @section Scripts {
     <script>
-        // Interceção de Mensagens do Controller (Popups)
         document.addEventListener("DOMContentLoaded", function () {
             var success = '@TempData["Success"]';
             var error = '@TempData["Error"]';
 
             if (success) {
-                Swal.fire({ icon: 'success', title: 'Operação Concluída', text: success, confirmButtonColor: '#198754' });
+                Swal.fire({ icon: 'success', title: 'Operação Concluída', text: success, confirmButtonColor: '#ffc107', confirmButtonTextColor: '#000' });
             }
             if (error) {
                 Swal.fire({ icon: 'error', title: 'Erro de Sistema', text: error, confirmButtonColor: '#d33' });
             }
         });
 
-        // Função para mostrar o código da senha
         function verCodigo(code) {
             Swal.fire({
                 title: 'Senha de Refeição',

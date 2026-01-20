@@ -504,7 +504,8 @@ namespace Projeto_SEGUES.Migrations
                     State = table.Column<int>(type: "int", nullable: false),
                     UsedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     OwnerId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    TicketPurchaseId = table.Column<int>(type: "int", nullable: false)
+                    TicketPurchaseId = table.Column<int>(type: "int", nullable: false),
+                    ValidationCode = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {

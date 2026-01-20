@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models;
 using Projeto_SEGUES.Models.Enums; 
 using System.Text.RegularExpressions;
@@ -14,11 +15,15 @@ namespace Projeto_SEGUES.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly AppDbContext _context;
 
-        public AdminController(UserManager<User> userManager, RoleManager<IdentityRole> roleManager)
+
+        public AdminController(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, AppDbContext context)
         {
             _userManager = userManager;
             _roleManager = roleManager;
+            _context = context;
+
         }
 
         // GET: Mostrar o formulário de criação
@@ -101,11 +106,49 @@ namespace Projeto_SEGUES.Controllers
             return View(model);
         }
         // Página inicial do Admin (Dashboard)
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            // 1. Procurar preços no domínio (Parte 3)
+            var prices = await _context.TicketPrices.ToListAsync();
+
+            // 2. Se a tabela estiver vazia, inicializamos com as tuas Roles do Enum
+            if (!prices.Any())
+            {
+                var initialPrices = new List<TicketPrice>
+        {
+            new TicketPrice { TicketType = TicketType.Student, Price = 2.90m, InitialDatePrice = DateTime.Now, EndDatePrice = DateTime.Now.AddYears(1) },
+            new TicketPrice { TicketType = TicketType.DocenteNaoDocente, Price = 5.20m, InitialDatePrice = DateTime.Now, EndDatePrice = DateTime.Now.AddYears(1) },
+            new TicketPrice { TicketType = TicketType.External, Price = 5.50m, InitialDatePrice = DateTime.Now, EndDatePrice = DateTime.Now.AddYears(1) }
+        };
+                _context.TicketPrices.AddRange(initialPrices);
+                await _context.SaveChangesAsync();
+                prices = initialPrices;
+            }
+
+            ViewBag.Prices = prices;
+
+            // 3. Carregar auditoria de senhas para a Parte 2 (Interação)
+            var tickets = await _context.Tickets.Include(t => t.Owner).OrderByDescending(t => t.PurchaseDate).ToListAsync();
+            return View(tickets);
         }
-       
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdatePrices(List<TicketPrice> updatedPrices)
+        {
+            if (ModelState.IsValid)
+            {
+                foreach (var price in updatedPrices)
+                {
+                    // Atualiza os valores que o Admin definiu na interface
+                    _context.TicketPrices.Update(price);
+                }
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Preçário atualizado com sucesso!";
+            }
+            return RedirectToAction(nameof(Index));
+        }
+
         // 2. AÇÃO ATUALIZADA PARA A LISTA COM PESQUISA
         public async Task<IActionResult> ListUsers(string roleFilter, string searchString)
         {
@@ -251,5 +294,20 @@ namespace Projeto_SEGUES.Controllers
             }
             return RedirectToAction(nameof(Index));
         }
+
+        /*public async Task<IActionResult> DeleteUser(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+
+            // 1. Procuramos e apagamos manualmente as senhas do utilizador primeiro
+            var userTickets = _context.Tickets.Where(t => t.OwnerId == id);
+            _context.Tickets.RemoveRange(userTickets);
+
+            // 2. Só agora apagamos o utilizador
+            await _userManager.DeleteAsync(user);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("ListUsers");
+        }*/
     }
 }
