@@ -49,11 +49,11 @@ namespace Projeto_SEGUES.Controllers
                 }
                 else if (model.AccountType == "Teacher") 
                 {
-                    emailDomain = "@docente.com";
+                    emailDomain = "@estsetubal.ips.pt";
                     roleEnum = UserRole.DocenteNaoDocente;
-                    identityRole = "Teacher";
+                    identityRole = "DocenteNaoDocente";
                 }
-                else 
+                else
                 {
                     emailDomain = "@func.com";
                     roleEnum = UserRole.Employee;
@@ -73,6 +73,11 @@ namespace Projeto_SEGUES.Controllers
                     Balance = 0,
                     CreationDate = DateTime.Now
                 };
+
+                if (emailDomain == "@admin.com" || emailDomain == "@func.com")
+                {
+                    user.EmailConfirmed = true;
+                }
 
                 var result = await _userManager.CreateAsync(user, model.Password);
 
@@ -181,7 +186,8 @@ namespace Projeto_SEGUES.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [HttpPost]       
+        [HttpPost]
+       
         public async Task<IActionResult> Edit(EditUserViewModel model)
         {
             if (!ModelState.IsValid) return View(model);

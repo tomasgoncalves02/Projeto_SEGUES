@@ -3,15 +3,26 @@
 }
 
 <div class="container mt-5">
-    <div class="text-center">
-        <h1 class="display-4">Bem-vindo, Professor(a)!</h1>
-        <p class="lead">Esta é a sua área de gestão.</p>
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <h1>Área de Docente</h1>
+        <span class="badge bg-info">@User.Identity?.Name</span>
+    </div>
 
-        <div class="card mt-4 shadow-sm">
-            <div class="card-body">
-                <h3>Saldo Disponível: 0.00 €</h3>
-                <p>Aqui poderá gerir as suas refeições e saldo.</p>
-                <button class="btn btn-primary">Carregar Conta</button>
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 bg-dark text-white p-4 h-100">
+                <h4 class="opacity-75">Saldo no Cartão</h4>
+                <h2 class="fw-bold">@ViewBag.UserBalance.ToString("C")</h2>
+                <p class="small mt-2 text-info">Preço por refeição: 5,20€</p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm border-start border-4 border-primary h-100 p-4">
+                <h3 class="fw-bold">Gestão de Refeições</h3>
+                <p class="text-muted">Consulte os seus códigos ativos ou compre novas senhas.</p>
+                <a asp-controller="Tickets" asp-action="Index" class="btn btn-primary w-100 mt-2">
+                    Ir para Senhas
+                </a>
             </div>
         </div>
     </div>

@@ -2,25 +2,19 @@
     ViewData["Title"] = "Área do Funcionário";
 }
 
-<div class="container mt-5">
-    <div class="card shadow-sm border-start border-4 border-warning">
-        <div class="card-body p-5 text-center">
-            <h1 class="display-4 fw-bold text-warning">Área do Colaborador</h1>
-            <p class="lead text-muted">Gestão de Encomendas e Bar.</p>
-            <hr />
+<div class="container mt-5 text-center">
+    <h1 class="mb-5 fw-bold">Operação de Refeitório</h1>
 
-            <div class="row mt-4">
-                <div class="col-md-6">
-                    <button class="btn btn-outline-dark w-100 p-4">
-                        <div class="fs-1"></div>
-                        <h3>Ver Encomendas</h3>
-                    </button>
-                </div>
-                <div class="col-md-6">
-                    <button class="btn btn-outline-dark w-100 p-4">
-                        <div class="fs-1"></div>
-                        <h3>Validar Senhas</h3>
-                    </button>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow border-0 bg-light p-5">
+                <div class="fs-1 mb-3 text-primary">🎫</div>
+                <h2 class="fw-bold">Validar Entrada</h2>
+                <p class="text-muted fs-5">Utilize o leitor de QR Code ou o painel de validação para confirmar as refeições dos utentes.</p>
+                <div class="d-grid gap-2 mt-4">
+                    <a asp-controller="Tickets" asp-action="Index" class="btn btn-primary btn-lg fw-bold py-3">
+                        Abrir Painel de Validação ->
+                    </a>
                 </div>
             </div>
         </div>
