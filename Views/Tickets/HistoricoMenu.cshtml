@@ -1,0 +1,105 @@
+﻿@{
+    ViewData["Title"] = "Histórico - SEGUES";
+}
+
+<style>
+    /* Efeito de levante e transição suave */
+    .hover-effect {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .hover-effect:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+        }
+
+    /* Linha decorativa por baixo do título como na imagem */
+    .title-underline {
+        border-bottom: 4px solid #007bff;
+        display: inline-block;
+        padding-bottom: 5px;
+    }
+</style>
+
+<div class="container mt-5">
+    @* Cabeçalho conforme a imagem *@
+    <div class="row mb-5">
+        <div class="col-12 text-start">
+            <h1 class="fw-bold title-underline mb-3">Histórico</h1>
+            <p class="text-muted fs-5">Consulta aqui os teus consumos de bar, refeitório e movimentos de saldo.</p>
+        </div>
+    </div>
+
+    @* Grelha de Cartões Responsiva *@
+    <div class="row g-4">
+
+        @* 1. Histórico de Senhas (Verde) *@
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0 border-top border-4 border-success hover-effect d-flex flex-column">
+                <div class="card-body text-center d-flex flex-column p-4">
+                    <div class="fs-1 text-success mb-3"><i class="bi bi-cart-plus"></i></div>
+                    <h5 class="fw-bold">Histórico de Senhas</h5>
+                    <p class="text-muted small mb-4">Visualiza o registo das tuas senhas</p>
+
+                    @* mt-auto força o botão a ficar sempre alinhado na base *@
+                    <div class="mt-auto">
+                        <button class="btn btn-success w-100 py-2">Ver Histórico</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* 2. Histórico do Bar (Azul) *@
+        <div class="col-md-6 col-lg-4">
+            @* d-flex flex-column e h-100 garantem que todos os cartões tenham a mesma altura *@
+            <div class="card h-100 shadow-sm border-0 border-top border-4 border-primary hover-effect d-flex flex-column">
+                <div class="card-body text-center d-flex flex-column p-4">
+
+                    
+                    <div class="fs-1 text-primary mb-3">
+                        <i class="bi bi-cup-straw"></i>
+                    </div>
+
+                    <h5 class="fw-bold">Histórico do Bar</h5>
+                    <p class="text-muted small mb-4">Visualiza os teus consumos no bar.</p>
+
+                    
+                    <div class="mt-auto">
+                        <button class="btn btn-primary w-100 py-2" disabled>Ver Histórico</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* 3. Histórico do Saldo (Laranja) *@
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0 border-top border-4 border-warning hover-effect d-flex flex-column">
+                <div class="card-body text-center d-flex flex-column p-4">
+                    <div class="fs-1 text-warning mb-3"><i class="bi bi-currency-euro"></i></div>
+                    <h5 class="fw-bold">Histórico do Saldo</h5>
+                    <p class="text-muted small mb-4">Visualiza os teus movimentos de conta.</p>
+
+                    <div class="mt-auto">
+                        <button class="btn btn-warning text-white w-100 py-2">Ver Histórico</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* 4. Botão Voltar (Preto) - Numa nova linha ou alinhado à esquerda conforme a imagem *@
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0 border-top border-4 border-dark hover-effect d-flex flex-column">
+                <div class="card-body text-center d-flex flex-column p-4">
+                    <div class="fs-1 text-dark mb-3"><i class="bi bi-arrow-left-circle"></i></div>
+                    <h5 class="fw-bold">Voltar</h5>
+                    <p class="text-muted small mb-4">Voltar a página anterior</p>
+
+                    <div class="mt-auto">
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-dark w-100 py-2">Voltar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

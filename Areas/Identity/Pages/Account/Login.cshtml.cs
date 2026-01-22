@@ -105,11 +105,11 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 
                     if (user != null)
                     {
-                        if (await _userManager.IsInRoleAsync(user, "Student"))
+                        /*if (await _userManager.IsInRoleAsync(user, "Student"))
                         {
                             return RedirectToAction("Index", "Student"); // Vai para o Controller Student
-                        }
-                        if (await _userManager.IsInRoleAsync(user, "Admin"))
+                        }*/
+                        /*if (await _userManager.IsInRoleAsync(user, "Admin"))
                         {
                             return RedirectToAction("Index", "Admin"); // Vai para o Controller Student
                         }
@@ -120,7 +120,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                         if (await _userManager.IsInRoleAsync(user, "Employee"))
                         {
                             return RedirectToAction("Index", "Employee");
-                        }
+                        }*/
                     }
                     // ===========================================
 

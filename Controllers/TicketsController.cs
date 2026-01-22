@@ -20,6 +20,21 @@ namespace Projeto_SEGUES.Controllers
             _userManager = userManager;
         }
 
+        public async Task<IActionResult> Refeitorio()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            // Passamos o saldo para o cartão azul deste novo menu
+            ViewBag.UserBalance = user.Balance;
+            return View();
+        }
+
+        public IActionResult HistoricoMenu()
+        {
+            return View();
+        }
+
         // RF17: Vista principal para ver saldo e comprar
         public async Task<IActionResult> Index()
         {
