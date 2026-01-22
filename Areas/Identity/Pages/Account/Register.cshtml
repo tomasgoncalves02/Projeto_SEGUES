@@ -2,84 +2,124 @@
 @using static Projeto_SEGUES.Models.Enums.Enums
 @model RegisterModel
 @{
-    ViewData["Title"] = "Register";
+    ViewData["Title"] = "Criar Conta";
 }
 
-<h1>@ViewData["Title"]</h1>
+<div class="container d-flex align-items-center justify-content-center" style="min-height: 80vh;">
+    <div class="row w-100 justify-content-center">
+        <div class="col-md-6 col-lg-5">
 
-<div class="row">
-    <div class="col-md-4">
-        <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
-            <h2>Create a new account.</h2>
-            <hr />
-            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.FirstName" class="form-control" autocomplete="given-name" aria-required="true" placeholder="Nome" />
-                <label asp-for="Input.FirstName">Primeiro Nome</label>
-                <span asp-validation-for="Input.FirstName" class="text-danger"></span>
-            </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.LastName" class="form-control" autocomplete="given-name" aria-required="true" placeholder="Nome" />
-                <label asp-for="Input.LastName">Sobrenome</label>
-                <span asp-validation-for="Input.LastName" class="text-danger"></span>
-            </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                <label asp-for="Input.Email">Email</label>
-                <span asp-validation-for="Input.Email" class="text-danger"></span>
-            </div>
-            <div class="form-floating mb-3">
-                <select asp-for="Input.Gender" class="form-control" asp-items="Html.GetEnumSelectList<Gender>()">
-                    <option selected="selected" value="">Selecione o Género.</option>
-                </select>
-                <label asp-for="Input.Gender">Género</label>
-                <span asp-validation-for="Input.Gender" class="text-danger"></span>
-            </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label asp-for="Input.Password">Password</label>
-                <span asp-validation-for="Input.Password" class="text-danger"></span>
-            </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label asp-for="Input.ConfirmPassword">Confirm Password</label>
-                <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
-            </div>
-            <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
-        </form>
-    </div>
-    <div class="col-md-6 col-md-offset-2">
-        <section>
-            <h3>Use another service to register.</h3>
-            <hr />
-            @{
-                if ((Model.ExternalLogins?.Count ?? 0) == 0)
-                {
-                    <div>
-                        <p>
-                            There are no external authentication services configured. See this <a href="https://go.microsoft.com/fwlink/?LinkID=532715">article
-                            about setting up this ASP.NET application to support logging in via external services</a>.
-                        </p>
+            <div class="card shadow-lg border-0 rounded-3">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <h2 class="fw-bold">SEGUES</h2>
+                        <p class="text-muted small">Crie a sua nova conta de utilizador</p>
+                        <hr />
                     </div>
-                }
-                else
-                {
-                    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
-                        <div>
-                            <p>
-                                @foreach (var provider in Model.ExternalLogins!)
-                                {
-                                    <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button>
-                                }
-                            </p>
+
+                    <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="Input.FirstName" class="form-control" autocomplete="given-name" aria-required="true" placeholder="Nome" />
+                                    <label asp-for="Input.FirstName">Primeiro Nome</label>
+                                    <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="Input.LastName" class="form-control" autocomplete="family-name" aria-required="true" placeholder="Sobrenome" />
+                                    <label asp-for="Input.LastName">Sobrenome</label>
+                                    <span asp-validation-for="Input.LastName" class="text-danger"></span>
+                                </div>
+                            </div>
                         </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                            <label asp-for="Input.Email">Email</label>
+                            <span asp-validation-for="Input.Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <select asp-for="Input.Gender" class="form-select" asp-items="Html.GetEnumSelectList<Gender>()">
+                                <option selected="selected" value="">Selecione o Género</option>
+                            </select>
+                            <label asp-for="Input.Gender">Género</label>
+                            <span asp-validation-for="Input.Gender" class="text-danger"></span>
+                        </div>
+
+                        @* Campo Password com Olho *@
+                        <div class="mb-3">
+                            <div class="input-group">
+                                <div class="form-floating flex-grow-1">
+                                    <input asp-for="Input.Password" class="form-control" id="passwordInput" autocomplete="new-password" aria-required="true" placeholder="password" style="border-top-right-radius: 0; border-bottom-right-radius: 0;" />
+                                    <label asp-for="Input.Password">Password</label>
+                                </div>
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword" style="border-top-left-radius: 0; border-bottom-left-radius: 0; border-left: none;">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="Input.Password" class="text-danger"></span>
+                        </div>
+
+                        @* Campo Confirmar Password com Olho *@
+                        <div class="mb-4">
+                            <div class="input-group">
+                                <div class="form-floating flex-grow-1">
+                                    <input asp-for="Input.ConfirmPassword" class="form-control" id="confirmPasswordInput" autocomplete="new-password" aria-required="true" placeholder="password" style="border-top-right-radius: 0; border-bottom-right-radius: 0;" />
+                                    <label asp-for="Input.ConfirmPassword">Confirmar Password</label>
+                                </div>
+                                <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword" style="border-top-left-radius: 0; border-bottom-left-radius: 0; border-left: none;">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                        </div>
+
+                        <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary fw-bold shadow-sm">
+                            <i class="bi bi-person-plus-fill me-2"></i>REGISTAR
+                        </button>
                     </form>
-                }
-            }
-        </section>
+                </div>
+            </div>
+
+            <div class="text-center mt-3">
+                <p class="small text-muted">Já tem conta? <a asp-page="./Login" class="text-decoration-none text-primary fw-bold">Faça Login</a></p>
+            </div>
+
+        </div>
     </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Função genérica para alternar visibilidade
+            function setupToggle(buttonId, inputId) {
+                const toggleBtn = document.querySelector(buttonId);
+                const passwordInput = document.querySelector(inputId);
+                const icon = toggleBtn.querySelector('i');
+
+                if (toggleBtn && passwordInput) {
+                    toggleBtn.addEventListener('click', function () {
+                        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                        passwordInput.setAttribute('type', type);
+                        
+                        // Alterna o ícone entre olho e olho cortado
+                        icon.classList.toggle('bi-eye');
+                        icon.classList.toggle('bi-eye-slash');
+                    });
+                }
+            }
+
+            // Configura os dois campos
+            setupToggle('#togglePassword', '#passwordInput');
+            setupToggle('#toggleConfirmPassword', '#confirmPasswordInput');
+        });
+    </script>
 }

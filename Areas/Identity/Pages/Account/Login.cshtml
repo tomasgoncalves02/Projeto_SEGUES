@@ -5,6 +5,108 @@
     ViewData["Title"] = "Entrar";
 }
 
+@* 1. Contentor Principal: Mesma altura e alinhamento do Register *@
+<div class="container d-flex align-items-center justify-content-center" style="min-height: 85vh;">
+    <div class="row w-100 justify-content-center">
+
+        @* 2. Sizing: col-md-8 e col-lg-6 para igualar a largura do formulário de registo *@
+        <div class="col-md-8 col-lg-6">
+
+            @* 3. Estilo: Card com sombra profunda e arredondamento idêntico *@
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-body p-5">
+
+                    <div class="text-center mb-5">
+                        <h1 class="fw-bold display-6 text-dark">SEGUES</h1>
+                        <p class="text-muted fs-5">Controlo de Refeições - Login</p>
+                        <hr class="w-25 mx-auto" />
+                    </div>
+
+                    <form id="account" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+                        @* Email em tamanho 'Large' *@
+                        <div class="form-floating mb-4">
+                            <input asp-for="Input.Email" class="form-control form-control-lg" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                            <label asp-for="Input.Email" class="form-label">Endereço de Email</label>
+                            <span asp-validation-for="Input.Email" class="text-danger"></span>
+                        </div>
+
+                        @* Password com Toggle *@
+                        <div class="mb-4">
+                            <div class="input-group input-group-lg">
+                                <div class="form-floating flex-grow-1">
+                                    <input asp-for="Input.Password" class="form-control" id="passwordInput" autocomplete="current-password" aria-required="true" placeholder="password" style="border-top-right-radius: 0; border-bottom-right-radius: 0;" />
+                                    <label asp-for="Input.Password" class="form-label">Password</label>
+                                </div>
+                                <button class="btn btn-outline-secondary px-4" type="button" id="togglePassword" style="border-top-left-radius: 0; border-bottom-left-radius: 0; border-left: none;">
+                                    <i class="bi bi-eye fs-4"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="Input.Password" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mb-5">
+                            <div class="form-check">
+                                <input class="form-check-input" asp-for="Input.RememberMe" style="width: 1.2em; height: 1.2em;" />
+                                <label class="form-check-label fs-6 ms-2" asp-for="Input.RememberMe">
+                                    Lembrar-me
+                                </label>
+                            </div>
+                            <a id="forgot-password" asp-page="./ForgotPassword" class="fw-bold text-decoration-none">Esqueceu-se da senha?</a>
+                        </div>
+
+                        @* Botão Principal Largo *@
+                        <button id="login-submit" type="submit" class="w-100 btn btn-primary btn-lg py-3 fw-bold shadow-sm mb-4">
+                            ENTRAR
+                        </button>
+                    </form>
+
+                    <div class="d-flex align-items-center mb-4">
+                        <hr class="flex-grow-1 text-muted">
+                        <span class="mx-3 text-muted fw-bold small">OU ACEDA VIA</span>
+                        <hr class="flex-grow-1 text-muted">
+                    </div>
+
+                    @* Login Externo (Microsoft) *@
+                    <section>
+                        @{
+                            if ((Model.ExternalLogins?.Count ?? 0) == 0)
+                            {
+                                <div class="alert alert-light border-0 text-center">
+                                    <small class="text-muted italic">Login externo indisponível.</small>
+                                </div>
+                            }
+                            else
+                            {
+                                <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                                    @foreach (var provider in Model.ExternalLogins!)
+                                    {
+                                        <button type="submit" class="btn btn-dark w-100 d-flex align-items-center justify-content-center py-3 rounded-3 shadow-sm" name="provider" value="@provider.Name">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 21 21" class="me-3">
+                                                <rect x="1" y="1" width="9" height="9" fill="#f25022" />
+                                                <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
+                                                <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />
+                                                <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
+                                            </svg>
+                                            <span class="fw-bold">Entrar com Conta Microsoft</span>
+                                        </button>
+                                    }
+                                </form>
+                            }
+                        }
+                    </section>
+
+                    <div class="mt-5 text-center">
+                        <p class="fs-6">Ainda não tem conta? <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" class="fw-bold text-primary text-decoration-none">Registe-se aqui</a></p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 
@@ -16,108 +118,12 @@
 
             if (togglePassword && passwordField) {
                 togglePassword.addEventListener('click', function () {
-                    // Alterna o tipo do input
                     const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
                     passwordField.setAttribute('type', type);
-
-                    // Alterna o ícone
                     icon.classList.toggle('bi-eye');
                     icon.classList.toggle('bi-eye-slash');
                 });
             }
         });
     </script>
-
-    <partial name="_ValidationScriptsPartial" />
 }
-
-<div class="row justify-content-center mt-5">
-    <div class="col-md-5">
-        <div class="card p-4 shadow-sm">
-            <form id="account" method="post">
-                <div class="text-center mb-4">
-                    <h2 class="h3">Bem-vindo de volta</h2>
-                    <p class="text-muted">Use a sua conta local para entrar.</p>
-                </div>
-
-                <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-
-                <div class="form-floating mb-3">
-                    <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                    <label asp-for="Input.Email" class="form-label">Email</label>
-                    <span asp-validation-for="Input.Email" class="text-danger"></span>
-                </div>
-
-                <div class="mb-3">
-                    <div class="input-group">
-                        <div class="form-floating flex-grow-1">
-                            <input asp-for="Input.Password" class="form-control" id="passwordInput" autocomplete="current-password" aria-required="true" placeholder="password" style="border-top-right-radius: 0; border-bottom-right-radius: 0;" />
-                            <label asp-for="Input.Password" class="form-label">Password</label>
-                        </div>
-                        <button class="btn btn-outline-secondary" type="button" id="togglePassword" style="border-top-left-radius: 0; border-bottom-left-radius: 0; border-left: none;">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                    </div>
-                    <span asp-validation-for="Input.Password" class="text-danger"></span>
-                </div>
-
-                <div class="checkbox mb-3">
-                    <label asp-for="Input.RememberMe" class="form-label">
-                        <input class="form-check-input" asp-for="Input.RememberMe" />
-                        @Html.DisplayNameFor(m => m.Input.RememberMe)
-                    </label>
-                </div>
-
-                <div class="mb-3">
-                    <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary">Entrar</button>
-                </div>
-            </form>
-            <div class="d-flex align-items-center mb-3">
-                <hr class="flex-grow-1">
-                <span class="mx-2 text-muted">OU</span>
-                <hr class="flex-grow-1">
-            </div>
-
-            <section>
-                @{
-                    if ((Model.ExternalLogins?.Count ?? 0) == 0)
-                    {
-                        <div class="alert alert-warning text-center">
-                            <small>⚠️ O login externo não está configurado.</small>
-                        </div>
-                    }
-                    else
-                    {
-                        <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
-                            <div>
-                                @foreach (var provider in Model.ExternalLogins!)
-                                {
-                                    <button type="submit" class="btn w-100 mb-2" name="provider" value="@provider.Name"
-                                            title="Entrar com a sua conta @provider.DisplayName"
-                                            style="background-color: #2F2F2F; color: white; border: 1px solid #2F2F2F; padding: 10px; font-weight: 500; display: flex; align-items: center; justify-content: center;">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21" style="margin-right: 12px;">
-                                            <rect x="1" y="1" width="9" height="9" fill="#f25022" />
-                                            <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
-                                            <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />
-                                            <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
-                                        </svg>
-                                        Entrar com Microsoft
-                                    </button>
-                                }
-                            </div>
-                        </form>
-                    }
-                }
-            </section>
-
-            <div class="mt-3 text-center">
-                <p>
-                    <a id="forgot-password" asp-page="./ForgotPassword">Esqueceu-se da password?</a>
-                </p>
-                <p>
-                    <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Criar nova conta</a>
-                </p>
-            </div>
-        </div>
-    </div>
-</div>
