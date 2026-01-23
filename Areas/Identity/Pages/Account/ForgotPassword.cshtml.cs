@@ -57,12 +57,10 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                 var user = await _userManager.FindByEmailAsync(Input.Email);
                 if (user == null || !(await _userManager.IsEmailConfirmedAsync(user)))
                 {
-                    // Don't reveal that the user does not exist or is not confirmed
+                    // Não revela que o utilizador não existe ou não está confirmado
                     return RedirectToPage("./ForgotPasswordConfirmation");
                 }
 
-                // For more information on how to enable account confirmation and password reset please
-                // visit https://go.microsoft.com/fwlink/?LinkID=532713
                 var code = await _userManager.GeneratePasswordResetTokenAsync(user);
                 code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
                 var callbackUrl = Url.Page(
@@ -71,10 +69,56 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                     values: new { area = "Identity", code },
                     protocol: Request.Scheme);
 
+                // --- TEMPLATE DE EMAIL SEGUES ---
+                // Nota: Em strings C# interpoladas ($""), as chavetas do CSS devem ser duplicadas ({{ }})
+                string emailBody = $@"
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='utf-8'>
+            <style>
+                body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; }}
+                .container {{ max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }}
+                .header {{ background-color: #009697; padding: 30px; text-align: center; color: #ffffff; }}
+                .header h1 {{ margin:0; font-size: 28px; color: #ffffff !important; }}
+                .content {{ padding: 40px; line-height: 1.6; color: #333333; }}
+                .button-container {{ text-align: center; margin: 30px 0; }}
+                .button {{ background-color: #009697; color: #ffffff !important; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; }}
+                .footer {{ background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #777777; }}
+                .security-note {{ border-top: 1px solid #eeeeee; margin-top: 30px; padding-top: 20px; font-size: 13px; color: #999999; }}
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <h1 style='color: white;'>SEGUES</h1>
+                    <p style='margin:0; opacity: 0.8; color: white;'>Controlo de Refeições</p>
+                </div>
+                <div class='content'>
+                    <h2 style='color: #009697;'>Recuperação de Senha</h2>
+                    <p>Olá,</p>
+                    <p>Recebemos um pedido para redefinir a password da tua conta na plataforma <strong>SEGUES</strong>.</p>
+                    <p>Para escolher uma nova password, clica no botão abaixo:</p>
+                    <div class='button-container'>
+                        <a href='{HtmlEncoder.Default.Encode(callbackUrl)}' class='button'>REDEFINIR SENHA</a>
+                    </div>
+                    <p>Se o botão não funcionar, copia e cola o seguinte link no teu navegador:</p>
+                    <p style='word-break: break-all; color: #009697; font-size: 12px;'>{callbackUrl}</p>
+                    <div class='security-note'>
+                        <p><strong>Nota de Segurança:</strong> Se não solicitaste esta alteração, podes ignorar este email com segurança. O link é válido por tempo limitado.</p>
+                    </div>
+                </div>
+                <div class='footer'>
+                    &copy; 2026 SEGUES - Sistema de Gestão de Refeições.
+                </div>
+            </div>
+        </body>
+        </html>";
+
                 await _emailSender.SendEmailAsync(
                     Input.Email,
-                    "Reset Password",
-                    $"Please reset your password by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+                    "SEGUES - Recuperação de Senha",
+                    emailBody);
 
                 return RedirectToPage("./ForgotPasswordConfirmation");
             }
