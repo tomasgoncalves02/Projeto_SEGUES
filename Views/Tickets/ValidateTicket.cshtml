@@ -1,0 +1,123 @@
+﻿@model Projeto_SEGUES.Models.ViewModels.ValidateTicketViewModel
+
+@{
+    ViewData["Title"] = "Validar Senhas";
+}
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">Validar Senhas</h2>
+        <a asp-action="OperacaoRefeitorio" asp-controller="Tickets" class="btn btn-dark px-4 py-2">
+            Voltar
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-md-5 mb-4">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-body text-center p-5 d-flex flex-column justify-content-center">
+
+                    <h4 class="card-title fw-bold mb-4" style="color: #009697;">
+                        Leitura de Código
+                    </h4>
+
+                    <form asp-action="ValidateTicket" method="post">
+                        <div class="mb-4 position-relative">
+                            <input asp-for="Code" class="form-control form-control-lg text-center fs-2 fw-bold tracking-widest"
+                                   placeholder="XXXXXXXX" maxlength="8"
+                                   style="letter-spacing: 5px; text-transform: uppercase; height: 80px;"
+                                   autofocus autocomplete="off" />
+
+                            <span asp-validation-for="Code" class="text-danger mt-2 d-block fw-bold bg-light rounded p-1"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100 py-3 fw-bold"
+                                style="background-color: #009697; border-color: #009697;">
+                            VALIDAR SENHA
+                        </button>
+                    </form>
+
+                    <small class="text-muted mt-3">
+                        Pode usar um leitor de código de barras ou digitar manualmente.
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="mb-0 fw-bold text-secondary">
+                        <i class="bi bi-clock-history me-2"></i>Histórico Recente (Últimas 10)
+                    </h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Código</th>
+                                <th>Aluno/Cliente</th>
+                                <th>Hora</th>
+                                <th class="text-end">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.RecentTickets != null && Model.RecentTickets.Any())
+                            {
+                                @foreach (var ticket in Model.RecentTickets)
+                                {
+                                    <tr>
+                                        <td class="fw-bold font-monospace" style="color: #009697;">
+                                            @ticket.ValidationCode
+                                        </td>
+                                        <td>
+                                            @if (ticket.Owner != null)
+                                            {
+                                                <span class="fw-bold text-dark">@ticket.Owner.FirstName @ticket.Owner.LastName</span>
+                                                <br />
+                                                <small class="text-muted">@ticket.Owner.Email</small>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Desconhecido</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @ticket.UsedDate?.ToString("HH:mm")
+                                        </td>
+                                        <td class="text-end">
+                                            <span class="badge bg-success rounded-pill px-3 py-2">USADA</span>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-5">
+                                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                        Nenhuma senha validada recentemente.
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

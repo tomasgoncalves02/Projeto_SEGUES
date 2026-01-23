@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models;
+using Projeto_SEGUES.Models.ViewModels;
 using static Projeto_SEGUES.Models.Enums.Enums;
 
 namespace Projeto_SEGUES.Controllers
@@ -25,7 +26,6 @@ namespace Projeto_SEGUES.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
 
-            // Passamos o saldo para o cartão azul deste novo menu
             ViewBag.UserBalance = user.Balance;
             return View();
         }
@@ -35,17 +35,17 @@ namespace Projeto_SEGUES.Controllers
             return View();
         }
 
-        // RF17: Vista principal para ver saldo e comprar
+       
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
 
             var now = DateTime.Now;
-            // STAFF e ADMIN podem ver todas as senhas (Auditoria/Consulta)
+            
             bool canSeeAll = user.Role == UserRole.Admin || user.Role == UserRole.Employee;
 
-            // 1. RF16: AUTO-EXPIRAÇÃO (Limpeza ao carregar)
+            
             var expiredQuery = _context.Tickets
                 .Where(t => t.State == TicketState.Available && t.ExpirationDate < now);
 
@@ -64,22 +64,22 @@ namespace Projeto_SEGUES.Controllers
             {
                 var allPrices = await _context.TicketPrices.ToListAsync();
 
-                // Se a tabela estiver vazia (primeira vez), criamos os registos base
+                
                 if (!allPrices.Any())
                 {
                     allPrices = new List<TicketPrice>
-            {
-                new TicketPrice { TicketType = TicketType.Student, Price = 2.90m, InitialDatePrice = now, EndDatePrice = now.AddYears(1) },
-                new TicketPrice { TicketType = TicketType.DocenteNaoDocente, Price = 5.20m, InitialDatePrice = now, EndDatePrice = now.AddYears(1) },
-                new TicketPrice { TicketType = TicketType.External, Price = 5.50m, InitialDatePrice = now, EndDatePrice = now.AddYears(1) }
-            };
+                    {
+                        new TicketPrice { TicketType = TicketType.Student, Price = 2.90m, InitialDatePrice = now, EndDatePrice = now.AddYears(1) },
+                        new TicketPrice { TicketType = TicketType.DocenteNaoDocente, Price = 5.20m, InitialDatePrice = now, EndDatePrice = now.AddYears(1) },
+                        new TicketPrice { TicketType = TicketType.External, Price = 5.50m, InitialDatePrice = now, EndDatePrice = now.AddYears(1) }
+                    };
                     _context.TicketPrices.AddRange(allPrices);
                     await _context.SaveChangesAsync();
                 }
                 ViewBag.Prices = allPrices;
             }
 
-            // 2. RF17: PREÇO DINÂMICO (Baseado no Admin)
+          
             var userTicketType = GetTicketTypeByUserRole(user.Role);
             decimal currentPrice = await GetCurrentPriceFromDb(userTicketType);
 
@@ -87,7 +87,7 @@ namespace Projeto_SEGUES.Controllers
             ViewBag.CurrentPrice = currentPrice;
             ViewBag.UserRole = user.Role;
 
-            // 3. LISTAGEM (Admin e Staff vêm tudo)
+          
             IQueryable<Ticket> ticketsQuery = _context.Tickets.Include(t => t.Owner);
             if (!canSeeAll)
             {
@@ -100,12 +100,10 @@ namespace Projeto_SEGUES.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [HttpPost]
         public async Task<IActionResult> BuyTicket(int quantity = 1)
         {
             var user = await _userManager.GetUserAsync(User);
 
-            // Bloqueio: Apenas Estudante, DocenteNaoDocente e Externo compram
             if (user.Role == UserRole.Admin || user.Role == UserRole.Employee)
             {
                 TempData["Error"] = "Este perfil não tem permissão para comprar senhas.";
@@ -148,7 +146,7 @@ namespace Projeto_SEGUES.Controllers
                     {
                         OwnerId = user.Id,
                         PurchaseDate = now,
-                        ExpirationDate = now.AddDays(7), // RF16: Validade
+                        ExpirationDate = now.AddDays(7), 
                         State = TicketState.Available,
                         TicketPurchaseId = purchase.Id,
                         ValidationCode = Guid.NewGuid().ToString().Substring(0, 8).ToUpper()
@@ -170,36 +168,94 @@ namespace Projeto_SEGUES.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // --- IMPLEMENTAÇÃO RF16 (IMPEDIR REUTILIZAÇÃO/EXPIRAÇÃO) ---
-        // Este método seria chamado pelo Funcionário ao validar a senha
-        [Authorize(Roles = "Staff,Admin")]
-        [HttpPost]
-        public async Task<IActionResult> ValidateTicket(string code)
+       
+        [HttpGet]
+        [Authorize(Roles = "Admin,Employee")]
+        public async Task<IActionResult> ValidateTicket()
         {
-            var ticket = await _context.Tickets.FirstOrDefaultAsync(t => t.ValidationCode == code);
-
-            if (ticket == null)
-                return Json(new { success = false, message = "Código inválido." });
-
-            if (ticket.State != TicketState.Available)
-                return Json(new { success = false, message = "Esta senha já foi usada ou expirou." });
-
-            if (ticket.ExpirationDate < DateTime.Now)
+            var model = new ValidateTicketViewModel
             {
-                ticket.State = TicketState.Expired;
-                await _context.SaveChangesAsync();
-                return Json(new { success = false, message = "Esta senha expirou." });
-            }
-
-            // Validar com sucesso
-            ticket.State = TicketState.Used;
-            ticket.UsedDate = DateTime.Now;
-            await _context.SaveChangesAsync();
-
-            return Json(new { success = true, message = "Validado! Bom apetite." });
+                RecentTickets = await GetRecentTicketsAsync()
+            };
+            return View(model);
         }
 
-        // Método auxiliar para ir buscar o preço real à BD
+        
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,Employee")]
+        public async Task<IActionResult> ValidateTicket(ValidateTicketViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                model.RecentTickets = await GetRecentTicketsAsync();
+                return View(model);
+            }
+
+            
+            var ticket = await _context.Tickets
+                .Include(t => t.Owner)
+                .FirstOrDefaultAsync(t => t.ValidationCode == model.Code.ToUpper());
+
+           
+            if (ticket == null)
+            {
+                ModelState.AddModelError("Code", "Código não encontrado.");
+            }
+            else if (ticket.State == TicketState.Used)
+            {
+                ModelState.AddModelError("Code", $"AVISO: Senha já usada às {ticket.UsedDate?.ToString("HH:mm")}.");
+            }
+            else if (ticket.State == TicketState.Expired || ticket.ExpirationDate < DateTime.Now)
+            {
+                if (ticket.State != TicketState.Expired)
+                {
+                    ticket.State = TicketState.Expired;
+                    await _context.SaveChangesAsync();
+                }
+                ModelState.AddModelError("Code", "ERRO: A senha expirou.");
+            }
+            else
+            {
+                
+                ticket.State = TicketState.Used;
+                ticket.UsedDate = DateTime.Now;
+
+                _context.Tickets.Update(ticket);
+                await _context.SaveChangesAsync();
+
+                TempData["Success"] = $"Senha validada! Cliente: {ticket.Owner.FirstName} {ticket.Owner.LastName}";
+
+                // Limpar campo
+                ModelState.Clear();
+                model.Code = string.Empty;
+            }
+
+          
+            model.RecentTickets = await GetRecentTicketsAsync();
+            return View(model);
+        }
+
+
+        [HttpGet]
+        [Authorize(Roles = "Admin,Employee")]
+        public IActionResult OperacaoRefeitorio()
+        {
+            return View();
+        }
+
+        private async Task<List<Ticket>> GetRecentTicketsAsync()
+        {
+            return await _context.Tickets
+                .Include(t => t.Owner)
+                .Where(t => t.State == TicketState.Used)
+                .OrderByDescending(t => t.UsedDate)
+                .Take(10)
+                .ToListAsync();
+        }
+
+       
+
         private TicketType GetTicketTypeByUserRole(UserRole role)
         {
             return role switch
@@ -207,7 +263,7 @@ namespace Projeto_SEGUES.Controllers
                 UserRole.Student => TicketType.Student,
                 UserRole.DocenteNaoDocente => TicketType.DocenteNaoDocente,
                 UserRole.External => TicketType.External,
-                UserRole.Employee => TicketType.Employee, // Staff/Funcionário
+                UserRole.Employee => TicketType.Employee,
                 UserRole.Admin => TicketType.Admin,
                 _ => TicketType.External
             };
@@ -235,12 +291,9 @@ namespace Projeto_SEGUES.Controllers
                 {
                     foreach (var price in updatedPrices)
                     {
-                        // Parte 3: Operadores do domínio sendo atualizados
                         _context.TicketPrices.Update(price);
                     }
                     await _context.SaveChangesAsync();
-
-                    // Esta mensagem será lida pelo SweetAlert no Scripts da View
                     TempData["Success"] = "O precario foi atualizado com sucesso!";
                 }
                 catch (Exception)
@@ -253,10 +306,7 @@ namespace Projeto_SEGUES.Controllers
                 TempData["Error"] = "Os dados introduzidos são invalidos.";
             }
 
-            // CORREÇÃO DA ROTA: Força o retorno para a página de Gestão de Senhas
             return RedirectToAction("Index", "Tickets");
         }
     }
-
-
-    }
+}
