@@ -1,67 +1,107 @@
 ﻿@using Projeto_SEGUES.Models.Enums
 @model Projeto_SEGUES.Models.EditUserViewModel
 
-
 @{
     ViewData["Title"] = "Editar Utilizador";
-    // Já não precisas da variável roles aqui
 }
 
-<div class="container mt-4">
-    <h1>Editar Utilizador</h1>
-    <hr />
+<style>
+    /* Estilo da linha decorativa institucional */
+    .title-underline {
+        border-bottom: 4px solid #009697;
+        display: inline-block;
+        padding-bottom: 5px;
+    }
 
-    <div class="row">
-        <div class="col-md-6">
-            <form asp-action="Edit">
-                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                <input type="hidden" asp-for="Id" />
+    /* Foco nos inputs com a cor teal */
+    .form-control:focus, .form-select:focus {
+        border-color: #009697;
+        box-shadow: 0 0 0 0.25rem rgba(0, 150, 151, 0.25);
+    }
+</style>
 
-                <div class="row mb-3">
-                    <div class="col">
-                        <label asp-for="FirstName" class="control-label"></label>
-                        <input asp-for="FirstName" class="form-control" />
-                        <span asp-validation-for="FirstName" class="text-danger"></span>
-                    </div>
-                    <div class="col">
-                        <label asp-for="LastName" class="control-label"></label>
-                        <input asp-for="LastName" class="form-control" />
-                        <span asp-validation-for="LastName" class="text-danger"></span>
-                    </div>
+<div class="container mt-5">
+    @* Cabeçalho alinhado à esquerda *@
+    <div class="row mb-4">
+        <div class="col-12 text-start">
+            <h1 class="fw-bold title-underline mb-3">Editar Utilizador</h1>
+            <p class="text-muted">Altere as informações de perfil ou o saldo do utilizador selecionado.</p>
+        </div>
+    </div>
+
+    <div class="row justify-content-start">
+        <div class="col-md-8 col-lg-6">
+            @* Cartão com borda superior institucional *@
+            <div class="card shadow-sm border-0" style="border-top: 5px solid #009697 !important; border-radius: 10px;">
+                <div class="card-body p-4 p-md-5">
+
+                    <form asp-action="Edit">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        <input type="hidden" asp-for="Id" />
+
+                        @* Nome e Sobrenome *@
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="FirstName" class="form-label fw-bold">Primeiro Nome</label>
+                                <input asp-for="FirstName" class="form-control" placeholder="Ex: João" />
+                                <span asp-validation-for="FirstName" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="LastName" class="form-label fw-bold">Sobrenome</label>
+                                <input asp-for="LastName" class="form-control" placeholder="Ex: Silva" />
+                                <span asp-validation-for="LastName" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        @* Email *@
+                        <div class="mb-4">
+                            <label asp-for="Email" class="form-label fw-bold">Endereço de Email</label>
+                            <input asp-for="Email" class="form-control" placeholder="utilizador@exemplo.com" />
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+
+                        @* Saldo com prefixo de Euro *@
+                        <div class="mb-4">
+                            <label asp-for="Balance" class="form-label fw-bold">Saldo Disponível</label>
+                            <div class="input-group">
+                                <span class="input-group-text text-white" style="background-color: #009697; border: none;">€</span>
+                                <input asp-for="Balance" class="form-control" type="number" step="0.01" />
+                            </div>
+                            <span asp-validation-for="Balance" class="text-danger small"></span>
+                        </div>
+
+                        @* Perfil de Acesso *@
+                        <div class="mb-4">
+                            <label asp-for="Role" class="form-label fw-bold">Perfil de Acesso</label>
+                            <select asp-for="Role" class="form-select bg-light"
+                                    asp-items="Html.GetEnumSelectList<Enums.UserRole>()"
+                                    style="border-radius: 8px;">
+                                <option value="">Selecione um perfil...</option>
+                            </select>
+                            <span asp-validation-for="Role" class="text-danger small"></span>
+                        </div>
+
+                        @* Botões de Ação *@
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-5">
+                            <button type="submit" class="btn btn-lg text-white fw-bold px-4"
+                                    style="background-color: #009697; border-radius: 8px;">
+                                <i class="bi bi-check-circle me-2"></i>Guardar Alterações
+                            </button>
+                            <a asp-action="ListUsers" class="btn btn-lg btn-outline-secondary px-4"
+                               style="border-radius: 8px;">
+                                Cancelar
+                            </a>
+                        </div>
+                    </form>
+
                 </div>
-
-                <div class="mb-3">
-                    <label asp-for="Email" class="control-label"></label>
-                    <input asp-for="Email" class="form-control" />
-                    <span asp-validation-for="Email" class="text-danger"></span>
-                </div>
-
-                <div class="mb-3">
-                    <label asp-for="Balance" class="control-label"></label>
-                    <div class="input-group">
-                        <span class="input-group-text">€</span>
-                        <input asp-for="Balance" class="form-control" type="number" step="0.01" />
-                    </div>
-                    <span asp-validation-for="Balance" class="text-danger"></span>
-                </div>
-
-                <div class="mb-3">
-                    <label asp-for="Role" class="control-label">Perfil de Acesso</label>
-
-                    
-                    <select asp-for="Role" class="form-select"
-                            asp-items="Html.GetEnumSelectList<Enums.UserRole>()">
-                        <option value="">Selecione um perfil...</option>
-                    </select>
-                    <span asp-validation-for="Role" class="text-danger"></span>
-
-                </div>
-
-                <div class="form-group mt-4">
-                    <input type="submit" value="Guardar Alterações" class="btn btn-primary" />
-                    <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

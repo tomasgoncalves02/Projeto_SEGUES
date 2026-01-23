@@ -15,14 +15,15 @@
         }
 
     .title-underline {
-        border-bottom: 4px solid #28a745; /* Verde para o Refeitório */
+        /* Atualizado para o Teal institucional */
+        border-bottom: 4px solid #009697;
         display: inline-block;
         padding-bottom: 5px;
     }
 </style>
 
 <div class="container mt-5">
-    @* Cabeçalho alinhado à esquerda como no Histórico *@
+    @* Cabeçalho alinhado à esquerda *@
     <div class="row mb-5">
         <div class="col-12 text-start">
             <h1 class="fw-bold title-underline mb-3">Refeitório</h1>
@@ -33,75 +34,87 @@
     @* Grelha Responsiva *@
     <div class="row g-4">
 
-        @* 1. Saldo Disponível (Azul - Estilo preenchido) *@
+        @* 1. Saldo Disponível (Destaque Total Teal) *@
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm border-0 bg-primary text-white hover-effect d-flex flex-column">
+            <div class="card h-100 shadow-sm border-0 text-white hover-effect d-flex flex-column"
+                 style="background-color: #009697 !important;">
                 <div class="card-body text-center d-flex flex-column p-4">
                     <small class="d-block opacity-75 fw-bold mb-2">Saldo Disponível</small>
                     <h2 class="display-6 fw-bold my-auto">@balance.ToString("C")</h2>
 
                     <div class="mt-auto pt-3">
-                        <button class="btn btn-light w-100 py-2 fw-bold">Carregar Saldo</button>
+                        <button class="btn btn-light w-100 py-2 fw-bold" style="color: #009697 !important;">Carregar Saldo</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        @* 2. Comprar Senha (Verde - RF17) *@
+        @* 2. Comprar Senha *@
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm border-0 border-top border-4 border-success hover-effect d-flex flex-column">
-                <div class="card-body text-center d-flex flex-column p-4">
-                    <div class="fs-1 text-success mb-3"><i class="bi bi-cart-plus"></i></div>
+            <div class="card h-100 shadow-sm hover-effect d-flex flex-column text-center"
+                 style="border: none; border-top: 5px solid #009697; background-color: white; border-radius: 10px;">
+                <div class="card-body d-flex flex-column p-4">
+                    <div class="fs-1 mb-3" style="color: #009697;"><i class="bi bi-cart-plus"></i></div>
                     <h5 class="fw-bold">Comprar Senha</h5>
                     <p class="text-muted small mb-4">Adquire já a tua próxima refeição.</p>
 
                     <div class="mt-auto">
-                        <a asp-controller="Tickets" asp-action="Index" class="btn btn-success w-100 py-2">Ir para a Loja</a>
+                        <a asp-controller="Tickets" asp-action="Index" class="btn w-100 py-2 fw-bold text-white"
+                           style="background-color: #009697; border: none; border-radius: 6px;">Ir para a Loja</a>
                     </div>
                 </div>
             </div>
         </div>
 
-        @* 3. Senhas Ativas (Azul - RF05/RF02) *@
+        @* 3. Senhas Ativas *@
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm border-0 border-top border-4 border-primary hover-effect d-flex flex-column">
-                <div class="card-body text-center d-flex flex-column p-4">
-                    <div class="fs-1 text-primary mb-3"><i class="bi bi-qr-code"></i></div>
+            <div class="card h-100 shadow-sm hover-effect d-flex flex-column text-center"
+                 style="border: none; border-top: 5px solid #009697; background-color: white; border-radius: 10px;">
+                <div class="card-body d-flex flex-column p-4">
+                    <div class="fs-1 mb-3" style="color: #009697;"><i class="bi bi-qr-code"></i></div>
                     <h5 class="fw-bold">Senhas Ativas</h5>
                     <p class="text-muted small mb-4">Visualiza as tuas senhas ainda não usadas.</p>
 
                     <div class="mt-auto">
-                        <button class="btn btn-primary w-100 py-2">Ver Senhas</button>
+                        <button class="btn w-100 py-2 fw-bold text-white"
+                                style="background-color: #009697; border: none; border-radius: 6px;">
+                            Ver Senhas
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        @* 4. Enviar Senha (Roxo - RF06) *@
+        @* 4. Enviar Senha *@
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm border-0 border-top border-4 hover-effect d-flex flex-column" style="border-top-color: #6f42c1 !important;">
-                <div class="card-body text-center d-flex flex-column p-4">
-                    <div class="fs-1 mb-3" style="color: #6f42c1;"><i class="bi bi-send"></i></div>
+            <div class="card h-100 shadow-sm hover-effect d-flex flex-column text-center"
+                 style="border: none; border-top: 5px solid #009697; background-color: white; border-radius: 10px;">
+                <div class="card-body d-flex flex-column p-4">
+                    <div class="fs-1 mb-3" style="color: #009697;"><i class="bi bi-send"></i></div>
                     <h5 class="fw-bold">Enviar Senha</h5>
-                    <p class="text-muted small mb-4">Enviar senhas para as pessoas</p>
-
+                    <p class="text-muted small mb-4">Enviar senhas para outras pessoas.</p>
                     <div class="mt-auto">
-                        <button class="btn w-100 py-2 text-white" style="background-color: #6f42c1;">Enviar Senha</button>
+                        <button class="btn w-100 py-2 fw-bold text-white opacity-75"
+                                style="background-color: #009697; border: none; border-radius: 6px;" disabled>
+                            Enviar Senha
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        @* 5. Voltar (Preto) *@
+        @* 5. Voltar *@
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm border-0 border-top border-4 border-dark hover-effect d-flex flex-column">
-                <div class="card-body text-center d-flex flex-column p-4">
-                    <div class="fs-1 text-dark mb-3"><i class="bi bi-arrow-left-circle"></i></div>
+            <div class="card h-100 shadow-sm hover-effect d-flex flex-column text-center"
+                 style="border: none; border-top: 5px solid #009697; background-color: white; border-radius: 10px;">
+                <div class="card-body d-flex flex-column p-4">
+                    <div class="fs-1 mb-3" style="color: #009697;"><i class="bi bi-arrow-left-circle"></i></div>
                     <h5 class="fw-bold">Voltar</h5>
                     <p class="text-muted small mb-4">Voltar à página anterior.</p>
 
                     <div class="mt-auto">
-                        <a asp-controller="Home" asp-action="Index" class="btn btn-dark w-100 py-2">Voltar</a>
+                        <a asp-controller="Home" asp-action="Index" class="btn w-100 py-2 fw-bold text-white"
+                           style="background-color: #009697; border: none; border-radius: 6px;">Voltar</a>
                     </div>
                 </div>
             </div>

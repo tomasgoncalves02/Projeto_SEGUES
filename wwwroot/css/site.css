@@ -1,22 +1,45 @@
-html {
-  font-size: 14px;
+/* Variáveis de Cor IPS */
+:root {
+    --ips-teal: #009697;
+    --ips-dark: #2D2926;
 }
 
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+/* Estilo Base dos Cartões do Dashboard */
+.card-ips {
+    border: none !important;
+    border-top: 5px solid var(--ips-teal) !important; /* A linha no topo para todos */
+    border-radius: 10px !important;
+    background-color: white !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+    .card-ips:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+
+/* Botão Padrão IPS */
+.btn-ips {
+    background-color: var(--ips-teal) !important;
+    color: white !important;
+    border: none !important;
+    font-weight: 600 !important;
+    border-radius: 6px !important;
 }
 
-html {
-  position: relative;
-  min-height: 100%;
+    .btn-ips:hover {
+        filter: brightness(90%);
+    }
+
+/* Variante para o Cartão de Saldo (Destaque Total) */
+.card-ips-saldo {
+    background-color: var(--ips-teal) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 10px !important;
 }
 
-body {
-  margin-bottom: 60px;
+/* Cores de Texto e Ícones */
+.text-ips {
+    color: var(--ips-teal) !important;
 }

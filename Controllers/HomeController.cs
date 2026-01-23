@@ -29,10 +29,10 @@ namespace Projeto_SEGUES.Controllers
             if (user == null) return RedirectToPage("/Account/Login", new { area = "Identity" });
 
             // 3. EXCEÇÃO: O Funcionário continua a ser redirecionado para a sua área técnica
-            if (User.IsInRole("Employee"))
+            /*if (User.IsInRole("Employee"))
             {
                 return RedirectToAction("Index", "Employee");
-            }
+            }*/
 
             // 4. PARA TODOS OS OUTROS: Não redirecionamos. 
             // Preparamos os dados e devolvemos a View do Dashboard (Home/Index)

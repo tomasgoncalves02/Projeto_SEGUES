@@ -6,22 +6,26 @@
 }
 
 <div class="container mt-5">
+    @* Cabeçalho *@
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Lista de Utilizadores</h1>
-        <a asp-action="Index" class="btn btn-outline-secondary"> Voltar ao Painel</a>
+        <h1 class="fw-bold" style="border-bottom: 4px solid #009697; display: inline-block; padding-bottom: 5px;">Lista de Utilizadores</h1>
+        <a asp-action="Index" class="btn fw-bold px-4" style="border: 2px solid #009697; color: #009697;">
+            <i class="bi bi-arrow-left me-2"></i>Voltar ao Painel
+        </a>
     </div>
 
-    <div class="card mb-4 bg-light">
-        <div class="card-body py-3">
+    @* Área de Filtros com a linha superior institucional *@
+    <div class="card mb-4 shadow-sm" style="border: none; border-top: 5px solid #009697; border-radius: 10px;">
+        <div class="card-body py-4">
             <form method="get" asp-action="ListUsers" class="row g-3 align-items-center">
 
                 <div class="col-md-auto">
                     <label class="col-form-label fw-bold">Filtrar por Perfil:</label>
                 </div>
                 <div class="col-md-auto">
-                    <select name="roleFilter" class="form-select"
+                    <select name="roleFilter" class="form-select border-0 bg-light"
                             asp-items="Html.GetEnumSelectList<Projeto_SEGUES.Models.Enums.Enums.UserRole>()"
-                            onchange="this.form.submit()">
+                            onchange="this.form.submit()" style="border-radius: 8px;">
                         <option value="">Todos os Utilizadores</option>
                     </select>
                 </div>
@@ -31,20 +35,20 @@
                 </div>
                 <div class="col-md-4">
                     <div class="input-group">
-                        <input type="text" name="searchString" class="form-control"
+                        <input type="text" name="searchString" class="form-control border-0 bg-light"
                                placeholder="Nome ou email..."
-                               value="@ViewData["SearchString"]" />
-                        <button class="btn btn-primary" type="submit">
-                            Pesquisar
+                               value="@ViewData["SearchString"]" style="border-radius: 8px 0 0 8px;" />
+                        <button class="btn text-white fw-bold px-4" type="submit"
+                                style="background-color: #009697; border-radius: 0 8px 8px 0;">
+                            <i class="bi bi-search me-2"></i>Pesquisar
                         </button>
                     </div>
                 </div>
 
                 <div class="col-md-auto">
-                    <a asp-action="ListUsers" class="btn btn-outline-secondary">Limpar</a>
+                    <a asp-action="ListUsers" class="text-decoration-none fw-bold" style="color: #6c757d;">Limpar Filtros</a>
                 </div>
 
-                @* Script para manter o valor do Dropdown selecionado *@
                 @if (ViewData["CurrentFilter"] != null)
                 {
                     <script>
@@ -54,25 +58,30 @@
             </form>
         </div>
     </div>
-    <div class="card shadow-sm">
+
+    @* Tabela de Utilizadores *@
+    <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
+                @* Cabeçalho da tabela em Teal *@
+                <thead style="background-color: #009697; color: white;">
                     <tr>
-                        <th>Nome</th>
-                        <th>Email</th>
-                        <th>Perfil</th>
-                        <th>Saldo</th>
-                        <th class="text-end">Ações</th>
+                        <th class="ps-4 py-3">Nome</th>
+                        <th class="py-3">Email</th>
+                        <th class="py-3">Perfil</th>
+                        <th class="py-3">Saldo</th>
+                        <th class="text-end pe-4 py-3">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var user in Model)
                     {
                         <tr>
-                            <td>
+                            <td class="ps-4">
                                 <div class="d-flex align-items-center">
-                                    <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                    @* Avatar circular em Teal *@
+                                    <div class="text-white rounded-circle d-flex align-items-center justify-content-center me-3 fw-bold"
+                                         style="width: 40px; height: 40px; background-color: #009697;">
                                         @if (!string.IsNullOrEmpty(user.FirstName))
                                         {
                                             @user.FirstName.Substring(0, 1).ToUpper()
@@ -82,11 +91,12 @@
                                             <span>?</span>
                                         }
                                     </div>
-                                    <div class="fw-bold">@user.FirstName @user.LastName</div>
+                                    <div class="fw-bold text-dark">@user.FirstName @user.LastName</div>
                                 </div>
                             </td>
-                            <td>@user.Email</td>
+                            <td class="text-muted">@user.Email</td>
                             <td>
+                                @* MANTIDO: Lógica original das cores de perfil *@
                                 @if (user.Role == Enums.UserRole.Admin)
                                 {
                                     <span class="badge bg-danger">ADMIN</span>
@@ -108,10 +118,11 @@
                                     <span class="badge bg-secondary">EXTERNO</span>
                                 }
                             </td>
-                            <td class="text-success fw-bold">@user.Balance.ToString("C")</td>
-                            <td class="text-end">
-                                <a asp-action="Details" asp-route-id="@user.Id" class="btn btn-sm btn-primary">
-                                    Ver Detalhes ->
+                            <td class="fw-bold" style="color: #009697;">@user.Balance.ToString("C")</td>
+                            <td class="text-end pe-4">
+                                <a asp-action="Details" asp-route-id="@user.Id" class="btn btn-sm text-white fw-bold px-3"
+                                   style="background-color: #009697; border-radius: 6px;">
+                                    Detalhes <i class="bi bi-arrow-right ms-1"></i>
                                 </a>
                             </td>
                         </tr>
