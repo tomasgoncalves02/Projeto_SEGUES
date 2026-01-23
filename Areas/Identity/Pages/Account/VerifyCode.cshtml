@@ -4,30 +4,116 @@
     ViewData["Title"] = "Validar Conta";
 }
 
+<style>
+    /* Definição da cor oficial: #009697 */
+    :root {
+        --cor-projeto: #009697;
+        --cor-projeto-hover: #007a7b;
+    }
+
+    body {
+        background-color: #f8f9fa;
+    }
+
+    .btn-custom {
+        background-color: var(--cor-projeto);
+        border-color: var(--cor-projeto);
+        color: white;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 12px;
+        transition: all 0.3s ease;
+    }
+
+        .btn-custom:hover {
+            background-color: var(--cor-projeto-hover);
+            border-color: var(--cor-projeto-hover);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 150, 151, 0.3);
+        }
+
+    .form-control:focus {
+        border-color: var(--cor-projeto);
+        box-shadow: 0 0 0 0.25rem rgba(0, 150, 151, 0.2);
+    }
+
+    .text-custom {
+        color: var(--cor-projeto);
+    }
+
+    .card-validation {
+        border-radius: 15px;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+
+    .code-input {
+        letter-spacing: 12px;
+        font-size: 30px;
+        font-weight: bold;
+        color: var(--cor-projeto);
+        border: 2px solid #eee;
+    }
+</style>
+
 <div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-6 text-center">
-            <h1>Validar Conta</h1>
-            <p>Enviámos um código de 6 dígitos para o seu email.</p>
-            <hr />
+        <div class="col-md-5 text-center">
+            <div class="mb-4">
+                <div class="display-4 text-custom mb-2">
+                    <i class="bi bi-patch-check-fill"></i>
+                </div>
+                <h2 class="fw-bold">Verificação de Conta</h2>
+                <p class="text-muted">Introduza o código enviado para <strong>@Model.UserEmailDisplay</strong></p>
+            </div>
 
-            <form method="post" class="card p-4 shadow-sm text-start">
-                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+            <form method="post" class="card card-validation p-4 text-start">
+                <div asp-validation-summary="All" class="text-danger mb-3 small"></div>
 
-                <div class="mb-3">
-                    <label class="form-label">O seu Email</label>
-                    <input type="text" class="form-control" value="@Model.UserEmailDisplay" readonly />
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-muted small">CÓDIGO DE 6 DÍGITOS</label>
+                    <input asp-for="Input.Code" class="form-control form-control-lg text-center code-input"
+                           placeholder="000000" maxlength="6" autocomplete="one-time-code" />
+                    <span asp-validation-for="Input.Code" class="text-danger small"></span>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Código de Validação</label>
-                    <input asp-for="Input.Code" class="form-control form-control-lg text-center tracking-widest"
-                           placeholder="000000" maxlength="6" style="letter-spacing: 5px; font-size: 24px;" />
-                    <span asp-validation-for="Input.Code" class="text-danger"></span>
-                </div>
-
-                <button type="submit" class="btn btn-primary btn-lg w-100">Confirmar e Entrar</button>
+                <button type="submit" class="btn btn-custom w-100 shadow-sm">
+                    Confirmar e Entrar
+                </button>
             </form>
+
+            <div class="mt-4">
+                <p class="text-muted small">
+                    Não recebeu o código?
+                    <a href="#" class="text-custom fw-bold text-decoration-none">Reenviar</a>
+                </p>
+                <hr class="my-4" style="opacity: 0.1;">
+                <a asp-page="./Login" class="text-decoration-none text-muted small">
+                    <i class="bi bi-arrow-left"></i> Voltar ao Login
+                </a>
+            </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Se houver mensagem de sucesso vinda do servidor
+            var successMsg = "@TempData["SuccessMessage"]";
+            if (successMsg) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Conta Validada!',
+                    text: successMsg,
+                    confirmButtonColor: '#009697',
+                    timer: 3000
+                });
+            }
+        });
+    </script>
+}

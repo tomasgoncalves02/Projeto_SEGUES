@@ -131,9 +131,9 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                 TempData.Remove("RegistrationData");
 
                 if (roleNameString == "Student")
-                    return RedirectToAction("Index", "Student");
+                    return RedirectToAction("Index", "/");
                 else
-                    return RedirectToAction("Index", "ExternalEmployee");
+                    return RedirectToAction("Index", "/");
             }
 
             foreach (var error in result.Errors)
