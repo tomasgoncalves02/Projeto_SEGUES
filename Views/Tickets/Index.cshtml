@@ -7,49 +7,88 @@
     var balance = ViewBag.UserBalance ?? 0m;
     var price = ViewBag.CurrentPrice ?? 0m;
 
-    // Perfis que PODEM comprar senhas
+    // Perfis que podem comprar senhas
     bool podeComprar = (userRole == UserRole.Student ||
                         userRole == UserRole.DocenteNaoDocente ||
                         userRole == UserRole.External);
 
-    // Perfis que PODEM ver todas as senhas (Staff e Admin)
+    // Perfis de auditoria (Admin e Funcionário)
     bool isAuditor = (userRole == UserRole.Admin || userRole == UserRole.Employee);
 }
 
+@* Importação do SweetAlert2 para os popups *@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<style>
+    .title-underline {
+        border-bottom: 4px solid #009697;
+        display: inline-block;
+        padding-bottom: 5px;
+    }
+
+    .text-ips {
+        color: #009697 !important;
+    }
+
+    .bg-ips {
+        background-color: #009697 !important;
+    }
+
+    .btn-ips {
+        background-color: #009697 !important;
+        color: white !important;
+        border: none;
+    }
+
+        .btn-ips:hover {
+            filter: brightness(90%);
+            color: white;
+        }
+
+    .card-ips {
+        border: none !important;
+        border-top: 5px solid #009697 !important;
+        border-radius: 10px !important;
+    }
+</style>
+
 <div class="container mt-4">
-    @* --- CABEÇALHO --- *@
+    @* --- CABEÇALHO COM BOTÃO VOLTAR --- *@
     <div class="row mb-4 align-items-center">
-        <div class="col-md-8">
-            <h2 class="fw-bold text-dark">
-                <i class="bi bi-ticket-detailed-fill text-primary me-2"></i>
+        <div class="col-md-7">
+            <h2 class="fw-bold title-underline mb-2">
+                <i class="bi bi-ticket-detailed-fill me-2" style="color: #009697;"></i>
                 @(isAuditor ? "Painel de Auditoria de Senhas" : "As Minhas Senhas")
             </h2>
-            <p class="text-muted small">Controlo de Refeições - Sprint 2</p>
+            <p class="text-muted small">Controlo de Refeições - SEGUES</p>
         </div>
 
-        @if (podeComprar)
-        {
-            <div class="col-md-4 text-end">
-                <div class="card bg-primary text-white border-0 shadow-sm">
-                    <div class="card-body py-2 px-4">
-                        <small class="d-block opacity-75 fw-bold">SALDO DISPONÍVEL</small>
-                        <span class="fs-3 fw-bold">@balance.ToString("C")</span>
+        <div class="col-md-5 text-end d-flex justify-content-end align-items-center gap-3">
+            @if (podeComprar)
+            {
+                <div class="card bg-ips text-white border-0 shadow-sm d-none d-lg-block">
+                    <div class="card-body py-2 px-3">
+                        <small class="d-block opacity-75 fw-bold" style="font-size: 0.7rem;">SALDO</small>
+                        <span class="fw-bold">@balance.ToString("C")</span>
                     </div>
                 </div>
-            </div>
-        }
+            }
+
+            @* Botão Voltar para o Dashboard principal *@
+            <a asp-controller="Home" asp-action="Index" class="btn fw-bold px-4"
+               style="border: 2px solid #009697; color: #009697; border-radius: 8px;">
+                <i class="bi bi-arrow-left me-2"></i>Voltar
+            </a>
+        </div>
     </div>
 
-    @* --- SECÇÃO EXCLUSIVA PARA ADMIN: DEFINIÇÃO DE PREÇOS (RF17) --- *@
+    @* --- SECÇÃO ADMIN: DEFINIÇÃO DE PREÇOS (RF17) --- *@
     @if (userRole == UserRole.Admin)
     {
         var prices = ViewBag.Prices as List<Projeto_SEGUES.Models.TicketPrice>;
-
-        <div class="card shadow-sm border-0 mb-5 border-top border-4 border-warning">
+        <div class="card shadow-sm card-ips mb-5">
             <div class="card-header bg-white py-3">
-                <h5 class="mb-0 fw-bold text-warning"><i class="bi bi-currency-euro me-2"></i>Definição de Preçário (RF17)</h5>
+                <h5 class="mb-0 fw-bold text-ips"><i class="bi bi-currency-euro me-2"></i>Definição de Preçário (RF17)</h5>
             </div>
             <div class="card-body p-4 bg-light">
                 <form asp-controller="Tickets" asp-action="UpdatePrices" method="post" class="row align-items-end g-3">
@@ -59,25 +98,20 @@
                         {
                             <div class="col-md-3">
                                 <label class="form-label small fw-bold text-muted">@prices[i].TicketType.ToString()</label>
-
-                                @* CAMPOS HIDDEN CRUCIAL: Sem isto dá erro de sistema *@
                                 <input type="hidden" name="updatedPrices[@i].Id" value="@prices[i].Id" />
                                 <input type="hidden" name="updatedPrices[@i].TicketType" value="@prices[i].TicketType" />
                                 <input type="hidden" name="updatedPrices[@i].InitialDatePrice" value="@prices[i].InitialDatePrice.ToString("yyyy-MM-ddTHH:mm:ss")" />
                                 <input type="hidden" name="updatedPrices[@i].EndDatePrice" value="@prices[i].EndDatePrice.ToString("yyyy-MM-ddTHH:mm:ss")" />
-
                                 <div class="input-group">
-                                    <span class="input-group-text bg-white">€</span>
-                                    <input type="text" name="updatedPrices[@i].Price"
-                                           class="form-control fw-bold"
-                                           value="@prices[i].Price.ToString("F2")" />
+                                    <span class="input-group-text bg-white text-ips fw-bold">€</span>
+                                    <input type="text" name="updatedPrices[@i].Price" class="form-control fw-bold" value="@prices[i].Price.ToString("F2")" />
                                 </div>
                             </div>
                         }
                     }
                     <div class="col-md-3">
-                        <button type="submit" class="btn btn-warning w-100 fw-bold text-dark shadow-sm">
-                            <i class="bi bi-arrow-repeat me-1"></i> ATUALIZAR PREÇOS
+                        <button type="submit" class="btn btn-ips w-100 fw-bold shadow-sm">
+                            <i class="bi bi-arrow-repeat me-1"></i> ATUALIZAR
                         </button>
                     </div>
                 </form>
@@ -85,32 +119,28 @@
         </div>
     }
 
-    <div class="row">
+    <div class="row g-4">
         @* --- COMPRA DE SENHA (Utentes) --- *@
         @if (podeComprar)
         {
             <div class="col-lg-4">
-                <div class="card shadow-sm border-0 mb-4 border-top border-4 border-success">
+                <div class="card shadow-sm card-ips mb-4">
                     <div class="card-header bg-white py-3">
-                        <h5 class="mb-0 fw-bold text-success"><i class="bi bi-cart-plus me-2"></i>Nova Senha</h5>
+                        <h5 class="mb-0 fw-bold text-ips"><i class="bi bi-cart-plus me-2"></i>Nova Senha</h5>
                     </div>
                     <div class="card-body">
-                        <div class="alert alert-light border-0 small mb-3">
-                            Preço para o seu perfil: <strong class="text-dark">@price.ToString("C")</strong>
+                        <div class="alert alert-light border-0 small mb-4" style="background-color: #f0f7f7;">
+                            Preço para o seu perfil: <strong class="text-ips fs-5">@price.ToString("C")</strong>
                         </div>
-
                         <form asp-action="BuyTicket" method="post">
-                            <div class="mb-3">
+                            <div class="mb-4">
                                 <label class="form-label small fw-bold">Quantidade:</label>
                                 <select name="quantity" class="form-select border-2">
                                     <option value="1">1 Refeição (@price.ToString("C"))</option>
                                     <option value="2">2 Refeições (@((price * 2).ToString("C")))</option>
                                 </select>
-                                <div class="form-text text-danger" style="font-size: 0.75rem;">
-                                    <i class="bi bi-info-circle"></i> Limite de 2 senhas/dia.
-                                </div>
                             </div>
-                            <button type="submit" class="btn btn-success w-100 py-2 fw-bold shadow-sm"
+                            <button type="submit" class="btn btn-ips w-100 py-2 fw-bold shadow-sm"
                                     @(balance < price ? "disabled" : "")>
                                 <i class="bi bi-check2-circle me-1"></i> CONFIRMAR COMPRA
                             </button>
@@ -122,17 +152,18 @@
 
         @* --- REGISTO/AUDITORIA DE SENHAS --- *@
         <div class="@(podeComprar ? "col-lg-8" : "col-lg-12")">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-list-check me-2"></i>Registo de Senhas</h5>
+            <div class="card shadow-sm border-0 h-100" style="border-radius: 12px; overflow: hidden;">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+                    <h5 class="mb-0 fw-bold text-ips"><i class="bi bi-list-check me-2"></i>Registo de Senhas</h5>
                     @if (isAuditor)
                     {
-                        <span class="badge bg-dark">Visualização Global</span>
+                        <span class="badge bg-ips">Auditoria Global</span>
                     }
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
+                        @* Cabeçalho corrigido: Cor institucional e remoção da coluna Ação para Auditores *@
+                        <thead style="background-color: #009697; color: white;">
                             <tr>
                                 @if (isAuditor)
                                 {
@@ -141,7 +172,10 @@
                                 <th>Código</th>
                                 <th>Expiração</th>
                                 <th>Estado</th>
-                                <th class="text-center">Ação</th>
+                                @if (!isAuditor)
+                                {
+                                    <th class="text-center">Ação</th>
+                                }
                             </tr>
                         </thead>
                         <tbody>
@@ -155,12 +189,12 @@
                                             <div class="text-muted" style="font-size: 0.7rem;">@item.Owner?.Email</div>
                                         </td>
                                     }
-                                    <td><code class="fw-bold text-primary">@item.ValidationCode</code></td>
+                                    <td><code class="fw-bold text-ips">@item.ValidationCode</code></td>
                                     <td class="small">@item.ExpirationDate.ToString("dd/MM/yyyy")</td>
                                     <td>
                                         @if (item.State == TicketState.Available)
                                         {
-                                            <span class="badge bg-success shadow-none">Disponível</span>
+                                            <span class="badge" style="background-color: #009697;">Disponível</span>
                                         }
                                         else if (item.State == TicketState.Used)
                                         {
@@ -171,30 +205,23 @@
                                             <span class="badge bg-danger">Expirada</span>
                                         }
                                     </td>
-                                    <td class="text-center">
-                                        @if (item.State == TicketState.Available && !isAuditor)
-                                        {
-                                            <button class="btn btn-sm btn-outline-dark fw-bold" onclick="verCodigo('@item.ValidationCode')">
-                                                <i class="bi bi-qr-code"></i> VER
-                                            </button>
-                                        }
-                                        else if (isAuditor)
-                                        {
-                                            <span class="text-muted small italic">Somente leitura</span>
-                                        }
-                                    </td>
+                                    @* Ação só aparece para o Utente (Dono da senha) *@
+                                    @if (!isAuditor)
+                                    {
+                                        <td class="text-center">
+                                            @if (item.State == TicketState.Available)
+                                            {
+                                                <button class="btn btn-sm fw-bold" style="border: 2px solid #009697; color: #009697;" onclick="verCodigo('@item.ValidationCode')">
+                                                    <i class="bi bi-qr-code"></i> VER
+                                                </button>
+                                            }
+                                        </td>
+                                    }
                                 </tr>
                             }
                         </tbody>
                     </table>
                 </div>
-                @if (!Model.Any())
-                {
-                    <div class="card-body text-center py-5">
-                        <i class="bi bi-inbox fs-1 text-muted"></i>
-                        <p class="mt-2 text-muted">Não foram encontrados registos de senhas.</p>
-                    </div>
-                }
             </div>
         </div>
     </div>
@@ -203,29 +230,39 @@
 @section Scripts {
     <script>
         document.addEventListener("DOMContentLoaded", function () {
+            @* Popups de Sucesso/Erro restaurados para feedback de domínio (RF17) *@
             var success = '@TempData["Success"]';
             var error = '@TempData["Error"]';
 
             if (success) {
-                Swal.fire({ icon: 'success', title: 'Operação Concluída', text: success, confirmButtonColor: '#ffc107', confirmButtonTextColor: '#000' });
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Operação Concluída',
+                    text: success,
+                    confirmButtonColor: '#009697'
+                });
             }
             if (error) {
-                Swal.fire({ icon: 'error', title: 'Erro de Sistema', text: error, confirmButtonColor: '#d33' });
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro de Sistema',
+                    text: error,
+                    confirmButtonColor: '#d33'
+                });
             }
         });
 
         function verCodigo(code) {
             Swal.fire({
                 title: 'Senha de Refeição',
-                html: '<div class="p-4 bg-light border border-2 border-primary rounded">' +
-                       //API usada na criação https://goqr.me/
-                      '<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + code +' &size=150" alt="QR Code"> </div>' +
+                html: '<div class="p-4 bg-light border border-2 rounded" style="border-color: #009697 !important;">' +
+                      '<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + code +'&size=150" alt="QR Code"> </div>' +
                       '<br>'+
-                      '<div class="p-4 bg-light border border-2 border-primary rounded">' +
-                      '<h2 class="mb-0 fw-bold letter-spacing-2">' + code + '</h2>' +
-                      '</div><p class="mt-3 text-muted">Apresente este código no refeitório para validação.</p>',
+                      '<div class="p-4 bg-light border border-2 rounded" style="border-color: #009697 !important;">' +
+                      '<h2 class="mb-0 fw-bold" style="letter-spacing: 2px; color: #009697;">' + code + '</h2>' +
+                      '</div><p class="mt-3 text-muted small">Apresente este código no refeitório para validação.</p>',
                 confirmButtonText: 'Fechar',
-                confirmButtonColor: '#0d6efd'
+                confirmButtonColor: '#009697'
             });
         }
     </script>
