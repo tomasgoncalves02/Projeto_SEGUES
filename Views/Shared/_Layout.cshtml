@@ -1,91 +1,67 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="pt">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Projeto_SEGUES</title>
+    <title>@ViewData["Title"] - SEGUES IPS</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/Projeto_SEGUES.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        /* Garante que o logótipo e o texto estão perfeitamente alinhados ao centro */
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+        }
+            /* Ajusta o tamanho do logótipo para que fique proporcional e nítido */
+            .navbar-brand img {
+                height: 50px; /* Ajusta este valor conforme necessário */
+                width: auto;
+            }
+    </style>
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                @* O Brand (Logo) leva para a Home genérica ou Login *@
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Projeto_SEGUES</a>
+        @* Removido o 'navbar-expand-md' para evitar comportamentos de colapso desnecessários *@
+        <nav class="navbar navbar-light bg-white border-bottom shadow-sm py-3">
+            <div class="container-fluid px-4 px-lg-5 d-flex justify-content-between align-items-center">
 
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+                @* LADO ESQUERDO: Logótipo IPS e Nome *@
+                <a class="navbar-brand d-flex align-items-center" asp-controller="Home" asp-action="Index">
+                    <img src="~/images/logo-ips.png" alt="Politécnico de Setúbal" class="me-3" style="height: 50px; width: auto;">
+                    <div class="d-flex flex-column lh-1">
+                        <span class="fw-bold text-dark h4 mb-0">SEGUES</span>
+                        @* Mantemos o subtítulo visível apenas em ecrãs maiores se desejares *@
+                        <small class="text-muted d-none d-sm-block" style="font-size: 0.75rem; letter-spacing: 1px;">SISTEMA DE GESTÃO</small>
+                    </div>
+                </a>
 
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-
-                        @* LÓGICA DE NAVEGAÇÃO INTELIGENTE *@
-
-                        @if (User.IsInRole("Admin"))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark fw-bold" asp-controller="Admin" asp-action="Index">Painel Admin</a>
-                            </li>
-                        }
-                        else if (User.IsInRole("Teacher"))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark fw-bold" asp-controller="Teacher" asp-action="Index">Portal Docente</a>
-                            </li>
-                        }
-                        else if (User.IsInRole("Student"))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark fw-bold" asp-controller="Student" asp-action="Index">Área do Estudante</a>
-                            </li>
-                        }
-                        else if (User.IsInRole("Employee") )
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark fw-bold" asp-controller="Employee" asp-action="Index">Área do Funcionário</a>
-                            </li>
-                        }
-                        else if (User.IsInRole("ExternalEmployee"))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark fw-bold" asp-controller="ExternalEmployee" asp-action="Index">Área do Colaborador</a>
-                            </li>
-                        }
-                        else
-                        {
-                            @* Se não tiver login feito, mostra a Home normal *@
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Home" asp-action="Index">Início</a>
-                            </li>
-                        }
-
-                    </ul>
-
-                    @* Botões de Login/Logout *@
+                @* LADO DIREITO: Apenas o Avatar de utilizador *@
+                <div class="d-flex align-items-center">
                     <partial name="_LoginPartial" />
                 </div>
+
             </div>
         </nav>
     </header>
+
     <div class="container">
-        <main role="main" class="pb-3">
+        <main role="main" class="pb-3 mt-4">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - Projeto_SEGUES
+    @* RODAPÉ RESPONSIVO *@
+    <footer class="border-top footer text-muted bg-light py-4 mt-auto">
+        <div class="container-fluid px-4 px-lg-5">
+            <div class="d-flex justify-content-between align-items-center">
+                <span>&copy; 2026 - <strong>SEGUES IPS</strong></span>
+                <span class="small d-none d-md-inline">Instituto Politécnico de Setúbal</span>
+            </div>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
