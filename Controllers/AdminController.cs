@@ -7,6 +7,9 @@ using Projeto_SEGUES.Models;
 using Projeto_SEGUES.Models.Enums; 
 using System.Text.RegularExpressions;
 using static Projeto_SEGUES.Models.Enums.Enums;
+using System.Text; // Necessário para o StringBuilder
+using System.Threading.Tasks; // Necessário para o Task
+using Microsoft.AspNetCore.Identity.UI.Services; // Necessário para o IEmailSender
 
 namespace Projeto_SEGUES.Controllers
 {
@@ -16,87 +19,87 @@ namespace Projeto_SEGUES.Controllers
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly AppDbContext _context;
+        private readonly IEmailSender _emailSender;
 
-
-        public AdminController(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, AppDbContext context)
+        public AdminController(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, AppDbContext context, IEmailSender emailSender)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _context = context;
-
+            _emailSender = emailSender;
         }
 
-        // GET: Mostrar o formulário de criação
+        [HttpGet]
         public IActionResult CreateInternalAccount()
         {
-            return View();
+            return View(new CreateInternalUserViewModel());
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateInternalAccount(CreateInternalUserViewModel model)
         {
-            if (ModelState.IsValid)
+            // 1. IMPORTANTE: Ignorar campos que não estão no formulário
+            ModelState.Remove(nameof(model.Password));
+            ModelState.Remove(nameof(model.BirthDate));
+            ModelState.Remove(nameof(model.UsernameStub)); // Se já não usas stubs
+
+            if (!ModelState.IsValid)
             {
-               
-                model.UsernameStub = model.UsernameStub.Replace("@", "").Trim();
+                // Se entrar aqui, é porque falta algum campo obrigatório no ViewModel
+                return View(model);
+            }
 
-                string emailDomain = "";
-                UserRole roleEnum;
-                string identityRole = "";
+            // 2. Verificar se o email já existe
+            var existingUser = await _userManager.FindByEmailAsync(model.Email);
+            if (existingUser != null)
+            {
+                ModelState.AddModelError("Email", "Este endereço de email já está registado.");
+                return View(model);
+            }
 
-               
-                if (model.AccountType == "Admin")
+            // 3. Mapeamento de Roles (Admin ou Employee)
+            UserRole roleEnum = model.AccountType == "Admin" ? UserRole.Admin : UserRole.Employee;
+            string identityRole = model.AccountType == "Admin" ? "Admin" : "Employee";
+
+            // 4. Gerar Password (Aumentada para 12 chars para evitar erros de política)
+            string temporaryPassword = GenerateSecurePassword();
+
+            var user = new User
+            {
+                UserName = model.Email,
+                Email = model.Email,
+                FirstName = model.FirstName,
+                LastName = model.LastName,
+                Role = roleEnum,
+                Balance = 0,
+                CreationDate = DateTime.Now,
+                EmailConfirmed = true
+            };
+
+            // 5. Tentar criar a conta
+            var result = await _userManager.CreateAsync(user, temporaryPassword);
+
+            if (result.Succeeded)
+            {
+                // 6. Atribuir a Role (Verifica se estas roles existem na BD!)
+                var roleResult = await _userManager.AddToRoleAsync(user, identityRole);
+
+                if (roleResult.Succeeded)
                 {
-                    emailDomain = "@admin.com";
-                    roleEnum = UserRole.Admin;
-                    identityRole = "Admin";
-                }
-                else if (model.AccountType == "Teacher") 
-                {
-                    emailDomain = "@estsetubal.ips.pt";
-                    roleEnum = UserRole.DocenteNaoDocente;
-                    identityRole = "DocenteNaoDocente";
-                }
-                else
-                {
-                    emailDomain = "@func.com";
-                    roleEnum = UserRole.Employee;
-                    identityRole = "Employee";
-                }
+                    // 7. Enviar Email (Se o registo normal envia, este também enviará)
+                    await EnviarEmailBoasVindas(model.Email, model.FirstName, temporaryPassword, model.AccountType);
 
-              
-                var user = new User
-                {
-                    UserName = model.UsernameStub + emailDomain,
-                    Email = model.UsernameStub + emailDomain,
-                    FirstName = model.FirstName,
-                    LastName = model.LastName,
-                    BirthDate = model.BirthDate,
-                    Gender = model.Gender,
-                    Role = roleEnum, // Define o Enum
-                    Balance = 0,
-                    CreationDate = DateTime.Now
-                };
-
-                if (emailDomain == "@admin.com" || emailDomain == "@func.com")
-                {
-                    user.EmailConfirmed = true;
-                }
-
-                var result = await _userManager.CreateAsync(user, model.Password);
-
-                if (result.Succeeded)
-                {
-                   
-                    await _userManager.AddToRoleAsync(user, identityRole);
-
-                    TempData["Success"] = "Conta criada com sucesso!";
-
-                  
+                    TempData["Success"] = $"Sucesso! Conta criada e senha enviada para {model.Email}.";
                     return RedirectToAction("ListUsers");
                 }
 
+                // Se falhar a Role, adicionamos o erro
+                foreach (var error in roleResult.Errors) ModelState.AddModelError("", "Erro na Role: " + error.Description);
+            }
+            else
+            {
+                // 8. Se falhou a criação (ex: password fraca), mostra o erro exato
                 foreach (var error in result.Errors)
                 {
                     ModelState.AddModelError("", error.Description);
@@ -104,6 +107,39 @@ namespace Projeto_SEGUES.Controllers
             }
 
             return View(model);
+        }
+
+        // Password mais robusta para passar em qualquer validação
+        private string GenerateSecurePassword()
+        {
+            const string lower = "abcdefghijklmnopqrstuvwxyz";
+            const string upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const string nums = "0123456789";
+            const string specials = "!@#$%^&*";
+            var r = new Random();
+
+            // Garante um de cada tipo + aleatórios
+            return $"{lower[r.Next(26)]}{upper[r.Next(26)]}{nums[r.Next(10)]}{specials[r.Next(8)]}" +
+                   Guid.NewGuid().ToString("n").Substring(0, 8);
+        }
+
+        private async Task EnviarEmailBoasVindas(string email, string name, string password, string type)
+        {
+            string roleDisplay = type == "Admin" ? "Administrador" : (type == "Teacher" ? "Docente" : "Funcionário");
+
+            string emailBody = $@"
+                <div style='font-family: sans-serif; border-top: 6px solid #009697; padding: 20px;'>
+                    <h2 style='color: #009697;'>Olá, {name}!</h2>
+                    <p>A tua conta de <strong>{roleDisplay}</strong> no SEGUES foi criada.</p>
+                    <p>Utiliza as seguintes credenciais para o teu primeiro acesso:</p>
+                    <p><strong>Email:</strong> {email}<br>
+                       <strong>Senha Temporária:</strong> <span style='color: #009697; font-weight: bold;'>{password}</span></p>
+                    <br>
+                    <a href='{Request.Scheme}://{Request.Host}/Identity/Account/Login' 
+                       style='background:#009697; color:white; padding:10px 20px; text-decoration:none; border-radius:5px;'>Fazer Login</a>
+                </div>";
+
+            await _emailSender.SendEmailAsync(email, "SEGUES - A tua conta foi criada", emailBody);
         }
         // Página inicial do Admin (Dashboard)
         public async Task<IActionResult> Index()

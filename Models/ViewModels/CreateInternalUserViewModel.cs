@@ -31,6 +31,10 @@ namespace Projeto_SEGUES.Models
         [Display(Name = "Género")]
         public Gender Gender { get; set; }
 
+        [Required(ErrorMessage = "O email é obrigatório")]
+        [EmailAddress(ErrorMessage = "Introduza um email válido")]
+        public string Email { get; set; }
+
         [Required(ErrorMessage = "O campo {0} é obrigatório.")]
         [DataType(DataType.Password)]
         [Display(Name = "Password")]
@@ -42,7 +46,7 @@ namespace Projeto_SEGUES.Models
         [Required(ErrorMessage = "O campo {0} é obrigatório.")]
         [DataType(DataType.Date)]
         [Display(Name = "Data de Nascimento")]
-        public DateTime BirthDate { get; set; }
+        public DateTime? BirthDate { get; set; }
      
     }
 }

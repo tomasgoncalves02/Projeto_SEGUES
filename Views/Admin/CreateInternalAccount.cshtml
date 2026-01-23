@@ -5,132 +5,65 @@
 }
 
 <style>
-    /* Linha decorativa institucional */
-    .title-underline {
-        border-bottom: 4px solid #009697;
-        display: inline-block;
-        padding-bottom: 5px;
-    }
-
-    /* Estilo para os cartões */
     .ips-card {
         border: none !important;
         border-top: 5px solid #009697 !important;
-        border-radius: 10px !important;
+        border-radius: 12px !important;
     }
 
-    /* Foco nos campos de entrada */
-    .form-control:focus, .form-select:focus {
-        border-color: #009697;
-        box-shadow: 0 0 0 0.25rem rgba(0, 150, 151, 0.25);
+    .text-ips {
+        color: #009697 !important;
     }
 </style>
 
 <div class="container mt-5">
-    @* Cabeçalho *@
-    <div class="row mb-4">
-        <div class="col-12">
-            <h2 class="fw-bold title-underline mb-3">Criar Conta Administrativa ou Funcionário</h2>
-            <p class="text-muted">Configure novos acessos internos para a gestão do refeitório e bar.</p>
-        </div>
-    </div>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h2 class="fw-bold mb-4">Registar Administrador ou Funcionário</h2>
 
-    <div class="row g-4">
-        @* Coluna do Formulário *@
-        <div class="col-md-7">
-            <div class="card shadow-sm ips-card">
-                <div class="card-body p-4 p-md-5">
+            @* Sumário de Erros (Essencial para debugar se a conta não criar) *@
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+            <div class="card shadow-lg ips-card">
+                <div class="card-body p-5">
                     <form asp-action="CreateInternalAccount" method="post">
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label asp-for="FirstName" class="form-label fw-bold">Primeiro Nome</label>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FirstName" class="form-label fw-bold">Nome</label>
                                 <input asp-for="FirstName" class="form-control" placeholder="Ex: João" />
-                                <span asp-validation-for="FirstName" class="text-danger small"></span>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-6 mb-3">
                                 <label asp-for="LastName" class="form-label fw-bold">Sobrenome</label>
                                 <input asp-for="LastName" class="form-control" placeholder="Ex: Silva" />
-                                <span asp-validation-for="LastName" class="text-danger small"></span>
                             </div>
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="UsernameStub" class="form-label fw-bold">Identificador de Utilizador</label>
-                            <div class="input-group">
-                                <input asp-for="UsernameStub" class="form-control" placeholder="Ex: joao.silva" style="border-radius: 8px 0 0 8px;" />
-                                <span class="input-group-text bg-light text-muted small" style="border-radius: 0 8px 8px 0;">@@admin.com ou @@func.com</span>
-                            </div>
-                            <small class="text-muted">Apenas o símbolo '@@' será removido automaticamente.</small>
-                            <span asp-validation-for="UsernameStub" class="text-danger d-block small"></span>
+                            <label asp-for="Email" class="form-label fw-bold">Email Profissional</label>
+                            <input asp-for="Email" class="form-control" placeholder="utilizador@dominio.com" />
                         </div>
 
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label asp-for="AccountType" class="form-label fw-bold">Função no Sistema</label>
-                                <select asp-for="AccountType" class="form-select bg-light">
-                                    <option value="Admin">Administrador (@@admin.com)</option>
-                                    <option value="Funcionario">Funcionário do Bar (@@func.com)</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
                                 <label asp-for="Gender" class="form-label fw-bold">Género</label>
-                                <select asp-for="Gender" class="form-select bg-light" asp-items="Html.GetEnumSelectList<Projeto_SEGUES.Models.Enums.Enums.Gender>()">
+                                <select asp-for="Gender" class="form-select" asp-items="Html.GetEnumSelectList<Projeto_SEGUES.Models.Enums.Enums.Gender>()">
                                     <option value="">Selecione...</option>
                                 </select>
                             </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <label asp-for="Password" class="form-label fw-bold">Senha Temporária</label>
-                            <div class="input-group">
-                                <input asp-for="Password" class="form-control" id="passwordInput" type="password" style="border-radius: 8px 0 0 8px;" />
-                                <button class="btn btn-outline-secondary" type="button" id="togglePassword" style="border-radius: 0 8px 8px 0; border-left: none;">
-                                    <i class="bi bi-eye"></i>
-                                </button>
+                            <div class="col-md-6 mb-4">
+                                <label asp-for="AccountType" class="form-label fw-bold">Função / Role</label>
+                                <select asp-for="AccountType" class="form-select">
+                                    <option value="Admin">Administrador</option>
+                                    <option value="Employee">Funcionário</option>
+                                </select>
                             </div>
-                            <span asp-validation-for="Password" class="text-danger small"></span>
                         </div>
 
-                        @* Botão Criar Conta em Teal *@
-                        <button type="submit" class="btn btn-lg text-white fw-bold w-100 shadow-sm"
-                                style="background-color: #009697; border: none; border-radius: 8px; padding: 12px;">
-                            <i class="bi bi-person-check-fill me-2"></i>Finalizar Criação de Conta
+                        <button type="submit" class="btn btn-lg text-white w-100 fw-bold shadow-sm" style="background-color: #009697;">
+                            <i class="bi bi-send-check me-2"></i>CRIAR E NOTIFICAR POR EMAIL
                         </button>
                     </form>
-                </div>
-            </div>
-        </div>
-
-        @* Coluna de Ajuda/Exemplos *@
-        <div class="col-md-5">
-            <div class="card h-100 border-0 shadow-sm" style="background-color: #f8fbfb; border-radius: 12px;">
-                <div class="card-body p-4">
-                    <div class="text-center mb-4">
-                        <div class="d-inline-block p-3 rounded-circle mb-3" style="background-color: rgba(0, 150, 151, 0.1);">
-                            <i class="bi bi-info-circle fs-2" style="color: #009697;"></i>
-                        </div>
-                        <h4 class="fw-bold">Regras de Atribuição</h4>
-                    </div>
-
-                    <div class="p-3 bg-white rounded shadow-sm mb-3">
-                        <p class="mb-1 fw-bold small text-muted text-uppercase">Exemplo Administrador</p>
-                        <p class="mb-0">Se identificador for <strong>joao.silva</strong>:</p>
-                        <code class="fs-5 fw-bold" style="color: #009697;">joao.silva@admin.com</code>
-                    </div>
-
-                    <div class="p-3 bg-white rounded shadow-sm mb-3">
-                        <p class="mb-1 fw-bold small text-muted text-uppercase">Exemplo Funcionário</p>
-                        <p class="mb-0">Se identificador for <strong>maria_123</strong>:</p>
-                        <code class="fs-5 fw-bold" style="color: #009697;">maria_123@func.com</code>
-                    </div>
-
-                    <hr class="my-4" />
-                    <p class="small text-muted text-center px-3">
-                        <i class="bi bi-shield-exclamation me-1"></i>
-                        Nota: A senha inicial deve ser entregue ao colaborador. Recomenda-se a alteração no primeiro acesso.
-                    </p>
                 </div>
             </div>
         </div>
@@ -138,19 +71,21 @@
 </div>
 
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const togglePassword = document.querySelector('#togglePassword');
-            const passwordField = document.querySelector('#passwordInput');
-            const icon = togglePassword.querySelector('i');
-
-            togglePassword.addEventListener('click', function () {
-                const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
-                passwordField.setAttribute('type', type);
-                icon.classList.toggle('bi-eye');
-                icon.classList.toggle('bi-eye-slash');
-            });
+        document.addEventListener("DOMContentLoaded", function() {
+            @if (TempData["Success"] != null)
+            {
+                    <text>
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Utilizador Criado!',
+                        text: '@TempData["Success"]',
+                        confirmButtonColor: '#009697'
+                    });
+                    </text>
+            }
         });
     </script>
-    <partial name="_ValidationScriptsPartial" />
 }
