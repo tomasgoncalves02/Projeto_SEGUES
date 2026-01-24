@@ -213,6 +213,26 @@ namespace Projeto_SEGUES.Controllers
             return View();
         }
 
+        [Authorize]
+        public async Task<IActionResult> SenhasAtivas()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var now = DateTime.Now;
+
+            // Filtra apenas senhas Disponíveis e que ainda não expiraram
+            var activeTickets = await _context.Tickets
+                .Where(t => t.OwnerId == user.Id &&
+                            t.State == TicketState.Available &&
+                            t.ExpirationDate >= now)
+                .OrderBy(t => t.ExpirationDate) // Mostra as que expiram mais cedo primeiro
+                .ToListAsync();
+
+            ViewBag.UserRole = user.Role;
+            return View(activeTickets);
+        }
+
         private async Task<List<Ticket>> GetRecentTicketsAsync()
         {
             return await _context.Tickets
