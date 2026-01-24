@@ -10,10 +10,10 @@
     // Perfis que podem comprar senhas
     bool podeComprar = (userRole == UserRole.Student ||
                         userRole == UserRole.DocenteNaoDocente ||
-                        userRole == UserRole.External);
+                        userRole == UserRole.External || userRole == UserRole.Admin || userRole == UserRole.Employee);
 
     // Perfis de auditoria (Admin e Funcionário)
-    bool isAuditor = (userRole == UserRole.Admin || userRole == UserRole.Employee);
+    //bool isAuditor = (userRole == UserRole.Admin || userRole == UserRole.Employee);
 }
 
 @* Importação do SweetAlert2 para os popups *@
@@ -58,7 +58,7 @@
         <div class="col-md-7">
             <h2 class="fw-bold title-underline mb-2">
                 <i class="bi bi-ticket-detailed-fill me-2" style="color: #009697;"></i>
-                @(isAuditor ? "Painel de Auditoria de Senhas" : "As Minhas Senhas")
+                Comprar Senhas
             </h2>
             <p class="text-muted small">Controlo de Refeições - SEGUES</p>
         </div>
@@ -81,43 +81,6 @@
             </a>
         </div>
     </div>
-
-    @* --- SECÇÃO ADMIN: DEFINIÇÃO DE PREÇOS (RF17) --- *@
-    @if (userRole == UserRole.Admin)
-    {
-        var prices = ViewBag.Prices as List<Projeto_SEGUES.Models.TicketPrice>;
-        <div class="card shadow-sm card-ips mb-5">
-            <div class="card-header bg-white py-3">
-                <h5 class="mb-0 fw-bold text-ips"><i class="bi bi-currency-euro me-2"></i>Definição de Preçário (RF17)</h5>
-            </div>
-            <div class="card-body p-4 bg-light">
-                <form asp-controller="Tickets" asp-action="UpdatePrices" method="post" class="row align-items-end g-3">
-                    @if (prices != null)
-                    {
-                        @for (int i = 0; i < prices.Count; i++)
-                        {
-                            <div class="col-md-3">
-                                <label class="form-label small fw-bold text-muted">@prices[i].TicketType.ToString()</label>
-                                <input type="hidden" name="updatedPrices[@i].Id" value="@prices[i].Id" />
-                                <input type="hidden" name="updatedPrices[@i].TicketType" value="@prices[i].TicketType" />
-                                <input type="hidden" name="updatedPrices[@i].InitialDatePrice" value="@prices[i].InitialDatePrice.ToString("yyyy-MM-ddTHH:mm:ss")" />
-                                <input type="hidden" name="updatedPrices[@i].EndDatePrice" value="@prices[i].EndDatePrice.ToString("yyyy-MM-ddTHH:mm:ss")" />
-                                <div class="input-group">
-                                    <span class="input-group-text bg-white text-ips fw-bold">€</span>
-                                    <input type="text" name="updatedPrices[@i].Price" class="form-control fw-bold" value="@prices[i].Price.ToString("F2")" />
-                                </div>
-                            </div>
-                        }
-                    }
-                    <div class="col-md-3">
-                        <button type="submit" class="btn btn-ips w-100 fw-bold shadow-sm">
-                            <i class="bi bi-arrow-repeat me-1"></i> ATUALIZAR
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    }
 
     <div class="row g-4">
         @* --- COMPRA DE SENHA (Utentes) --- *@
@@ -154,41 +117,23 @@
         <div class="@(podeComprar ? "col-lg-8" : "col-lg-12")">
             <div class="card shadow-sm border-0 h-100" style="border-radius: 12px; overflow: hidden;">
                 <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
-                    <h5 class="mb-0 fw-bold text-ips"><i class="bi bi-list-check me-2"></i>Registo de Senhas</h5>
-                    @if (isAuditor)
-                    {
-                        <span class="badge bg-ips">Auditoria Global</span>
-                    }
+                    <h5 class="mb-0 fw-bold text-ips"><i class="bi bi-list-check me-2"></i>Registo de Senhas</h5>                  
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         @* Cabeçalho corrigido: Cor institucional e remoção da coluna Ação para Auditores *@
                         <thead style="background-color: #009697; color: white;">
-                            <tr>
-                                @if (isAuditor)
-                                {
-                                    <th class="ps-3">Utente</th>
-                                }
+                            <tr>                              
                                 <th>Código</th>
                                 <th>Expiração</th>
                                 <th>Estado</th>
-                                @if (!isAuditor)
-                                {
-                                    <th class="text-center">Ação</th>
-                                }
+                                <th class="text-center">Ação</th>  
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var item in Model)
                             {
-                                <tr>
-                                    @if (isAuditor)
-                                    {
-                                        <td class="ps-3">
-                                            <div class="fw-bold small">@item.Owner?.FirstName @item.Owner?.LastName</div>
-                                            <div class="text-muted" style="font-size: 0.7rem;">@item.Owner?.Email</div>
-                                        </td>
-                                    }
+                                <tr>                                   
                                     <td><code class="fw-bold text-ips">@item.ValidationCode</code></td>
                                     <td class="small">@item.ExpirationDate.ToString("dd/MM/yyyy")</td>
                                     <td>
@@ -205,9 +150,7 @@
                                             <span class="badge bg-danger">Expirada</span>
                                         }
                                     </td>
-                                    @* Ação só aparece para o Utente (Dono da senha) *@
-                                    @if (!isAuditor)
-                                    {
+                                    @* Ação só aparece para o Utente (Dono da senha) *@                                    
                                         <td class="text-center">
                                             @if (item.State == TicketState.Available)
                                             {
@@ -215,8 +158,7 @@
                                                     <i class="bi bi-qr-code"></i> VER
                                                 </button>
                                             }
-                                        </td>
-                                    }
+                                        </td>                                    
                                 </tr>
                             }
                         </tbody>

@@ -35,51 +35,26 @@ namespace Projeto_SEGUES.Controllers
             return View();
         }
 
-       
+
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
 
             var now = DateTime.Now;
-            
-            bool canSeeAll = user.Role == UserRole.Admin || user.Role == UserRole.Employee;
 
-            
-            var expiredQuery = _context.Tickets
-                .Where(t => t.State == TicketState.Available && t.ExpirationDate < now);
+            // 1. Expira apenas os tickets DO UTILIZADOR logado (para performance)
+            var expiredTickets = await _context.Tickets
+                .Where(t => t.OwnerId == user.Id && t.State == TicketState.Available && t.ExpirationDate < now)
+                .ToListAsync();
 
-            if (!canSeeAll)
-            {
-                expiredQuery = expiredQuery.Where(t => t.OwnerId == user.Id);
-            }
-
-            var expiredTickets = await expiredQuery.ToListAsync();
             if (expiredTickets.Any())
             {
                 foreach (var ticket in expiredTickets) { ticket.State = TicketState.Expired; }
                 await _context.SaveChangesAsync();
             }
-            if (user.Role == UserRole.Admin)
-            {
-                var allPrices = await _context.TicketPrices.ToListAsync();
 
-                
-                if (!allPrices.Any())
-                {
-                    allPrices = new List<TicketPrice>
-                    {
-                        new TicketPrice { TicketType = TicketType.Student, Price = 2.90m, InitialDatePrice = now, EndDatePrice = now.AddYears(1) },
-                        new TicketPrice { TicketType = TicketType.DocenteNaoDocente, Price = 5.20m, InitialDatePrice = now, EndDatePrice = now.AddYears(1) },
-                        new TicketPrice { TicketType = TicketType.External, Price = 5.50m, InitialDatePrice = now, EndDatePrice = now.AddYears(1) }
-                    };
-                    _context.TicketPrices.AddRange(allPrices);
-                    await _context.SaveChangesAsync();
-                }
-                ViewBag.Prices = allPrices;
-            }
-
-          
+            // 2. Dados da Loja (Sempre baseados no perfil de quem está logado)
             var userTicketType = GetTicketTypeByUserRole(user.Role);
             decimal currentPrice = await GetCurrentPriceFromDb(userTicketType);
 
@@ -87,28 +62,22 @@ namespace Projeto_SEGUES.Controllers
             ViewBag.CurrentPrice = currentPrice;
             ViewBag.UserRole = user.Role;
 
-          
-            IQueryable<Ticket> ticketsQuery = _context.Tickets.Include(t => t.Owner);
-            if (!canSeeAll)
-            {
-                ticketsQuery = ticketsQuery.Where(t => t.OwnerId == user.Id);
-            }
+            // 3. Consulta APENAS os tickets do próprio utilizador
+            // Removemos o "canSeeAll" aqui para que o Admin veja apenas as suas senhas
+            var myTickets = await _context.Tickets
+                .Include(t => t.Owner)
+                .Where(t => t.OwnerId == user.Id) // Filtro obrigatório para todos
+                .OrderByDescending(t => t.PurchaseDate)
+                .ToListAsync();
 
-            var ticketsToShow = await ticketsQuery.OrderByDescending(t => t.PurchaseDate).ToListAsync();
-            return View(ticketsToShow);
+            return View(myTickets);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> BuyTicket(int quantity = 1)
         {
-            var user = await _userManager.GetUserAsync(User);
-
-            if (user.Role == UserRole.Admin || user.Role == UserRole.Employee)
-            {
-                TempData["Error"] = "Este perfil não tem permissão para comprar senhas.";
-                return RedirectToAction(nameof(Index));
-            }
+            var user = await _userManager.GetUserAsync(User);        
 
             var now = DateTime.Now;
             var ticketType = GetTicketTypeByUserRole(user.Role);
@@ -146,7 +115,7 @@ namespace Projeto_SEGUES.Controllers
                     {
                         OwnerId = user.Id,
                         PurchaseDate = now,
-                        ExpirationDate = now.AddDays(7), 
+                        ExpirationDate = now.AddDays(7),
                         State = TicketState.Available,
                         TicketPurchaseId = purchase.Id,
                         ValidationCode = Guid.NewGuid().ToString().Substring(0, 8).ToUpper()
@@ -168,7 +137,7 @@ namespace Projeto_SEGUES.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-       
+
         [HttpGet]
         [Authorize(Roles = "Admin,Employee")]
         public async Task<IActionResult> ValidateTicket()
@@ -180,7 +149,7 @@ namespace Projeto_SEGUES.Controllers
             return View(model);
         }
 
-        
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,Employee")]
@@ -192,12 +161,12 @@ namespace Projeto_SEGUES.Controllers
                 return View(model);
             }
 
-            
+
             var ticket = await _context.Tickets
                 .Include(t => t.Owner)
                 .FirstOrDefaultAsync(t => t.ValidationCode == model.Code.ToUpper());
 
-           
+
             if (ticket == null)
             {
                 ModelState.AddModelError("Code", "Código não encontrado.");
@@ -217,21 +186,21 @@ namespace Projeto_SEGUES.Controllers
             }
             else
             {
-                
+
                 ticket.State = TicketState.Used;
                 ticket.UsedDate = DateTime.Now;
 
                 _context.Tickets.Update(ticket);
                 await _context.SaveChangesAsync();
 
-                TempData["Success"] = $"Senha validada! Cliente: {ticket.Owner.FirstName} {ticket.Owner.LastName}";
+                TempData["Success"] = "Senha validada!";
 
                 // Limpar campo
                 ModelState.Clear();
                 model.Code = string.Empty;
             }
 
-          
+
             model.RecentTickets = await GetRecentTicketsAsync();
             return View(model);
         }
@@ -254,7 +223,7 @@ namespace Projeto_SEGUES.Controllers
                 .ToListAsync();
         }
 
-       
+
 
         private TicketType GetTicketTypeByUserRole(UserRole role)
         {
@@ -263,8 +232,8 @@ namespace Projeto_SEGUES.Controllers
                 UserRole.Student => TicketType.Student,
                 UserRole.DocenteNaoDocente => TicketType.DocenteNaoDocente,
                 UserRole.External => TicketType.External,
-                UserRole.Employee => TicketType.Employee,
-                UserRole.Admin => TicketType.Admin,
+                UserRole.Employee => TicketType.DocenteNaoDocente,
+                UserRole.Admin => TicketType.DocenteNaoDocente,
                 _ => TicketType.External
             };
         }
@@ -306,7 +275,45 @@ namespace Projeto_SEGUES.Controllers
                 TempData["Error"] = "Os dados introduzidos são invalidos.";
             }
 
-            return RedirectToAction("Index", "Tickets");
+            return RedirectToAction(nameof(GestaoSenhas));
+        }
+
+
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GestaoSenhas()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var now = DateTime.Now;
+
+            // 1. Lógica de Preços (Movida do antigo Index)
+            if (user.Role == UserRole.Admin)
+            {
+                var allPrices = await _context.TicketPrices.ToListAsync();
+                if (!allPrices.Any())
+                {
+                    allPrices = new List<TicketPrice>
+            {
+                new TicketPrice { TicketType = TicketType.Student, Price = 2.90m, InitialDatePrice = now, EndDatePrice = now.AddYears(1) },
+                new TicketPrice { TicketType = TicketType.DocenteNaoDocente, Price = 5.20m, InitialDatePrice = now, EndDatePrice = now.AddYears(1) },
+                new TicketPrice { TicketType = TicketType.External, Price = 5.50m, InitialDatePrice = now, EndDatePrice = now.AddYears(1) }
+            };
+                    _context.TicketPrices.AddRange(allPrices);
+                    await _context.SaveChangesAsync();
+                }
+                ViewBag.Prices = allPrices;
+            }
+
+            ViewBag.UserRole = user.Role;
+
+            // 2. Auditoria Global: Carrega tickets de TODOS os utilizadores
+            var allTickets = await _context.Tickets
+                .Include(t => t.Owner)
+                .OrderByDescending(t => t.PurchaseDate)
+                .ToListAsync();
+
+            return View(allTickets);
         }
     }
 }

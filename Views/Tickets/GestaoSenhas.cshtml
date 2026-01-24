@@ -1,0 +1,174 @@
+﻿@model IEnumerable<Projeto_SEGUES.Models.Ticket>
+@using static Projeto_SEGUES.Models.Enums.Enums
+
+@{
+    ViewData["Title"] = "Gestão de Senhas - SEGUES";
+    var userRole = ViewBag.UserRole;
+}
+
+@* Importação do SweetAlert2 *@
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+    .title-underline {
+        border-bottom: 4px solid #009697;
+        display: inline-block;
+        padding-bottom: 5px;
+    }
+
+    .text-ips {
+        color: #009697 !important;
+    }
+
+    .bg-ips {
+        background-color: #009697 !important;
+    }
+
+    .btn-ips {
+        background-color: #009697 !important;
+        color: white !important;
+        border: none;
+    }
+
+        .btn-ips:hover {
+            filter: brightness(90%);
+            color: white;
+        }
+
+    .card-ips {
+        border: none !important;
+        border-top: 5px solid #009697 !important;
+        border-radius: 10px !important;
+    }
+</style>
+
+<div class="container mt-4">
+    @* --- CABEÇALHO --- *@
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-7">
+            <h2 class="fw-bold title-underline mb-2">
+                <i class="bi bi-shield-lock-fill me-2" style="color: #009697;"></i>
+                Painel de Gestão e Auditoria
+            </h2>
+            <p class="text-muted small">Administração de Preçários e Registo Global de Senhas</p>
+        </div>
+
+        <div class="col-md-5 text-end">
+            <a asp-controller="Admin" asp-action="Index" class="btn fw-bold px-4"
+               style="border: 2px solid #009697; color: #009697; border-radius: 8px;">
+                <i class="bi bi-arrow-left me-2"></i>Voltar
+            </a>
+        </div>
+    </div>
+
+    @* --- SECÇÃO ADMIN: DEFINIÇÃO DE PREÇOS --- *@
+    @if (userRole == UserRole.Admin)
+    {
+        var prices = ViewBag.Prices as List<Projeto_SEGUES.Models.TicketPrice>;
+        <div class="card shadow-sm card-ips mb-5">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-bold text-ips"><i class="bi bi-currency-euro me-2"></i>Definição de Preçário (RF17)</h5>
+            </div>
+            <div class="card-body p-4 bg-light">
+                <form asp-controller="Tickets" asp-action="UpdatePrices" method="post" class="row align-items-end g-3">
+                    @if (prices != null)
+                    {
+                        @for (int i = 0; i < prices.Count; i++)
+                        {
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold text-muted">@prices[i].TicketType.ToString()</label>
+                                <input type="hidden" name="updatedPrices[@i].Id" value="@prices[i].Id" />
+                                <input type="hidden" name="updatedPrices[@i].TicketType" value="@prices[i].TicketType" />
+                                <input type="hidden" name="updatedPrices[@i].InitialDatePrice" value="@prices[i].InitialDatePrice.ToString("yyyy-MM-ddTHH:mm:ss")" />
+                                <input type="hidden" name="updatedPrices[@i].EndDatePrice" value="@prices[i].EndDatePrice.ToString("yyyy-MM-ddTHH:mm:ss")" />
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white text-ips fw-bold">€</span>
+                                    <input type="text" name="updatedPrices[@i].Price" class="form-control fw-bold" value="@prices[i].Price.ToString("F2")" />
+                                </div>
+                            </div>
+                        }
+                    }
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-ips w-100 fw-bold shadow-sm">
+                            <i class="bi bi-arrow-repeat me-1"></i> ATUALIZAR
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    }
+
+    @* --- SECÇÃO: AUDITORIA GLOBAL COM ESTADOS TRADUZIDOS --- *@
+    <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
+        <div class="card-header bg-white py-3 border-bottom">
+            <h5 class="mb-0 fw-bold text-ips"><i class="bi bi-list-check me-2"></i>Auditoria Geral de Senhas</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead style="background-color: #009697; color: white;">
+                    <tr>
+                        <th class="ps-3">Utente</th>
+                        <th>Código</th>
+                        <th>Expiração</th>
+                        <th>Estado</th>
+                        <th>Data de Compra</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="ps-3">
+                                <div class="fw-bold small">@item.Owner?.FirstName @item.Owner?.LastName</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">@item.Owner?.Email</div>
+                            </td>
+                            <td><code class="fw-bold text-ips">@item.ValidationCode</code></td>
+                            <td class="small">@item.ExpirationDate.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                @if (item.State == TicketState.Available)
+                                {
+                                    <span class="badge bg-ips">Disponível</span>
+                                }
+                                else if (item.State == TicketState.Used)
+                                {
+                                    <span class="badge bg-secondary">Consumida</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Expirada</span>
+                                }
+                            </td>
+                            <td class="small">@item.PurchaseDate.ToString("dd/MM/yyyy HH:mm")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var success = '@TempData["Success"]';
+            var error = '@TempData["Error"]';
+
+            if (success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Sucesso',
+                    text: success,
+                    confirmButtonColor: '#009697'
+                });
+            }
+            if (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro',
+                    text: error,
+                    confirmButtonColor: '#d33'
+                });
+            }
+        });
+    </script>
+}
