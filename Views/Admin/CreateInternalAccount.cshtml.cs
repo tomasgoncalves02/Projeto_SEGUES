@@ -52,7 +52,7 @@ namespace Projeto_SEGUES.Views.Admin
                 Gender = Input.Gender,
                 CreationDate = DateTime.Now,
                 Status = Enums.UserStatus.Active,
-                EmailConfirmed = true // Confirmamos logo para facilitar o acesso inicial
+                EmailConfirmed = true
             };
 
             // 4. Criar utilizador na Base de Dados
@@ -66,8 +66,16 @@ namespace Projeto_SEGUES.Views.Admin
                 // Enviar o email com a senha gerada
                 await EnviarEmailBoasVindas(Input.Email, Input.FirstName, temporaryPassword, Input.AccountType);
 
+                // Mensagem de Sucesso para o SweetAlert ler
                 TempData["Success"] = $"Conta de {Input.FirstName} criada! A senha foi enviada para {Input.Email}.";
-                return RedirectToPage("./ListUsers");
+
+                // --- MUDANÇA AQUI ---
+                // Limpamos o formulário para poderes criar outro utilizador logo de seguida
+                ModelState.Clear();
+                Input = new CreateInternalUserViewModel();
+
+                // EM VEZ DE REDIRECIONAR, FICAMOS NA PÁGINA PARA O POP-UP APARECER
+                return Page();
             }
 
             // Caso haja erros de política de password do Identity

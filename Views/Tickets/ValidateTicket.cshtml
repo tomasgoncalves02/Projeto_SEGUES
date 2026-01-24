@@ -7,18 +7,21 @@
 <div class="container mt-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold">Validar Senhas</h2>
-        <a asp-action="OperacaoRefeitorio" asp-controller="Tickets" class="btn btn-dark px-4 py-2">
-            Voltar
+
+        <a asp-action="OperacaoRefeitorio" asp-controller="Tickets" class="btn fw-bold px-4"
+           style="border: 2px solid #009697; color: #009697; border-radius: 8px;">
+            <i class="bi bi-arrow-left me-2"></i>Voltar
         </a>
     </div>
 
-    @if (TempData["Success"] != null)
+    @* @if (TempData["Success"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
             <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-    }
+    } 
+    *@
 
     <div class="row">
         <div class="col-md-5 mb-4">
@@ -117,18 +120,24 @@
 </div>
 
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             var successMsg = '@TempData["Success"]';
-            var errorMsg = '@TempData["Error"]';
+            var errorMsg = '@TempData["Error"]'; // Caso tenhas definido TempData["Error"] no Controller
+
+            // Também verificamos se há erros de validação no ModelState para mostrar pop-up de erro
+            var hasValidationErrors = @((!ViewData.ModelState.IsValid).ToString().ToLower());
 
             if (successMsg) {
                 Swal.fire({
                     icon: 'success',
                     title: 'Validado!',
                     text: successMsg,
-                    confirmButtonColor: '#009697'
+                    confirmButtonColor: '#009697',
+                    timer: 2000, // Fecha sozinho após 2 segundos para agilizar o trabalho
+                    showConfirmButton: false
                 });
             }
 
@@ -139,6 +148,11 @@
                     text: errorMsg,
                     confirmButtonColor: '#d33'
                 });
+            }
+
+            // Se houver erro de validação (ex: código inválido inserido), foca novamente no input
+            if(hasValidationErrors || successMsg || errorMsg) {
+                 document.getElementById("Code").focus();
             }
         });
     </script>

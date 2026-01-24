@@ -7,16 +7,12 @@
     var balance = ViewBag.UserBalance ?? 0m;
     var price = ViewBag.CurrentPrice ?? 0m;
 
-    // Perfis que podem comprar senhas
     bool podeComprar = (userRole == UserRole.Student ||
                         userRole == UserRole.DocenteNaoDocente ||
                         userRole == UserRole.External || userRole == UserRole.Admin || userRole == UserRole.Employee);
-
-    // Perfis de auditoria (Admin e Funcionário)
-    //bool isAuditor = (userRole == UserRole.Admin || userRole == UserRole.Employee);
 }
 
-@* Importação do SweetAlert2 para os popups *@
+@* Importação do SweetAlert2 *@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
@@ -53,7 +49,6 @@
 </style>
 
 <div class="container mt-4">
-    @* --- CABEÇALHO COM BOTÃO VOLTAR --- *@
     <div class="row mb-4 align-items-center">
         <div class="col-md-7">
             <h2 class="fw-bold title-underline mb-2">
@@ -74,7 +69,6 @@
                 </div>
             }
 
-            @* Botão Voltar para o Dashboard principal *@
             <a asp-controller="Home" asp-action="Index" class="btn fw-bold px-4"
                style="border: 2px solid #009697; color: #009697; border-radius: 8px;">
                 <i class="bi bi-arrow-left me-2"></i>Voltar
@@ -83,7 +77,7 @@
     </div>
 
     <div class="row g-4">
-        @* --- COMPRA DE SENHA (Utentes) --- *@
+        @* --- COMPRA DE SENHA --- *@
         @if (podeComprar)
         {
             <div class="col-lg-4">
@@ -95,10 +89,15 @@
                         <div class="alert alert-light border-0 small mb-4" style="background-color: #f0f7f7;">
                             Preço para o seu perfil: <strong class="text-ips fs-5">@price.ToString("C")</strong>
                         </div>
-                        <form asp-action="BuyTicket" method="post">
+
+                        @* MUDANÇA 1: Adicionei id="formCompra" para o JS controlar 
+                        *@
+                        <form asp-action="BuyTicket" method="post" id="formCompra">
                             <div class="mb-4">
                                 <label class="form-label small fw-bold">Quantidade:</label>
-                                <select name="quantity" class="form-select border-2">
+                                @* MUDANÇA 2: Adicionei id="selectQtd" para ler a quantidade 
+                                *@
+                                <select name="quantity" id="selectQtd" class="form-select border-2">
                                     <option value="1">1 Refeição (@price.ToString("C"))</option>
                                     <option value="2">2 Refeições (@((price * 2).ToString("C")))</option>
                                 </select>
@@ -113,27 +112,26 @@
             </div>
         }
 
-        @* --- REGISTO/AUDITORIA DE SENHAS --- *@
+        @* --- TABELA DE SENHAS --- *@
         <div class="@(podeComprar ? "col-lg-8" : "col-lg-12")">
             <div class="card shadow-sm border-0 h-100" style="border-radius: 12px; overflow: hidden;">
                 <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
-                    <h5 class="mb-0 fw-bold text-ips"><i class="bi bi-list-check me-2"></i>Registo de Senhas</h5>                  
+                    <h5 class="mb-0 fw-bold text-ips"><i class="bi bi-list-check me-2"></i>Registo de Senhas</h5>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
-                        @* Cabeçalho corrigido: Cor institucional e remoção da coluna Ação para Auditores *@
                         <thead style="background-color: #009697; color: white;">
-                            <tr>                              
+                            <tr>
                                 <th>Código</th>
                                 <th>Expiração</th>
                                 <th>Estado</th>
-                                <th class="text-center">Ação</th>  
+                                <th class="text-center">Ação</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var item in Model)
                             {
-                                <tr>                                   
+                                <tr>
                                     <td><code class="fw-bold text-ips">@item.ValidationCode</code></td>
                                     <td class="small">@item.ExpirationDate.ToString("dd/MM/yyyy")</td>
                                     <td>
@@ -150,15 +148,14 @@
                                             <span class="badge bg-danger">Expirada</span>
                                         }
                                     </td>
-                                    @* Ação só aparece para o Utente (Dono da senha) *@                                    
-                                        <td class="text-center">
-                                            @if (item.State == TicketState.Available)
-                                            {
-                                                <button class="btn btn-sm fw-bold" style="border: 2px solid #009697; color: #009697;" onclick="verCodigo('@item.ValidationCode')">
-                                                    <i class="bi bi-qr-code"></i> VER
-                                                </button>
-                                            }
-                                        </td>                                    
+                                    <td class="text-center">
+                                        @if (item.State == TicketState.Available)
+                                        {
+                                            <button class="btn btn-sm fw-bold" style="border: 2px solid #009697; color: #009697;" onclick="verCodigo('@item.ValidationCode')">
+                                                <i class="bi bi-qr-code"></i> VER
+                                            </button>
+                                        }
+                                    </td>
                                 </tr>
                             }
                         </tbody>
@@ -172,24 +169,49 @@
 @section Scripts {
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            @* Popups de Sucesso/Erro restaurados para feedback de domínio (RF17) *@
+            // Mensagens de Feedback do Servidor
             var success = '@TempData["Success"]';
             var error = '@TempData["Error"]';
 
             if (success) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Operação Concluída',
-                    text: success,
-                    confirmButtonColor: '#009697'
-                });
+                Swal.fire({ icon: 'success', title: 'Operação Concluída', text: success, confirmButtonColor: '#009697' });
             }
             if (error) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Erro de Sistema',
-                    text: error,
-                    confirmButtonColor: '#d33'
+                Swal.fire({ icon: 'error', title: 'Erro', text: error, confirmButtonColor: '#d33' });
+            }
+
+            // ----------------------------------------------------
+            // LÓGICA DE CONFIRMAÇÃO DE COMPRA
+            // ----------------------------------------------------
+            const formCompra = document.getElementById('formCompra');
+
+            if (formCompra) {
+                formCompra.addEventListener('submit', function(e) {
+                    e.preventDefault(); // Impede o envio imediato
+
+                    // Pega a quantidade selecionada e o preço unitário
+                    const qtd = document.getElementById('selectQtd').value;
+                    // Converte o preço C# para JS (troca virgula por ponto se necessário)
+                    const unitPrice = @price.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+
+                    const total = (qtd * unitPrice).toFixed(2); // Calcula total
+
+                    Swal.fire({
+                        title: 'Confirmar Compra?',
+                        html: `Deseja comprar <b>${qtd}</b> senha(s)?<br>Total a descontar: <b>${total}€</b>`,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#009697',  // Verde/Teal do IPS
+                        cancelButtonColor: '#d33',      // Vermelho para o NÃO
+                        confirmButtonText: 'Sim, comprar',
+                        cancelButtonText: 'Não, cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Se disse SIM, envia o formulário manualmente
+                            formCompra.submit();
+                        }
+                        // Se disse NÃO, não faz nada (o preventDefault já parou tudo)
+                    });
                 });
             }
         });

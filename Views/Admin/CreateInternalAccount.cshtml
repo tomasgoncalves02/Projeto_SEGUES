@@ -16,12 +16,13 @@
     }
 </style>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
             <h2 class="fw-bold mb-4">Registar Administrador ou Funcionário</h2>
 
-            @* Sumário de Erros (Essencial para debugar se a conta não criar) *@
             <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
             <div class="card shadow-lg ips-card">
@@ -66,25 +67,44 @@
                     </form>
                 </div>
             </div>
+
+            <div class="mt-3 text-center">
+                <a asp-action="Index" class="text-muted">Voltar ao Painel</a>
+            </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            @if (TempData["Success"] != null)
-            {
-                    <text>
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Utilizador Criado!',
-                        text: '@TempData["Success"]',
-                        confirmButtonColor: '#009697'
-                    });
-                    </text>
+            var successMsg = '@TempData["Success"]';
+            var errorMsg = '@TempData["Error"]';
+
+            if (successMsg && successMsg.length > 0) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Sucesso!',
+                    text: successMsg,
+                    confirmButtonColor: '#009697',
+                    confirmButtonText: 'OK'
+                }).then((result) => {
+                   
+                    if (result.isConfirmed) {
+                        window.location.href = '@Url.Action("Index", "Admin")';
+                    }
+                });
+            }
+
+            if (errorMsg && errorMsg.length > 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro!',
+                    text: errorMsg,
+                    confirmButtonColor: '#d33'
+                });
             }
         });
     </script>

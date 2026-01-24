@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Projeto_SEGUES.Models.Enums; // Necessário para aceder ao Enum Gender
+using static Projeto_SEGUES.Models.Enums.Enums;
 
 namespace Projeto_SEGUES.Models
 {
@@ -20,7 +22,13 @@ namespace Projeto_SEGUES.Models
 
         [Required(ErrorMessage = "O campo {0} é obrigatório.")]
         [EmailAddress(ErrorMessage = "Introduza um email válido.")]
+        [Display(Name = "Email Profissional")]
         public string Email { get; set; }
+
+        // --- NOVO CAMPO ADICIONADO ---
+        [Required(ErrorMessage = "Por favor, selecione o género.")]
+        [Display(Name = "Género")]
+        public Gender Gender { get; set; }
 
         [Required(ErrorMessage = "O campo {0} é obrigatório.")]
         [Range(0, double.MaxValue, ErrorMessage = "O saldo não pode ser negativo.")]
@@ -28,7 +36,7 @@ namespace Projeto_SEGUES.Models
         public decimal Balance { get; set; }
 
         [Required(ErrorMessage = "O campo {0} é obrigatório.")]
-        [Display(Name = "Perfil (Role)")]
-        public string Role { get; set; } 
+        [Display(Name = "Função / Role")]
+        public string Role { get; set; }
     }
 }
