@@ -13,8 +13,8 @@ namespace Projeto_SEGUES.Models.Enums
             Employee,
             [Display(Name = "Externo")]
             External,
-            [Display(Name = "Docente/NaoDocente")]
-            DocenteNaoDocente
+            [Display(Name = "TrabalhadorIPS")]
+            IPSWorker
         }
         public enum UserStatus { Active, Inactive, Suspended }
         public enum Gender {
@@ -26,6 +26,6 @@ namespace Projeto_SEGUES.Models.Enums
             Other }
         public enum DiscountType { Percentage, Fixed }
         public enum TicketState { Available = 0, Used = 1, Expired = 2 }
-        public enum TicketType { Student, Admin, Employee , External, DocenteNaoDocente }
+        public enum TicketType { Student, Admin, Employee , External, IPSWorker }
     }
 }

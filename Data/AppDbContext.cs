@@ -19,7 +19,7 @@ namespace Projeto_SEGUES.Data
 
         public DbSet<Student> Students { get; set; }
         public DbSet<AdministratorEmployee> AdministratorEmployees { get; set; }
-        public DbSet<ExternalEmployee> ExternalEmployees { get; set; }
+        public DbSet<External> External { get; set; }
 
         public DbSet<PostalCode> PostalCodes { get; set; }
         public DbSet<School> Schools { get; set; }
@@ -115,7 +115,7 @@ namespace Projeto_SEGUES.Data
             modelBuilder.Entity<User>().ToTable("User");
             modelBuilder.Entity<Student>().ToTable("Student");
             modelBuilder.Entity<AdministratorEmployee>().ToTable("Administrator_Employee");
-            modelBuilder.Entity<ExternalEmployee>().ToTable("External_Employee");
+            modelBuilder.Entity<External>().ToTable("External");
         }
     }
 }

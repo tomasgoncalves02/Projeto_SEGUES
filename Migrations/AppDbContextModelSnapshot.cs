@@ -709,20 +709,11 @@ namespace Projeto_SEGUES.Migrations
                     b.ToTable("Administrator_Employee", (string)null);
                 });
 
-            modelBuilder.Entity("Projeto_SEGUES.Models.ExternalEmployee", b =>
+            modelBuilder.Entity("Projeto_SEGUES.Models.External", b =>
                 {
                     b.HasBaseType("Projeto_SEGUES.Models.User");
 
-                    b.Property<string>("InstitutionRole")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("SchoolId")
-                        .HasColumnType("int");
-
-                    b.HasIndex("SchoolId");
-
-                    b.ToTable("External_Employee", (string)null);
+                    b.ToTable("External", (string)null);
                 });
 
             modelBuilder.Entity("Projeto_SEGUES.Models.Student", b =>
@@ -925,21 +916,13 @@ namespace Projeto_SEGUES.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Projeto_SEGUES.Models.ExternalEmployee", b =>
+            modelBuilder.Entity("Projeto_SEGUES.Models.External", b =>
                 {
                     b.HasOne("Projeto_SEGUES.Models.User", null)
                         .WithOne()
-                        .HasForeignKey("Projeto_SEGUES.Models.ExternalEmployee", "Id")
+                        .HasForeignKey("Projeto_SEGUES.Models.External", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("Projeto_SEGUES.Models.School", "School")
-                        .WithMany()
-                        .HasForeignKey("SchoolId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("School");
                 });
 
             modelBuilder.Entity("Projeto_SEGUES.Models.Student", b =>

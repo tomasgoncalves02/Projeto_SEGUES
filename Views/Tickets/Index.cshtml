@@ -8,7 +8,7 @@
     var price = ViewBag.CurrentPrice ?? 0m;
 
     bool podeComprar = (userRole == UserRole.Student ||
-                        userRole == UserRole.DocenteNaoDocente ||
+                        userRole == UserRole.IPSWorker ||
                         userRole == UserRole.External || userRole == UserRole.Admin || userRole == UserRole.Employee);
 }
 

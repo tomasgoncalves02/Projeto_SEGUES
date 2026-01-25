@@ -250,10 +250,10 @@ namespace Projeto_SEGUES.Controllers
             return role switch
             {
                 UserRole.Student => TicketType.Student,
-                UserRole.DocenteNaoDocente => TicketType.DocenteNaoDocente,
+                UserRole.IPSWorker => TicketType.IPSWorker,
                 UserRole.External => TicketType.External,
-                UserRole.Employee => TicketType.DocenteNaoDocente,
-                UserRole.Admin => TicketType.DocenteNaoDocente,
+                UserRole.Employee => TicketType.IPSWorker,
+                UserRole.Admin => TicketType.IPSWorker,
                 _ => TicketType.External
             };
         }
@@ -316,7 +316,7 @@ namespace Projeto_SEGUES.Controllers
                     allPrices = new List<TicketPrice>
             {
                 new TicketPrice { TicketType = TicketType.Student, Price = 2.90m, InitialDatePrice = now, EndDatePrice = now.AddYears(1) },
-                new TicketPrice { TicketType = TicketType.DocenteNaoDocente, Price = 5.20m, InitialDatePrice = now, EndDatePrice = now.AddYears(1) },
+                new TicketPrice { TicketType = TicketType.IPSWorker, Price = 5.20m, InitialDatePrice = now, EndDatePrice = now.AddYears(1) },
                 new TicketPrice { TicketType = TicketType.External, Price = 5.50m, InitialDatePrice = now, EndDatePrice = now.AddYears(1) }
             };
                     _context.TicketPrices.AddRange(allPrices);

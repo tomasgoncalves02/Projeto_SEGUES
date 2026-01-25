@@ -357,24 +357,16 @@ namespace Projeto_SEGUES.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "External_Employee",
+                name: "External",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    SchoolId = table.Column<int>(type: "int", nullable: false),
-                    InstitutionRole = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_External_Employee", x => x.Id);
+                    table.PrimaryKey("PK_External", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_External_Employee_Schools_SchoolId",
-                        column: x => x.SchoolId,
-                        principalTable: "Schools",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_External_Employee_User_Id",
+                        name: "FK_External_User_Id",
                         column: x => x.Id,
                         principalTable: "User",
                         principalColumn: "Id",
@@ -596,11 +588,6 @@ namespace Projeto_SEGUES.Migrations
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_External_Employee_SchoolId",
-                table: "External_Employee",
-                column: "SchoolId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_ProductPurchases_PurchaseId",
                 table: "ProductPurchases",
                 column: "PurchaseId");
@@ -697,13 +684,16 @@ namespace Projeto_SEGUES.Migrations
                 name: "Discounts");
 
             migrationBuilder.DropTable(
-                name: "External_Employee");
+                name: "External");
 
             migrationBuilder.DropTable(
                 name: "LogErrors");
 
             migrationBuilder.DropTable(
                 name: "ProductPurchases");
+
+            migrationBuilder.DropTable(
+                name: "Schools");
 
             migrationBuilder.DropTable(
                 name: "Student");
@@ -719,9 +709,6 @@ namespace Projeto_SEGUES.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
-
-            migrationBuilder.DropTable(
-                name: "Schools");
 
             migrationBuilder.DropTable(
                 name: "Products");

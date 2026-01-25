@@ -145,7 +145,7 @@ namespace Projeto_SEGUES.Controllers
                 var initialPrices = new List<TicketPrice>
                 {
                     new TicketPrice { TicketType = TicketType.Student, Price = 2.90m, InitialDatePrice = DateTime.Now, EndDatePrice = DateTime.Now.AddYears(1) },
-                    new TicketPrice { TicketType = TicketType.DocenteNaoDocente, Price = 5.20m, InitialDatePrice = DateTime.Now, EndDatePrice = DateTime.Now.AddYears(1) },
+                    new TicketPrice { TicketType = TicketType.IPSWorker, Price = 5.20m, InitialDatePrice = DateTime.Now, EndDatePrice = DateTime.Now.AddYears(1) },
                     new TicketPrice { TicketType = TicketType.External, Price = 5.50m, InitialDatePrice = DateTime.Now, EndDatePrice = DateTime.Now.AddYears(1) }
                 };
                 _context.TicketPrices.AddRange(initialPrices);
@@ -235,74 +235,77 @@ namespace Projeto_SEGUES.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(EditUserViewModel model)
         {
+            // Método auxiliar para não repetir código caso a validação falhe
+            void PrepareRoles()
+            {
+                ViewBag.Roles = Enum.GetNames(typeof(UserRole))
+                    .Where(r => r != "ExternalEmployee") // Remove o nome antigo
+                    .Select(r => new
+                    {
+                        Id = r,
+                        Name = r switch
+                        {
+                            "Admin" => "Administrador",
+                            "Employee" => "Funcionário",
+                            "IPSWorker" => "TrabalhadorIPS",
+                            "External" => "Externo",
+                            "Student" => "Estudante",
+                            _ => r
+                        }
+                    }).ToList();
+            }
+
             if (!ModelState.IsValid)
             {
-                // Se falhar a validação, recarregamos as roles para o dropdown não quebrar
-                ViewBag.Roles = _roleManager.Roles.Select(r => r.Name).ToList();
+                PrepareRoles();
                 return View(model);
             }
 
             var user = await _userManager.FindByIdAsync(model.Id);
             if (user == null) return NotFound();
 
-            // Atualizar propriedades
+            // 1. Atualizar propriedades básicas
             user.FirstName = model.FirstName;
             user.LastName = model.LastName;
             user.Email = model.Email;
-            user.UserName = model.Email; // Geralmente o username acompanha o email
+            user.UserName = model.Email;
             user.Balance = model.Balance;
-            user.Gender = model.Gender; // <--- GRAVA O NOVO GÉNERO
+            user.Gender = model.Gender;
 
-            // Atualizar Role se necessário
-            // Nota: O teu ViewModel envia a Role como STRING (nome da role), não ID.
-            // Vou assumir que o dropdown envia o NOME da role (ex: "Admin").
-
-            string roleName = model.Role; // Ex: "Admin" ou "Employee"
-
-            // Se o user selecionou uma role válida
-            if (!string.IsNullOrEmpty(roleName))
+            // 2. Atualizar o Enum 'Role' na tabela de Users
+            // O model.Role traz a string (ex: "IPSWorker")
+            if (Enum.TryParse(typeof(UserRole), model.Role, out var newRoleEnum))
             {
-                // Verifica se a role existe
-                if (!await _roleManager.RoleExistsAsync(roleName))
-                {
-                    // (Opcional) Cria se não existir, mas o ideal é só permitir selecionar existentes
-                    await _roleManager.CreateAsync(new IdentityRole(roleName));
-                }
+                user.Role = (UserRole)newRoleEnum;
+            }
 
-                // Atualizar Role na BD do utilizador
-                // Primeiro temos de converter o nome da role para o ENUM UserRole para guardar na coluna 'Role' da tabela Users
-                if (Enum.TryParse(typeof(UserRole), roleName, out var newRoleEnum))
-                {
-                    user.Role = (UserRole)newRoleEnum;
-                }
+            // Gravar alterações no objeto User
+            var result = await _userManager.UpdateAsync(user);
 
-                // Gravar alterações do User (Nome, Email, Balance, Gender, Enum Role)
-                var result = await _userManager.UpdateAsync(user);
-
-                if (result.Succeeded)
+            if (result.Succeeded)
+            {
+                // 3. Atualizar as Roles do Identity (Tabela AspNetUserRoles)
+                if (!string.IsNullOrEmpty(model.Role))
                 {
-                    // Atualizar a tabela AspNetUserRoles (Identity)
+                    // Garante que a Role existe no sistema Identity antes de atribuir
+                    if (!await _roleManager.RoleExistsAsync(model.Role))
+                    {
+                        await _roleManager.CreateAsync(new IdentityRole(model.Role));
+                    }
+
                     var oldRoles = await _userManager.GetRolesAsync(user);
                     await _userManager.RemoveFromRolesAsync(user, oldRoles);
-                    await _userManager.AddToRoleAsync(user, roleName);
+                    await _userManager.AddToRoleAsync(user, model.Role); // Aqui atribui "IPSWorker", "Admin", etc.
+                }
 
-                    TempData["Success"] = "Utilizador atualizado com sucesso!";
-                    return RedirectToAction("ListUsers");
-                }
-            }
-            else
-            {
-                // Se só mudou dados e não mexeu na role
-                var result = await _userManager.UpdateAsync(user);
-                if (result.Succeeded)
-                {
-                    TempData["Success"] = "Utilizador atualizado com sucesso!";
-                    return RedirectToAction("ListUsers");
-                }
+                TempData["Success"] = "Utilizador atualizado com sucesso!";
+                return RedirectToAction("ListUsers");
             }
 
-            // Se chegou aqui, algo falhou, recarrega a view
-            ViewBag.Roles = _roleManager.Roles.Select(r => r.Name).ToList();
+            // Se houver erros do Identity (ex: email já existe)
+            foreach (var error in result.Errors) ModelState.AddModelError("", error.Description);
+
+            PrepareRoles();
             return View(model);
         }
 

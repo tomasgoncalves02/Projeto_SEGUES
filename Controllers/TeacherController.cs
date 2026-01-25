@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Projeto_SEGUES.Controllers
 {
-    [Authorize(Roles = "Teacher")] // <--- Só Docentes entram aqui
+    [Authorize(Roles = "IPSWorker")] // <--- Só Docentes entram aqui
     public class TeacherController : Controller
     {
         public IActionResult Index()

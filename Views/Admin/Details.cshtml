@@ -38,18 +38,33 @@
         <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
             <h4 class="mb-0 fw-bold">@Model.FirstName @Model.LastName</h4>
 
-            @* MANTIDO: Lógica de cores por perfil para fácil identificação *@
             @{
+                // Determinamos a cor e o texto traduzido ao mesmo tempo
                 var badgeClass = Model.Role switch
                 {
                     Projeto_SEGUES.Models.Enums.Enums.UserRole.Admin => "bg-danger",
                     Projeto_SEGUES.Models.Enums.Enums.UserRole.Employee => "bg-warning text-dark",
-                    Projeto_SEGUES.Models.Enums.Enums.UserRole.DocenteNaoDocente => "bg-primary",
+                    Projeto_SEGUES.Models.Enums.Enums.UserRole.IPSWorker => "bg-primary",
                     Projeto_SEGUES.Models.Enums.Enums.UserRole.Student => "bg-info text-dark",
+                    Projeto_SEGUES.Models.Enums.Enums.UserRole.External => "bg-success",
                     _ => "bg-secondary"
                 };
+
+                var roleNamePt = Model.Role switch
+                {
+                    Projeto_SEGUES.Models.Enums.Enums.UserRole.Admin => "ADMIN",
+                    Projeto_SEGUES.Models.Enums.Enums.UserRole.Employee => "Funcionário",
+                    Projeto_SEGUES.Models.Enums.Enums.UserRole.IPSWorker => "TrabalhadorIPS",
+                    Projeto_SEGUES.Models.Enums.Enums.UserRole.Student => "Estudante",
+                    Projeto_SEGUES.Models.Enums.Enums.UserRole.External => "Externo",
+                    _ => Model.Role.ToString() // Fallback para o nome do Enum se não estiver mapeado
+                };
             }
-            <span class="badge @badgeClass fs-6 px-3 py-2">@ViewBag.UserRole</span>
+
+            @* Substituímos o ViewBag pela nossa variável traduzida *@
+            <span class="badge @badgeClass fs-6 px-3 py-2">
+                @roleNamePt
+            </span>
         </div>
 
         <div class="card-body p-4 p-md-5">
