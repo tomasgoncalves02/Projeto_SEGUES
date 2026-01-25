@@ -1,37 +1,116 @@
 ﻿@{
-    ViewData["Title"] = "Painel de Gestão";
+    ViewData["Title"] = "Validação de Acessos";
 }
 
-<div class="container mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-5">
-        <h2 class="fw-bold">Painel de Gestão</h2>
+<style>
+    :root {
+        --ips-teal: #009697;
+    }
 
-        <a asp-controller="Home" asp-action="Index" class="btn fw-bold px-4"
-           style="border: 2px solid #009697; color: #009697;">
-            <i class="bi bi-arrow-left me-2"></i>Voltar
-        </a>
+    /* Fundo suave para dar profundidade */
+    body {
+        background-color: #f8f9fa;
+    }
+
+    /* Contentor centralizado */
+    .validation-wrapper {
+        min-height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Cartão de Ação Única */
+    .action-card {
+        border: none;
+        border-radius: 20px;
+        background: white;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        max-width: 500px;
+        width: 100%;
+    }
+
+        .action-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 15px 35px rgba(0, 150, 151, 0.15) !important;
+        }
+
+    /* Decoração superior */
+    .card-accent {
+        height: 8px;
+        background: var(--ips-teal);
+        border-radius: 20px 20px 0 0;
+    }
+
+    /* Círculo do Ícone */
+    .icon-circle {
+        width: 100px;
+        height: 100px;
+        background-color: rgba(0, 150, 151, 0.1);
+        color: var(--ips-teal);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: -50px auto 20px; /* Faz o ícone "flutuar" no topo */
+        border: 5px solid white;
+        font-size: 2.5rem;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    .btn-validate {
+        background-color: var(--ips-teal);
+        color: white;
+        border: none;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s;
+    }
+
+        .btn-validate:hover {
+            background-color: #007a7b;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 150, 151, 0.3);
+        }
+</style>
+
+<div class="container">
+    @* Cabeçalho Minimalista *@
+    <div class="pt-5 text-center">
+        <h2 class="fw-bold text-dark">Painel de Gestão</h2>
+        <div class="d-flex justify-content-center">
+            <hr style="width: 50px; border: 2px solid var(--ips-teal); opacity: 1;">
+        </div>
     </div>
 
-    <div class="row" style="min-height: 50vh; align-items: center;">
-        <div class="col-md-6 col-lg-5">
+    <div class="validation-wrapper">
+        <div class="card shadow-lg action-card">
+            <div class="card-accent"></div>
+            <div class="card-body p-5 text-center">
 
-            <div class="card border-2 shadow-sm text-center p-4" style="border-color: #009697;">
-                <div class="card-body py-4">
+                @* Ícone Flutuante *@
+                <div class="icon-circle">
+                    <i class="bi bi-shield-check"></i>
+                </div>
 
-                    <h4 class="card-title fw-bold mb-3">Validar Senhas</h4>
+                <h3 class="fw-bold mb-3" style="color: #333;">Validar Senhas</h3>
 
-                    <p class="card-text text-muted mb-4">
-                        Valide as senhas dos alunos na fila do refeitório
-                    </p>
+                <p class="text-muted mb-5">
+                    Utilize esta ferramenta para confirmar a validade das senhas de refeição.
+                </p>
 
-                    <a asp-action="ValidateTicket" class="btn btn-primary w-100 py-2 fw-bold"
-                       style="background-color: #009697; border-color: #009697;">
-                        Validar
+                @* Botão de Ação Direta *@
+                <a asp-action="ValidateTicket" class="btn btn-validate w-100 py-3 rounded-pill shadow-sm">
+                    <i class="bi bi-qr-code-scan me-2"></i> Validar
+                </a>
+
+                <div class="mt-4">
+                    <a asp-controller="Home" asp-action="Index" class="text-decoration-none text-muted small fw-bold">
+                        <i class="bi bi-chevron-left"></i> Voltar ao Início
                     </a>
-
                 </div>
             </div>
-
         </div>
     </div>
 </div>

@@ -46,17 +46,17 @@
                     Projeto_SEGUES.Models.Enums.Enums.UserRole.Employee => "bg-warning text-dark",
                     Projeto_SEGUES.Models.Enums.Enums.UserRole.IPSWorker => "bg-primary",
                     Projeto_SEGUES.Models.Enums.Enums.UserRole.Student => "bg-info text-dark",
-                    Projeto_SEGUES.Models.Enums.Enums.UserRole.External => "bg-success",
+                    Projeto_SEGUES.Models.Enums.Enums.UserRole.External => "bg-secondary",
                     _ => "bg-secondary"
                 };
 
                 var roleNamePt = Model.Role switch
                 {
-                    Projeto_SEGUES.Models.Enums.Enums.UserRole.Admin => "ADMIN",
-                    Projeto_SEGUES.Models.Enums.Enums.UserRole.Employee => "Funcionário",
-                    Projeto_SEGUES.Models.Enums.Enums.UserRole.IPSWorker => "TrabalhadorIPS",
-                    Projeto_SEGUES.Models.Enums.Enums.UserRole.Student => "Estudante",
-                    Projeto_SEGUES.Models.Enums.Enums.UserRole.External => "Externo",
+                    Projeto_SEGUES.Models.Enums.Enums.UserRole.Admin => "ADMINISTRADOR",
+                    Projeto_SEGUES.Models.Enums.Enums.UserRole.Employee => "FUNCIONÁRIO",
+                    Projeto_SEGUES.Models.Enums.Enums.UserRole.IPSWorker => "TRABALHADOR IPS",
+                    Projeto_SEGUES.Models.Enums.Enums.UserRole.Student => "ESTUDANTE",
+                    Projeto_SEGUES.Models.Enums.Enums.UserRole.External => "EXTERNO",
                     _ => Model.Role.ToString() // Fallback para o nome do Enum se não estiver mapeado
                 };
             }

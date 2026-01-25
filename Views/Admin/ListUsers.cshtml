@@ -6,6 +6,16 @@
 }
 
 <div class="container mt-5">
+    @* --- BLOCO DE ALERTAS (Para aparecer logo após o Edit) --- *@
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm border-0 mb-4" role="alert" style="border-left: 5px solid #198754 !important;">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <strong>Sucesso!</strong> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
     @* Cabeçalho *@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="fw-bold" style="border-bottom: 4px solid #009697; display: inline-block; padding-bottom: 5px;">Lista de Utilizadores</h1>
@@ -14,11 +24,10 @@
         </a>
     </div>
 
-    @* Área de Filtros com a linha superior institucional *@
+    @* Área de Filtros *@
     <div class="card mb-4 shadow-sm" style="border: none; border-top: 5px solid #009697; border-radius: 10px;">
         <div class="card-body py-4">
             <form method="get" asp-action="ListUsers" class="row g-3 align-items-center">
-
                 <div class="col-md-auto">
                     <label class="col-form-label fw-bold">Filtrar por Perfil:</label>
                 </div>
@@ -48,13 +57,6 @@
                 <div class="col-md-auto">
                     <a asp-action="ListUsers" class="text-decoration-none fw-bold" style="color: #6c757d;">Limpar Filtros</a>
                 </div>
-
-                @if (ViewData["CurrentFilter"] != null)
-                {
-                    <script>
-                        document.querySelector('select[name="roleFilter"]').value = "@ViewData["CurrentFilter"]";
-                    </script>
-                }
             </form>
         </div>
     </div>
@@ -63,7 +65,6 @@
     <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
-                @* Cabeçalho da tabela em Teal *@
                 <thead style="background-color: #009697; color: white;">
                     <tr>
                         <th class="ps-4 py-3">Nome</th>
@@ -76,50 +77,35 @@
                 <tbody>
                     @foreach (var user in Model)
                     {
+                        @* Lógica de Cores e Nomes Traduzidos *@
+                        var (badgeClass, roleName) = user.Role switch
+                        {
+                            Enums.UserRole.Admin => ("bg-danger", "ADMINISTRADOR"),
+                            Enums.UserRole.Employee => ("bg-warning text-dark", "FUNCIONÁRIO"),
+                            Enums.UserRole.IPSWorker => ("bg-primary", "TRABALHADOR IPS"),
+                            Enums.UserRole.Student => ("bg-info text-dark", "ESTUDANTE"),
+                            Enums.UserRole.External => ("bg-secondary", "EXTERNO"),
+                            _ => ("bg-secondary", user.Role.ToString().ToUpper())
+                        };
+
                         <tr>
                             <td class="ps-4">
                                 <div class="d-flex align-items-center">
-                                    @* Avatar circular em Teal *@
                                     <div class="text-white rounded-circle d-flex align-items-center justify-content-center me-3 fw-bold"
                                          style="width: 40px; height: 40px; background-color: #009697;">
-                                        @if (!string.IsNullOrEmpty(user.FirstName))
-                                        {
-                                            @user.FirstName.Substring(0, 1).ToUpper()
-                                        }
-                                        else
-                                        {
-                                            <span>?</span>
-                                        }
+                                        @(string.IsNullOrEmpty(user.FirstName) ? "?" : user.FirstName.Substring(0, 1).ToUpper())
                                     </div>
                                     <div class="fw-bold text-dark">@user.FirstName @user.LastName</div>
                                 </div>
                             </td>
                             <td class="text-muted">@user.Email</td>
                             <td>
-                                @* MANTIDO: Lógica original das cores de perfil *@
-                                @if (user.Role == Enums.UserRole.Admin)
-                                {
-                                    <span class="badge bg-danger">ADMIN</span>
-                                }
-                                else if (user.Role == Enums.UserRole.Employee)
-                                {
-                                    <span class="badge bg-warning text-dark">FUNCIONÁRIO</span>
-                                }
-                                else if (user.Role == Enums.UserRole.IPSWorker)
-                                {
-                                    <span class="badge bg-primary">TrabalhadorIPS</span>
-                                }
-                                else if (user.Role == Enums.UserRole.Student)
-                                {
-                                    <span class="badge bg-info text-dark">ESTUDANTE</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary">EXTERNO</span>
-                                }
+                                <span class="badge @badgeClass" style="min-width: 100px; padding: 8px;">
+                                    @roleName
+                                </span>
                             </td>
                             <td class="fw-bold" style="color: #009697;">@user.Balance.ToString("C")</td>
-                            <td class="text-end pe-4">
+                            <td class="text-end pe-4">                              
                                 <a asp-action="Details" asp-route-id="@user.Id" class="btn btn-sm text-white fw-bold px-3"
                                    style="background-color: #009697; border-radius: 6px;">
                                     Detalhes <i class="bi bi-arrow-right ms-1"></i>
