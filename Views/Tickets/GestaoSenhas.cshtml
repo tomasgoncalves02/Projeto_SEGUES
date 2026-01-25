@@ -88,7 +88,7 @@
                         }
                         <div class="col-md-2">
                             <label class="form-label small fw-bold text-muted mb-1">Validade</label>
-                            <input type="date" name="updatedPrices[0].EndDatePrice" class="form-control form-control-sm fw-bold" value="@prices[0].EndDatePrice.ToString("yyyy-MM-dd")" />
+                            <input type="date" name="updatedPrices[0].EndDatePrice" class="form-control form-control-sm fw-bold" min="@DateTime.Now.ToString("yyyy-MM-dd")" value="@prices[0].EndDatePrice.ToString("yyyy-MM-dd")" />
                             @for (int i = 1; i < prices.Count; i++)
                             {
                                 <input type="hidden" name="updatedPrices[@i].EndDatePrice" value="@prices[0].EndDatePrice.ToString("yyyy-MM-dd")" id="hiddenDate_@i" />
