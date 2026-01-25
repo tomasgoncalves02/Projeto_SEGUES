@@ -83,6 +83,9 @@ namespace Projeto_SEGUES.Controllers
             var ticketType = GetTicketTypeByUserRole(user.Role);
             decimal pricePerUnit = await GetCurrentPriceFromDb(ticketType);
 
+            var priceConfig = await _context.TicketPrices.FirstOrDefaultAsync(p => p.TicketType == ticketType);
+            DateTime dataExpiracao = priceConfig?.EndDatePrice ?? DateTime.Now.AddDays(30);
+
             if (pricePerUnit <= 0)
             {
                 TempData["Error"] = "Preçário não disponível. Contacte a administração.";
@@ -115,7 +118,7 @@ namespace Projeto_SEGUES.Controllers
                     {
                         OwnerId = user.Id,
                         PurchaseDate = now,
-                        ExpirationDate = now.AddDays(7),
+                        ExpirationDate = dataExpiracao,
                         State = TicketState.Available,
                         TicketPurchaseId = purchase.Id,
                         ValidationCode = Guid.NewGuid().ToString().Substring(0, 8).ToUpper()

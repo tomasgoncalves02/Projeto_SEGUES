@@ -87,6 +87,20 @@
                                 </div>
                             </div>
                         }
+                        @* Campo Global de Data de Validade *@
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold text-muted">Data de validade</label>
+                            <input type="date" name="updatedPrices[0].EndDatePrice"
+                                   class="form-control fw-bold"
+                              
+                                   value="@prices[0].EndDatePrice.ToString("yyyy-MM-dd")" />
+
+                            @* Sincroniza a data para os outros itens da lista *@
+                            @for (int i = 1; i < prices.Count; i++)
+                            {
+                                <input type="hidden" name="updatedPrices[@i].EndDatePrice" value="@prices[0].EndDatePrice.ToString("yyyy-MM-dd")" id="hiddenDate_@i" />
+                            }
+                        </div>
                     }
                     <div class="col-md-3">
                         <button type="submit" class="btn btn-ips w-100 fw-bold shadow-sm">
