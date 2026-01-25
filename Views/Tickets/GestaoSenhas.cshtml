@@ -164,8 +164,8 @@
 @section Scripts {
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            var success = '@TempData["Success"]';
-            var error = '@TempData["Error"]';
+            var success = @Html.Raw(Json.Serialize(TempData["Success"]));
+            var error = @Html.Raw(Json.Serialize(TempData["Error"]));
 
             if (success) {
                 Swal.fire({ icon: 'success', title: 'Sucesso', text: success, confirmButtonColor: '#009697' });

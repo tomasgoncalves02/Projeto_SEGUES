@@ -124,8 +124,8 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            var successMsg = '@TempData["Success"]';
-            var errorMsg = '@TempData["Error"]'; // Caso tenhas definido TempData["Error"] no Controller
+            var successMsg = @Html.Raw(Json.Serialize(TempData["Success"]));
+            var errorMsg = @Html.Raw(Json.Serialize(TempData["Error"]));
 
             // Também verificamos se há erros de validação no ModelState para mostrar pop-up de erro
             var hasValidationErrors = @((!ViewData.ModelState.IsValid).ToString().ToLower());

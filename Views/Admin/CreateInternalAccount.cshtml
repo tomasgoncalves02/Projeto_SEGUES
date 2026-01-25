@@ -80,8 +80,8 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            var successMsg = '@TempData["Success"]';
-            var errorMsg = '@TempData["Error"]';
+            var successMsg = @Html.Raw(Json.Serialize(TempData["Success"]));
+            var errorMsg = @Html.Raw(Json.Serialize(TempData["Error"]));
 
             if (successMsg && successMsg.length > 0) {
                 Swal.fire({

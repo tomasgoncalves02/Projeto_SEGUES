@@ -170,8 +170,8 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             // Mensagens de Feedback do Servidor
-            var success = '@TempData["Success"]';
-            var error = '@TempData["Error"]';
+             var success = @Html.Raw(Json.Serialize(TempData["Success"]));
+            var error = @Html.Raw(Json.Serialize(TempData["Error"]));
 
             if (success) {
                 Swal.fire({ icon: 'success', title: 'Operação Concluída', text: success, confirmButtonColor: '#009697' });
