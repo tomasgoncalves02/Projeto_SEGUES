@@ -65,6 +65,10 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     try
     {
+        var context = services.GetRequiredService<AppDbContext>();
+
+        // ESTA LINHA É ESSENCIAL: Cria as tabelas no Azure se elas não existirem
+        await context.Database.MigrateAsync();
         // Chama o método que criámos no DbSeeder.cs
         await Projeto_SEGUES.Data.DbSeeder.SeedRolesAndAdminAsync(services);
     }
