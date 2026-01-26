@@ -222,7 +222,7 @@ namespace Projeto_SEGUES.Controllers
                 LastName = user.LastName,
                 Gender = user.Gender, // <--- LÊ O GÉNERO DA BD
                 Balance = user.Balance,
-                Role = userRoles.FirstOrDefault()
+                Role = ((int)user.Role).ToString()
             };
             ViewBag.Roles = _roleManager.Roles.Select(r => r.Name).ToList();
             return View(model);

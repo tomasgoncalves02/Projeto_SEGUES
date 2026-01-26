@@ -76,7 +76,7 @@
                         @for (int i = 0; i < prices.Count; i++)
                         {
                             <div class="col-md">
-                                <label class="form-label small fw-bold text-muted mb-1">@prices[i].TicketType.ToString()</label>
+                                <label class="form-label small fw-bold text-muted mb-1">@Html.DisplayFor(modelItem => prices[i].TicketType)</label>
                                 <input type="hidden" name="updatedPrices[@i].Id" value="@prices[i].Id" />
                                 <input type="hidden" name="updatedPrices[@i].TicketType" value="@prices[i].TicketType" />
                                 <input type="hidden" name="updatedPrices[@i].InitialDatePrice" value="@prices[i].InitialDatePrice.ToString("yyyy-MM-ddTHH:mm:ss")" />

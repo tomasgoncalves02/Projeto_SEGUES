@@ -26,6 +26,22 @@ namespace Projeto_SEGUES.Models.Enums
             Other }
         public enum DiscountType { Percentage, Fixed }
         public enum TicketState { Available = 0, Used = 1, Expired = 2 }
-        public enum TicketType { Student, Admin, Employee , External, IPSWorker }
+        public enum TicketType
+        {
+            [Display(Name = "Estudante")]
+            Student,
+
+            [Display(Name = "Administrador")]
+            Admin,
+
+            [Display(Name = "Funcionário")]
+            Employee,
+
+            [Display(Name = "Externo")]
+            External,
+
+            [Display(Name = "Trabalhador IPS")]
+            IPSWorker
+        }
     }
 }

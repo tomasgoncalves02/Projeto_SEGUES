@@ -105,7 +105,8 @@
                     </div>
                     <div class="col-md-6">
                         <label asp-for="Role" class="form-label">Função/Role</label>
-                        <select asp-for="Role" class="form-select" asp-items="@(new SelectList(ViewBag.Roles))">
+                        <select asp-for="Role" class="form-select"
+                                asp-items="Html.GetEnumSelectList<Projeto_SEGUES.Models.Enums.Enums.UserRole>()">
                         </select>
                         <span asp-validation-for="Role" class="text-danger small"></span>
                     </div>
