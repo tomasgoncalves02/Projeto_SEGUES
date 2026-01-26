@@ -18,5 +18,6 @@ namespace Projeto_SEGUES.Models
         public int TicketPurchaseId { get; set; }       
         public string ValidationCode { get; set; } = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
         public TicketPurchase TicketPurchase { get; set; }
+        public virtual ICollection<TicketTransfer> Transfers { get; set; }
     }
 }

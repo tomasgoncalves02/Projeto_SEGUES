@@ -12,7 +12,7 @@ using Projeto_SEGUES.Data;
 namespace Projeto_SEGUES.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260125234249_initial")]
+    [Migration("20260126011724_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -889,7 +889,7 @@ namespace Projeto_SEGUES.Migrations
                         .IsRequired();
 
                     b.HasOne("Projeto_SEGUES.Models.Ticket", "Ticket")
-                        .WithMany()
+                        .WithMany("Transfers")
                         .HasForeignKey("TicketId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -950,6 +950,11 @@ namespace Projeto_SEGUES.Migrations
             modelBuilder.Entity("Projeto_SEGUES.Models.Purchase", b =>
                 {
                     b.Navigation("ProductPurchases");
+                });
+
+            modelBuilder.Entity("Projeto_SEGUES.Models.Ticket", b =>
+                {
+                    b.Navigation("Transfers");
                 });
 #pragma warning restore 612, 618
         }
