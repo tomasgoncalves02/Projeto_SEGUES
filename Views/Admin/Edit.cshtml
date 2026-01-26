@@ -104,8 +104,9 @@
                         <span asp-validation-for="Gender" class="text-danger small"></span>
                     </div>
                     <div class="col-md-6">
-                        <label asp-for="Role" class="form-label">Função/Role</label>
-                        <select asp-for="Role" class="form-select" asp-items="@(new SelectList(ViewBag.Roles))"></select>
+                        <label asp-for="Role" class="form-label fw-bold">Função / Cargo</label>
+                        <select asp-for="Role" class="form-select" asp-items="@(new SelectList(ViewBag.Roles, "Value", "Text"))">
+                        </select>
                         <span asp-validation-for="Role" class="text-danger small"></span>
                     </div>
                 </div>

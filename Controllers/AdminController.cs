@@ -1,15 +1,16 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models;
 using Projeto_SEGUES.Models.Enums;
-using System.Text.RegularExpressions;
-using static Projeto_SEGUES.Models.Enums.Enums;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity.UI.Services;
+using static Projeto_SEGUES.Models.Enums.Enums;
 
 namespace Projeto_SEGUES.Controllers
 {
@@ -212,7 +213,6 @@ namespace Projeto_SEGUES.Controllers
             if (id == null) return NotFound();
             var user = await _userManager.FindByIdAsync(id);
             if (user == null) return NotFound();
-            var userRoles = await _userManager.GetRolesAsync(user);
 
             var model = new EditUserViewModel
             {
@@ -220,11 +220,13 @@ namespace Projeto_SEGUES.Controllers
                 Email = user.Email,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
-                Gender = user.Gender, // <--- LÊ O GÉNERO DA BD
+                Gender = user.Gender,
                 Balance = user.Balance,
-                Role = ((int)user.Role).ToString()
+                // CORREÇÃO: Passar o nome da Role (ex: "Admin"), não o número
+                Role = user.Role.ToString()
             };
-            ViewBag.Roles = _roleManager.Roles.Select(r => r.Name).ToList();
+
+            PrepareRoles(); // Chama o método auxiliar para preencher a ViewBag
             return View(model);
         }
 
@@ -235,26 +237,6 @@ namespace Projeto_SEGUES.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(EditUserViewModel model)
         {
-            // Método auxiliar para não repetir código caso a validação falhe
-            void PrepareRoles()
-            {
-                ViewBag.Roles = Enum.GetNames(typeof(UserRole))
-                    .Where(r => r != "ExternalEmployee") // Remove o nome antigo
-                    .Select(r => new
-                    {
-                        Id = r,
-                        Name = r switch
-                        {
-                            "Admin" => "Administrador",
-                            "Employee" => "Funcionário",
-                            "IPSWorker" => "TrabalhadorIPS",
-                            "External" => "Externo",
-                            "Student" => "Estudante",
-                            _ => r
-                        }
-                    }).ToList();
-            }
-
             if (!ModelState.IsValid)
             {
                 PrepareRoles();
@@ -264,7 +246,6 @@ namespace Projeto_SEGUES.Controllers
             var user = await _userManager.FindByIdAsync(model.Id);
             if (user == null) return NotFound();
 
-            // 1. Atualizar propriedades básicas
             user.FirstName = model.FirstName;
             user.LastName = model.LastName;
             user.Email = model.Email;
@@ -272,41 +253,51 @@ namespace Projeto_SEGUES.Controllers
             user.Balance = model.Balance;
             user.Gender = model.Gender;
 
-            // 2. Atualizar o Enum 'Role' na tabela de Users
-            // O model.Role traz a string (ex: "IPSWorker")
-            if (Enum.TryParse(typeof(UserRole), model.Role, out var newRoleEnum))
+            // 1. Atualizar o Enum no perfil do utilizador
+            if (Enum.TryParse<UserRole>(model.Role, out var newRoleEnum))
             {
-                user.Role = (UserRole)newRoleEnum;
+                user.Role = newRoleEnum;
             }
 
-            // Gravar alterações no objeto User
             var result = await _userManager.UpdateAsync(user);
 
             if (result.Succeeded)
             {
-                // 3. Atualizar as Roles do Identity (Tabela AspNetUserRoles)
-                if (!string.IsNullOrEmpty(model.Role))
-                {
-                    // Garante que a Role existe no sistema Identity antes de atribuir
-                    if (!await _roleManager.RoleExistsAsync(model.Role))
-                    {
-                        await _roleManager.CreateAsync(new IdentityRole(model.Role));
-                    }
+                // 2. Sincronizar com as Roles do Identity (Tabela AspNetUserRoles)
+                var oldRoles = await _userManager.GetRolesAsync(user);
+                await _userManager.RemoveFromRolesAsync(user, oldRoles);
 
-                    var oldRoles = await _userManager.GetRolesAsync(user);
-                    await _userManager.RemoveFromRolesAsync(user, oldRoles);
-                    await _userManager.AddToRoleAsync(user, model.Role); // Aqui atribui "IPSWorker", "Admin", etc.
-                }
+                // Agora model.Role é "Admin" ou "Employee", o Identity vai encontrar!
+                await _userManager.AddToRoleAsync(user, model.Role);
 
                 TempData["Success"] = "Utilizador atualizado com sucesso!";
                 return RedirectToAction("ListUsers");
             }
 
-            // Se houver erros do Identity (ex: email já existe)
             foreach (var error in result.Errors) ModelState.AddModelError("", error.Description);
-
             PrepareRoles();
             return View(model);
+        }
+
+        private void PrepareRoles()
+        {
+            ViewBag.Roles = Enum.GetValues(typeof(UserRole))
+                .Cast<UserRole>()
+                .Select(r => new SelectListItem
+                {
+                    // O Value será o nome técnico (ex: "Admin")
+                    Value = r.ToString(),
+                    // O Text será o que aparece ao utilizador
+                    Text = r switch
+                    {
+                        UserRole.Admin => "Administrador",
+                        UserRole.Employee => "Funcionário",
+                        UserRole.IPSWorker => "Trabalhador IPS",
+                        UserRole.Student => "Estudante",
+                        UserRole.External => "Externo",
+                        _ => r.ToString()
+                    }
+                }).ToList();
         }
 
         public async Task<IActionResult> Delete(string id)
