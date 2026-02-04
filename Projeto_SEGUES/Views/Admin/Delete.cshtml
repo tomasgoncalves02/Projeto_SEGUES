@@ -1,0 +1,93 @@
+﻿@model Projeto_SEGUES.Models.User.User
+
+@{
+    ViewData["Title"] = "Apagar Utilizador";
+}
+
+<style>
+    /* Linha decorativa institucional */
+    .title-underline {
+        border-bottom: 4px solid #009697;
+        display: inline-block;
+        padding-bottom: 5px;
+    }
+
+    /* Estilo para o cartão de confirmação */
+    .ips-delete-card {
+        border: none !important;
+        border-top: 5px solid #009697 !important;
+        border-radius: 12px !important;
+    }
+</style>
+
+<div class="container mt-5">
+    @* Cabeçalho alinhado à esquerda *@
+    <div class="row mb-4">
+        <div class="col-12 text-start">
+            <h1 class="fw-bold title-underline mb-3">Apagar Utilizador</h1>
+            <h3 class="mt-4">Tens a certeza que queres apagar este utilizador?</h3>
+            <p class="text-muted fs-5">Esta ação é <strong class="text-danger">irreversível</strong> e removerá todos os dados associados.</p>
+        </div>
+    </div>
+
+    @* Cartão com detalhes do utilizador a ser removido *@
+    <div class="card shadow-lg ips-delete-card">
+        <div class="card-header bg-white border-0 pt-4 px-4">
+            <h5 class="mb-0 fw-bold text-muted text-uppercase small">Utilizador a remover</h5>
+        </div>
+
+        <div class="card-body p-4 p-md-5">
+            <div class="row align-items-center">
+                @* Avatar de pré-visualização *@
+                <div class="col-md-auto mb-4 mb-md-0 text-center">
+                    <div class="text-white rounded-circle d-flex align-items-center justify-content-center mx-auto fw-bold"
+                         style="width: 80px; height: 80px; background-color: #009697; font-size: 2rem;">
+                        @if (!string.IsNullOrEmpty(Model.FirstName))
+                        {
+                            @Model.FirstName.Substring(0, 1).ToUpper()
+                        }
+                        else
+                        {
+                            <span>?</span>
+                        }
+                    </div>
+                </div>
+
+                @* Dados detalhados *@
+                <div class="col-md">
+                    <dl class="row mb-0 ms-md-2">
+                        <dt class="col-sm-3 text-muted">Nome Completo</dt>
+                        <dd class="col-sm-9 fw-bold fs-5">@Model.FirstName @Model.LastName</dd>
+
+                        <dt class="col-sm-3 text-muted mt-2">Email / Login</dt>
+                        <dd class="col-sm-9 mt-2">@Model.Email</dd>
+
+                        <dt class="col-sm-3 text-muted mt-2">Saldo a Perder</dt>
+                        <dd class="col-sm-9 mt-2 fw-bold text-danger">@Model.Balance.ToString("C")</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        @* Rodapé com formulário de ação *@
+        <div class="card-footer bg-light border-0 py-4 px-4 px-md-5">
+            <form asp-action="Delete">
+                <input type="hidden" asp-for="Id" />
+
+                <div class="d-flex flex-wrap gap-3">
+                    @* Botão de confirmação em Teal *@
+                    <button type="submit" class="btn text-white fw-bold px-4 py-2"
+                            style="background-color: #009697; border: none; border-radius: 8px;">
+                        <i class="bi bi-trash-fill me-2"></i>Sim, Apagar Definitivamente
+                    </button>
+
+                    @* Botão Cancelar *@
+                    <a asp-action="ListUsers" class="btn btn-outline-secondary fw-bold px-4 py-2"
+                       style="border-radius: 8px;">
+                        Não, Manter Conta
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

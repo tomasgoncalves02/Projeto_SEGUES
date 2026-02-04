@@ -1,0 +1,104 @@
+﻿@page
+@using Projeto_SEGUES.Models.Enums
+@model RegisterModel
+@{
+    ViewData["Title"] = "Criar Conta";
+}
+
+@* Main container *@
+<div class="container d-flex align-items-center justify-content-center" style="min-height: 80vh;">
+    <div class="row w-100 justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            @* Card with top line in institucional color *@
+            <div class="card shadow-lg card-ips">
+                <div class="card-body p-5">
+                    <div class="text-center mb-5">
+                        <h1 class="fw-bold display-6 text-dark">SEGUES</h1>
+                        <p class="text-muted fs-5">Crie a sua nova conta de utilizador</p>
+                        @* Underline in IPS color *@
+                        <hr class="mx-auto title-underline"/>
+                    </div>
+
+                    <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+                        @* Name *@
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="Input.FirstName" class="form-control" autocomplete="given-name" aria-required="true" placeholder="Nome"/>
+                                    <label asp-for="Input.FirstName">Primeiro Nome</label>
+                                    <span asp-validation-for="Input.FirstName" class="text-danger small"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="Input.LastName" class="form-control" autocomplete="family-name" aria-required="true" placeholder="Sobrenome"/>
+                                    <label asp-for="Input.LastName">Sobrenome</label>
+                                    <span asp-validation-for="Input.LastName" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        @* Email *@
+                        <div class="form-floating mb-3">
+                            <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com"/>
+                            <label asp-for="Input.Email">Email</label>
+                            <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                        </div>
+
+                        @* Gender *@
+                        <div class="form-floating mb-3">
+                            <select asp-for="Input.Gender" class="form-select" asp-items="Html.GetEnumSelectList<Gender>()">
+                                <option selected="selected" value="">Selecione o Género</option>
+                            </select>
+                            <label asp-for="Input.Gender">Género</label>
+                            <span asp-validation-for="Input.Gender" class="text-danger small"></span>
+                        </div>
+
+                        @* Password with Toggle *@
+                        <div class="mb-3">
+                            <div class="input-group">
+                                <div class="form-floating flex-grow-1">
+                                    <input asp-for="Input.Password" class="form-control" id="passwordInput" autocomplete="new-password" aria-required="true" placeholder="password" style="border-top-right-radius: 0; border-bottom-right-radius: 0;"/>
+                                    <label for="passwordInput" class="form-label">Password</label>
+                                </div>
+                                <button class="btn btn-ips-outline-secondary px-3" type="button" id="togglePassword" style="border-top-left-radius: 0; border-bottom-left-radius: 0;">
+                                    <i class="bi bi-eye fs-5"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                        </div>
+
+                        @* Confirm Password with Toggle *@
+                        <div class="mb-4">
+                            <div class="input-group">
+                                <div class="form-floating flex-grow-1">
+                                    <input asp-for="Input.ConfirmPassword" class="form-control" id="confirmPasswordInput" autocomplete="new-password" aria-required="true" placeholder="password" style="border-top-right-radius: 0; border-bottom-right-radius: 0;"/>
+                                    <label for="confirmPasswordInput" class="form-label">Confirmar Password</label>
+                                </div>
+                                <button class="btn btn-ips-outline-secondary px-3" type="button" id="toggleConfirmPassword" style="border-top-left-radius: 0; border-bottom-left-radius: 0;">
+                                    <i class="bi bi-eye fs-5"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="Input.ConfirmPassword" class="text-danger small"></span>
+                        </div>
+                        
+                        @* Main Button *@
+                        <button id="registerSubmit" type="submit" class="w-100 btn btn-lg py-3 fw-bold shadow-sm mb-4 btn-ips">
+                            <i class="bi bi-person-plus-fill me-2"></i>Registar
+                        </button>
+                    </form>
+                    <div class="text-center mt-4">
+                        @* Login link *@
+                        <p class="fs-6 text-muted">Já tem conta? <a asp-page="./Login" class="fw-bold">Faça Login aqui</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

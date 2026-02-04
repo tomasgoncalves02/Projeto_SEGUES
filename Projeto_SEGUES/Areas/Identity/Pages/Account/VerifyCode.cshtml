@@ -1,0 +1,64 @@
+﻿@page
+@model Projeto_SEGUES.Areas.Identity.Pages.Account.VerifyCodeModel
+@{
+    ViewData["Title"] = "Validar Conta";
+}
+
+@* Main Container *@
+<div class="container d-flex align-items-center justify-content-center" style="min-height: 80vh;">
+    <div class="row w-100 justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            @* Card with top line in institucional color *@
+            <div class="card shadow-lg card-ips">
+                <div class="card-body p-5">
+                    @* Icon *@
+                    <div class="card-ips-icon">
+                        <i class="bi bi-patch-check-fill fs-1"></i>
+                    </div>
+                    <div class="text-center mb-5">
+                        <h1 class="fw-bold display-6 text-dark mb-3">SEGUES</h1>
+                        <h2 class="fs-5 mb-4">Verificação de Conta</h2>
+                        <p class="text-muted">Introduza o código enviado para <strong>@Model.UserEmailDisplay</strong></p>
+                        @* Underline in IPS color *@
+                        <hr class="mx-auto title-underline"/>
+                        
+                        <form method="post" class="card p-4 text-start shadow-sm border-0">
+                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                            <div class="mb-4">
+                                <label for="verificationCodeInput" class="form-label fw-bold text-muted small">Código de Verificação:</label>
+                                <input asp-for="Input.Code" id="verificationCodeInput" class="form-control form-control-lg text-center code-input"
+                                       placeholder="000000" maxlength="6" inputmode="numeric" pattern="[0-9]*" autofocus required />
+                                <span asp-validation-for="Input.Code" class="text-danger small"></span>
+                            </div>
+
+                            <button type="submit" class="btn w-100 btn-lg py-3 fw-bold shadow-sm mb-4 btn-ips">
+                                Confirmar e Entrar
+                            </button>
+                        </form>
+                        <div class="mt-4">
+                            <p class="text-muted small">
+                                Não recebeu o código?
+                                <a href="javascript:document.getElementById('resendForm').submit();" class="text-ips fw-bold">Reenviar</a>
+                            </p>
+                            @* Hidden form for Resend Code handler *@
+                            <form id="resendForm" asp-page-handler="ResendCode" method="post" style="display:none;"></form>
+                            
+                            <div class="mt-4 text-center">
+                                <p class="small text-muted">
+                                    <a asp-page="./Login" class="fw-bold">
+                                        <i class="bi bi-arrow-left"></i> Voltar ao Login
+                                    </a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

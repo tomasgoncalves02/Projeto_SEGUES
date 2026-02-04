@@ -1,0 +1,53 @@
+﻿@page
+@using Projeto_SEGUES.Models.Enums
+@model ExternalLoginModel
+@{
+    ViewData["Title"] = "Registo";
+}
+
+<h1>@ViewData["Title"]</h1>
+<h2 id="external-login-title">Associe a sua conta @Model.ProviderDisplayName.</h2>
+<hr />
+
+<p id="external-login-description" class="text-info">
+    Autenticou-se com sucesso através do <strong>@Model.ProviderDisplayName</strong>.
+    Por favor, preencha os dados abaixo e clique no botão para concluir o seu registo.
+</p>
+
+<div class="row">
+    <div class="col-md-4">
+        <form asp-page-handler="Confirmation" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+            @* Email *@
+            <div class="form-floating mb-3">
+                <input asp-for="Input.Email" class="form-control" autocomplete="email" placeholder="nome@exemplo.com"/>
+                <label asp-for="Input.Email" class="form-label"></label>
+                <span asp-validation-for="Input.Email" class="text-danger small"></span>
+            </div>
+            @* Nome *@
+            <div class="form-floating mb-3">
+                <input asp-for="Input.FirstName" class="form-control" placeholder="Primeiro Nome"/>
+                <label asp-for="Input.FirstName" class="form-label"></label>
+                <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+            </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.LastName" class="form-control" placeholder="Sobrenome"/>
+                <label asp-for="Input.LastName" class="form-label"></label>
+                <span asp-validation-for="Input.LastName" class="text-danger"></span>
+            </div>
+            @* Género *@
+            <div class="form-floating mb-3">
+                <select asp-for="Input.Gender" class="form-control" asp-items="Html.GetEnumSelectList<Gender>()">
+                    <option value="">Selecione o Género</option>
+                </select>
+                <label asp-for="Input.Gender" class="form-label">Género</label>
+                <span asp-validation-for="Input.Gender" class="text-danger"></span>
+            </div>
+            <button type="submit" class="w-100 btn btn-lg btn-primary">Registar</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

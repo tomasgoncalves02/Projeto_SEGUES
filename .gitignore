@@ -28,6 +28,8 @@ obj/
 thumbs.db
 .DS_Store
 .idea
+qodana.yaml
+.output.txt
 
 [Pp]roperties/PublishProfiles/
 [Pp]roperties/ServiceDependencies/

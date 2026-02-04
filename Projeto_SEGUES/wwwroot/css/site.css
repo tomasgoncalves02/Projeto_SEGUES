@@ -1,0 +1,217 @@
+/* ==========
+   Variables 
+   ========== */
+:root {
+    /* IPS Colors */
+    --ips: #009697;
+    --ips-hover: #007f80;
+    --ips-shadow-soft: rgba(0, 150, 151, 0.15);
+    --ips-shadow-heavy: rgba(0, 150, 151, 0.35);
+    --ips-dark: #2D2926;
+    --ips-bg-light: #f8f9fa;
+    --ips-border: #dee2e6;
+    /* Buttons */
+    --deny: #dc3545;
+    --cancel: #ffc107;
+}
+
+/* ============
+   Global Overrides
+   ============ */
+
+/* Links */
+a {
+    color: var(--ips);
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--ips-hover);
+    text-decoration: underline;
+}
+
+/* Forms */
+.form-control:focus, .form-select:focus {
+    border-color: var(--ips);
+    box-shadow: 0 0 0 0.25rem var(--ips-shadow-soft);
+}
+
+.form-check-input:focus {
+    border-color: var(--ips);
+    box-shadow: 0 0 0 0.25rem var(--ips-shadow-soft);
+}
+
+/* =========
+   Header
+   ========= */
+.navbar-brand img {
+    height: 40px;
+    width: auto;
+}
+
+/* =========
+   Body
+   ========= */
+
+/* Typography */
+.text-color-ips {
+    color: var(--ips) !important;
+}
+
+.bg-color-ips {
+    background-color: var(--ips) !important;
+}
+
+/* Cards */
+.card-ips {
+    border: none !important;
+    border-top: 6px solid var(--ips) !important;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-ips:hover {
+    box-shadow: 0 1rem 3rem var(--ips-shadow-heavy) !important;
+}
+
+.card-ips-icon {
+    width: 80px;
+    height: 80px;
+    background-color: var(--ips-shadow-soft);
+    color: var(--ips);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+}
+
+.title-underline {
+    border-bottom: 4px solid var(--ips);
+    opacity: 1;
+    width: 80%;
+}
+
+/* Code */
+.code-input {
+    letter-spacing: 12px;
+    text-transform: uppercase;
+    font-size: 30px;
+    font-weight: bold;
+    color: var(--ips);
+    border: 2px solid var(--ips-border);
+}
+
+/* Btn */
+.btn-ips {
+    background-color: var(--ips) !important;
+    color: white !important;
+    border: none !important;
+    transition: filter 0.2s ease;
+}
+
+.btn-ips:hover:not(:disabled) {
+    filter: brightness(90%);
+}
+
+.btn-ips-outline-secondary {
+    color: var(--ips) !important;
+    border-color: var(--ips) !important;
+}
+
+.btn-ips-outline-secondary:hover {
+    background-color: var(--ips) !important;
+    color: white !important;
+}
+
+.btn-ips-outline-secondary:focus,
+.btn-ips-outline-secondary:focus-visible {
+    box-shadow: 0 0 0 0.25rem var(--ips-shadow-heavy) !important;
+}
+
+/* ==========
+   Scrollbar
+   ========== */
+::-webkit-scrollbar {
+    width: 0.7em;
+    background-color: var(--ips-bg-light);
+}
+::-webkit-scrollbar-thumb {
+    background-color: var(--ips);
+    border-radius: 5px;
+}
+
+
+/* Estilo Base dos Cart�es do Dashboard */
+/*
+
+
+!* Variante para o Cart�o de Saldo (Destaque Total) *!
+.card-ips-saldo {
+    background-color: var(--ips-teal) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 10px !important;
+}
+
+!* Special Balance Card (Teal background) *!
+.card-ips-saldo {
+    background-color: var(--ips-teal) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 12px !important;
+}
+
+!* Dashboard specific left-border card *!
+.card-active {
+    border: none !important;
+    border-left: 5px solid var(--ips-teal) !important;
+    border-radius: 8px !important;
+}
+
+!* 5. Form Styles *!
+.form-label {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #444;
+    margin-bottom: 0.3rem;
+}
+
+
+!* 6. Tables & Badges *!
+.table-segues thead {
+    background-color: var(--ips-teal);
+    color: white;
+}
+
+.table-segues thead th {
+    border: none;
+    padding: 12px;
+}
+
+.badge-ips {
+    background-color: var(--ips-teal) !important;
+    color: white !important;
+    font-weight: bold;
+    padding: 0.5em 0.8em;
+    border-radius: 6px;
+}
+
+!* State Badges (Solid versions) *!
+.badge-status-used { background-color: #198754 !important; color: white !important; }
+.badge-status-expired { background-color: #dc3545 !important; color: white !important; }
+
+
+.avatar-circle {
+    width: 38px;
+    height: 38px;
+    background-color: #004587; !* IPS Official Blue for distinction *!
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.1rem;
+    border: 2px solid #e9ecef;
+}
+*/

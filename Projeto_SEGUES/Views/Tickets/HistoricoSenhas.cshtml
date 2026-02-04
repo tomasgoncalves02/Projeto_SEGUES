@@ -1,0 +1,278 @@
+﻿@model IEnumerable<Projeto_SEGUES.Models.Ticket.Ticket>
+@using Projeto_SEGUES.Models.Enums
+
+@{
+    ViewData["Title"] = "Histórico de Senhas - SEGUES";
+}
+
+@* Importação do SweetAlert2 *@
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+    .title-underline {
+        border-bottom: 4px solid #009697;
+        display: inline-block;
+        padding-bottom: 5px;
+    }
+
+    .text-ips {
+        color: #009697 !important;
+    }
+
+    .bg-ips {
+        background-color: #009697 !important;
+    }
+
+    .btn-ips-outline {
+        border: 2px solid #009697;
+        color: #009697;
+        font-weight: bold;
+        border-radius: 8px;
+        transition: 0.3s;
+    }
+
+        .btn-ips-outline:hover {
+            background-color: #009697;
+            color: white;
+        }
+
+    /* Estilo do Botão Pesquisar Melhorado */
+    .btn-search-segues {
+        background-color: #009697;
+        color: white;
+        border: none;
+        padding: 0 20px;
+        border-radius: 6px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 38px;
+        transition: 0.2s;
+    }
+
+        .btn-search-segues:hover {
+            filter: brightness(90%);
+            color: white;
+        }
+
+    /* Link e Botão de Limpar */
+    .btn-reset-x {
+        color: #6c757d;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.85rem;
+        font-weight: bold;
+        transition: 0.2s;
+    }
+
+        .btn-reset-x:hover {
+            color: #009697;
+        }
+
+    .card-ips {
+        border: none !important;
+        border-top: 5px solid #009697 !important;
+        border-radius: 10px !important;
+    }
+
+    .table-segues thead {
+        background-color: #009697;
+        color: white;
+    }
+
+    .badge-status {
+        font-weight: bold;
+        padding: 0.5em 0.8em;
+        border-radius: 6px;
+    }
+
+    .filter-bar {
+        background-color: #f8f9fa;
+        border-radius: 12px;
+        border: 1px solid #eee;
+    }
+</style>
+
+<div class="container mt-4">
+    @* --- CABEÇALHO --- *@
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-7">
+            <h2 class="fw-bold title-underline mb-2">
+                <i class="bi bi-clock-history me-2" style="color: #009697;"></i>
+                Histórico de Senhas
+            </h2>
+            <p class="text-muted small">Consulta detalhada de todas as tuas movimentações e utilizações.</p>
+        </div>
+
+        <div class="col-md-5 text-end">
+            <a asp-action="Refeitorio" class="btn btn-ips-outline px-4">
+                <i class="bi bi-arrow-left me-2"></i>Voltar
+            </a>
+        </div>
+    </div>
+
+    @* --- BARRA DE FILTROS ATUALIZADA --- *@
+    <div class="card shadow-sm border-0 mb-4 filter-bar">
+        <div class="card-body py-3">
+            <form method="get" class="row g-3 align-items-end">
+
+                @* Filtro por Estado *@
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold text-muted">ESTADO</label>
+                    <select name="stateFilter" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="">Todos</option>
+                        <option value="Available" selected="@(ViewData["CurrentState"]?.ToString() == "Available")">Disponível</option>
+                        <option value="Used" selected="@(ViewData["CurrentState"]?.ToString() == "Used")">Utilizada</option>
+                        <option value="Expired" selected="@(ViewData["CurrentState"]?.ToString() == "Expired")">Expirada</option>
+                    </select>
+                </div>
+
+                @* Filtro por Fluxo *@
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-muted">ORIGEM/DESTINO</label>
+                    <select name="flowFilter" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="">Todas as origens</option>
+                        <option value="Compradas" selected="@(ViewData["CurrentFlow"]?.ToString() == "Compradas")">Compradas por mim</option>
+                        <option value="Enviadas" selected="@(ViewData["CurrentFlow"]?.ToString() == "Enviadas")">Enviadas para alguém</option>
+                        <option value="Recebidas" selected="@(ViewData["CurrentFlow"]?.ToString() == "Recebidas")">Recebidas de alguém</option>
+                    </select>
+                </div>
+
+                @* Pesquisa Geral (Nome) *@
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold text-muted">PESQUISAR NOME (Enviado/Recebido)</label>
+                    <div class="d-flex gap-2">
+                        <input type="text" name="searchString" class="form-control form-control-sm"
+                               placeholder="Pesquisar..." value="@ViewData["CurrentSearch"]">
+                        <button type="submit" class="btn-search-segues">
+                            <i class="bi bi-search"></i> PESQUISAR 
+                        </button>
+                    </div>
+                </div>
+
+                @* Botão Limpar *@
+                <div class="col-md-3 text-end pb-1">
+                    <a asp-action="HistoricoSenhas" class="btn-reset-x d-inline-flex">
+                        <span>Limpar Filtros</span>
+                        <i class="bi bi-x-circle-fill"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @* --- TABELA DE HISTÓRICO --- *@
+    <div class="card shadow-sm card-ips">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-segues">
+                    <tr>
+                        <th class="ps-3">Código</th>
+                        <th>Data Compra</th>
+                        <th>Estado</th>
+                        <th>Validade</th>
+                        <th>Data Uso</th>
+                        <th>Data Transf.</th>
+                        <th>Transferido Para</th>
+                        <th>Recebido De</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i class="bi bi-ticket-perforated d-block fs-1 mb-2"></i>
+                                <span class="fw-bold">Ainda não tens histórico de senhas para apresentar.</span><br>
+                                <small>As tuas compras e transferências aparecerão aqui automaticamente.</small>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var item in Model)
+                        {
+                            var currentUserId = ViewBag.CurrentUserId as string;
+                            var transfer = item.Transfers?.OrderByDescending(t => t.TransferDate).FirstOrDefault();
+
+                            <tr>
+                                <td class="ps-3">
+                                    <code class="fw-bold text-ips" style="font-size: 1rem;">@item.ValidationCode</code>
+                                </td>
+                                <td class="small">@item.TicketPurchase.TransactionDate.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    @if (item.State == TicketState.Available)
+                                    {
+                                        <span class="badge bg-ips badge-status">Disponível</span>
+                                    }
+                                    else if (item.State == TicketState.Used)
+                                    {
+                                        <span class="badge bg-secondary badge-status">Utilizada</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger badge-status">Expirada</span>
+                                    }
+                                </td>
+                                <td class="small">@item.ExpirationDate.ToString("dd/MM/yyyy")</td>
+                                <td class="small fw-bold">@(item.UsedDate?.ToString("dd/MM/yyyy") ?? "-")</td>
+                                <td class="small">@(transfer?.TransferDate.ToString("dd/MM/yyyy") ?? "-")</td>
+                                <td>
+                                    @if (transfer != null && transfer.Sender.Id == currentUserId)
+                                    {
+                                        <span class="text-dark small fw-bold">
+                                            <i class="bi bi-person-up text-danger me-1"></i>
+                                            @transfer.Receiver?.FirstName @transfer.Receiver?.LastName
+                                        </span>
+                                    }
+                                    else
+                                    {
+
+                                        <span class="text-muted small">-</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (transfer != null && transfer.Receiver.Id == currentUserId)
+                                    {
+                                        <span class="text-dark small fw-bold">
+                                            <i class="bi bi-person-down text-success me-1"></i>
+                                            @transfer.Sender?.FirstName @transfer.Sender?.LastName
+                                        </span>
+                                    }
+                                    else if (transfer == null)
+                                    {
+                                        <span class="badge bg-light text-muted border small">Compra Própria</span>
+                                    }
+                                    else
+                                    {
+
+                                        <span class="text-muted small">-</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var success = @Html.Raw(Json.Serialize(TempData["Success"]));
+            var error = @Html.Raw(Json.Serialize(TempData["Error"]));
+
+            if (success) {
+                Swal.fire({ icon: 'success', title: 'Sucesso', text: success, confirmButtonColor: '#009697' });
+            }
+            if (error) {
+                Swal.fire({ icon: 'error', title: 'Erro', text: error, confirmButtonColor: '#d33' });
+            }
+        });
+    </script>
+}

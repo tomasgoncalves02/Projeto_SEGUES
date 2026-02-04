@@ -1,0 +1,63 @@
+﻿<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SEGUES IPS</title>
+    @* Styles *@
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body class="d-flex flex-column min-vh-100">
+    @* Header *@
+    <header>
+        <nav class="navbar navbar-light bg-white border-bottom shadow-sm py-3">
+            <div class="container-fluid px-4 px-lg-5 d-flex justify-content-between align-items-center">
+                @* Left side: Logo and name *@
+                <a class="navbar-brand d-flex align-items-center" asp-controller="Home" asp-action="Index">
+                    <img src="~/images/logo-ips.png" alt="Politécnico de Setúbal" class="me-3">
+                    <div class="d-flex flex-column lh-1">
+                        <span class="fw-bold text-dark h4 mb-0">SEGUES</span>
+                        <small class="text-muted d-none d-sm-block" style="font-size: 0.75rem; letter-spacing: 1px;">SISTEMA DE GESTÃO</small>
+                    </div>
+                </a>
+
+                @* Right side: Profile *@
+                <div class="d-flex align-items-center">
+                    <partial name="_LoginPartial" />
+                </div>
+
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <main role="main" class="pb-3 mt-4">
+            @RenderBody()
+        </main>
+    </div>
+
+    @* Footer *@
+    <footer class="border-top footer text-muted bg-light py-4 mt-auto">
+        <div class="container-fluid px-4 px-lg-5">
+            <div class="d-flex justify-content-between align-items-center">
+                <span>&copy; 2026 - <strong>SEGUES IPS</strong>&emsp;<a asp-area="" asp-controller="Home" asp-action="Privacy">Política de Privacidade</a></span>
+                <span class="small d-none d-md-inline">Instituto Politécnico de Setúbal</span>
+            </div>
+        </div>
+    </footer>
+    
+    @* Scripts *@
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script><!-- SweetAlert2 JS Alerts -->
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+    @* Swal Data *@
+    <div id="swal-data" data-json='@Html.Raw(TempData["SwalData"] != null 
+        ? TempData["SwalData"] 
+        : ""
+    )'></div>
+</body>
+</html>
