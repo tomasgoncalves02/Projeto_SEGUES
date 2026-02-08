@@ -5,26 +5,26 @@ namespace Projeto_SEGUES.Extensions;
 
 public static class TempDataExtensions
 {
-    private static JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
+    private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false
     };
     
     // Json Helpers
-    public static void SetJson<T>(this ITempDataDictionary tempData, string key, T value) where T : class
+    public static void SetJson<T>(this ITempDataDictionary tempData, string key, T value, bool toJs = false) where T : class
     {
-        tempData[key] = JsonSerializer.Serialize(value, _jsonOptions);
+        tempData[key] = JsonSerializer.Serialize(value, toJs ? JsonOptions : null);
     }
 
-    public static T? GetJson<T>(this ITempDataDictionary tempData, string key) where T : class
+    public static T? GetJson<T>(this ITempDataDictionary tempData, string key, bool fromJs = false) where T : class
     {
         tempData.TryGetValue(key, out var value);
         if (value is not string json || string.IsNullOrWhiteSpace(json))
             return null;
         try
         {
-            return JsonSerializer.Deserialize<T>(json, _jsonOptions);
+            return JsonSerializer.Deserialize<T>(json, fromJs ? JsonOptions : null);
         } catch
         {
             return null;
@@ -133,6 +133,6 @@ public static class TempDataExtensions
 
     private static void SetSwal(ITempDataDictionary tempData, SwalDto dto)
     {
-        tempData.SetJson(SwalKey, dto);
+        tempData.SetJson(SwalKey, dto, true);
     }
 }
