@@ -12,6 +12,6 @@ namespace Projeto_SEGUES.Models.User
         [Display(Name = "Código Postal")]
         public required string Code { get; set; } // Ex: "2900-000"
         
-        public ICollection<User> Users { get; set; } = new List<User>();
+        public ICollection<AppUser> Users { get; set; } = new List<AppUser>();
     }
 }

@@ -16,7 +16,7 @@ namespace SeguesTests
 {
     public class AdminControllerTests
     {
-        private readonly Mock<UserManager<User>> _mockUserManager;
+        private readonly Mock<UserManager<AppUser>> _mockUserManager;
         private readonly Mock<RoleManager<Role>> _mockRoleManager;
         private readonly Mock<IEmailSender> _mockEmailSender;
         private readonly AppDbContext _context;
@@ -25,7 +25,7 @@ namespace SeguesTests
         public AdminControllerTests()
         {
             // 1. Configurar Mocks
-            var usersList = new List<User>();
+            var usersList = new List<AppUser>();
             _mockUserManager = MockHelper.MockUserManager(usersList);
             _mockRoleManager = MockHelper.MockRoleManager<Role>();
             _mockEmailSender = new Mock<IEmailSender>();
@@ -81,13 +81,13 @@ namespace SeguesTests
             };
 
             // Simular sucesso na criação e na role
-            _mockUserManager.Setup(x => x.CreateAsync(It.IsAny<User>(), It.IsAny<string>()))
+            _mockUserManager.Setup(x => x.CreateAsync(It.IsAny<AppUser>(), It.IsAny<string>()))
                 .ReturnsAsync(IdentityResult.Success);
             _mockRoleManager.Setup(x => x.RoleExistsAsync(It.IsAny<string>()))
                 .ReturnsAsync(true);
-            _mockUserManager.Setup(x => x.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>()))
+            _mockUserManager.Setup(x => x.AddToRoleAsync(It.IsAny<AppUser>(), It.IsAny<string>()))
                 .ReturnsAsync(IdentityResult.Success);
-            _mockUserManager.Setup(x => x.GetRolesAsync(It.IsAny<User>()))
+            _mockUserManager.Setup(x => x.GetRolesAsync(It.IsAny<AppUser>()))
                 .ReturnsAsync(new List<string> { "Admin" });
             _mockEmailSender.Setup(x => x.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(Task.CompletedTask);
@@ -97,7 +97,7 @@ namespace SeguesTests
             await _context.SaveChangesAsync();
 
             // ASSERT
-            _mockUserManager.Verify(u => u.CreateAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Once);
+            _mockUserManager.Verify(u => u.CreateAsync(It.IsAny<AppUser>(), It.IsAny<string>()), Times.Once);
             _mockEmailSender.Verify(e => e.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
 
             var viewResult = Assert.IsType<ViewResult>(result);
@@ -110,7 +110,7 @@ namespace SeguesTests
             // ARRANGE
             var userId = "user-123";
             var category = await _context.UserCategories.FirstOrDefaultAsync(uc => uc.Name == "Externo");
-            var existingUser = new User
+            var existingUser = new AppUser
             {
                 Id = userId,
                 Email = "antigo@mail.com",
@@ -122,10 +122,10 @@ namespace SeguesTests
             
             // Employee role
             _mockUserManager.Setup(u => u.FindByIdAsync(userId)).ReturnsAsync(existingUser);
-            _mockUserManager.Setup(u => u.UpdateAsync(It.IsAny<User>())).ReturnsAsync(IdentityResult.Success);
+            _mockUserManager.Setup(u => u.UpdateAsync(It.IsAny<AppUser>())).ReturnsAsync(IdentityResult.Success);
             _mockRoleManager.Setup(r => r.RoleExistsAsync(It.IsAny<string>())).ReturnsAsync(true);
-            _mockUserManager.Setup(u => u.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Success);
-            _mockUserManager.Setup(u => u.RemoveFromRolesAsync(It.IsAny<User>(), It.IsAny<IEnumerable<string>>())).ReturnsAsync(IdentityResult.Success);
+            _mockUserManager.Setup(u => u.AddToRoleAsync(It.IsAny<AppUser>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Success);
+            _mockUserManager.Setup(u => u.RemoveFromRolesAsync(It.IsAny<AppUser>(), It.IsAny<IEnumerable<string>>())).ReturnsAsync(IdentityResult.Success);
 
             var model = new EditUserViewModel
             {
@@ -142,7 +142,7 @@ namespace SeguesTests
             var result = await _controller.Edit(model);
 
             // ASSERT
-            _mockUserManager.Verify(u => u.UpdateAsync(It.Is<User>(u => u.FirstName == "NovoNome")), Times.Once);
+            _mockUserManager.Verify(u => u.UpdateAsync(It.Is<AppUser>(u => u.FirstName == "NovoNome")), Times.Once);
             var redirectResult = Assert.IsType<RedirectToActionResult>(result);
             Assert.Equal("ListUsers", redirectResult.ActionName);
         }
@@ -152,7 +152,7 @@ namespace SeguesTests
         {
             // ARRANGE
             var userId = "937";
-            var user = new User
+            var user = new AppUser
             {
                 Id = userId,
                 Email = "",

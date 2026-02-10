@@ -1,0 +1,82 @@
+﻿@{
+    ViewData["Title"] = "Refeitório - SEGUES";
+    var balance = ViewBag.UserBalance ?? 0m;
+}
+
+<div class="container mt-5">
+    <div class="row mb-5">
+        @* Left aligned text *@
+        <div class="col-12 text-start">
+            <h1 class="fw-bold title-underline mb-3">Refeitório</h1>
+            <p class="text-muted fs-5">Aqui podes planear os teus almoços e gerir as tuas senhas.</p>
+        </div>
+    </div>
+
+    @* Main row *@
+    <div class="row g-4">
+        @* Balance Card *@
+        <div class="col-md-6 col-lg-3">
+            <div class="card h-100 shadow-sm card-ips bg-color-ips text-white hover-translate d-flex flex-column">
+                <div class="card-body text-center d-flex flex-column p-4">
+                    <small class="d-block opacity-75 fw-bold mb-2 fs-4">Saldo Disponível</small>
+                    <h2 class="display-6 fw-bold my-auto">@balance.ToString("C")</h2>
+                    <div class="mt-auto">
+                        <a href="" class="btn btn-light fw-bold w-100 py-2 btn-disabled">BREVEMENTE</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* Buy Ticket Card *@
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
+                <div class="card-body text-center d-flex flex-column p-4">
+                    <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-cart-plus"></i></div>
+                    <h5 class="fw-bold">Comprar Senha</h5>
+                    <p class="text-muted small mb-4">Adquire já a tua próxima refeição.</p>
+                    <div class="mt-auto">
+                        <a asp-area="Purchase" asp-controller="PurchaseTicket" asp-action="Index" class="btn w-100 py-2 fw-bold btn-ips">Ir para a Loja</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* Active Tickets Card *@
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
+                <div class="card-body text-center d-flex flex-column p-4">
+                    <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-qr-code"></i></div>
+                    <h5 class="fw-bold">Senhas Ativas</h5>
+                    <p class="text-muted small mb-4">Visualiza as tuas senhas ainda não usadas.</p>
+                    <div class="mt-auto">
+                        <a asp-area="Ticket" asp-controller="Ticket" asp-action="ActiveTickets" class="btn w-100 py-2 fw-bold btn-ips">Ver Senhas</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* Send Ticket Card *@
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
+                <div class="card-body text-center d-flex flex-column p-4">
+                    <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-send"></i></div>
+                    <h5 class="fw-bold">Enviar Senha</h5>
+                    <p class="text-muted small mb-4">Enviar senhas para outras pessoas.</p>
+                    <div class="mt-auto">
+                        <a href="" class="btn btn-light fw-bold w-100 py-2 btn-disabled">BREVEMENTE</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* Return Button *@
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
+                <div class="card-body text-center d-flex flex-column p-4">
+                    <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-arrow-left-circle"></i></div>
+                    <h5 class="fw-bold">Voltar</h5>
+                    <p class="text-muted small mb-4">Voltar à página anterior.</p>
+                    <div class="mt-auto">
+                        <a asp-area="" asp-controller="Home" asp-action="Index" class="btn w-100 py-2 fw-bold btn-ips">Voltar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

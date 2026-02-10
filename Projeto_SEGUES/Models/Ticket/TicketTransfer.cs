@@ -15,9 +15,9 @@ namespace Projeto_SEGUES.Models.Ticket
         public required Ticket Ticket { get; set; } // FK
         
         [Required]
-        public required User.User Sender { get; set; } // FK
+        public required User.AppUser Sender { get; set; } // FK
         
         [Required]
-        public required User.User Receiver { get; set; } // FK
+        public required User.AppUser Receiver { get; set; } // FK
     }
 }

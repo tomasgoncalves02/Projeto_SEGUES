@@ -128,6 +128,25 @@ namespace Projeto_SEGUES.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Projeto_SEGUES.Models.Admin.AppConfig", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("MaxTicketsPerUser")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TicketValidityDays")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AppConfigs");
+                });
+
             modelBuilder.Entity("Projeto_SEGUES.Models.Audit.AlertSignalLog", b =>
                 {
                     b.Property<int>("Id")
@@ -138,6 +157,9 @@ namespace Projeto_SEGUES.Migrations
 
                     b.Property<int>("AlertType")
                         .HasColumnType("int");
+
+                    b.Property<string>("AppUserId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
@@ -150,12 +172,9 @@ namespace Projeto_SEGUES.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("AppUserId");
 
                     b.ToTable("AlertSignalLogs");
                 });
@@ -198,6 +217,9 @@ namespace Projeto_SEGUES.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AppUserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
@@ -216,12 +238,9 @@ namespace Projeto_SEGUES.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("AppUserId");
 
                     b.ToTable("ErrorLog");
                 });
@@ -234,6 +253,9 @@ namespace Projeto_SEGUES.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AppUserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
@@ -242,12 +264,9 @@ namespace Projeto_SEGUES.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("AppUserId");
 
                     b.ToTable("UserLog");
                 });
@@ -321,6 +340,44 @@ namespace Projeto_SEGUES.Migrations
                     b.ToTable("ProductCategories");
                 });
 
+            modelBuilder.Entity("Projeto_SEGUES.Models.Payment.Transaction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsPaid")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
+
+                    b.Property<string>("Reference")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Transactions");
+                });
+
             modelBuilder.Entity("Projeto_SEGUES.Models.Purchase.BalanceCharge", b =>
                 {
                     b.Property<int>("Id")
@@ -329,18 +386,18 @@ namespace Projeto_SEGUES.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AppUserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<DateTime>("TransactionDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
 
                     b.Property<decimal>("Value")
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("AppUserId");
 
                     b.ToTable("BalanceCharges");
                 });
@@ -410,55 +467,21 @@ namespace Projeto_SEGUES.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AppUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<decimal>("TotalValue")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("TransactionDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("AppUserId");
 
                     b.ToTable("Purchases");
-                });
-
-            modelBuilder.Entity("Projeto_SEGUES.Models.Purchase.Transaction", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsPaid")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Reference")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Transactions");
                 });
 
             modelBuilder.Entity("Projeto_SEGUES.Models.Ticket.Ticket", b =>
@@ -488,6 +511,9 @@ namespace Projeto_SEGUES.Migrations
                     b.Property<DateTime?>("UsedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("ValidatedById")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("ValidationCode")
                         .IsRequired()
                         .HasMaxLength(8)
@@ -498,6 +524,8 @@ namespace Projeto_SEGUES.Migrations
                     b.HasIndex("OwnerId");
 
                     b.HasIndex("TicketPurchaseId");
+
+                    b.HasIndex("ValidatedById");
 
                     b.ToTable("Tickets");
                 });
@@ -529,22 +557,22 @@ namespace Projeto_SEGUES.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AppUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("TransactionDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<decimal>("Value")
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("AppUserId");
 
                     b.ToTable("TicketPurchases");
                 });
@@ -582,98 +610,7 @@ namespace Projeto_SEGUES.Migrations
                     b.ToTable("TicketTransfers");
                 });
 
-            modelBuilder.Entity("Projeto_SEGUES.Models.User.PostalCode", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasMaxLength(9)
-                        .HasColumnType("nvarchar(9)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("PostalCodes");
-                });
-
-            modelBuilder.Entity("Projeto_SEGUES.Models.User.Role", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("ConcurrencyStamp")
-                        .IsConcurrencyToken()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DisplayName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("Name")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("NormalizedName")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("NormalizedName")
-                        .IsUnique()
-                        .HasDatabaseName("RoleNameIndex")
-                        .HasFilter("[NormalizedName] IS NOT NULL");
-
-                    b.ToTable("AspNetRoles", (string)null);
-                });
-
-            modelBuilder.Entity("Projeto_SEGUES.Models.User.School", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Address")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
-
-                    b.Property<string>("City")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasMaxLength(9)
-                        .HasColumnType("nvarchar(9)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<int?>("PostalCodeId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PostalCodeId");
-
-                    b.ToTable("Schools");
-                });
-
-            modelBuilder.Entity("Projeto_SEGUES.Models.User.User", b =>
+            modelBuilder.Entity("Projeto_SEGUES.Models.User.AppUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
@@ -787,6 +724,97 @@ namespace Projeto_SEGUES.Migrations
                     b.UseTptMappingStrategy();
                 });
 
+            modelBuilder.Entity("Projeto_SEGUES.Models.User.PostalCode", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(9)
+                        .HasColumnType("nvarchar(9)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PostalCodes");
+                });
+
+            modelBuilder.Entity("Projeto_SEGUES.Models.User.Role", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("RoleNameIndex")
+                        .HasFilter("[NormalizedName] IS NOT NULL");
+
+                    b.ToTable("AspNetRoles", (string)null);
+                });
+
+            modelBuilder.Entity("Projeto_SEGUES.Models.User.School", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(9)
+                        .HasColumnType("nvarchar(9)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("PostalCodeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PostalCodeId");
+
+                    b.ToTable("Schools");
+                });
+
             modelBuilder.Entity("Projeto_SEGUES.Models.User.UserCategory", b =>
                 {
                     b.Property<int>("Id")
@@ -810,7 +838,7 @@ namespace Projeto_SEGUES.Migrations
 
             modelBuilder.Entity("Projeto_SEGUES.Models.User.Employee", b =>
                 {
-                    b.HasBaseType("Projeto_SEGUES.Models.User.User");
+                    b.HasBaseType("Projeto_SEGUES.Models.User.AppUser");
 
                     b.Property<string>("RoleDescription")
                         .HasMaxLength(100)
@@ -826,7 +854,7 @@ namespace Projeto_SEGUES.Migrations
 
             modelBuilder.Entity("Projeto_SEGUES.Models.User.Student", b =>
                 {
-                    b.HasBaseType("Projeto_SEGUES.Models.User.User");
+                    b.HasBaseType("Projeto_SEGUES.Models.User.AppUser");
 
                     b.Property<int?>("SchoolId")
                         .HasColumnType("int");
@@ -852,7 +880,7 @@ namespace Projeto_SEGUES.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("Projeto_SEGUES.Models.User.User", null)
+                    b.HasOne("Projeto_SEGUES.Models.User.AppUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -861,7 +889,7 @@ namespace Projeto_SEGUES.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("Projeto_SEGUES.Models.User.User", null)
+                    b.HasOne("Projeto_SEGUES.Models.User.AppUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -876,7 +904,7 @@ namespace Projeto_SEGUES.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Projeto_SEGUES.Models.User.User", null)
+                    b.HasOne("Projeto_SEGUES.Models.User.AppUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -885,7 +913,7 @@ namespace Projeto_SEGUES.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("Projeto_SEGUES.Models.User.User", null)
+                    b.HasOne("Projeto_SEGUES.Models.User.AppUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -894,29 +922,29 @@ namespace Projeto_SEGUES.Migrations
 
             modelBuilder.Entity("Projeto_SEGUES.Models.Audit.AlertSignalLog", b =>
                 {
-                    b.HasOne("Projeto_SEGUES.Models.User.User", "User")
+                    b.HasOne("Projeto_SEGUES.Models.User.AppUser", "AppUser")
                         .WithMany()
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("AppUserId");
 
-                    b.Navigation("User");
+                    b.Navigation("AppUser");
                 });
 
             modelBuilder.Entity("Projeto_SEGUES.Models.Audit.ErrorLog", b =>
                 {
-                    b.HasOne("Projeto_SEGUES.Models.User.User", "User")
+                    b.HasOne("Projeto_SEGUES.Models.User.AppUser", "AppUser")
                         .WithMany()
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("AppUserId");
 
-                    b.Navigation("User");
+                    b.Navigation("AppUser");
                 });
 
             modelBuilder.Entity("Projeto_SEGUES.Models.Audit.UserLog", b =>
                 {
-                    b.HasOne("Projeto_SEGUES.Models.User.User", "User")
+                    b.HasOne("Projeto_SEGUES.Models.User.AppUser", "AppUser")
                         .WithMany()
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("AppUserId");
 
-                    b.Navigation("User");
+                    b.Navigation("AppUser");
                 });
 
             modelBuilder.Entity("Projeto_SEGUES.Models.Inventory.Product", b =>
@@ -934,13 +962,24 @@ namespace Projeto_SEGUES.Migrations
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("Projeto_SEGUES.Models.Purchase.BalanceCharge", b =>
+            modelBuilder.Entity("Projeto_SEGUES.Models.Payment.Transaction", b =>
                 {
-                    b.HasOne("Projeto_SEGUES.Models.User.User", "User")
+                    b.HasOne("Projeto_SEGUES.Models.User.AppUser", "User")
                         .WithMany()
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Projeto_SEGUES.Models.Purchase.BalanceCharge", b =>
+                {
+                    b.HasOne("Projeto_SEGUES.Models.User.AppUser", "AppUser")
+                        .WithMany()
+                        .HasForeignKey("AppUserId");
+
+                    b.Navigation("AppUser");
                 });
 
             modelBuilder.Entity("Projeto_SEGUES.Models.Purchase.ProductPurchase", b =>
@@ -964,18 +1003,18 @@ namespace Projeto_SEGUES.Migrations
 
             modelBuilder.Entity("Projeto_SEGUES.Models.Purchase.Purchase", b =>
                 {
-                    b.HasOne("Projeto_SEGUES.Models.User.User", "User")
+                    b.HasOne("Projeto_SEGUES.Models.User.AppUser", "AppUser")
                         .WithMany()
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("AppUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("AppUser");
                 });
 
             modelBuilder.Entity("Projeto_SEGUES.Models.Ticket.Ticket", b =>
                 {
-                    b.HasOne("Projeto_SEGUES.Models.User.User", "Owner")
+                    b.HasOne("Projeto_SEGUES.Models.User.AppUser", "Owner")
                         .WithMany()
                         .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -987,9 +1026,15 @@ namespace Projeto_SEGUES.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Projeto_SEGUES.Models.User.AppUser", "ValidatedBy")
+                        .WithMany()
+                        .HasForeignKey("ValidatedById");
+
                     b.Navigation("Owner");
 
                     b.Navigation("TicketPurchase");
+
+                    b.Navigation("ValidatedBy");
                 });
 
             modelBuilder.Entity("Projeto_SEGUES.Models.Ticket.TicketPrice", b =>
@@ -1005,24 +1050,24 @@ namespace Projeto_SEGUES.Migrations
 
             modelBuilder.Entity("Projeto_SEGUES.Models.Ticket.TicketPurchase", b =>
                 {
-                    b.HasOne("Projeto_SEGUES.Models.User.User", "User")
+                    b.HasOne("Projeto_SEGUES.Models.User.AppUser", "AppUser")
                         .WithMany()
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("AppUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("AppUser");
                 });
 
             modelBuilder.Entity("Projeto_SEGUES.Models.Ticket.TicketTransfer", b =>
                 {
-                    b.HasOne("Projeto_SEGUES.Models.User.User", "Receiver")
+                    b.HasOne("Projeto_SEGUES.Models.User.AppUser", "Receiver")
                         .WithMany()
                         .HasForeignKey("ReceiverId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Projeto_SEGUES.Models.User.User", "Sender")
+                    b.HasOne("Projeto_SEGUES.Models.User.AppUser", "Sender")
                         .WithMany()
                         .HasForeignKey("SenderId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1041,16 +1086,7 @@ namespace Projeto_SEGUES.Migrations
                     b.Navigation("Ticket");
                 });
 
-            modelBuilder.Entity("Projeto_SEGUES.Models.User.School", b =>
-                {
-                    b.HasOne("Projeto_SEGUES.Models.User.PostalCode", "PostalCode")
-                        .WithMany()
-                        .HasForeignKey("PostalCodeId");
-
-                    b.Navigation("PostalCode");
-                });
-
-            modelBuilder.Entity("Projeto_SEGUES.Models.User.User", b =>
+            modelBuilder.Entity("Projeto_SEGUES.Models.User.AppUser", b =>
                 {
                     b.HasOne("Projeto_SEGUES.Models.User.PostalCode", "PostalCode")
                         .WithMany("Users")
@@ -1067,9 +1103,18 @@ namespace Projeto_SEGUES.Migrations
                     b.Navigation("UserCategory");
                 });
 
+            modelBuilder.Entity("Projeto_SEGUES.Models.User.School", b =>
+                {
+                    b.HasOne("Projeto_SEGUES.Models.User.PostalCode", "PostalCode")
+                        .WithMany()
+                        .HasForeignKey("PostalCodeId");
+
+                    b.Navigation("PostalCode");
+                });
+
             modelBuilder.Entity("Projeto_SEGUES.Models.User.Employee", b =>
                 {
-                    b.HasOne("Projeto_SEGUES.Models.User.User", null)
+                    b.HasOne("Projeto_SEGUES.Models.User.AppUser", null)
                         .WithOne()
                         .HasForeignKey("Projeto_SEGUES.Models.User.Employee", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1084,7 +1129,7 @@ namespace Projeto_SEGUES.Migrations
 
             modelBuilder.Entity("Projeto_SEGUES.Models.User.Student", b =>
                 {
-                    b.HasOne("Projeto_SEGUES.Models.User.User", null)
+                    b.HasOne("Projeto_SEGUES.Models.User.AppUser", null)
                         .WithOne()
                         .HasForeignKey("Projeto_SEGUES.Models.User.Student", "Id")
                         .OnDelete(DeleteBehavior.Cascade)

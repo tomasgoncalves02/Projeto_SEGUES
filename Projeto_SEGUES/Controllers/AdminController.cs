@@ -15,12 +15,12 @@ namespace Projeto_SEGUES.Controllers
     [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
-        private readonly UserManager<User> _userManager;
+        private readonly UserManager<AppUser> _userManager;
         private readonly RoleManager<Role> _roleManager;
         private readonly AppDbContext _context;
         private readonly IEmailSender _emailSender;
 
-        public AdminController(UserManager<User> userManager, RoleManager<Role> roleManager, AppDbContext context, IEmailSender emailSender)
+        public AdminController(UserManager<AppUser> userManager, RoleManager<Role> roleManager, AppDbContext context, IEmailSender emailSender)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -61,7 +61,7 @@ namespace Projeto_SEGUES.Controllers
 
             var category = await _context.UserCategories.FirstOrDefaultAsync(c => c.Name == model.AccountType);
 
-            var user = new User
+            var user = new AppUser
             {
                 UserName = model.Email,
                 Email = model.Email,
@@ -174,7 +174,7 @@ namespace Projeto_SEGUES.Controllers
             
             if (!string.IsNullOrEmpty(roleFilter))
             {
-                var usersInRole = new List<User>();
+                var usersInRole = new List<AppUser>();
                 foreach (var user in users)
                 {
                     if (await _userManager.IsInRoleAsync(user, roleFilter)) usersInRole.Add(user);

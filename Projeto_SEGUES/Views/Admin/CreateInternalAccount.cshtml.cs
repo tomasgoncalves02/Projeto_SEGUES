@@ -11,11 +11,11 @@ namespace Projeto_SEGUES.Views.Admin
 {
     public class CreateInternalAccountModel : PageModel
     {
-        private readonly UserManager<User> _userManager;
+        private readonly UserManager<AppUser> _userManager;
         private readonly IEmailSender _emailSender;
         private readonly AppDbContext _context;
 
-        public CreateInternalAccountModel(UserManager<User> userManager, IEmailSender emailSender, AppDbContext context)
+        public CreateInternalAccountModel(UserManager<AppUser> userManager, IEmailSender emailSender, AppDbContext context)
         {
             _userManager = userManager;
             _emailSender = emailSender;
@@ -48,7 +48,7 @@ namespace Projeto_SEGUES.Views.Admin
             var category = _context.UserCategories.FirstOrDefault(c => c.Name == "Externo");
 
             // 3. Mapear para a entidade User
-            var user = new User
+            var user = new AppUser
             {
                 UserName = Input.Email,
                 Email = Input.Email,

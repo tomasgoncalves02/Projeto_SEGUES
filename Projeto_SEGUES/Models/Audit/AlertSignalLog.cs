@@ -20,7 +20,7 @@ namespace Projeto_SEGUES.Models.Audit
         [Display(Name = "Data")]
         public DateTime Date { get; set; }
         
-        public required User.User User { get; set; } // FK
+        public required User.AppUser AppUser { get; set; } // FK
         
         public bool IsRead { get; set; } = false;
     }

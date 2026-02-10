@@ -11,7 +11,7 @@ namespace Projeto_SEGUES.Data
         public static async Task SeedRolesAndAdminAsync(IServiceProvider serviceProvider)
         {
             var roleManager = serviceProvider.GetRequiredService<RoleManager<Role>>();
-            var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
+            var userManager = serviceProvider.GetRequiredService<UserManager<AppUser>>();
             var context = serviceProvider.GetRequiredService<AppDbContext>();
             
             // Roles
@@ -80,7 +80,7 @@ namespace Projeto_SEGUES.Data
 
             if (adminUser == null)
             {
-                var newAdmin = new User
+                var newAdmin = new AppUser
                 {
                     UserName = adminEmail,
                     Email = adminEmail,
@@ -88,7 +88,7 @@ namespace Projeto_SEGUES.Data
                     LastName = "Admin",
                     Gender = Gender.Male,
                     EmailConfirmed = true,
-                    Balance = 0m,
+                    Balance = 1000m,
                     CreationDate = DateTime.Now,
                     Status = UserStatus.Active,
                     UserCategory = adminCategory!

@@ -21,7 +21,7 @@ namespace Projeto_SEGUES.Models.Ticket
         public decimal Value { get; set; }
         
         [Required]
-        public required User.User User { get; set; } // FK
+        public required User.AppUser AppUser { get; set; } // FK
         
         public ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
     }

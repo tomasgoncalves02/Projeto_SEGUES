@@ -1,14 +1,16 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Projeto_SEGUES.Models.Admin;
 using Projeto_SEGUES.Models.Audit;
 using Projeto_SEGUES.Models.Inventory;
+using Projeto_SEGUES.Models.Payment;
 using Projeto_SEGUES.Models.Purchase;
 using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.User;
 
 namespace Projeto_SEGUES.Data
 {
-    public class AppDbContext : IdentityDbContext<User, Role, string>
+    public class AppDbContext : IdentityDbContext<AppUser, Role, string>
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
@@ -17,11 +19,15 @@ namespace Projeto_SEGUES.Data
         /* =========
          * Audit
          * ========= */
-        public DbSet<Transaction> Transactions { get; set; }
         public DbSet<AlertSignalLog> AlertSignalLogs { get; set; }
         public DbSet<DbStats> DbStats { get; set; }
         public DbSet<UserLog> UserLog { get; set; }
         public DbSet<ErrorLog> ErrorLog { get; set; }
+        
+        /* =========
+         * Admin
+         * ========= */
+        public DbSet<AppConfig> AppConfigs { get; set; }
         
         /* =========
          * User
@@ -38,6 +44,11 @@ namespace Projeto_SEGUES.Data
          * ========= */
         public DbSet<Product> Products { get; set; }
         public DbSet<ProductCategory> ProductCategories { get; set; }
+        
+        /* =========
+         * Payment
+         * ========= */
+        public DbSet<Transaction> Transactions { get; set; }
         
         /* =========
          * Purchase
@@ -63,7 +74,7 @@ namespace Projeto_SEGUES.Data
             // Set up Identity tables
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<User>()
+            modelBuilder.Entity<AppUser>()
                 .HasOne(u => u.UserCategory)
                 .WithMany()
                 .IsRequired();
@@ -112,7 +123,7 @@ namespace Projeto_SEGUES.Data
             }
 
             // TPT (Table Per Type) Inheritance Mapping
-            modelBuilder.Entity<User>().ToTable("User");
+            modelBuilder.Entity<AppUser>().ToTable("User");
             modelBuilder.Entity<Student>().ToTable("Student");
             modelBuilder.Entity<Employee>().ToTable("Employee");
         }

@@ -1,0 +1,36 @@
+﻿@model Projeto_SEGUES.Models.Payment.Transaction
+
+@{
+    ViewData["Title"] = "Aguardando Pagamento";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="spinner-grow text-info" style="width: 3rem; height: 3rem;" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+
+            <h2 class="mt-4">Verifique o seu MB WAY</h2>
+            <p class="lead">
+                Enviámos um pedido de <strong>@Model.Amount.ToString("F2")€</strong> para o número <strong>@Model.PhoneNumber</strong>.
+            </p>
+            <p class="text-muted">Por favor, abra a aplicação MB WAY no seu telemóvel e autorize o pagamento.</p>
+
+            <hr />
+
+            <div class="alert alert-warning shadow-sm mt-5">
+                <h5 class="alert-heading font-weight-bold">Simulação de Teste (Sandbox)</h5>
+                <p class="small mb-2">Como estás em ambiente de desenvolvimento, clica no botão abaixo para simular que o pagamento foi aceite:</p>
+                <a href="/api/payment/callback?reference=@Model.Reference&status=success"
+                   class="btn btn-sm btn-outline-dark fw-bold">
+                    SIMULAR SUCESSO DO MB WAY
+                </a>
+            </div>
+
+            <div class="mt-4">
+                <a asp-controller="Home" asp-action="Index" class="text-decoration-none">Voltar para a página inicial</a>
+            </div>
+        </div>
+    </div>
+</div>

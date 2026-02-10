@@ -13,9 +13,9 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 {
     public class ResetPasswordModel : PageModel
     {
-        private readonly UserManager<User> _userManager;
+        private readonly UserManager<AppUser> _userManager;
 
-        public ResetPasswordModel(UserManager<User> userManager)
+        public ResetPasswordModel(UserManager<AppUser> userManager)
         {
             _userManager = userManager;
         }
@@ -25,9 +25,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         
         public class InputModel
         {
-            [Required(ErrorMessage = "O campo {0} é obrigatório.")]
-            [EmailAddress(ErrorMessage = "Email inválido.")]
-            [Display(Name = "Email")]
+            [Required]
             public required string Email { get; init; }
             
             [Required(ErrorMessage = "O campo {0} é obrigatório.")]
@@ -35,7 +33,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             [DataType(DataType.Password)]
             [Display(Name = "Password")]
             [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{12,}$",
-                ErrorMessage = "A password deve ter pelo menos: 1 Minúscula, 1 Maiúscula, 1 Número e 1 Símbolo.")]
+                ErrorMessage = "A password deve ter pelo menos: 1 Minúscula, 1 Maiúscula, 1 Número e 1 Símbolo. E no mínimo 12 caracteres.")]
             public required string Password { get; init; }
 
             [DataType(DataType.Password)]
@@ -47,15 +45,15 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             public required string Code { get; init; }
         }
 
-        public IActionResult OnGet(string? code = null)
+        public IActionResult OnGet(string? email = null, string? code = null)
         {
-            if (code == null)
+            if (email == null || code == null)
             {
-                return BadRequest("A code must be supplied for password reset.");
+                return BadRequest("Um código deve ser fornecido para redefinir a senha.");
             }
             Input = new InputModel
             {
-                Email = "",
+                Email = email,
                 Password = "",
                 ConfirmPassword = "",
                 Code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code))

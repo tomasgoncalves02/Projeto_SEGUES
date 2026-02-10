@@ -36,18 +36,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Areas\Admin\Controllers\" />
-    <Folder Include="Areas\Admin\Views\" />
-    <Folder Include="Areas\Inventory\Controllers\" />
-    <Folder Include="Areas\Inventory\Views\" />
-    <Folder Include="Areas\Purchase\Controllers\" />
-    <Folder Include="Areas\Purchase\Views\" />
-    <Folder Include="Areas\Report\Controllers\" />
-    <Folder Include="Areas\Report\Views\" />
-    <Folder Include="Areas\Ticket\Controllers\" />
-    <Folder Include="Areas\Ticket\Views\" />
-    <Folder Include="Areas\User\Controllers\" />
-    <Folder Include="Areas\User\Views\" />
     <Folder Include="Migrations\" />
     <Folder Include="Models\Report\" />
     <Folder Include="wwwroot\images\" />

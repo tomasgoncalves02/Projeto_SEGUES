@@ -16,6 +16,6 @@ namespace Projeto_SEGUES.Models.Purchase
         [DisplayFormat(DataFormatString = "{0:C2}", ApplyFormatInEditMode = true)]
         public decimal Value { get; set; }
         
-        public required User.User User { get; set; } // FK
+        public required User.AppUser AppUser { get; set; } // FK
     }
 }

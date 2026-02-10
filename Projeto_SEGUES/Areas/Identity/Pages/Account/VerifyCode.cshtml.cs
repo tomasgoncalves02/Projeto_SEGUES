@@ -14,14 +14,14 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 {
     public class VerifyCodeModel : PageModel
     {
-        private readonly UserManager<User> _userManager;
-        private readonly SignInManager<User> _signInManager;
+        private readonly UserManager<AppUser> _userManager;
+        private readonly SignInManager<AppUser> _signInManager;
         private readonly AppDbContext _context;
         private readonly IEmailSender _emailSender;
 
         public VerifyCodeModel(
-            UserManager<User> userManager,
-            SignInManager<User> signInManager,
+            UserManager<AppUser> userManager,
+            SignInManager<AppUser> signInManager,
             AppDbContext context,
             IEmailSender emailSender)
         {
@@ -89,7 +89,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             }
             
             var category = await _context.UserCategories.FirstOrDefaultAsync(c => c.Name == categoryName);
-            var user = new User
+            var user = new AppUser
             {
                 UserName = data.Email,
                 Email = data.Email,

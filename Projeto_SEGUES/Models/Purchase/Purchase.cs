@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Projeto_SEGUES.Models.User;
 
 namespace Projeto_SEGUES.Models.Purchase
 {
@@ -17,7 +18,7 @@ namespace Projeto_SEGUES.Models.Purchase
         public DateTime TransactionDate { get; set; }
         
         [Required]
-        public required User.User User { get; set; } // FK
+        public required AppUser AppUser { get; set; } // FK
 
         public ICollection<ProductPurchase> ProductPurchases { get; set; } = new List<ProductPurchase>();
     }

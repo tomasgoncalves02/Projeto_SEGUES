@@ -2,7 +2,7 @@
 
 namespace Projeto_SEGUES.Models.User
 {
-    public class Employee : User
+    public class Employee : AppUser
     {
         [MaxLength(100)]
         [Display(Name = "Cargo")]

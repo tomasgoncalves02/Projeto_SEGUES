@@ -14,27 +14,27 @@ namespace SeguesTests
     public class HomeControllerTests
     {
         private readonly Mock<ILogger<HomeController>> _mockLogger;
-        private readonly Mock<UserManager<User>> _mockUserManager;
+        private readonly Mock<UserManager<AppUser>> _mockUserManager;
 
         public HomeControllerTests()
         {
             _mockLogger = new Mock<ILogger<HomeController>>();
 
             // Usamos o Helper para criar o Mock complexo do UserManager
-            var usersList = new List<User>();
+            var usersList = new List<AppUser>();
             _mockUserManager = MockHelper.MockUserManager(usersList);
         }
 
         // Helper para configurar o Controller com contexto de utilizador
-        private HomeController GetControllerWithUser(User user = null, bool isAuthenticated = true)
+        private HomeController GetControllerWithUser(AppUser appUser = null, bool isAuthenticated = true)
         {
             var controller = new HomeController(_mockLogger.Object, _mockUserManager.Object);
 
             var claims = new List<Claim>();
-            if (user != null)
+            if (appUser != null)
             {
-                claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id ?? "1"));
-                claims.Add(new Claim(ClaimTypes.Name, user.UserName ?? "test"));
+                claims.Add(new Claim(ClaimTypes.NameIdentifier, appUser.Id ?? "1"));
+                claims.Add(new Claim(ClaimTypes.Name, appUser.UserName ?? "test"));
             }
 
             var identity = new ClaimsIdentity(claims, isAuthenticated ? "TestAuthType" : null);
@@ -66,7 +66,7 @@ namespace SeguesTests
         public async Task Index_RetornaViewComDados_SeAutenticado()
         {
             // ARRANGE
-            var user = new User
+            var user = new AppUser
             {
                 Id = "123",
                 UserName = "joao@teste.com",
@@ -105,10 +105,10 @@ namespace SeguesTests
             // ARRANGE
             // Simulamos que está autenticado no cookie, mas foi apagado da BD
             _mockUserManager.Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
-                .ReturnsAsync((User)null);
+                .ReturnsAsync((AppUser)null);
 
             var controller = GetControllerWithUser(
-                new User
+                new AppUser
                 {
                     Id = "567",
                     UserName = "",

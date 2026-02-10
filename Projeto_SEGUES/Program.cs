@@ -24,7 +24,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 });
 
 // Identity
-builder.Services.AddIdentity<User, Role>(options => {
+builder.Services.AddIdentity<AppUser, Role>(options => {
     options.SignIn.RequireConfirmedAccount = true;
     options.SignIn.RequireConfirmedEmail = true;
     options.User.RequireUniqueEmail = true;
@@ -52,10 +52,21 @@ builder.Services.AddAuthentication()
 
 // Other services
 builder.Services.AddTransient<IEmailSender, EmailSender>();
+builder.Services.AddScoped<ITicketService, TicketService>();
 
 // MVC and Razor
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+
+// Set culture
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var supportedCultures = new[] { "pt-PT"};
+    options.SetDefaultCulture(supportedCultures[0])
+        .AddSupportedCultures(supportedCultures)
+        .AddSupportedUICultures(supportedCultures);
+});
+
 // Adiciona isto antes do var app = builder.Build();
 builder.Services.AddHttpClient("MbWayClient", client =>
 {

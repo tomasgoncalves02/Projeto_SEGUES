@@ -1,51 +1,29 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @using Projeto_SEGUES.Models.User
-@inject SignInManager<User> SignInManager
-@inject UserManager<User> UserManager
+@inject SignInManager<AppUser> SignInManager
+@inject UserManager<AppUser> UserManager
 
 @if (SignInManager.IsSignedIn(User))
 {
     var user = await UserManager.GetUserAsync(User);
-    var nome = user?.FirstName ?? "User";
+    var nome = user?.FirstName ?? "Utilizador";
     var inicial = nome[0].ToString().ToUpper();
 
     <div class="dropdown">
-        <a class="nav-link dropdown-toggle d-flex align-items-center p-0" href="#" id="userMenu" data-bs-toggle="dropdown">
+        <div class="dropdown-toggle d-flex align-items-center p-0" id="userMenu" data-bs-toggle="dropdown" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false">
             <div class="avatar-circle">@inicial</div>
-            @* d-none (esconde no mobile) d-sm-inline (mostra no tablet/pc) *@
+            @* d-none (hide in mobile); d-sm-inline (show in tablet/pc) *@
             <span class="ms-2 d-none d-sm-inline text-dark fw-bold">Olá, @nome!</span>
-        </a>
+        </div>
         <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
-            <li><a class="dropdown-item" asp-area="Identity" asp-page="/Account/Manage/Index">Perfil</a></li>
+            <li><a class="dropdown-item fw-bold" asp-area="User" asp-page="/Index">Perfil</a></li>
             <li><hr class="dropdown-divider"></li>
             <li>
-                <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home")">
-                    <button type="submit" class="dropdown-item text-danger fw-bold">Sair</button>
+                @* Logout (POST for security) *@
+                <form class="form-inline fw-bold" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home")">
+                    <button type="submit" class="dropdown-item text-danger">Sair</button>
                 </form>
             </li>
         </ul>
     </div>
 }
-
-<style>
-    .avatar-circle {
-        width: 38px;
-        height: 38px;
-        background-color: #004587; /* Azul Oficial IPS */
-        color: white;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        font-size: 1.1rem;
-        border: 2px solid #e9ecef;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    /* Estilo para os itens do menu ao passar o rato */
-    .dropdown-item:hover {
-        background-color: #f8f9fa;
-        color: #004587;
-    }
-</style>

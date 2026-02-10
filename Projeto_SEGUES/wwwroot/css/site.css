@@ -7,7 +7,7 @@
     --ips-hover: #007f80;
     --ips-shadow-soft: rgba(0, 150, 151, 0.15);
     --ips-shadow-heavy: rgba(0, 150, 151, 0.35);
-    --ips-dark: #2D2926;
+    --ips-dark: #212529;
     --ips-bg-light: #f8f9fa;
     --ips-border: #dee2e6;
     /* Buttons */
@@ -30,6 +30,11 @@ a:hover {
     text-decoration: underline;
 }
 
+.dropdown-item:hover {
+    color: var(--ips-hover);
+    background-color: var(--ips-bg-light);
+}
+
 /* Forms */
 .form-control:focus, .form-select:focus {
     border-color: var(--ips);
@@ -47,6 +52,20 @@ a:hover {
 .navbar-brand img {
     height: 40px;
     width: auto;
+}
+
+.avatar-circle {
+    width: 38px;
+    height: 38px;
+    background-color: var(--ips);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.1rem;
+    box-shadow: 0 0 0 0.25rem var(--ips-shadow-soft);
 }
 
 /* =========
@@ -69,7 +88,7 @@ a:hover {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.card-ips:hover {
+.card-ips:hover, .card-admin:hover {
     box-shadow: 0 1rem 3rem var(--ips-shadow-heavy) !important;
 }
 
@@ -89,6 +108,16 @@ a:hover {
     border-bottom: 4px solid var(--ips);
     opacity: 1;
     width: 80%;
+}
+
+.hover-translate:hover {
+    transform: translateY(-5px);
+}
+
+.card-admin {
+    background-color: var(--ips-dark);
+    color: white;
+    border: none !important;
 }
 
 /* Code */
@@ -128,6 +157,13 @@ a:hover {
     box-shadow: 0 0 0 0.25rem var(--ips-shadow-heavy) !important;
 }
 
+.btn-disabled {
+    background-color: var(--ips-bg-light) !important;
+    color: var(--ips) !important;
+    opacity: 0.65;
+    text-decoration: none !important;
+}
+
 /* ==========
    Scrollbar
    ========== */
@@ -144,38 +180,12 @@ a:hover {
 /* Estilo Base dos Cart�es do Dashboard */
 /*
 
-
-!* Variante para o Cart�o de Saldo (Destaque Total) *!
-.card-ips-saldo {
-    background-color: var(--ips-teal) !important;
-    color: white !important;
-    border: none !important;
-    border-radius: 10px !important;
-}
-
-!* Special Balance Card (Teal background) *!
-.card-ips-saldo {
-    background-color: var(--ips-teal) !important;
-    color: white !important;
-    border: none !important;
-    border-radius: 12px !important;
-}
-
 !* Dashboard specific left-border card *!
 .card-active {
     border: none !important;
     border-left: 5px solid var(--ips-teal) !important;
     border-radius: 8px !important;
 }
-
-!* 5. Form Styles *!
-.form-label {
-    font-weight: 700;
-    font-size: 0.85rem;
-    color: #444;
-    margin-bottom: 0.3rem;
-}
-
 
 !* 6. Tables & Badges *!
 .table-segues thead {
@@ -201,17 +211,5 @@ a:hover {
 .badge-status-expired { background-color: #dc3545 !important; color: white !important; }
 
 
-.avatar-circle {
-    width: 38px;
-    height: 38px;
-    background-color: #004587; !* IPS Official Blue for distinction *!
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 1.1rem;
-    border: 2px solid #e9ecef;
-}
-*/
+ */
+

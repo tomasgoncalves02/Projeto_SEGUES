@@ -8,10 +8,10 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 {
     public class LoginWith2FaModel : PageModel
     {
-        private readonly SignInManager<User> _signInManager;
+        private readonly SignInManager<AppUser> _signInManager;
         private readonly ILogger<LoginWith2FaModel> _logger;
 
-        public LoginWith2FaModel(SignInManager<User> signInManager, ILogger<LoginWith2FaModel> logger)
+        public LoginWith2FaModel(SignInManager<AppUser> signInManager, ILogger<LoginWith2FaModel> logger)
         {
             _signInManager = signInManager;
             _logger = logger;

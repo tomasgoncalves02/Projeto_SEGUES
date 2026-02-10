@@ -1,29 +1,7 @@
-﻿@using Projeto_SEGUES.Models.Enums
-@{
-    ViewData["Title"] = "Dashboard - SEGUES";
+﻿@{
+    ViewData["Title"] = "Página Inicial - SEGUES";
     var balance = ViewBag.UserBalance ?? 0m;
-    @if (TempData["PaymentMessage"] != null)
-    {
-        <div class="alert @(TempData["PaymentStatus"]?.ToString() == "Success" ? "alert-success" : "alert-danger") alert-dismissible fade show" role="alert">
-            <strong>@(TempData["PaymentStatus"]?.ToString() == "Success" ? "✅" : "❌")</strong>
-            @TempData["PaymentMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
 }
-
-<style>
-    /* Estilos de interatividade e alinhamento */
-    .hover-effect {
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        cursor: pointer;
-    }
-
-        .hover-effect:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
-        }
-</style>
 
 <div class="container mt-5">
     <div class="row mb-5">
@@ -33,114 +11,92 @@
         </div>
     </div>
 
-    @* Grelha Principal Responsiva *@
+    @* Main row *@
     <div class="row g-4">
-
-        @* 1. CARTÃO DE SALDO (DESTAQUE TOTAL #009697) *@
+        @* Balance Card *@
         <div class="col-md-6 col-lg-3">
-            <div class="card h-100 shadow-sm border-0 text-white hover-effect d-flex flex-column"
-                 style="background-color: #009697 !important;">
+            <div class="card h-100 shadow-sm card-ips bg-color-ips text-white hover-translate d-flex flex-column">
                 <div class="card-body text-center d-flex flex-column p-4">
-                    <small class="d-block opacity-75 fw-bold mb-2">Saldo Disponível</small>
+                    <small class="d-block opacity-75 fw-bold mb-2 fs-4">Saldo Disponível</small>
                     <h2 class="display-6 fw-bold my-auto">@balance.ToString("C")</h2>
-
-                    <div class="mt-auto pt-3">
-                        <a asp-controller="Payment" asp-action="Deposit"
-                           class="btn btn-light w-100 py-2 fw-bold"
-                           style="color: #009697 !important;">
-                            CARREGAR SALDO
-                        </a>
+                    <div class="mt-auto">
+                        <a asp-area="Payment" asp-controller="Payment" asp-action="Deposit" class="btn btn-ips fw-bold w-100 py-2">CARREGAR SALDO</a>
                     </div>
                 </div>
             </div>
         </div>
-
-        @* 2. CARTÃO REFEITÓRIO *@
+        @* Ticket Card *@
         <div class="col-md-6 col-lg-3">
-            <div class="card h-100 shadow-sm hover-effect d-flex flex-column text-center"
-                 style="border: none; border-top: 5px solid #009697; background-color: white; border-radius: 10px;">
-                <div class="card-body d-flex flex-column p-4">
-                    <div class="fs-1 mb-3" style="color: #009697;"><i class="bi bi-cart-plus"></i></div>
-                    <h5 class="fw-bold">Senhas do Refeitório</h5>
+            <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
+                <div class="card-body text-center d-flex flex-column p-4">
+                    <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-cart-plus"></i></div>
+                    <h5 class="fw-bold">Refeitório</h5>
                     <p class="text-muted small mb-4">Compra e usa as tuas senhas de refeição.</p>
                     <div class="mt-auto">
-                        <a asp-controller="Tickets" asp-action="Refeitorio" class="btn w-100 py-2 fw-bold text-white"
-                           style="background-color: #009697; border: none; border-radius: 6px;">Ir para o Refeitório</a>
+                        <a asp-area="Ticket" asp-controller="Ticket" asp-action="Index" class="btn w-100 py-2 fw-bold btn-ips">Ir para o Refeitório</a>
                     </div>
                 </div>
             </div>
         </div>
-
-        @* 3. CARTÃO BAR *@
+        @* Bar Card *@
         <div class="col-md-6 col-lg-3">
-            <div class="card h-100 shadow-sm hover-effect d-flex flex-column text-center"
-                 style="border: none; border-top: 5px solid #009697; background-color: white; border-radius: 10px;">
-                <div class="card-body d-flex flex-column p-4">
-                    <div class="fs-1 mb-3" style="color: #009697;"><i class="bi bi-cup-straw"></i></div>
+            <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
+                <div class="card-body text-center d-flex flex-column p-4">
+                    <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-cup-straw"></i></div>
                     <h5 class="fw-bold">Bar</h5>
                     <p class="text-muted small mb-4">Compra e gere os teus pedidos no bar.</p>
                     <div class="mt-auto">
-                        <button class="btn w-100 py-2 fw-bold text-white opacity-75"
-                                style="background-color: #009697; border: none; border-radius: 6px;" disabled>
-                            BREVEMENTE
-                        </button>
+                        <a href="" class="btn btn-light fw-bold w-100 py-2 btn-disabled">BREVEMENTE</a>
                     </div>
                 </div>
             </div>
         </div>
-
-        @* 4. CARTÃO HISTÓRICO *@
+        @* History Card *@
         <div class="col-md-6 col-lg-3">
-            <div class="card h-100 shadow-sm hover-effect d-flex flex-column text-center"
-                 style="border: none; border-top: 5px solid #009697; background-color: white; border-radius: 10px;">
-                <div class="card-body d-flex flex-column p-4">
-                    <div class="fs-1 mb-3" style="color: #009697;"><i class="bi bi-clock-history"></i></div>
+            <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
+                <div class="card-body text-center d-flex flex-column p-4">
+                    <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-clock-history"></i></div>
                     <h5 class="fw-bold">Histórico</h5>
                     <p class="text-muted small mb-4">Visualiza o teu histórico de utilização e validade.</p>
                     <div class="mt-auto">
-                        <a asp-controller="Tickets" asp-action="HistoricoMenu" class="btn w-100 py-2 fw-bold text-white"
-                           style="background-color: #009697; border: none; border-radius: 6px;">Ver Histórico</a>
+                        <a asp-area="Report" asp-controller="Report" asp-action="Index" class="btn w-100 py-2 fw-bold btn-ips">Ver Histórico</a>
                     </div>
                 </div>
             </div>
         </div>
-
-        @* 5. PAINEL ADMIN (MANTIDO PRETO PARA DISTINÇÃO DE SEGURANÇA) *@
-        @if (User.IsInRole("Admin"))
-        {
-            <div class="col-12 mt-4">
-                <div class="card shadow-lg border-0 bg-dark text-white p-4 hover-effect">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h4 class="fw-bold mb-1"><i class="bi bi-shield-lock me-2"></i>Painel de Administração</h4>
-                            <p class="mb-0 opacity-75">Configurações de limites e gestão de contas internas.</p>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <a asp-controller="Admin" asp-action="Index" class="btn btn-outline-light btn-lg px-5">Gerir Sistema -></a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }
-
-        @* 6. PAINEL DE GESTÃO (FUNCIONÁRIO) *@
+        @* Employee Panel *@
         @if (User.IsInRole("Employee"))
         {
             <div class="col-md-6 col-lg-3">
-                <div class="card h-100 shadow-sm text-center p-4 hover-effect"
-                     style="border: none; border-top: 5px solid #009697; background-color: white; border-radius: 10px;">
-                    <div class="card-body d-flex flex-column p-0">
-                        <div class="mb-3" style="color: #009697; font-size: 2.5rem;">
+                <div class="card h-100 shadow-sm card-ips p-4 hover-translate">
+                    <div class="card-body text-center d-flex flex-column p-0">
+                        <div class="mb-3 text-color-ips" style="color: #009697; font-size: 2.5rem;">
                             <i class="bi bi-person-badge-fill"></i>
                         </div>
                         <h5 class="fw-bold" style="color: #2D2926;">Painel de Gestão</h5>
                         <p class="text-muted small mb-4">Efetua as tuas tarefas de funcionário e gestão de refeições.</p>
                         <div class="mt-auto">
-                            <a asp-controller="Tickets" asp-action="OperacaoRefeitorio"
-                               class="btn w-100 py-2 fw-bold"
-                               style="background-color: #009697; color: white; border: none; border-radius: 6px;">
+                            <a asp-area="Admin" asp-controller="Employee" asp-action="Index" class="btn w-100 py-2 fw-bold btn-ips">
                                 Ver Painel
                             </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        @* Admin Panel *@
+        @if (User.IsInRole("Admin"))
+        {
+            <div class="col-12 mt-4">
+                <div class="card shadow-lg card-admin p-4 hover-translate">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h4 class="fw-bold mb-1"><i class="bi bi-shield-lock me-2"></i>Painel de Administração</h4>
+                            <p class="mb-0 opacity-75">Configurações de limites e gestão de contas internas.</p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            @* or 2B95 *@
+                            <a asp-area="Admin" asp-controller="Admin" asp-action="Index" class="btn btn-outline-light btn-lg px-5">Gerir Sistema &#x2192</a>
                         </div>
                     </div>
                 </div>

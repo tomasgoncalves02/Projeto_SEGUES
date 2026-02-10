@@ -2,7 +2,7 @@
 
 namespace Projeto_SEGUES.Models.User
 {
-    public class Student : User
+    public class Student : AppUser
     {
         [Required]
         [MaxLength(20)]

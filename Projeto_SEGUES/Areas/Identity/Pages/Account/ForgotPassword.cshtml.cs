@@ -15,10 +15,10 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 {
     public class ForgotPasswordModel : PageModel
     {
-        private readonly UserManager<User> _userManager;
+        private readonly UserManager<AppUser> _userManager;
         private readonly IEmailSender _emailSender;
 
-        public ForgotPasswordModel(UserManager<User> userManager, IEmailSender emailSender)
+        public ForgotPasswordModel(UserManager<AppUser> userManager, IEmailSender emailSender)
         {
             _userManager = userManager;
             _emailSender = emailSender;
@@ -46,13 +46,15 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                     return RedirectToPage("./ForgotPasswordConfirmation");
                 }
                 
+                var email = await _userManager.GetEmailAsync(user);
+                
                 var code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(
                         await _userManager.GeneratePasswordResetTokenAsync(user)
                 ));
                 string callbackUrl = Url.Page(
                     "/Account/ResetPassword",
                     pageHandler: null,
-                    values: new { area = "Identity", code },
+                    values: new { area = "Identity", email, code },
                     protocol: Request.Scheme)!;
 
                 // Email template
