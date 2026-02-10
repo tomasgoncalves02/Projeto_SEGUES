@@ -15,10 +15,10 @@ namespace Projeto_SEGUES.Services
         
         public Task SendEmailAsync(string email, string subject, string htmlMessage)
         {
-            var mailServer = _config["EmailSettings:MailServer"];
-            var port = int.Parse(_config["EmailSettings:Port"]!);
-            var myEmail = _config["EmailSettings:MyEmail"]!;
-            var myPassword = _config["EmailSettings:MyPassword"];
+            var mailServer = _config["EmailSettings:SmtpServer"];
+            var port = int.Parse(_config["EmailSettings:SmtpPort"]!);
+            var myEmail = _config["EmailSettings:SenderEmail"]!;
+            var myPassword = _config["EmailSettings:SenderPassword"];
             
             var client = new SmtpClient(mailServer, port)
             {
