@@ -56,7 +56,11 @@ builder.Services.AddTransient<IEmailSender, EmailSender>();
 // MVC and Razor
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
-
+// Adiciona isto antes do var app = builder.Build();
+builder.Services.AddHttpClient("MbWayClient", client =>
+{
+    client.BaseAddress = new Uri("https://sandbox.ifthenpay.com/"); // Exemplo
+});
 var app = builder.Build();
 
 

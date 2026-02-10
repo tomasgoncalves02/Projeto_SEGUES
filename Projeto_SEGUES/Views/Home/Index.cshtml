@@ -2,6 +2,14 @@
 @{
     ViewData["Title"] = "Dashboard - SEGUES";
     var balance = ViewBag.UserBalance ?? 0m;
+    @if (TempData["PaymentMessage"] != null)
+    {
+        <div class="alert @(TempData["PaymentStatus"]?.ToString() == "Success" ? "alert-success" : "alert-danger") alert-dismissible fade show" role="alert">
+            <strong>@(TempData["PaymentStatus"]?.ToString() == "Success" ? "✅" : "❌")</strong>
+            @TempData["PaymentMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
 }
 
 <style>
@@ -35,10 +43,13 @@
                 <div class="card-body text-center d-flex flex-column p-4">
                     <small class="d-block opacity-75 fw-bold mb-2">Saldo Disponível</small>
                     <h2 class="display-6 fw-bold my-auto">@balance.ToString("C")</h2>
+
                     <div class="mt-auto pt-3">
-                        <button class="btn btn-light w-100 py-2 fw-bold" style="color: #009697 !important;" disabled>
-                            BREVEMENTE
-                        </button>
+                        <a asp-controller="Payment" asp-action="Deposit"
+                           class="btn btn-light w-100 py-2 fw-bold"
+                           style="color: #009697 !important;">
+                            CARREGAR SALDO
+                        </a>
                     </div>
                 </div>
             </div>

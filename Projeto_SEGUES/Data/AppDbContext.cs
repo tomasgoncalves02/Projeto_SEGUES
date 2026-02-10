@@ -13,10 +13,11 @@ namespace Projeto_SEGUES.Data
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }
-        
+
         /* =========
          * Audit
          * ========= */
+        public DbSet<Transaction> Transactions { get; set; }
         public DbSet<AlertSignalLog> AlertSignalLogs { get; set; }
         public DbSet<DbStats> DbStats { get; set; }
         public DbSet<UserLog> UserLog { get; set; }
