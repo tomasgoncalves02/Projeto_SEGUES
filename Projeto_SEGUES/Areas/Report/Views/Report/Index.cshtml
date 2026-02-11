@@ -2,111 +2,70 @@
     ViewData["Title"] = "Histórico - SEGUES";
 }
 
-<style>
-    /* Efeito de levante e transição suave */
-    .hover-effect {
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-        .hover-effect:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
-        }
-
-    /* Linha decorativa atualizada para o Teal institucional */
-    .title-underline {
-        border-bottom: 4px solid #009697;
-        display: inline-block;
-        padding-bottom: 5px;
-    }
-</style>
-
 <div class="container mt-5">
-    @* Cabeçalho alinhado à esquerda *@
     <div class="row mb-5">
+        @* Left aligned text *@
         <div class="col-12 text-start">
             <h1 class="fw-bold title-underline mb-3">Histórico</h1>
             <p class="text-muted fs-5">Consulta aqui os teus consumos de bar, refeitório e movimentos de saldo.</p>
         </div>
     </div>
 
-    @* Grelha de Cartões Responsiva *@
+    @* Main row *@
     <div class="row g-4">
-
-        @* 1. Histórico de Senhas *@
+        @* Ticket history *@
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm hover-effect d-flex flex-column"
-                 style="border: none; border-top: 5px solid #009697; border-radius: 10px;">
+            <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
                 <div class="card-body text-center d-flex flex-column p-4">
-                    
-                    <div class="fs-1 mb-3" style="color: #009697;"><i class="bi bi-clock-history"></i></div>
+                    <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-clock-history"></i></div>
                     <h5 class="fw-bold">Histórico de Senhas</h5>
                     <p class="text-muted small mb-4">Visualiza o registo das tuas senhas.</p>
                     <div class="mt-auto">
-                        <a asp-controller="Tickets" asp-action="HistoricoSenhas"
-                           class="btn w-100 py-2 fw-bold text-white"
-                           style="background-color: #009697; border: none; border-radius: 6px;">
+                        <a asp-area="Report" asp-controller="ReportTickets" asp-action="Index" class="btn w-100 py-2 fw-bold btn-ips">
                             Ver Histórico
                         </a>
                     </div>
                 </div>
             </div>
         </div>
-
-        @* 2. Histórico do Bar *@
+        @* Bar history *@
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm hover-effect d-flex flex-column"
-                 style="border: none; border-top: 5px solid #009697; border-radius: 10px;">
+            <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
                 <div class="card-body text-center d-flex flex-column p-4">
-                    <div class="fs-1 mb-3" style="color: #009697;"><i class="bi bi-cup-straw"></i></div>
+                    <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-cup-straw"></i></div>
                     <h5 class="fw-bold">Histórico do Bar</h5>
                     <p class="text-muted small mb-4">Visualiza os teus consumos no bar.</p>
-
                     <div class="mt-auto">
-                        <button class="btn w-100 py-2 fw-bold text-white opacity-75"
-                                style="background-color: #009697; border: none; border-radius: 6px;" disabled>
-                            BREVEMENTE
-                        </button>
+                        <a href="" class="btn btn-light fw-bold w-100 py-2 btn-disabled">BREVEMENTE</a>
                     </div>
                 </div>
             </div>
         </div>
-
-        @* 3. Histórico do Saldo *@
+        @* Balance history *@
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm hover-effect d-flex flex-column"
-                 style="border: none; border-top: 5px solid #009697; border-radius: 10px;">
+            <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
                 <div class="card-body text-center d-flex flex-column p-4">
-                    <div class="fs-1 mb-3" style="color: #009697;"><i class="bi bi-currency-euro"></i></div>
+                    <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-currency-euro"></i></div>
                     <h5 class="fw-bold">Histórico do Saldo</h5>
                     <p class="text-muted small mb-4">Visualiza os teus movimentos de conta.</p>
-
                     <div class="mt-auto">
-                        <button class="btn w-100 py-2 fw-bold text-white"
-                                style="background-color: #009697; border: none; border-radius: 6px;" disabled>
-                            BREVEMENTE
-                        </button>
+                        <a href="" class="btn btn-light fw-bold w-100 py-2 btn-disabled">BREVEMENTE</a>
                     </div>
                 </div>
             </div>
         </div>
-
-        @* 4. Botão Voltar *@
+        @* Return button *@
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm hover-effect d-flex flex-column"
-                 style="border: none; border-top: 5px solid #009697; border-radius: 10px;">
+            <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
                 <div class="card-body text-center d-flex flex-column p-4">
-                    <div class="fs-1 mb-3" style="color: #009697;"><i class="bi bi-arrow-left-circle"></i></div>
+                    <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-arrow-left-circle"></i></div>
                     <h5 class="fw-bold">Voltar</h5>
                     <p class="text-muted small mb-4">Voltar à página anterior.</p>
-
                     <div class="mt-auto">
-                        <a asp-controller="Home" asp-action="Index" class="btn w-100 py-2 fw-bold text-white"
-                           style="background-color: #009697; border: none; border-radius: 6px;">Voltar</a>
+                        <a asp-area="" asp-controller="Home" asp-action="Index" class="btn w-100 py-2 fw-bold btn-ips">Voltar</a>
                     </div>
                 </div>
             </div>
         </div>
-
     </div>
 </div>

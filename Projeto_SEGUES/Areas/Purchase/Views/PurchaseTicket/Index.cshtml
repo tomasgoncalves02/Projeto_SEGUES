@@ -43,7 +43,7 @@
                     <div class="alert alert-light border-0 small mb-4" style="background-color: var(--ips-shadow-soft);">
                         Preço para o seu perfil: <strong class="text-color-ips fs-5">@price.ToString("C")</strong>
                     </div>
-                    <form asp-area="Purchase" asp-controller="PurchaseTicket" asp-action="Index" method="post" id="purchaseTicketForm">
+                    <form asp-area="Purchase" asp-controller="PurchaseTicket" asp-action="BuyTicket" method="post" id="purchaseTicketForm">
                         <div id="unitPrice" class="d-none">@price.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)</div>
                         <div class="mb-4">
                             <label class="form-label small fw-bold">Quantidade:</label>
@@ -60,37 +60,36 @@
                 </div>
             </div>
         </div>
-        
-        @* --- TABELA DE SENHAS --- *@
+        @* Table with ticket history *@
         <div class="col-lg-8">
-            <div class="card shadow-sm border-0 h-100" style="border-radius: 12px; overflow: hidden;">
+            <div class="card shadow-sm card-ips">
                 <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
-                    <h5 class="mb-0 fw-bold text-ips"><i class="bi bi-list-check me-2"></i>Registo de Senhas</h5>
+                    <h5 class="mb-0 fw-bold text-color-ips"><i class="bi bi-list-check me-2"></i>Registo de Senhas</h5>
                 </div>
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead style="background-color: #009697; color: white;">
-                        <tr>
-                            <th>Código</th>
-                            <th>Expiração</th>
-                            <th>Estado</th>
-                            <th class="text-center">Ação</th>
-                        </tr>
+                    <table class="table table-hover align-middle mb-0 text-center">
+                        <thead class="text-white bg-color-ips">
+                            <tr>
+                                <th>Código</th>
+                                <th>Expiração</th>
+                                <th>Estado</th>
+                                <th>Ação</th>
+                            </tr>
                         </thead>
                         <tbody>
                         @foreach (var item in Model)
                         {
                             <tr>
-                                <td><code class="fw-bold text-ips">@item.ValidationCode</code></td>
+                                <td><code class="fw-bold text-color-ips">@item.ValidationCode</code></td>
                                 <td class="small">@item.ExpirationDate.ToString("dd/MM/yyyy")</td>
                                 <td>
                                     @if (item.State == TicketState.Available)
                                     {
-                                        <span class="badge" style="background-color: #009697;">Disponível</span>
+                                        <span class="badge bg-color-ips">Disponível</span>
                                     }
                                     else if (item.State == TicketState.Used)
                                     {
-                                        <span class="badge bg-secondary">Consumida</span>
+                                        <span class="badge bg-secondary">Usada</span>
                                     }
                                     else
                                     {
@@ -100,9 +99,13 @@
                                 <td class="text-center">
                                     @if (item.State == TicketState.Available)
                                     {
-                                        <button class="btn btn-sm fw-bold" style="border: 2px solid #009697; color: #009697;" onclick="verCodigo('@item.ValidationCode')">
+                                        <button type="button" class="btn btn-ips btn-sm fw-bold showQr" data-code="@item.ValidationCode">
                                             <i class="bi bi-qr-code"></i>
                                         </button>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">--</span>
                                     }
                                 </td>
                             </tr>
@@ -119,6 +122,7 @@
     <script>
         const purchaseTicketForm = document.getElementById('purchaseTicketForm');
         if (purchaseTicketForm) {
+            // Update total value
             const quantityInput = document.getElementById('quantityInput');
             quantityInput.addEventListener('change', function() {
                 const totalDisplay = document.getElementById('totalValue');
@@ -127,11 +131,12 @@
                 const priceString = document.getElementById('unitPrice')?.textContent;
                 totalDisplay.textContent = calculateTotal(quantityString, priceString);
             });
+            // Confirmation popup and submit
             purchaseTicketForm.addEventListener('submit', function(e) {
                 e.preventDefault(); // Prevent immediate submission
-                const quantity = document.getElementById('quantityInput')?.textContent;
+                const quantity = document.getElementById('quantityInput')?.value;
                 const totalValue = document.getElementById('totalValue')?.textContent;
-                Notifications.confirm(
+                Notifications.confirm(null,
                     `Deseja comprar <b>${quantity}</b> senha(s)?<br>Total a descontar: <b>${totalValue}</b>`,
                 ).then((result) => {
                     if (result.isConfirmed) {

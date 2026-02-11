@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Projeto_SEGUES.Models.Admin;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.User;
@@ -13,6 +14,13 @@ namespace Projeto_SEGUES.Data
             var roleManager = serviceProvider.GetRequiredService<RoleManager<Role>>();
             var userManager = serviceProvider.GetRequiredService<UserManager<AppUser>>();
             var context = serviceProvider.GetRequiredService<AppDbContext>();
+            
+            // AppConfig
+            if (!await context.AppConfigs.AnyAsync())
+            {
+                var appConfig = new AppConfig();
+                await context.AppConfigs.AddAsync(appConfig);
+            }
             
             // Roles
             var roles = new[]

@@ -203,28 +203,57 @@ public class TicketService : ITicketService
     {
         // Ensure we update expired tickets before fetching
         await ExpireUserTicketsAsync(userId);
+        // Get tickets owned by the user or transferred to/from the user, including related data for filtering and display
         var query = _context.Tickets
             .Include(t => t.Owner)
             .Include(t => t.TicketPurchase)
-            .Where(t => t.Owner.Id == userId)
+            .Include(t => t.Transfers).ThenInclude(tr => tr.Sender)
+            .Include(t => t.Transfers).ThenInclude(tr => tr.Receiver)
+            .Where(t => t.Owner.Id == userId || t.Transfers.Any(tr => tr.Sender.Id == userId || tr.Receiver.Id == userId))
             .AsQueryable();
 
+        // Search filter for code
         if (!string.IsNullOrEmpty(searchString))
         {
-            query = query.Where(t => t.ValidationCode.Contains(searchString.ToUpper()));
+            var upperSearch = searchString.ToUpper();
+            query = query.Where(t => 
+                t.ValidationCode.Contains(upperSearch) || 
+                t.Transfers.Any(tr =>
+                    tr.Receiver.FirstName.Contains(searchString) ||
+                    tr.Receiver.LastName.Contains(searchString) ||
+                    tr.Sender.FirstName.Contains(searchString) ||
+                    tr.Sender.LastName.Contains(searchString)
+                )
+            );
         }
+        
+        // State filter (Disponível, Usado, Expirado)
         if (stateFilter.HasValue)
         {
             query = query.Where(t => t.State == stateFilter.Value);
         }
 
-        // Apply sorting based on "flow" (just an example of how you might use this)
-        if (flowFilter == "Oldest")
-            query = query.OrderBy(t => t.TicketPurchase.TransactionDate);
-        else
-            query = query.OrderByDescending(t => t.TicketPurchase.TransactionDate);
-
-        return await query.ToListAsync();
+        // Flow filter (Compradas, Enviadas, Recebidas)
+        if (!string.IsNullOrEmpty(flowFilter))
+        {
+            switch (flowFilter)
+            {
+                case "Compradas":
+                    // Purchased by user AND never received via transfer
+                    query = query.Where(t => t.Owner.Id == userId && t.Transfers.All(tr => tr.Receiver.Id != userId));
+                    break;
+                case "Enviadas":
+                    // User was the sender in any transfer history of this ticket
+                    query = query.Where(t => t.Transfers.Any(tr => tr.Sender.Id == userId));
+                    break;
+                case "Recebidas":
+                    // User was the receiver in any transfer history
+                    query = query.Where(t => t.Transfers.Any(tr => tr.Receiver.Id == userId));
+                    break;
+            }
+        }
+        
+        return await query.OrderByDescending(t => t.TicketPurchase.TransactionDate).ToListAsync();
     }
 
     // Get All Tickets (admin)

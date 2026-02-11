@@ -13,6 +13,7 @@
     /* Buttons */
     --deny: #dc3545;
     --cancel: #ffc107;
+    --disabled: #6c757d;
 }
 
 /* ============
@@ -164,6 +165,31 @@ a:hover {
     text-decoration: none !important;
 }
 
+/* Tables */
+.filter-bar {
+    background-color: var(--ips-bg-light);
+}
+
+.badge {
+    padding: 0.5em 0.8em;
+    border-radius: 6px;
+}
+
+.btn-reset-x {
+    color: var(--disabled);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+.btn-reset-x:hover {
+    color: var(--ips);
+}
+
 /* ==========
    Scrollbar
    ========== */
@@ -175,41 +201,3 @@ a:hover {
     background-color: var(--ips);
     border-radius: 5px;
 }
-
-
-/* Estilo Base dos Cart�es do Dashboard */
-/*
-
-!* Dashboard specific left-border card *!
-.card-active {
-    border: none !important;
-    border-left: 5px solid var(--ips-teal) !important;
-    border-radius: 8px !important;
-}
-
-!* 6. Tables & Badges *!
-.table-segues thead {
-    background-color: var(--ips-teal);
-    color: white;
-}
-
-.table-segues thead th {
-    border: none;
-    padding: 12px;
-}
-
-.badge-ips {
-    background-color: var(--ips-teal) !important;
-    color: white !important;
-    font-weight: bold;
-    padding: 0.5em 0.8em;
-    border-radius: 6px;
-}
-
-!* State Badges (Solid versions) *!
-.badge-status-used { background-color: #198754 !important; color: white !important; }
-.badge-status-expired { background-color: #dc3545 !important; color: white !important; }
-
-
- */
-

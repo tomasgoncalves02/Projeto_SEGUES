@@ -8,6 +8,7 @@ using Projeto_SEGUES.Models.User;
 
 namespace Projeto_SEGUES.Areas.Payment
 {
+    [Area("Payment")]
     public class PaymentController : Controller
     {
         private readonly AppDbContext _context;

@@ -7,6 +7,7 @@ namespace Projeto_SEGUES.Services;
 public interface ITicketService
 {
     Task ExpireUserTicketsAsync(string userId);
+    Task ExpireTicketsGlobalAsync();
     Task<List<Ticket>> GetUserTicketsAsync(string userId);
     Task<List<Ticket>> GetActiveTicketsAsync(string userId);
     Task<List<Ticket>> GetRecentUsedTicketsAsync(int take = 10);

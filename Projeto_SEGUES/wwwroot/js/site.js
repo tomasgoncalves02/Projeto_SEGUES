@@ -27,6 +27,11 @@ function addEvents() {
     
     // Verify Email Validation Code and Auto-Submit
     setupVerifyCode('verificationCodeInput');
+    
+    // Show Qr
+    const qrBtnList = document.getElementsByClassName("showQr");
+    for (let btn of qrBtnList)
+        btn.addEventListener("click", () => showQr(btn.dataset.code));
 }
 
 /*
@@ -71,11 +76,13 @@ function showSwal(options) {
 
 const Notifications = {
     // Success (Auto-close 3s, no button)
-    success: function(message) {
+    success: function(message, html = undefined) {
+        if (html) message = ''; // If HTML is provided, ignore text to avoid redundancy
         return showSwal({
             icon: 'success',
             title: 'Operação Concluída',
             text: message,
+            html: html,
             timer: 3000,
             showConfirmButton: false,
             showCloseButton: true
@@ -83,11 +90,13 @@ const Notifications = {
     },
 
     // Error (Sticky, footer link)
-    error: function(message) {
+    error: function(message, html = undefined) {
+        if (html) message = ''; // If HTML is provided, ignore text to avoid redundancy
         return showSwal({
             icon: 'error',
             title: 'Erro',
             text: message,
+            html: html,
             allowOutsideClick: false,
             allowEscapeKey: false,
             footer: "Se o erro persistir, contacte o <a href='mailto:segues2026@gmail.com'>suporte</a>."
@@ -95,22 +104,26 @@ const Notifications = {
     },
 
     // Warning (Sticky, requires click)
-    warning: function(message) {
+    warning: function(message, html = undefined) {
+        if (html) message = ''; // If HTML is provided, ignore text to avoid redundancy
         return showSwal({
             icon: 'warning',
             title: 'Aviso',
             text: message,
+            html: html,
             allowOutsideClick: false,
             allowEscapeKey: false
         });
     },
 
     // Info (Auto-close 4s)
-    info: function(message) {
+    info: function(message, html = undefined) {
+        if (html) message = ''; // If HTML is provided, ignore text to avoid redundancy
         return showSwal({
             icon: 'info',
             title: 'Informação',
             text: message,
+            html: html,
             timer: 4000,
             showConfirmButton: false,
             showCloseButton: true
@@ -118,11 +131,13 @@ const Notifications = {
     },
 
     // Confirmation (Returns Promise for logic)
-    confirm: function(message) {
+    confirm: function(message, html = undefined) {
+        if (html) message = ''; // If HTML is provided, ignore text to avoid redundancy
         return showSwal({
             icon: 'question',
             title: 'Confirma Operação?',
             text: message,
+            html: html,
             showCancelButton: true,
             confirmButtonText: 'Sim',
             confirmButtomAriaLabel: 'Sim',
@@ -177,24 +192,16 @@ function setupVerifyCode(inputId) {
 }
 
 // Display QR Code
-function verQr(code) {
+function showQr(code) {
     showSwal({
-        title: 'Senha de Refeição',
-        html: `
-                    <div class="p-3">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${code}"
-                             class="mb-3 border rounded p-2 shadow-sm" alt="QR">
-                        <h2 class="fw-bold text-ips" style="letter-spacing: 4px;">${code}</h2>
-                        <p class="text-muted small mt-2">Mantém o brilho do telemóvel alto para facilitar a leitura.</p>
-                    </div>
-                `,
+        title: 'Senha de Refeição', 
+        html: `<div class="p-3 text-color-ips">
+                 <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${code}" class="mb-3 border rounded p-2 shadow-sm" alt="QR">
+                 <h2 class="fw-bold text-color-ips" style="letter-spacing: 6px;">${code}</h2>
+                 <p class="text-muted small mt-2">
+                    Apresente este código no refeitório para validação.<br />
+                    Mantém o brilho do telemóvel alto para facilitar a leitura.
+                 </p>
+              </div>`
     });
-/*
-            html: '<div class="p-4 bg-light border border-2 rounded" style="border-color: #009697 !important;">' +
-                '<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + code +'&size=150" alt="QR Code"> </div>' +
-                '<br>'+
-                '<div class="p-4 bg-light border border-2 rounded" style="border-color: #009697 !important;">' +
-                '<h2 class="mb-0 fw-bold" style="letter-spacing: 2px; color: #009697;">' + code + '</h2>' +
-                '</div><p class="mt-3 text-muted small">Apresente este código no refeitório para validação.</p>',*/
-        
 }
