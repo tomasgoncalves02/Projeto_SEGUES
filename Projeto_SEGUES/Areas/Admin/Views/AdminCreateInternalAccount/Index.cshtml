@@ -1,24 +1,11 @@
-﻿@model Projeto_SEGUES.Models.ViewModels.CreateInternalUserViewModel
+﻿@model Projeto_SEGUES.Areas.Admin.ViewModels.CreateInternalUserViewModel
 
 @{
     ViewData["Title"] = "Criar Conta Interna";
 }
 
-<style>
-    .ips-card {
-        border: none !important;
-        border-top: 5px solid #009697 !important;
-        border-radius: 12px !important;
-    }
-
-    .text-ips {
-        color: #009697 !important;
-    }
-</style>
-
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 <div class="container mt-5">
+    @* Top row *@
     <div class="row justify-content-center">
         <div class="col-md-8">
             <h2 class="fw-bold mb-4">Registar Administrador ou Funcionário</h2>
@@ -27,22 +14,22 @@
 
             <div class="card shadow-lg ips-card">
                 <div class="card-body p-5">
-                    <form asp-action="CreateInternalAccount" method="post">
+                    <form asp-action="Create" method="post">
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label asp-for="FirstName" class="form-label fw-bold">Nome</label>
-                                <input asp-for="FirstName" class="form-control" placeholder="Ex: João" />
+                                <input asp-for="FirstName" class="form-control" placeholder="Ex: João"/>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label asp-for="LastName" class="form-label fw-bold">Sobrenome</label>
-                                <input asp-for="LastName" class="form-control" placeholder="Ex: Silva" />
+                                <input asp-for="LastName" class="form-control" placeholder="Ex: Silva"/>
                             </div>
                         </div>
 
                         <div class="mb-3">
                             <label asp-for="Email" class="form-label fw-bold">Email Profissional</label>
-                            <input asp-for="Email" class="form-control" placeholder="utilizador@dominio.com" />
+                            <input asp-for="Email" class="form-control" placeholder="utilizador@dominio.com"/>
                         </div>
 
                         <div class="row">

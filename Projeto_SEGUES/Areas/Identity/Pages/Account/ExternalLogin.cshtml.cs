@@ -13,6 +13,8 @@ using Projeto_SEGUES.Areas.Identity.ViewModels;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
+using Projeto_SEGUES.Services;
+using Projeto_SEGUES.Validators;
 
 namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 {
@@ -50,7 +52,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         {
             [Required]
             [EmailAddress]
-            public string Email { get; init; }
+            public required string Email { get; init; }
             
             [Required]
             [Display(Name = "Primeiro Nome")]
@@ -62,6 +64,13 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 
             [Required]
             public Gender Gender { get; init; }
+            
+            [Required]
+            [DataType(DataType.Date, ErrorMessage = "A data de nascimento deve ser uma data válida.")]
+            [MinimumAge(ErrorMessage = "Deve ter pelo menos 18 anos para se registrar.")]
+            [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
+            [Display(Name = "Data de Nascimento")]
+            public DateTime BirthDate { get; init; }
         }
         
         public IActionResult OnGet() => RedirectToPage("./Login");
@@ -110,7 +119,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             {
                 Input = new InputModel
                 {
-                    Email = info.Principal.FindFirstValue(ClaimTypes.Email)
+                    Email = info.Principal.FindFirstValue(ClaimTypes.Email),
                 };
             }
             return Page();
@@ -149,6 +158,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                     LastName = Input.LastName,
                     Gender = Input.Gender,
                     Email = Input.Email,
+                    BirthDate =  Input.BirthDate,
                     Password = Guid.NewGuid() + "1aA!", // Random password for external login
                     ConfirmPassword = "", 
                     Code = verificationCode,
@@ -159,13 +169,17 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                 // Store external info to link after verification
                 TempData["ExternalLoginProvider"] = info.LoginProvider;
                 TempData["ExternalLoginKey"] = info.ProviderKey;
-                
-                await _emailSender.SendEmailAsync(Input.Email, "Código de Validação SEGUES",
-                    $"<div style='font-family: Arial, sans-serif; text-align: center;'>" +
-                    $"<h2 style='color: #2c3e50;'>Bem-vindo ao SEGUES!</h2>" +
-                    $"<p>Use o código abaixo para criar a sua conta (expira em 5 minutos):</p>" +
-                    $"<h1 style='background-color: #eee; padding: 10px; display: inline-block; letter-spacing: 5px;'>{verificationCode}</h1></div>");
 
+                var emailBody = ((EmailSender)_emailSender).GetEmailBody(
+                    "Bem-vindo ao SEGUES!",
+                    Input.FirstName,
+                    $"""
+                     <div style='text-align: center;'>
+                        <p>Use o código abaixo para criar a sua conta (expira em 5 minutos):</p>
+                        <h1 style='background-color: #eee; padding: 10px; display: inline-block; letter-spacing: 5px;'>{verificationCode}</h1>
+                     </div>
+                     """);
+                await _emailSender.SendEmailAsync(Input.Email, "Código de Validação SEGUES", emailBody); 
                 return RedirectToPage("VerifyCode", new { returnUrl });
             }
             ProviderDisplayName = info.ProviderDisplayName;
@@ -174,3 +188,4 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         }
     }
 }
+                     

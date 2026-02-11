@@ -77,6 +77,12 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             var result = await _userManager.ResetPasswordAsync(user, Input.Code, Input.Password);
             if (result.Succeeded)
             {
+                if (user.EmailConfirmed) return RedirectToPage("./ResetPasswordConfirmation");
+                
+                // If the email is not confirmed, confirm it now since they have successfully reset their password
+                // Required because of admin-created accounts that are not confirmed until they reset their password
+                user.EmailConfirmed = true;
+                await _userManager.UpdateAsync(user);
                 return RedirectToPage("./ResetPasswordConfirmation");
             }
 

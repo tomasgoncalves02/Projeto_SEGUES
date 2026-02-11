@@ -1,33 +1,40 @@
 using System.ComponentModel.DataAnnotations;
 using Projeto_SEGUES.Models.Enums;
+using Projeto_SEGUES.Validators;
 
 namespace Projeto_SEGUES.Areas.Identity.ViewModels;
 
 public class RegisterDataViewModel
 {
-    [Required(ErrorMessage = "O campo {0} é obrigatório.")]
-    [StringLength(50, MinimumLength = 2, ErrorMessage = "O {0} deve ter no mínimo {2} letras.")]
+    [Required(ErrorMessage = "O nome é obrigatório.")]
+    [StringLength(50, MinimumLength = 2, ErrorMessage = "O nome deve ter no mínimo {2} letras.")]
     [RegularExpression(@"^[a-zA-Z\u00C0-\u00FF\s]*$", ErrorMessage = "O nome não pode conter números nem símbolos.")]
     [Display(Name = "Primeiro Nome")]
-    public required string FirstName { get; set; }
+    public required string FirstName { get; init; }
     
-    [Required(ErrorMessage = "O campo {0} é obrigatório.")]
-    [StringLength(50, MinimumLength = 2, ErrorMessage = "O {0} deve ter no mínimo {2} letras.")]
+    [Required(ErrorMessage = "O sobrenome é obrigatório.")]
+    [StringLength(50, MinimumLength = 2, ErrorMessage = "O sobrenome deve ter no mínimo {2} letras.")]
     [RegularExpression(@"^[a-zA-Z\u00C0-\u00FF\s]*$", ErrorMessage = "O sobrenome não pode conter números nem símbolos.")]
     [Display(Name = "Sobrenome")]
-    public required string LastName { get; set; }
+    public required string LastName { get; init; }
     
-    [Required(ErrorMessage = "O campo {0} é obrigatório.")]
+    [Required(ErrorMessage = "O género é obrigatório.")]
     [Display(Name = "Género")]
-    public required Gender Gender { get; set; }
+    public required Gender Gender { get; init; }
     
-    [Required(ErrorMessage = "O campo {0} é obrigatório.")]
+    [Required(ErrorMessage = "O email é obrigatório.")]
     [EmailAddress(ErrorMessage = "Email inválido.")]
     [Display(Name = "Email")]
-    public required string Email { get; set; }
+    public required string Email { get; init; }
     
-    [Required(ErrorMessage = "O campo {0} é obrigatório.")]
-    [StringLength(100, ErrorMessage = "A {0} deve ter pelo menos {2} e no máximo {1} caracteres.", MinimumLength = 12)]
+    [Required(ErrorMessage = "A data de nascimento é obrigatória.")]
+    [DataType(DataType.Date)]
+    [MinimumAge(ErrorMessage = "Deve ter pelo menos 18 anos para se registrar.")]
+    [Display(Name = "Data de Nascimento")]
+    public required DateTime BirthDate { get; init; }
+    
+    [Required(ErrorMessage = "A password é obrigatória.")]
+    [StringLength(100, ErrorMessage = "A password deve ter pelo menos {2} e no máximo {1} caracteres.", MinimumLength = 12)]
     [DataType(DataType.Password)]
     [Display(Name = "Password")]
     [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{12,}$",

@@ -9,6 +9,7 @@ using Projeto_SEGUES.Areas.Identity.ViewModels;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.User;
+using Projeto_SEGUES.Services;
 
 namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 {
@@ -96,6 +97,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                 FirstName = data.FirstName,
                 LastName = data.LastName,
                 Gender = data.Gender,
+                BirthDate = data.BirthDate,
                 UserCategory = category!,
                 EmailConfirmed = true
             };
@@ -135,13 +137,18 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             data.ExpiryTime = DateTime.Now.AddMinutes(5);
             TempData.SetJson("RegistrationData", data);
 
+            var emailBody = ((EmailSender)_emailSender).GetEmailBody(
+                "Código de Validação SEGUES",
+                data.FirstName,
+                $"""
+                 <div style='text-align: center;'>
+                    <p>Use o código abaixo (expira em 5 minutos):</p>
+                    <h1 style='background-color: #eee; padding: 10px; display: inline-block; letter-spacing: 5px;'>{newCode}</h1>
+                 </div>
+                 """);
             try
             {
-                await _emailSender.SendEmailAsync(data.Email, "Novo Código de Validação SEGUES",
-                    $"<div style='font-family: Arial, sans-serif; text-align: center;'>" +
-                    $"<h2 style='color: #2c3e50;'>Novo Código!</h2>" +
-                    $"<p>Use o código abaixo (expira em 5 minutos):</p>" +
-                    $"<h1 style='background-color: #eee; padding: 10px; display: inline-block; letter-spacing: 5px;'>{newCode}</h1></div>");
+                await _emailSender.SendEmailAsync(data.Email, "Código de Validação SEGUES", emailBody);
                 TempData.SetSwalSuccess("Um novo código foi enviado para o seu email.");
             }
             catch (Exception)

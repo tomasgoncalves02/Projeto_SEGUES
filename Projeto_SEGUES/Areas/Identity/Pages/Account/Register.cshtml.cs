@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Projeto_SEGUES.Areas.Identity.ViewModels;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.User;
+using Projeto_SEGUES.Services;
 
 namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 {
@@ -61,19 +62,25 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                 LastName = Input.LastName,
                 Gender = Input.Gender,
                 Email = Input.Email,
+                BirthDate =  Input.BirthDate,
                 Password = Input.Password,
                 ConfirmPassword = Input.ConfirmPassword,
                 Code = verificationCode,
                 ExpiryTime = DateTime.Now.AddMinutes(5)
             };
             TempData.SetJson("RegistrationData", registrationData);
+            var emailBody = ((EmailSender)_emailSender).GetEmailBody(
+                "Bem-vindo ao SEGUES!",
+                Input.FirstName,
+                $"""
+                 <div style='text-align: center;'>
+                    <p>Use o código abaixo para criar a sua conta (expira em 5 minutos):</p>
+                    <h1 style='background-color: #eee; padding: 10px; display: inline-block; letter-spacing: 5px;'>{verificationCode}</h1>
+                 </div>
+                 """);
             try
             {
-                await _emailSender.SendEmailAsync(Input.Email, "Código de Validação SEGUES",
-                    $"<div style='font-family: Arial, sans-serif; text-align: center;'>" +
-                    $"<h2 style='color: #2c3e50;'>Bem-vindo ao SEGUES!</h2>" +
-                    $"<p>Use o código abaixo para criar a sua conta (expira em 5 minutos):</p>" +
-                    $"<h1 style='background-color: #eee; padding: 10px; display: inline-block; letter-spacing: 5px;'>{verificationCode}</h1></div>");
+                await _emailSender.SendEmailAsync(Input.Email, "Código de Validação SEGUES", emailBody);
             }
             catch (Exception ex)
             {

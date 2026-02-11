@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
 using Projeto_SEGUES.Models.Enums;
+using Projeto_SEGUES.Validators;
 
 namespace Projeto_SEGUES.Models.User
 {
@@ -32,15 +33,16 @@ namespace Projeto_SEGUES.Models.User
         public string? FiscalNumber { get; set; }
         
         [DataType(DataType.Date)]
+        [MinimumAge(ErrorMessage = "Deve ter pelo menos 18 anos para se registrar.")]
         [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
         [Display(Name = "Data de Nascimento")]
-        public DateTime? BirthDate { get; set; }
+        public required DateTime BirthDate { get; set; }
         
         [Required]
         public required Gender Gender { get; set; }
         
         [Display(Name = "Data de Criação")]
-        public DateTime CreationDate { get; set; } = DateTime.Now;
+        public DateTime CreationDate { get; init; } = DateTime.Now;
         
         public UserStatus Status { get; set; } = UserStatus.Active;
         

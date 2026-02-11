@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.Ticket;
@@ -11,12 +10,10 @@ namespace Projeto_SEGUES.Services;
 public class TicketService : ITicketService
 {
     private readonly AppDbContext _context;
-    private readonly UserManager<AppUser> _userManager;
 
-    public TicketService(AppDbContext context, UserManager<AppUser> userManager)
+    public TicketService(AppDbContext context)
     {
         _context = context;
-        _userManager = userManager;
     }
 
     // Set expired tickets state to expired
@@ -160,7 +157,7 @@ public class TicketService : ITicketService
     }
         
     // Validate Ticket: checks code, updates state to used if valid, returns result message
-    [Authorize(Roles = "Admin], Employee")]
+    [Authorize(Roles = "Admin, Employee")]
     public async Task<ServiceResult> ValidateTicketAsync(string code, AppUser validator)
     {
         if (string.IsNullOrWhiteSpace(code)) return ServiceResult.Fail("Código inválido.");
@@ -213,10 +210,10 @@ public class TicketService : ITicketService
             .Where(t => t.Owner.Id == userId || t.Transfers.Any(tr => tr.Sender.Id == userId || tr.Receiver.Id == userId))
             .AsQueryable();
 
-        // Filtro por Data de Compra
+        // PurchaseDate filter
         if (dateFilter.HasValue)
         {
-            // Filtra senhas cuja data de transação seja igual ou superior à data escolhida
+            // Show PurchaseDate >= date
             query = query.Where(t => t.TicketPurchase.TransactionDate.Date >= dateFilter.Value.Date);
         }
 

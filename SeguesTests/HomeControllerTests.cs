@@ -74,7 +74,8 @@ namespace SeguesTests
                 LastName = "Silva",
                 Gender = Gender.Male,
                 Balance = 15.50m,
-                UserCategory = new UserCategory { Name = "Estudante" }
+                UserCategory = new UserCategory { Name = "Estudante" },
+                BirthDate =  DateTime.Now.AddYears(-30),
             };
 
             // Configurar o Mock para devolver este user quando pedido
@@ -115,6 +116,7 @@ namespace SeguesTests
                     FirstName = "",
                     LastName = "",
                     Gender = Gender.Male,
+                    BirthDate =  DateTime.Now.AddYears(-30),
                     Balance = 0,
                     UserCategory = new UserCategory { Name = "" }
                 },

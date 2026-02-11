@@ -37,7 +37,7 @@ namespace SeguesTests
 
             var usersList = new List<AppUser>();
             _mockUserManager = MockHelper.MockUserManager(usersList);
-            _ticketService = new TicketService(_context, _mockUserManager.Object);
+            _ticketService = new TicketService(_context);
             _controller = new TicketController(_mockUserManager.Object, _ticketService);
             _ticketValidationController = new TicketValidationController(_mockUserManager.Object, _ticketService);
 
@@ -70,6 +70,7 @@ namespace SeguesTests
                 Status = UserStatus.Active, // Assume-se que existe Active ou similar
                 CreationDate = DateTime.Now,
                 Gender = Gender.Male,
+                BirthDate =  DateTime.Now.AddYears(-20), // Idade fictícia
                 UserCategory = _context.UserCategories.First(uc => uc.Name == "Estudante")
             };
 
@@ -172,6 +173,7 @@ namespace SeguesTests
                 CreationDate = DateTime.Now,
                 Status = UserStatus.Active,
                 Gender = Gender.Male,
+                BirthDate = DateTime.Now.AddYears(-30),
                 UserCategory = _context.UserCategories.First(uc => uc.Name == "Estudante")
             });
             _context.SaveChanges();

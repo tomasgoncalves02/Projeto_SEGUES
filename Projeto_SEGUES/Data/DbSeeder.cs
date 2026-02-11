@@ -95,6 +95,7 @@ namespace Projeto_SEGUES.Data
                     FirstName = "Super",
                     LastName = "Admin",
                     Gender = Gender.Male,
+                    BirthDate = new DateTime(1980, 1, 1),
                     EmailConfirmed = true,
                     Balance = 1000m,
                     CreationDate = DateTime.Now,

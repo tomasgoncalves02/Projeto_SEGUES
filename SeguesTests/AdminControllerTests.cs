@@ -5,11 +5,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
 using Moq;
-using Projeto_SEGUES.Controllers;
+using Projeto_SEGUES.Areas.Admin;
+using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
-using Projeto_SEGUES.Models.ViewModels;
+using Projeto_SEGUES.Services;
 using SeguesTests.Helpers;
 
 namespace SeguesTests
@@ -21,6 +22,12 @@ namespace SeguesTests
         private readonly Mock<IEmailSender> _mockEmailSender;
         private readonly AppDbContext _context;
         private readonly AdminController _controller;
+        private readonly AdminCreateInternalAccountController _createInternalAccountController;
+        private readonly AdminUserManagementController _userManagementController;
+        private readonly AdminTicketManagementController _ticketManagementController;
+        private readonly EmployeeController _employeeController;
+        private readonly Mock<IAdminService> _mockAdminService;
+        private readonly Mock<ITicketService> _mockTicketService;
 
         public AdminControllerTests()
         {
@@ -29,6 +36,8 @@ namespace SeguesTests
             _mockUserManager = MockHelper.MockUserManager(usersList);
             _mockRoleManager = MockHelper.MockRoleManager<Role>();
             _mockEmailSender = new Mock<IEmailSender>();
+            _mockAdminService = new Mock<IAdminService>();
+            _mockTicketService = new Mock<ITicketService>();
 
             // Configurar DbContext InMemory
             var options = new DbContextOptionsBuilder<AppDbContext>()
@@ -40,12 +49,11 @@ namespace SeguesTests
             _context.SaveChanges();
 
             // 2. Inicializar Controller
-            _controller = new AdminController(
-                _mockUserManager.Object,
-                _mockRoleManager.Object,
-                _context,
-                _mockEmailSender.Object
-            );
+            _controller = new AdminController();
+            _createInternalAccountController = new AdminCreateInternalAccountController(_mockAdminService.Object);
+            _userManagementController = new AdminUserManagementController(_mockUserManager.Object, _mockAdminService.Object);
+            _ticketManagementController = new AdminTicketManagementController(_mockAdminService.Object, _mockTicketService.Object);
+            _employeeController = new EmployeeController();
 
             // 3. Configurar TempData
             _controller.TempData = new TempDataDictionary(
@@ -93,7 +101,7 @@ namespace SeguesTests
                 .Returns(Task.CompletedTask);
 
             // ACT
-            var result = await _controller.CreateInternalAccount(model);
+            var result = await _createInternalAccountController.Create(model);
             await _context.SaveChangesAsync();
 
             // ASSERT
@@ -118,6 +126,7 @@ namespace SeguesTests
                 LastName = "Nome",
                 UserCategory = category!,
                 Gender = Gender.Male,
+                BirthDate = DateTime.Now.AddYears(-30)
             };
             
             // Employee role
@@ -135,11 +144,12 @@ namespace SeguesTests
                 LastName = "Sobrenome",
                 Balance = 10,
                 Role = "Admin",
-                Gender = Gender.Male
+                Gender = Gender.Male,
+                BirthDate = DateTime.Now.AddYears(-30),
             };
 
             // ACT
-            var result = await _controller.Edit(model);
+            var result = await _userManagementController.Edit(model);
 
             // ASSERT
             _mockUserManager.Verify(u => u.UpdateAsync(It.Is<AppUser>(u => u.FirstName == "NovoNome")), Times.Once);
@@ -159,6 +169,7 @@ namespace SeguesTests
                 FirstName = "",
                 LastName = "",
                 Gender = Gender.Male,
+                BirthDate = DateTime.Now.AddYears(-25),
                 UserCategory = new UserCategory { Name = "" }
             };
 
@@ -166,7 +177,7 @@ namespace SeguesTests
             _mockUserManager.Setup(u => u.DeleteAsync(user)).ReturnsAsync(IdentityResult.Success);
 
             // ACT
-            var result = await _controller.DeleteConfirmed(userId);
+            var result = await _userManagementController.DeleteConfirmed(userId);
 
             // ASSERT
             _mockUserManager.Verify(u => u.DeleteAsync(user), Times.Once);
