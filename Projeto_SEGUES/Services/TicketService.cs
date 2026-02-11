@@ -199,11 +199,12 @@ public class TicketService : ITicketService
     }
 
     // Query History (Search/Filter)
-    public async Task<List<Ticket>> QueryHistoryAsync(string userId, string searchString, TicketState? stateFilter, string flowFilter)
-    {
+    public async Task<List<Ticket>> QueryHistoryAsync(string userId, string searchString, TicketState? stateFilter, string flowFilter, DateTime? dateFilter)
+    {   
         // Ensure we update expired tickets before fetching
         await ExpireUserTicketsAsync(userId);
-        // Get tickets owned by the user or transferred to/from the user, including related data for filtering and display
+
+        // Get tickets owned by the user or transferred to/from the user
         var query = _context.Tickets
             .Include(t => t.Owner)
             .Include(t => t.TicketPurchase)
@@ -212,12 +213,19 @@ public class TicketService : ITicketService
             .Where(t => t.Owner.Id == userId || t.Transfers.Any(tr => tr.Sender.Id == userId || tr.Receiver.Id == userId))
             .AsQueryable();
 
+        // Filtro por Data de Compra
+        if (dateFilter.HasValue)
+        {
+            // Filtra senhas cuja data de transação seja igual ou superior à data escolhida
+            query = query.Where(t => t.TicketPurchase.TransactionDate.Date >= dateFilter.Value.Date);
+        }
+
         // Search filter for code
         if (!string.IsNullOrEmpty(searchString))
         {
             var upperSearch = searchString.ToUpper();
-            query = query.Where(t => 
-                t.ValidationCode.Contains(upperSearch) || 
+            query = query.Where(t =>
+                t.ValidationCode.Contains(upperSearch) ||
                 t.Transfers.Any(tr =>
                     tr.Receiver.FirstName.Contains(searchString) ||
                     tr.Receiver.LastName.Contains(searchString) ||
@@ -226,7 +234,7 @@ public class TicketService : ITicketService
                 )
             );
         }
-        
+
         // State filter (Disponível, Usado, Expirado)
         if (stateFilter.HasValue)
         {
@@ -239,25 +247,22 @@ public class TicketService : ITicketService
             switch (flowFilter)
             {
                 case "Compradas":
-                    // Purchased by user AND never received via transfer
                     query = query.Where(t => t.Owner.Id == userId && t.Transfers.All(tr => tr.Receiver.Id != userId));
                     break;
                 case "Enviadas":
-                    // User was the sender in any transfer history of this ticket
                     query = query.Where(t => t.Transfers.Any(tr => tr.Sender.Id == userId));
                     break;
                 case "Recebidas":
-                    // User was the receiver in any transfer history
                     query = query.Where(t => t.Transfers.Any(tr => tr.Receiver.Id == userId));
                     break;
             }
         }
-        
+
         return await query.OrderByDescending(t => t.TicketPurchase.TransactionDate).ToListAsync();
     }
 
     // Get All Tickets (admin)
-    [Authorize(Roles = "Admin]")]
+    [Authorize(Roles = "Admin")]
     public async Task<List<Ticket>> GetAllTicketsAsync()
     {
         await ExpireTicketsGlobalAsync();

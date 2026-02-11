@@ -19,20 +19,20 @@ public class ReportTicketsController : Controller
         _ticketService = ticketService;
         _userManager = userManager;
     }
-    
+
     [HttpGet]
-    public async Task<IActionResult> Index(string searchString, TicketState? stateFilter, string flowFilter)
+    public async Task<IActionResult> Index(string searchString, TicketState? stateFilter, string flowFilter, DateTime? dateFilter)
     {
         var userId = _userManager.GetUserId(User);
         if (userId == null) return Challenge();
 
-        // Get filtered data
-        var tickets = await _ticketService.QueryHistoryAsync(userId, searchString, stateFilter, flowFilter);
+        // Passamos a data selecionada para o serviço
+        var tickets = await _ticketService.QueryHistoryAsync(userId, searchString, stateFilter, flowFilter, dateFilter);
 
-        // Preserve filter state in View
         ViewData["CurrentSearch"] = searchString;
         ViewData["CurrentState"] = stateFilter;
         ViewData["CurrentFlow"] = flowFilter;
+        ViewData["CurrentDate"] = dateFilter; 
         ViewBag.CurrentUserId = userId;
 
         return View(tickets);

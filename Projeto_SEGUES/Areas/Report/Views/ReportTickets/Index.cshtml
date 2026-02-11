@@ -26,6 +26,7 @@
     <div class="card shadow-sm mb-4 card-ips filter-bar">
         <div class="card-body py-3">
             <form asp-area="Report" asp-controller="ReportTickets" asp-action="Index" method="get" class="row g-3 align-items-end">
+
                 @* State filter *@
                 <div class="col-md-2">
                     <label class="form-label small fw-bold text-muted">ESTADO</label>
@@ -36,33 +37,44 @@
                         <option value="Expired" selected="@(ViewData["CurrentState"]?.ToString() == "Expired")">Expirada</option>
                     </select>
                 </div>
+
+                @* Data filter *@
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold text-muted text-nowrap">COMPRADAS DESDE</label>
+                    <input type="date" name="dateFilter" class="form-control form-control-sm"
+                           value="@(ViewData["CurrentDate"] is DateTime dt ? dt.ToString("yyyy-MM-dd") : "")"
+                           onchange="this.form.submit()">
+                </div>
+
                 @* Flow filter *@
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label class="form-label small fw-bold text-muted">ORIGEM/DESTINO</label>
                     <select name="flowFilter" class="form-select form-select-sm" onchange="this.form.submit()">
-                        <option value="">Todas as origens</option>
-                        <option value="Compradas" selected="@(ViewData["CurrentFlow"]?.ToString() == "Compradas")">Compradas por mim</option>
-                        <option value="Enviadas" selected="@(ViewData["CurrentFlow"]?.ToString() == "Enviadas")">Enviadas para alguém</option>
-                        <option value="Recebidas" selected="@(ViewData["CurrentFlow"]?.ToString() == "Recebidas")">Recebidas de alguém</option>
+                        <option value="">Todas</option>
+                        <option value="Compradas" selected="@(ViewData["CurrentFlow"]?.ToString() == "Compradas")">Compradas</option>
+                        <option value="Enviadas" selected="@(ViewData["CurrentFlow"]?.ToString() == "Enviadas")">Enviadas</option>
+                        <option value="Recebidas" selected="@(ViewData["CurrentFlow"]?.ToString() == "Recebidas")">Recebidas</option>
                     </select>
                 </div>
+
                 @* Search filter *@
-                <div class="col-md-4">
-                    <label class="form-label small fw-bold text-muted">PESQUISAR (Código/Nome)</label>
-                    <div class="d-flex gap-2">
-                        <input type="text" name="searchString" class="form-control form-control-sm"
-                               placeholder="Pesquisar..." value="@ViewData["CurrentSearch"]">
-                        <button type="submit" class="btn w-100 py-2 fw-bold btn-ips">
-                            <i class="bi bi-search"></i> PESQUISAR 
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-muted">PESQUISAR</label>
+                    <input type="text" name="searchString" class="form-control form-control-sm"
+                           placeholder="Código ou Nome..." value="@ViewData["CurrentSearch"]">
+                </div>
+
+                @* Botões Alinhados - Limpar à esquerda do botão grande *@
+                <div class="col-md-3">
+                    <div class="d-flex align-items-center justify-content-end gap-3">
+                        <a asp-area="Report" asp-controller="ReportTickets" asp-action="Index"
+                           class="text-muted small text-decoration-none text-nowrap">
+                            Limpar Filtros <i class="bi bi-x-circle-fill"></i>
+                        </a>
+                        <button type="submit" class="btn btn-ips fw-bold px-4 py-2 text-nowrap">
+                            <i class="bi bi-search me-2"></i> PESQUISAR
                         </button>
                     </div>
-                </div>
-                @* Reset button *@
-                <div class="col-md-3 text-end pb-1">
-                    <a asp-area="Report" asp-controller="ReportTickets" asp-action="Index" class="btn-reset-x d-inline-flex">
-                        <span>Limpar Filtros</span>
-                        <i class="bi bi-x-circle-fill"></i>
-                    </a>
                 </div>
             </form>
         </div>
