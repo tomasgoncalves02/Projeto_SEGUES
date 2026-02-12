@@ -7,7 +7,7 @@ public class MinimumAgeAttribute : ValidationAttribute
 {
     private const int MinimumAge = 18;
 
-    protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+    protected override ValidationResult IsValid(object? value, ValidationContext validationContext)
     {
         if (value is not DateTime dateOfBirth)
         {

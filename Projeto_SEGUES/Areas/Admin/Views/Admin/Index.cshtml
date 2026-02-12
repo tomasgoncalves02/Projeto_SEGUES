@@ -5,16 +5,15 @@
 <div class="container mt-5">
     @* Top row *@
     <div class="row mb-5 align-items-center">
-        <div class="col-md-7">
+        <div class="col-md-6">
             <h2 class="fw-bold title-underline mb-0">Painel de Administração</h2>
         </div>
-        <div class="col-md-5 text-end d-flex justify-content-end align-items-center gap-3">
-            <span class="badge bg-color-ips py-2 px-3">
+        <div class="col-md-6 text-end d-flex justify-content-end align-items-center gap-3">
+            <span class="badge bg-color-ips py-3 px-3 fs-6">
                 <i class="bi bi-person-badge me-1"></i> @User.Identity?.Name
             </span>
             @* Return button *@
-            <a asp-area="" asp-controller="Home" asp-action="Index" class="btn fw-bold px-4"
-               style="border: 2px solid #009697; color: #009697; border-radius: 8px;">
+            <a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4" style="padding-top: 0.72rem; padding-bottom: 0.71rem;">
                 <i class="bi bi-arrow-left me-2"></i>Voltar
             </a>
         </div>
@@ -30,7 +29,7 @@
                     <h3 class="card-title fw-bold">Novo Registo</h3>
                     <p class="text-muted">Criar manualmente um Administrador ou Funcionário no sistema.</p>
                     <div class="mt-auto pt-3">
-                        <a asp-area="Admin" asp-controller="AdminCreateInternalAccount" asp-action="Index" class="btn btn-ips w-100 py-2 fw-bold stretched-link">
+                        <a asp-area="Admin" asp-controller="AdminCreateInternalAccount" asp-action="Index" class="btn btn-ips w-100 py-2 fw-bold">
                             Criar Conta
                         </a>
                     </div>
@@ -45,7 +44,7 @@
                     <h3 class="card-title fw-bold">Gerir Utilizadores</h3>
                     <p class="text-muted">Consultar lista, ver detalhes, editar ou apagar contas registadas.</p>
                     <div class="mt-auto pt-3">
-                        <a asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Index" class="btn btn-ips w-100 py-2 fw-bold stretched-link">
+                        <a asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Index" class="btn btn-ips w-100 py-2 fw-bold">
                             Ver Lista
                         </a>
                     </div>
@@ -60,7 +59,7 @@
                     <h3 class="card-title fw-bold">Gestão de Senhas</h3>
                     <p class="text-muted">Monitorizar vendas, validar estados e verificar as expirações.</p>
                     <div class="mt-auto pt-3">
-                        <a asp-area="Admin" asp-controller="AdminTicketManagement" asp-action="Index" class="btn btn-ips w-100 py-2 fw-bold stretched-link">
+                        <a asp-area="Admin" asp-controller="AdminTicketManagement" asp-action="Index" class="btn btn-ips w-100 py-2 fw-bold">
                             Gerir Senhas
                         </a>
                     </div>

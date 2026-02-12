@@ -6,8 +6,8 @@ public enum TicketState
 {
     [Display(Name = "Disponível")]
     Available,
-    [Display(Name = "Usado")]
+    [Display(Name = "Utilizada")]
     Used,
-    [Display(Name = "Expirado")]
+    [Display(Name = "Expirada")]
     Expired
 }

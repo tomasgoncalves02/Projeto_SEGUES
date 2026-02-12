@@ -22,11 +22,15 @@ public class AdminUserManagementController : Controller
         _adminService = adminService;
     }
     
-    public async Task<IActionResult> Index(string roleFilter, string searchString)
+    public async Task<IActionResult> Index(string roleFilter, string searchString, string categoryFilter)
     {
-        var users = await _adminService.GetFilteredUsersAsync(roleFilter, searchString);
-        ViewData["CurrentFilter"] = roleFilter;
+        var users = await _adminService.GetFilteredUsersAsync(searchString, roleFilter, categoryFilter);
         ViewData["SearchString"] = searchString;
+        ViewData["CurrentRole"] = roleFilter;
+        ViewData["CurrentCategory"] = categoryFilter;
+        
+        ViewBag.Roles = await _adminService.GetAllRolesForDropdownAsync();
+        ViewBag.Categories = await _adminService.GetAllCategoriesForDropdownAsync();
         return View(users);
     }
 
@@ -47,7 +51,7 @@ public class AdminUserManagementController : Controller
         if (user == null) return NotFound();
 
         var roles = await _userManager.GetRolesAsync(user);
-        ViewBag.Roles = await _adminService.GetRolesForDropdownAsync();
+        ViewBag.Roles = await _adminService.GetNonClientRolesForDropdownAsync();
 
         return View(new EditUserViewModel
         {
@@ -68,7 +72,7 @@ public class AdminUserManagementController : Controller
     {
         if (!ModelState.IsValid)
         {
-            ViewBag.Roles = await _adminService.GetRolesForDropdownAsync();
+            ViewBag.Roles = await _adminService.GetNonClientRolesForDropdownAsync();
             return View(model);
         }
 
@@ -96,7 +100,7 @@ public class AdminUserManagementController : Controller
         }
 
         foreach (var error in result.Errors) ModelState.AddModelError("", error.Description);
-        ViewBag.Roles = await _adminService.GetRolesForDropdownAsync();
+        ViewBag.Roles = await _adminService.GetNonClientRolesForDropdownAsync();
         return View(model);
     }
 

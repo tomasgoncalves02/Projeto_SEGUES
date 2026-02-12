@@ -68,7 +68,7 @@ public class AdminService : IAdminService
             UserCategory = category!
         };
 
-        string password = Convert.ToBase64String(RandomNumberGenerator.GetBytes(12));
+        string password = GenerateSecurePassword(12);
         var result = await _userManager.CreateAsync(user, password);
         if (result.Succeeded)
         {
@@ -78,11 +78,49 @@ public class AdminService : IAdminService
 
         return result;
     }
+    
+    private static string GenerateSecurePassword(int length = 12)
+    {
+        const string lowercase = "abcdefghijklmnopqrstuvwxyz";
+        const string uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const string digits = "0123456789";
+        const string symbols = "!@#$%^&*()_+-=[]{}|;:,.<>?";
+        const string allChars = lowercase + uppercase + digits + symbols;
+    
+        var password = new char[length];
+            
+        // Ensure at least one of each required character type
+        password[0] = lowercase[RandomNumberGenerator.GetInt32(lowercase.Length)];
+        password[1] = uppercase[RandomNumberGenerator.GetInt32(uppercase.Length)];
+        password[2] = digits[RandomNumberGenerator.GetInt32(digits.Length)];
+        password[3] = symbols[RandomNumberGenerator.GetInt32(symbols.Length)];
+    
+        // Fill remaining characters randomly
+        for (int i = 4; i < length; i++)
+        {
+            password[i] = allChars[RandomNumberGenerator.GetInt32(allChars.Length)];
+        }
+    
+        // Shuffle the password to randomize position of required characters
+        return new string(password.OrderBy(_ => RandomNumberGenerator.GetInt32(length)).ToArray());
+    }
 
-    public async Task<List<SelectListItem>> GetRolesForDropdownAsync()
+    public async Task<List<SelectListItem>> GetNonClientRolesForDropdownAsync()
     {
         var roles = await _roleManager.Roles.Where(r => r.Name != "Client").ToListAsync();
         return roles.Select(r => new SelectListItem { Value = r.Name, Text = r.DisplayName}).ToList();
+    }
+    
+    public async Task<List<SelectListItem>> GetAllRolesForDropdownAsync()
+    {
+        var roles = await _roleManager.Roles.ToListAsync();
+        return roles.Select(r => new SelectListItem { Value = r.Name, Text = r.DisplayName}).ToList();
+    }
+    
+    public async Task<List<SelectListItem>> GetAllCategoriesForDropdownAsync()
+    {
+        var categories = await _context.UserCategories.ToListAsync();
+        return categories.Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name}).ToList();
     }
     
     private async Task SendWelcomeEmailAsync(string email, string name, string type)
@@ -117,7 +155,7 @@ public class AdminService : IAdminService
     /*
      * User Management
      */
-    public async Task<List<AppUser>> GetFilteredUsersAsync(string roleFilter, string searchString)
+    public async Task<List<AppUser>> GetFilteredUsersAsync(string searchString, string roleFilter, string categoryFilter)
     {
         var query = _userManager.Users.Include(u => u.UserCategory).AsQueryable();
 
@@ -137,6 +175,11 @@ public class AdminService : IAdminService
         foreach (var user in users)
         {
             if (await _userManager.IsInRoleAsync(user, roleFilter)) filtered.Add(user);
+        }
+        // If category filter
+        if (!string.IsNullOrEmpty(categoryFilter))
+        {
+            filtered = filtered.Where(u => u.UserCategory.Name == categoryFilter).ToList();
         }
         return filtered;
     }

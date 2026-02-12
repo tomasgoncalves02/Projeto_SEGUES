@@ -10,10 +10,12 @@ public interface IAdminService
 {
     // CreateInternalUser
     Task<IdentityResult> CreateInternalUserAsync(CreateInternalUserViewModel model);
-    Task<List<SelectListItem>> GetRolesForDropdownAsync();
+    Task<List<SelectListItem>> GetNonClientRolesForDropdownAsync();
+    Task<List<SelectListItem>> GetAllRolesForDropdownAsync();
+    Task<List<SelectListItem>> GetAllCategoriesForDropdownAsync();
     
     // User Management
-    Task<List<AppUser>> GetFilteredUsersAsync(string roleFilter, string searchString);
+    Task<List<AppUser>> GetFilteredUsersAsync(string searchString, string roleFilter, string categoryFilter);
     
     // Ticket Management
     Task<List<TicketPrice>> GetTicketPricesAsync();

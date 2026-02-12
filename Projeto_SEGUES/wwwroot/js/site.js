@@ -202,6 +202,7 @@ function showQr(code) {
                     Apresente este código no refeitório para validação.<br />
                     Mantém o brilho do telemóvel alto para facilitar a leitura.
                  </p>
-              </div>`
+              </div>`,
+        backdrop: 'var(--ips-shadow-soft)'
     });
 }

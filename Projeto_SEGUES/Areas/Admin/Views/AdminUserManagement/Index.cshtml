@@ -1,78 +1,87 @@
-﻿@using Projeto_SEGUES.Models.Enums
+﻿@using Microsoft.AspNetCore.Identity
+@using Projeto_SEGUES.Models.User
+@inject UserManager<AppUser> UserManager
 @model IEnumerable<Projeto_SEGUES.Models.User.AppUser>
 
 @{
     ViewData["Title"] = "Lista de Utilizadores";
-    var currentFilter = ViewData["CurrentFilter"] as string;
+    var roles = ViewBag.Roles as IEnumerable<SelectListItem> ?? [];
+    var categories = ViewBag.Categories as IEnumerable<SelectListItem> ?? [];
+    var currentRole = ViewData["CurrentRole"] as string ?? "";
+    var currentCategory = ViewData["CurrentCategory"] as string ?? "";
 }
 
 <div class="container mt-5">
-    @* --- BLOCO DE ALERTAS (Para aparecer logo após o Edit) --- *@
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show shadow-sm border-0 mb-4" role="alert" style="border-left: 5px solid #198754 !important;">
-            <i class="bi bi-check-circle-fill me-2"></i>
-            <strong>Sucesso!</strong> @TempData["Success"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-
-    @* Cabeçalho *@
+    @* Top row *@
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="fw-bold" style="border-bottom: 4px solid #009697; display: inline-block; padding-bottom: 5px;">Lista de Utilizadores</h1>
-        <a asp-controller="Admin" asp-action="Index" class="btn fw-bold px-4" style="border: 2px solid #009697; color: #009697;">
+        <h1 class="fw-bold title-underline">Lista de Utilizadores</h1>
+        <a asp-area="Admin" asp-controller="Admin" asp-action="Index" class="btn-ips-outline-secondary fw-bold px-4">
             <i class="bi bi-arrow-left me-2"></i>Voltar ao Painel
         </a>
     </div>
-
-    @* Área de Filtros *@
-    <div class="card mb-4 shadow-sm" style="border: none; border-top: 5px solid #009697; border-radius: 10px;">
+    @* Filters *@
+    <div class="card card-ips mb-4 shadow-sm">
         <div class="card-body py-4">
-            <form method="get" asp-action="ListUsers" class="row g-3 align-items-center">
-                <div class="col-md-auto">
-                    <label class="col-form-label fw-bold">Filtrar por Perfil:</label>
-                </div>
-                <div class="col-md-auto">
-                    <select name="roleFilter" class="form-select border-0 bg-light"
-                            onchange="this.form.submit()" style="border-radius: 8px;">
-                        <option value="">Todos os Utilizadores</option>
-                        <option value="Admin" selected="@(currentFilter == "Admin")">Administrador</option>
-                        <option value="Employee" selected="@(currentFilter == "Employee")">Funcionário</option>
-                        <option value="Client" selected="@(currentFilter == "Client")">Cliente</option>
-                    </select>
-                </div>
-
-                <div class="col-md-auto ms-md-3">
-                    <label class="col-form-label fw-bold">Pesquisar:</label>
-                </div>
+            <form method="get" asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Index" class="row g-3 align-items-center">
+                @* SearchFilter *@
                 <div class="col-md-4">
-                    <div class="input-group">
-                        <input type="text" name="searchString" class="form-control border-0 bg-light"
+                    <div class="input-group flex-nowrap">
+                        <label for="searchFilter" class="col-form-label fw-bold small me-3">Pesquisar:</label>
+                        <input id="searchFilter" type="text" name="searchString" class="form-control border-0 bg-light"
                                placeholder="Nome ou email..."
-                               value="@ViewData["SearchString"]" style="border-radius: 8px 0 0 8px;" />
-                        <button class="btn text-white fw-bold px-4" type="submit"
-                                style="background-color: #009697; border-radius: 0 8px 8px 0;">
-                            <i class="bi bi-search me-2"></i>Pesquisar
+                               value="@ViewData["SearchString"]" style="border-radius: 8px 0 0 8px; min-width: 9em"/>
+                        <button class="btn btn-ips fw-bold px-4" type="submit"
+                                style="border-radius: 0 8px 8px 0;">
+                            <i class="bi bi-search"></i>
                         </button>
                     </div>
                 </div>
-
+                @* RoleFilter *@
                 <div class="col-md-auto">
-                    <a asp-action="ListUsers" class="text-decoration-none fw-bold" style="color: #6c757d;">Limpar Filtros</a>
+                    <div class="input-group flex-nowrap">
+                        <label for="roleFilter" class="col-form-label fw-bold small me-3">Role:</label>
+                        <select id="roleFilter" name="roleFilter" class="form-select border-0 bg-light"
+                                onchange="this.form.submit()" style="border-radius: 8px;">
+                            <option value="" selected=@(currentRole == "" ? "selected" : "")>Todos os Utilizadores</option>
+                            @foreach (var r in roles)
+                            {
+                                <option value="@r.Value" selected=@(r.Value == currentRole ? "selected" : "")>@r.Text</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                @* CategoryFilter *@
+                <div class="col-md-auto">
+                    <div class="input-group flex-nowrap">
+                        <label for="categoryFilter" class="col-form-label fw-bold small me-3">Categoria:</label>
+                        <select id="categoryFilter" name="categoryFilter" class="form-select border-0 bg-light"
+                                onchange="this.form.submit()" style="border-radius: 8px;">
+                            <option value="" selected=@(currentCategory == "" ? "selected" : "")>Todas as Categorias</option>
+                            @foreach (var c in categories)
+                            {
+                                <option value="@c.Value" selected=@(c.Value == currentCategory ? "selected" : "")>@c.Text</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                @* Clean *@
+                <div class="col-md-auto">
+                    <a asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Index" class="text-decoration-none fw-bold btn-reset-x">Limpar Filtros</a>
                 </div>
             </form>
         </div>
     </div>
 
-    @* Tabela de Utilizadores *@
-    <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
+    @* User table *@
+    <div class="card shadow-sm border-0 rounded-3">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead style="background-color: #009697; color: white;">
+            <table class="table table-hover align-middle mb-0 text-center">
+                <thead class="bg-color-ips text-white">
                     <tr>
                         <th class="ps-4 py-3">Nome</th>
                         <th class="py-3">Email</th>
-                        <th class="py-3">Perfil</th>
+                        <th class="py-3">Role</th>
+                        <th class="py-3">Categoria</th>
                         <th class="py-3">Saldo</th>
                         <th class="text-end pe-4 py-3">Ações</th>
                     </tr>
@@ -80,40 +89,49 @@
                 <tbody>
                     @foreach (var user in Model)
                     {
-                        var categoryName = user.UserCategory?.Name ?? "Sem Categoria";
-                        @* Lógica de Cores e Nomes Traduzidos *@
-                        var badgeClass = categoryName switch
-                        {
-                            // Admin "bg-danger"
-                            // Employee => "bg-warning text-dark"
-                            "Estudante" => "bg-info text-dark",
-                            "Trabalhador IPS" => "bg-primary",
-                            "Externo" => "bg-secondary",
-                            _ => "bg-secondary" // bg-dark
-                        };
-
+                        var categoryName = user.UserCategory.Name;
                         <tr>
+                            @* Name *@
                             <td class="ps-4">
                                 <div class="d-flex align-items-center">
-                                    <div class="text-white rounded-circle d-flex align-items-center justify-content-center me-3 fw-bold"
-                                         style="width: 40px; height: 40px; background-color: #009697;">
+                                    <div class="avatar-circle me-3">
                                         @(string.IsNullOrEmpty(user.FirstName) ? "?" : user.FirstName.Substring(0, 1).ToUpper())
                                     </div>
                                     <div class="fw-bold text-dark">@user.FirstName @user.LastName</div>
                                 </div>
                             </td>
+                            @* Email *@
                             <td class="text-muted">@user.Email</td>
+                            @* Role *@
                             <td>
-                                <span class="badge @badgeClass" style="min-width: 100px; padding: 8px;">
+                                @{
+                                    var userRoles = await UserManager.GetRolesAsync(user);
+                                    var userRole = userRoles.FirstOrDefault() ?? "No Role";
+                                }
+                                <span class="badge @userRole.ToBadgeClass()" style="min-width: 100px; padding: 8px;">
+                                    @userRole.ToUpper()
+                                </span>
+                            </td>
+                            @* Category *@
+                            <td>
+                                <span class="badge @categoryName.ToBadgeClass()" style="min-width: 100px; padding: 8px;">
                                     @categoryName.ToUpper()
                                 </span>
                             </td>
-                            <td class="fw-bold" style="color: #009697;">@user.Balance.ToString("C")</td>
-                            <td class="text-end pe-4">                              
-                                <a asp-action="Details" asp-route-id="@user.Id" class="btn btn-sm text-white fw-bold px-3"
-                                   style="background-color: #009697; border-radius: 6px;">
-                                    Detalhes <i class="bi bi-arrow-right ms-1"></i>
-                                </a>
+                            @* Balance *@
+                            <td class="fw-bold text-color-ips">@user.Balance.ToString("C")</td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Details" asp-route-id="@user.Id" class="btn btn-sm btn-ips" title="Detalhes">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Edit" asp-route-id="@user.Id" class="btn btn-sm btn-outline-secondary" title="Editar">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Delete" asp-route-id="@user.Id" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     }

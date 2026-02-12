@@ -85,7 +85,8 @@ namespace SeguesTests
                 LastName = "Silva",
                 Email = "maria.silva@escola.pt",
                 AccountType = "Admin",
-                Gender = Gender.Female
+                Gender = Gender.Female,
+                BirthDate = DateTime.Now.AddYears(-28)
             };
 
             // Simular sucesso na criação e na role

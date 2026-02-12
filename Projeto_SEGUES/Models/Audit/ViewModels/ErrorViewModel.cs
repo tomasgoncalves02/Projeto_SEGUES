@@ -1,4 +1,4 @@
-namespace Projeto_SEGUES.Models
+namespace Projeto_SEGUES.Models.Audit.ViewModels
 {
     public class ErrorViewModel
     {

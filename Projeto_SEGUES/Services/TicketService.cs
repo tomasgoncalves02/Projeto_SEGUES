@@ -149,7 +149,7 @@ public class TicketService : ITicketService
             await tx.CommitAsync();
             return ServiceResult.Ok("Compra realizada.");
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             await tx.RollbackAsync();
             return ServiceResult.Fail("Erro ao processar a compra.");

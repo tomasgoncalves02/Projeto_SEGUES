@@ -20,8 +20,8 @@ public class AdminCreateInternalAccountController : Controller
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-        ViewBag.Roles = await _adminService.GetRolesForDropdownAsync();
-        return View(new CreateInternalUserViewModel());
+        ViewBag.Roles = await _adminService.GetNonClientRolesForDropdownAsync();
+        return View();
     }
     
     [HttpPost]
@@ -30,7 +30,7 @@ public class AdminCreateInternalAccountController : Controller
     {
         if (!ModelState.IsValid)
         {
-            ViewBag.Roles = await _adminService.GetRolesForDropdownAsync();
+            ViewBag.Roles = await _adminService.GetNonClientRolesForDropdownAsync();
             return View("Index", model);
         }
         
@@ -43,7 +43,7 @@ public class AdminCreateInternalAccountController : Controller
         foreach (var error in result.Errors)
             ModelState.AddModelError("", error.Description);
 
-        ViewBag.Roles = await _adminService.GetRolesForDropdownAsync();
+        ViewBag.Roles = await _adminService.GetNonClientRolesForDropdownAsync();
         return View("Index", model);
     }
 }
