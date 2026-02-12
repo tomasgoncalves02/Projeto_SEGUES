@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Extensions;
+using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 
@@ -37,9 +38,10 @@ public class AdminUserManagementController : Controller
     {
         var user = await _userManager.Users.Include(u => u.UserCategory).FirstOrDefaultAsync(u => u.Id == id);
         if (user == null) return NotFound();
-
+        
         var roles = await _userManager.GetRolesAsync(user);
-        ViewBag.UserRole = roles.FirstOrDefault() ?? "Nenhum";
+        var allRoles = await _adminService.GetAllRolesForDropdownAsync();
+        ViewBag.UserRole = allRoles.Find(r => r.Value == roles.First())?.Text;
         return View(user);
     }
 
@@ -50,7 +52,8 @@ public class AdminUserManagementController : Controller
         if (user == null) return NotFound();
 
         var roles = await _userManager.GetRolesAsync(user);
-        ViewBag.Roles = await _adminService.GetNonClientRolesForDropdownAsync();
+        ViewBag.Roles = await _adminService.GetAllRolesForDropdownAsync();
+        ViewBag.Categories = await _adminService.GetAllCategoriesForDropdownAsync();
 
         return View(new EditUserViewModel
         {
@@ -61,7 +64,8 @@ public class AdminUserManagementController : Controller
             Gender = user.Gender,
             BirthDate =  user.BirthDate,
             Balance = user.Balance,
-            Role = roles.FirstOrDefault() ?? "Client"
+            Role = roles.FirstOrDefault() ?? "Client",
+            Category = user.UserCategory.Name
         });
     }
 
@@ -72,6 +76,7 @@ public class AdminUserManagementController : Controller
         if (!ModelState.IsValid)
         {
             ViewBag.Roles = await _adminService.GetNonClientRolesForDropdownAsync();
+            ViewBag.Categories = await _adminService.GetAllCategoriesForDropdownAsync();
             return View(model);
         }
 
@@ -85,6 +90,7 @@ public class AdminUserManagementController : Controller
         user.Balance = model.Balance;
         user.Gender = model.Gender;
         user.BirthDate = model.BirthDate;
+        user.UserCategory = await _adminService.GetCategoryByNameAsync(model.Category);
 
         var result = await _userManager.UpdateAsync(user);
 
@@ -100,30 +106,41 @@ public class AdminUserManagementController : Controller
 
         foreach (var error in result.Errors) ModelState.AddModelError("", error.Description);
         ViewBag.Roles = await _adminService.GetNonClientRolesForDropdownAsync();
+        ViewBag.Categories = await _adminService.GetAllCategoriesForDropdownAsync();
         return View(model);
     }
 
-    [HttpGet]
-    public async Task<IActionResult> Delete(string id)
-    {
-        var user = await _userManager.FindByIdAsync(id);
-        return user == null ? NotFound() : View(user);
-    }
-
-    [HttpPost, ActionName("Delete")]
+    [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteConfirmed(string id)
+    public async Task<IActionResult> Deactivate(string id)
     {
         var user = await _userManager.FindByIdAsync(id);
-        if (user == null) return RedirectToAction(nameof(Index));
+        if (user == null)
+        {
+            TempData.SetSwalError("Utilizador não encontrado.");
+            return RedirectToAction(nameof(Index));
+        }
         
-        if (user.UserName == User.Identity!.Name)
+        if (user.UserName == User.Identity?.Name)
         {
             TempData.SetSwalError("Não podes apagar a tua própria conta.");
             return RedirectToAction(nameof(Index));
         }
-        await _userManager.DeleteAsync(user);
-        TempData.SetSwalSuccess("Utilizador removido.");
+        
+        user.Status = UserStatus.Inactive;
+        // Lockout the user (prevents login immediately)
+        await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.MaxValue);
+        
+        var result = await _userManager.UpdateAsync(user);
+        
+        if (result.Succeeded)
+        {
+            TempData.SetSwalSuccess($"O utilizador {user.FirstName} foi desativado com sucesso.");
+        }
+        else
+        {
+            TempData.SetSwalError("Erro ao desativar utilizador.");
+        }
         return RedirectToAction(nameof(Index));
     }
 }

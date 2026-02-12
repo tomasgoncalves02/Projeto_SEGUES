@@ -21,8 +21,6 @@ public class AdminService : IAdminService
     private readonly UserManager<AppUser> _userManager;
     private readonly RoleManager<Role> _roleManager;
     private readonly IEmailSender _emailSender;
-    private readonly LinkGenerator _linkGenerator;
-    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public AdminService(
         AppDbContext context, 
@@ -36,8 +34,6 @@ public class AdminService : IAdminService
         _userManager = userManager;
         _roleManager = roleManager;
         _emailSender = emailSender;
-        _linkGenerator = linkGenerator;
-        _httpContextAccessor = httpContextAccessor;
     }
 
     /*
@@ -52,7 +48,7 @@ public class AdminService : IAdminService
         }
         
         // InternalUsers are External to IPS
-        var category = await _context.UserCategories.FirstOrDefaultAsync(c => c.Name == "Externo");
+        var category = await _context.UserCategories.FirstAsync(c => c.Name == "Externo");
         var user = new AppUser
         {
             UserName = model.Email,
@@ -63,17 +59,17 @@ public class AdminService : IAdminService
             BirthDate =  model.BirthDate,
             Balance = 0m,
             CreationDate = DateTime.Now,
-            EmailConfirmed = false, // Must reset password using link sent to email on first login
+            EmailConfirmed = true, // Internal accounts are created by admins, so we can consider their email as confirmed by default
             Status = UserStatus.Active,
-            UserCategory = category!
+            UserCategory = category
         };
 
-        string password = GenerateSecurePassword(12);
+        string password = GenerateSecurePassword();
         var result = await _userManager.CreateAsync(user, password);
         if (result.Succeeded)
         {
             await _userManager.AddToRoleAsync(user, model.AccountType);
-            await SendWelcomeEmailAsync(model.Email, model.FirstName, model.AccountType);
+            await SendWelcomeEmailAsync(model.Email, model.FirstName, model.AccountType, password);
         }
 
         return result;
@@ -120,33 +116,21 @@ public class AdminService : IAdminService
     public async Task<List<SelectListItem>> GetAllCategoriesForDropdownAsync()
     {
         var categories = await _context.UserCategories.ToListAsync();
-        return categories.Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name}).ToList();
+        return categories.Select(c => new SelectListItem { Value = c.Name, Text = c.Name}).ToList();
     }
     
-    private async Task SendWelcomeEmailAsync(string email, string name, string type)
+    private async Task SendWelcomeEmailAsync(string email, string name, string type, string password)
     {
         var roleDisplay = (await _roleManager.FindByNameAsync(type))!.DisplayName;
-        var user = (await _userManager.FindByEmailAsync(email))!;
-        var code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(
-            await _userManager.GeneratePasswordResetTokenAsync(user)
-        ));
-        var httpContext = _httpContextAccessor.HttpContext!;
-        string callbackUrl = _linkGenerator.GetUriByPage(
-            httpContext,
-            page: "/Account/ResetPassword",
-            values: new { area = "Identity", email, code },
-            scheme: httpContext.Request.Scheme)!;
         string emailBody = ((EmailSender)_emailSender).GetEmailBody(
-            "Redefinir Senha - SEGUES",
+            "Conta Interna - SEGUES",
             name,
             $"""
              <p>Conta de <strong>{roleDisplay}</strong> criada com sucesso no SEGUES.</p>
              <div style='background:#f8f9fa; padding:15px;'>
                  <p><strong>Email:</strong> {email}</p>
-                 <p>Por favor, defina sua senha clicando no link abaixo:</p>
-                 <a href='{HtmlEncoder.Default.Encode(callbackUrl)}' style='display:inline-block; margin-top:10px; padding:10px 20px; background:#009697; color:white; text-decoration:none; border-radius:5px;'>Definir Senha</a>
-                 <p>Se o botão não funcionar, copia e cola o seguinte link no teu navegador:</p>
-                 <p class='text-color-ips' style='word-break: break-all; font-size: 12px;'>{callbackUrl}</p>
+                 <p><strong>Senha:</strong> {password}</p>
+                 <p>Faça login e altere sua senha o mais breve possível.</p>
              </div>
              """);
         await _emailSender.SendEmailAsync(email, "SEGUES - Bem-vindo", emailBody);
@@ -184,9 +168,9 @@ public class AdminService : IAdminService
 
             query = query.Where(u => userIdsInRole.Contains(u.Id));
         }
-        else if (int.TryParse(roleFilter, out int categoryId))
+        else
         {
-            query = query.Where(u => u.UserCategory.Id == categoryId);
+            query = query.Where(u => u.UserCategory.Name == roleFilter);
             
             // Exclude Admins and Employees from category filter
             var excludedRoleIds = await _roleManager.Roles
@@ -201,7 +185,12 @@ public class AdminService : IAdminService
         
         return await query.ToListAsync();
     }
-    
+
+    public Task<UserCategory> GetCategoryByNameAsync(string modelCategory)
+    { 
+        return _context.UserCategories.FirstAsync(c => c.Name == modelCategory);
+    }
+
     /*
      * Ticket Management
      */
@@ -216,6 +205,19 @@ public class AdminService : IAdminService
         {
             _context.TicketPrices.Update(price);
         }
+        await _context.SaveChangesAsync();
+    }
+    
+    public async Task<int> GetTicketValidityDaysAsync()
+    {
+        int days = (await _context.AppConfigs.FirstAsync()).TicketValidityDays;
+        return days > 0 ? days : 365;
+    }
+    
+    public async Task UpdateTicketValidityDaysAsync(int days)
+    {
+        var config = await _context.AppConfigs.FirstAsync();
+        config.TicketValidityDays = days;
         await _context.SaveChangesAsync();
     }
 }

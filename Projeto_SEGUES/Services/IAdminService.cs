@@ -16,8 +16,11 @@ public interface IAdminService
     
     // User Management
     Task<List<AppUser>> GetFilteredUsersAsync(string? searchString, string? roleFilter);
+    Task<UserCategory> GetCategoryByNameAsync(string modelCategory);
     
     // Ticket Management
     Task<List<TicketPrice>> GetTicketPricesAsync();
     Task UpdateTicketPricesAsync(List<TicketPrice> prices);
+    Task<int> GetTicketValidityDaysAsync();
+    Task UpdateTicketValidityDaysAsync(int days);
 }

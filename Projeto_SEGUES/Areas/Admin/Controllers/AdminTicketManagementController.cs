@@ -23,6 +23,7 @@ public class AdminTicketManagementController : Controller
     public async Task<IActionResult> Index()
     {
         ViewBag.Prices = await _adminService.GetTicketPricesAsync();
+        ViewBag.CurrentValidityDays = await _adminService.GetTicketValidityDaysAsync();
         var history = await _ticketService.GetAllTicketsAsync();
         return View(history);
     }
@@ -40,6 +41,22 @@ public class AdminTicketManagementController : Controller
         {
             TempData.SetSwalError("Dados inválidos.");
         }
+        return RedirectToAction(nameof(Index));
+    }
+    
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateValidity(int validityDays)
+    {
+        if (validityDays < 1)
+        {
+            TempData.SetSwalError("A validade deve ser de pelo menos 1 dia.");
+            return RedirectToAction(nameof(Index));
+        }
+
+        await _adminService.UpdateTicketValidityDaysAsync(validityDays);
+        TempData.SetSwalSuccess($"Validade global alterada para {validityDays} dias.");
+    
         return RedirectToAction(nameof(Index));
     }
 }

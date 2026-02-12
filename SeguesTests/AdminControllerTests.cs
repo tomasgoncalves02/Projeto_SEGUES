@@ -145,6 +145,7 @@ namespace SeguesTests
                 LastName = "Sobrenome",
                 Balance = 10,
                 Role = "Admin",
+                Category = "Externo",
                 Gender = Gender.Male,
                 BirthDate = DateTime.Now.AddYears(-30),
             };
@@ -178,7 +179,7 @@ namespace SeguesTests
             _mockUserManager.Setup(u => u.DeleteAsync(user)).ReturnsAsync(IdentityResult.Success);
 
             // ACT
-            var result = await _userManagementController.DeleteConfirmed(userId);
+            var result = await _userManagementController.Deactivate(userId);
 
             // ASSERT
             _mockUserManager.Verify(u => u.DeleteAsync(user), Times.Once);

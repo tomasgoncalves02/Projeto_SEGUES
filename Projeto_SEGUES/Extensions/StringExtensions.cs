@@ -15,10 +15,15 @@ public static class StringExtensions
             "Admin" => "bg-danger",
             "Employee" => "bg-warning text-dark",
             
-            // Database Categories
+            // User Category
             "Estudante" => "bg-info text-dark",
             "Trabalhador IPS" => "bg-primary",
             "Externo" => "bg-secondary",
+            
+            // User Status
+            "Ative" => "bg-success-subtle text-success border-success",
+            "Suspended" => "bg-secondary text-dark border-secondary",
+            "Inative" => "bg-danger-subtle text-danger border-danger",
             
             // TicketState
             "Available" => "bg-color-ips",

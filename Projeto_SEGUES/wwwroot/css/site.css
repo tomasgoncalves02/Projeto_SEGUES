@@ -108,7 +108,7 @@ a:hover {
 .title-underline {
     border-bottom: 4px solid var(--ips);
     opacity: 1;
-    width: 80%;
+    width: fit-content;
 }
 
 .hover-translate:hover {

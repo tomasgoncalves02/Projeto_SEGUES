@@ -33,16 +33,20 @@ namespace Projeto_SEGUES.Areas.Admin.ViewModels
         [DataType(DataType.Date, ErrorMessage = "Data de nascimento inválida.")]
         [MinimumAge(ErrorMessage = "Deve ter pelo menos 18 anos.")]
         [Display(Name = "Data de Nascimento")]
-        [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         public required DateTime BirthDate { get; set; }
 
         [Required(ErrorMessage = "O saldo é obrigatório.")]
         [Range(0, double.MaxValue, ErrorMessage = "O saldo não pode ser negativo.")]
         [Display(Name = "Saldo (€)")]
         public required decimal Balance { get; set; }
-
-        [Required(ErrorMessage = "O role é obrigatório.")]
-        [Display(Name = "Função / Role")]
+        
+        [Required(ErrorMessage = "Selecione o tipo de conta.")]
+        [Display(Name = "Tipo de Conta")]
         public required string Role { get; set; }
+        
+        [Required(ErrorMessage = "A categoria de utilizador é obrigatória.")]
+        [Display(Name = "Categoria de Utilizador")]
+        public required string Category { get; set; }
     }
 }

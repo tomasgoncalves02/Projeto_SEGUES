@@ -51,7 +51,6 @@ builder.Services.AddAuthentication()
 */
 
 // Other services
-builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 builder.Services.AddScoped<ITicketService, TicketService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
