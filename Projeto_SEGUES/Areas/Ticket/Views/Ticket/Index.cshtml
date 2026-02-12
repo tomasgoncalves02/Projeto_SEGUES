@@ -5,28 +5,38 @@
 
 <div class="container mt-5">
     <div class="row mb-5">
-        @* Left aligned text *@
+        @* Cabeçalho *@
         <div class="col-12 text-start">
             <h1 class="fw-bold title-underline mb-3">Refeitório</h1>
             <p class="text-muted fs-5">Aqui podes planear os teus almoços e gerir as tuas senhas.</p>
         </div>
     </div>
 
-    @* Main row *@
+    @* Grid de Cartões - Todos com col-lg-4 para manter simetria *@
     <div class="row g-4">
-        @* Balance Card *@
-        <div class="col-md-6 col-lg-3">
-            <div class="card h-100 shadow-sm card-ips bg-color-ips text-white hover-translate d-flex flex-column">
-                <div class="card-body text-center d-flex flex-column p-4">
-                    <small class="d-block opacity-75 fw-bold mb-2 fs-4">Saldo Disponível</small>
-                    <h2 class="display-6 fw-bold my-auto">@balance.ToString("C")</h2>
+
+        @* Saldo Disponível *@
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0 bg-color-ips text-white hover-translate d-flex flex-column">
+                <div class="card-body text-center d-flex flex-column p-4 justify-content-between">
+                    <div>
+                        <small class="d-block opacity-75 fw-bold mb-2 fs-5">Saldo Disponível</small>
+                        <h2 class="display-6 fw-bold mb-4">@balance.ToString("C")</h2>
+                    </div>
+
                     <div class="mt-auto">
-                        <a href="" class="btn btn-light fw-bold w-100 py-2 btn-disabled">BREVEMENTE</a>
+                        @* Botão Branco Customizado *@
+                        <a asp-area="Payment" asp-controller="Payment" asp-action="Deposit"
+                           class="btn fw-bold w-100 shadow-sm text-uppercase d-flex align-items-center justify-content-center"
+                           style="background-color: white !important; color: var(--ips) !important; border: none; height: 45px; border-radius: 6px;">
+                            Carregar Saldo
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
-        @* Buy Ticket Card *@
+
+        @* Comprar Senha *@
         <div class="col-md-6 col-lg-4">
             <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
                 <div class="card-body text-center d-flex flex-column p-4">
@@ -39,7 +49,8 @@
                 </div>
             </div>
         </div>
-        @* Active Tickets Card *@
+
+        @* Senhas Ativas *@
         <div class="col-md-6 col-lg-4">
             <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
                 <div class="card-body text-center d-flex flex-column p-4">
@@ -52,7 +63,8 @@
                 </div>
             </div>
         </div>
-        @* Send Ticket Card *@
+
+        @* Enviar Senha *@
         <div class="col-md-6 col-lg-4">
             <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
                 <div class="card-body text-center d-flex flex-column p-4">
@@ -60,12 +72,13 @@
                     <h5 class="fw-bold">Enviar Senha</h5>
                     <p class="text-muted small mb-4">Enviar senhas para outras pessoas.</p>
                     <div class="mt-auto">
-                        <a href="" class="btn btn-light fw-bold w-100 py-2 btn-disabled">BREVEMENTE</a>
+                        <a href="#" class="btn btn-light fw-bold w-100 py-2 disabled">BREVEMENTE</a>
                     </div>
                 </div>
             </div>
         </div>
-        @* Return Button *@
+
+        @* Voltar *@
         <div class="col-md-6 col-lg-4">
             <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
                 <div class="card-body text-center d-flex flex-column p-4">
@@ -78,5 +91,6 @@
                 </div>
             </div>
         </div>
+
     </div>
 </div>

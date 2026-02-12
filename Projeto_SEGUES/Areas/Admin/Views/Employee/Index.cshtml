@@ -37,7 +37,28 @@
         background: var(--ips);
         border-radius: 20px 20px 0 0;
     }
-    
+
+    /* ESTILIZAÇÃO DO ÍCONE MAIOR */
+    .icon-circle {
+        width: 110px;
+        height: 110px;
+        background: rgba(0, 150, 151, 0.08);
+        color: var(--ips);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 2rem auto;
+        font-size: 3.5rem; /* Ícone bem visível */
+        transition: all 0.4s ease;
+    }
+
+    .action-card:hover .icon-circle {
+        background: var(--ips);
+        color: white;
+        transform: rotate(10deg) scale(1.1);
+    }
+
     .btn-validate {
         background-color: var(--ips);
         color: white;
@@ -70,7 +91,7 @@
             <div class="card-body p-5 text-center">
 
                 @* Ícone Flutuante *@
-                <div class="icon-circle">
+                <div class="icon-circle shadow-sm">
                     <i class="bi bi-shield-check"></i>
                 </div>
 

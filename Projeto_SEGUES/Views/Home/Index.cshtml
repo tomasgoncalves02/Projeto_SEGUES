@@ -13,14 +13,18 @@
 
     @* Main row *@
     <div class="row g-4">
-        @* Balance Card *@
+        @* Balance Card - Estilo conforme a imagem *@
         <div class="col-md-6 col-lg-3">
-            <div class="card h-100 shadow-sm card-ips bg-color-ips text-white hover-translate d-flex flex-column">
+            <div class="card h-100 shadow-sm border-0 hover-translate bg-color-ips text-white">
                 <div class="card-body text-center d-flex flex-column p-4">
-                    <small class="d-block opacity-75 fw-bold mb-2 fs-4">Saldo Disponível</small>
-                    <h2 class="display-6 fw-bold my-auto">@balance.ToString("C")</h2>
-                    <div class="mt-auto">
-                        <a asp-area="Payment" asp-controller="Payment" asp-action="Deposit" class="btn btn-ips fw-bold w-100 py-2">CARREGAR SALDO</a>
+                    <h4 class="fw-bold mb-3 opacity-90">Saldo Disponível</h4>
+                    <h2 class="display-5 fw-bold my-auto">@balance.ToString("C")</h2>
+                    <div class="mt-4">
+                        <a asp-area="Payment" asp-controller="Payment" asp-action="Deposit"
+                           class="btn fw-bold w-100 rounded-3 shadow-sm text-uppercase d-flex align-items-center justify-content-center"
+                           style="background-color: white !important; color: var(--ips) !important; border: none; height: 45px;">
+                            Carregar Saldo
+                        </a>
                     </div>
                 </div>
             </div>
