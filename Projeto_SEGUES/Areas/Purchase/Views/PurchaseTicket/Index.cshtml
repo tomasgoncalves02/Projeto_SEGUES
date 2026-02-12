@@ -84,7 +84,7 @@
                                 <td class="small">@item.ExpirationDate.ToString("dd/MM/yyyy")</td>
                                 <td>
                                     <span class="badge @item.State.ToString().ToBadgeClass()">
-                                        @Html.DisplayNameFor(m => item.State)
+                                        @item.State.ToDisplayName()
                                     </span>
                                 </td>
                                 <td class="text-center">

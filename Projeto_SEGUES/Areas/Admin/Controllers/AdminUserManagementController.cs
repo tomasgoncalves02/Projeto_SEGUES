@@ -22,12 +22,11 @@ public class AdminUserManagementController : Controller
         _adminService = adminService;
     }
     
-    public async Task<IActionResult> Index(string roleFilter, string searchString, string categoryFilter)
+    public async Task<IActionResult> Index(string? searchString, string? roleFilter)
     {
-        var users = await _adminService.GetFilteredUsersAsync(searchString, roleFilter, categoryFilter);
+        var users = await _adminService.GetFilteredUsersAsync(searchString, roleFilter);
         ViewData["SearchString"] = searchString;
         ViewData["CurrentRole"] = roleFilter;
-        ViewData["CurrentCategory"] = categoryFilter;
         
         ViewBag.Roles = await _adminService.GetAllRolesForDropdownAsync();
         ViewBag.Categories = await _adminService.GetAllCategoriesForDropdownAsync();

@@ -15,7 +15,7 @@ public interface IAdminService
     Task<List<SelectListItem>> GetAllCategoriesForDropdownAsync();
     
     // User Management
-    Task<List<AppUser>> GetFilteredUsersAsync(string searchString, string roleFilter, string categoryFilter);
+    Task<List<AppUser>> GetFilteredUsersAsync(string? searchString, string? roleFilter);
     
     // Ticket Management
     Task<List<TicketPrice>> GetTicketPricesAsync();

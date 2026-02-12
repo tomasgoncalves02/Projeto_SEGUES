@@ -155,33 +155,51 @@ public class AdminService : IAdminService
     /*
      * User Management
      */
-    public async Task<List<AppUser>> GetFilteredUsersAsync(string searchString, string roleFilter, string categoryFilter)
+    public async Task<List<AppUser>> GetFilteredUsersAsync(string? searchString, string? roleFilter)
     {
+        // All users
         var query = _userManager.Users.Include(u => u.UserCategory).AsQueryable();
 
+        // Filter users by name or email
         if (!string.IsNullOrEmpty(searchString))
         {
-            query = query.Where(u => u.FirstName.Contains(searchString, StringComparison.CurrentCultureIgnoreCase)
-                                     || u.LastName.Contains(searchString, StringComparison.CurrentCultureIgnoreCase)
-                                     || u.Email!.Contains(searchString, StringComparison.CurrentCultureIgnoreCase));
+            searchString = searchString.Trim().ToLower();
+            query = query.Where(u => u.FirstName.ToLower().Contains(searchString)
+                                     || u.LastName.ToLower().Contains(searchString)
+                                     || u.Email!.ToLower().Contains(searchString));
         }
-
-        var users = await query.ToListAsync();
-
-        if (string.IsNullOrEmpty(roleFilter)) return users;
         
-        // If role filter
-        var filtered = new List<AppUser>();
-        foreach (var user in users)
+        // Role filter
+        if (string.IsNullOrWhiteSpace(roleFilter)) return await query.ToListAsync();
+        
+        roleFilter = roleFilter.Trim();
+        if (roleFilter is "Admin" or "Employee")
         {
-            if (await _userManager.IsInRoleAsync(user, roleFilter)) filtered.Add(user);
+            var role = await _roleManager.FindByNameAsync(roleFilter);
+            if (role == null) return await query.ToListAsync();
+                
+            var userIdsInRole = _context.UserRoles
+                .Where(ur => ur.RoleId == role.Id)
+                .Select(ur => ur.UserId);
+
+            query = query.Where(u => userIdsInRole.Contains(u.Id));
         }
-        // If category filter
-        if (!string.IsNullOrEmpty(categoryFilter))
+        else if (int.TryParse(roleFilter, out int categoryId))
         {
-            filtered = filtered.Where(u => u.UserCategory.Name == categoryFilter).ToList();
+            query = query.Where(u => u.UserCategory.Id == categoryId);
+            
+            // Exclude Admins and Employees from category filter
+            var excludedRoleIds = await _roleManager.Roles
+                .Where(r => r.Name == "Admin" || r.Name == "Employee")
+                .Select(r => r.Id)
+                .ToListAsync();
+            var excludedUserIds = _context.UserRoles
+                .Where(ur => excludedRoleIds.Contains(ur.RoleId))
+                .Select(ur => ur.UserId);
+            query = query.Where(u => !excludedUserIds.Contains(u.Id));
         }
-        return filtered;
+        
+        return await query.ToListAsync();
     }
     
     /*
