@@ -42,6 +42,7 @@ public class AdminCreateInternalAccountController : Controller
         }
         foreach (var error in result.Errors)
             ModelState.AddModelError("", error.Description);
+        TempData.SetSwalError(result.Errors.Aggregate("", (current, error) => current + $"{error.Description}\n"));
 
         ViewBag.Roles = await _adminService.GetNonClientRolesForDropdownAsync();
         return View("Index", model);

@@ -1,17 +1,11 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
-#nullable disable
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Projeto_SEGUES.Models;
+using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.User;
 
 namespace Projeto_SEGUES.Areas.Identity.Pages.Account.Manage
@@ -31,38 +25,19 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account.Manage
             _signInManager = signInManager;
             _userStore = userStore;
         }
-
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
-        public IList<UserLoginInfo> CurrentLogins { get; set; }
-
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
-        public IList<AuthenticationScheme> OtherLogins { get; set; }
-
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
+        
+        public IList<UserLoginInfo> CurrentLogins { get; set; } = new List<UserLoginInfo>();
+        
+        public IList<AuthenticationScheme> OtherLogins { get; set; } = new List<AuthenticationScheme>();
+        
         public bool ShowRemoveButton { get; set; }
-
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
-        [TempData]
-        public string StatusMessage { get; set; }
-
+        
         public async Task<IActionResult> OnGetAsync()
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+                return NotFound("Não foi possível gerir os logins externos.");
             }
 
             CurrentLogins = await _userManager.GetLoginsAsync(user);
@@ -70,7 +45,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account.Manage
                 .Where(auth => CurrentLogins.All(ul => auth.Name != ul.LoginProvider))
                 .ToList();
 
-            string passwordHash = null;
+            string? passwordHash = null;
             if (_userStore is IUserPasswordStore<AppUser> userPasswordStore)
             {
                 passwordHash = await userPasswordStore.GetPasswordHashAsync(user, HttpContext.RequestAborted);
@@ -85,18 +60,18 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account.Manage
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+                return NotFound("Não foi possível gerir os logins externos.");
             }
 
             var result = await _userManager.RemoveLoginAsync(user, loginProvider, providerKey);
             if (!result.Succeeded)
             {
-                StatusMessage = "The external login was not removed.";
+                TempData.SetSwalError("Não foi possível remover o login externo.");
                 return RedirectToPage();
             }
 
             await _signInManager.RefreshSignInAsync(user);
-            StatusMessage = "The external login was removed.";
+            TempData.SetSwalSuccess("O login externo foi removido.");
             return RedirectToPage();
         }
 
@@ -116,27 +91,26 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account.Manage
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+                return NotFound("Não foi possível gerir os logins externos..");
             }
 
             var userId = await _userManager.GetUserIdAsync(user);
             var info = await _signInManager.GetExternalLoginInfoAsync(userId);
             if (info == null)
             {
-                throw new InvalidOperationException($"Unexpected error occurred loading external login info.");
+                throw new InvalidOperationException("Não foi possível gerir os logins externos.");
             }
 
             var result = await _userManager.AddLoginAsync(user, info);
             if (!result.Succeeded)
             {
-                StatusMessage = "The external login was not added. External logins can only be associated with one account.";
+                TempData.SetSwalError("Não foi possível adicionar o login externo. Os logins externos só podem ser associados a uma conta.");
                 return RedirectToPage();
             }
 
             // Clear the existing external cookie to ensure a clean login process
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
-
-            StatusMessage = "The external login was added.";
+            TempData.SetSwalSuccess("O login externo foi adicionado.");
             return RedirectToPage();
         }
     }
