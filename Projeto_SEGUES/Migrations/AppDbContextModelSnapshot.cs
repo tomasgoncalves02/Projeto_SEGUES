@@ -271,6 +271,42 @@ namespace Projeto_SEGUES.Migrations
                     b.ToTable("UserLog");
                 });
 
+            modelBuilder.Entity("Projeto_SEGUES.Models.Bar.BarOrder", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsConsumed")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("OrderDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("PriceAtTime")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RedemptionCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("BarOrders");
+                });
+
             modelBuilder.Entity("Projeto_SEGUES.Models.Inventory.Product", b =>
                 {
                     b.Property<int>("Id")
@@ -945,6 +981,17 @@ namespace Projeto_SEGUES.Migrations
                         .HasForeignKey("AppUserId");
 
                     b.Navigation("AppUser");
+                });
+
+            modelBuilder.Entity("Projeto_SEGUES.Models.Bar.BarOrder", b =>
+                {
+                    b.HasOne("Projeto_SEGUES.Models.Inventory.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("Projeto_SEGUES.Models.Inventory.Product", b =>

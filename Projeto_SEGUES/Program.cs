@@ -54,6 +54,7 @@ builder.Services.AddAuthentication()
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 builder.Services.AddScoped<ITicketService, TicketService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IBarService, BarService>();
 
 // MVC and Razor
 builder.Services.AddControllersWithViews();

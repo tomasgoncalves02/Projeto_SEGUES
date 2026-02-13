@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Models.Admin;
 using Projeto_SEGUES.Models.Audit;
+using Projeto_SEGUES.Models.Bar;
 using Projeto_SEGUES.Models.Inventory;
 using Projeto_SEGUES.Models.Payment;
 using Projeto_SEGUES.Models.Purchase;
@@ -65,7 +66,11 @@ namespace Projeto_SEGUES.Data
         public DbSet<TicketPrice> TicketPrices { get; set; }
         public DbSet<TicketPurchase> TicketPurchases { get; set; }
         public DbSet<TicketTransfer> TicketTransfers { get; set; }
-        
+
+
+        /* BAR */
+        public DbSet<BarOrder> BarOrders { get; set; }
+
         /* ==========
          * Fluent API
          * ========== */
