@@ -18,23 +18,31 @@
         </a>
     </div>
 
-    @* Filtros Estilizados *@
+    @* Filtros Estilizados com Data *@
     <div class="card shadow-sm border-0 mb-4 rounded-3">
         <div class="card-body p-4">
             <div class="row g-3 align-items-end text-start">
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label class="form-label fw-bold text-uppercase small text-muted mb-1">Estado</label>
                     <select class="form-select" id="statusFilter">
-                        <option value="todos">Todos os Estados</option>
+                        <option value="todos">Todos</option>
                         <option value="0">Pendente</option>
                         <option value="1">Em preparação</option>
                         <option value="2">Entrega Pendente</option>
                         <option value="3">Entregue</option>
                     </select>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-2">
+                    <label class="form-label fw-bold text-uppercase small text-muted mb-1">No Dia</label>
+                    <input type="date" id="exactDateFilter" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold text-uppercase small text-muted mb-1">A partir de</label>
+                    <input type="date" id="startDateFilter" class="form-control">
+                </div>
+                <div class="col-md-3">
                     <label class="form-label fw-bold text-uppercase small text-muted mb-1">Pesquisar Pedido</label>
-                    <input type="text" id="searchInput" class="form-control" placeholder="Nº Pedido, Código ou ID Utilizador...">
+                    <input type="text" id="searchInput" class="form-control" placeholder="Nº, Código ou ID...">
                 </div>
                 <div class="col-md-3 d-flex align-items-center gap-3 mt-2">
                     <a href="javascript:void(0)" onclick="clearFilters()" class="text-muted small text-decoration-none d-flex align-items-center">
@@ -83,7 +91,7 @@
                     {
                         @foreach (var order in Model)
                         {
-                            <tr class="order-row" data-status="@order.Status">
+                            <tr class="order-row" data-status="@order.Status" data-date="@order.OrderDate.ToString("yyyy-MM-dd")">
                                 <td class="ps-4 text-start small">
                                     <span class="fw-bold user-id">@order.UserId</span>
                                 </td>
@@ -95,7 +103,7 @@
                                         @order.RedemptionCode
                                     </code>
                                 </td>
-                                <td class="small">@order.OrderDate.ToString("dd/MM/yy HH:mm")</td>
+                                <td class="small order-date-display">@order.OrderDate.ToString("dd/MM/yy HH:mm")</td>
                                 <td>
                                     @switch (order.Status)
                                     {
@@ -135,9 +143,7 @@
 <div class="modal fade" id="orderModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
-            <div id="modalContent">
-                @* Conteúdo carregado via AJAX *@
-            </div>
+            <div id="modalContent"></div>
         </div>
     </div>
 </div>
@@ -147,6 +153,9 @@
         function filterTable() {
             let searchTerm = document.getElementById('searchInput').value.toLowerCase();
             let status = document.getElementById('statusFilter').value;
+            let exactDate = document.getElementById('exactDateFilter').value; // yyyy-mm-dd
+            let startDate = document.getElementById('startDateFilter').value; // yyyy-mm-dd
+
             let rows = document.querySelectorAll('.order-row');
 
             rows.forEach(row => {
@@ -154,17 +163,39 @@
                 let orderId = row.querySelector('.order-id').textContent.toLowerCase();
                 let code = row.querySelector('.redemption-code').textContent.toLowerCase();
                 let orderStatus = row.getAttribute('data-status');
+                let orderDate = row.getAttribute('data-date'); // yyyy-mm-dd
 
+                // Lógica de Texto
                 let matchesSearch = userId.includes(searchTerm) || orderId.includes(searchTerm) || code.includes(searchTerm);
+
+                // Lógica de Estado
                 let matchesStatus = (status === "todos" || orderStatus === status);
 
-                row.style.display = (matchesSearch && matchesStatus) ? "" : "none";
+                // Lógica de Datas
+                let matchesExactDate = true;
+                if (exactDate) {
+                    matchesExactDate = (orderDate === exactDate);
+                }
+
+                let matchesStartDate = true;
+                if (startDate) {
+                    matchesStartDate = (orderDate >= startDate);
+                }
+
+                // Aplicação Final
+                if (matchesSearch && matchesStatus && matchesExactDate && matchesStartDate) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
             });
         }
 
         function clearFilters() {
             document.getElementById('searchInput').value = "";
             document.getElementById('statusFilter').value = "todos";
+            document.getElementById('exactDateFilter').value = "";
+            document.getElementById('startDateFilter').value = "";
             filterTable();
         }
 
@@ -172,8 +203,6 @@
             $('#orderModal').modal('show');
             document.getElementById('modalContent').innerHTML =
                 '<div class="p-5 text-center"><div class="spinner-border text-color-ips" role="status"></div><p class="mt-2 text-muted">A carregar detalhes do pedido...</p></div>';
-
-            // Aqui chamaremos a Partial View via AJAX mais tarde
         }
     </script>
 }
