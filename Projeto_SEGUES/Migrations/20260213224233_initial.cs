@@ -271,7 +271,8 @@ namespace Projeto_SEGUES.Migrations
                     OrderDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     PriceAtTime = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     IsConsumed = table.Column<bool>(type: "bit", nullable: false),
-                    RedemptionCode = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false)
+                    RedemptionCode = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {

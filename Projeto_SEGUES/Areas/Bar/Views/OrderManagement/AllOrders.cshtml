@@ -1,0 +1,179 @@
+﻿@model IEnumerable<Projeto_SEGUES.Models.Bar.BarOrder>
+@{
+    ViewData["Title"] = "Histórico de Pedidos - SEGUES";
+}
+
+<div class="container mt-5">
+    @* Cabeçalho *@
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold title-underline mb-2">
+                <i class="bi bi-journal-text me-2 text-color-ips"></i>
+                Histórico Geral de Pedidos
+            </h2>
+            <p class="text-muted small mb-0">Gestão de transações e fluxo de entrega do Bar</p>
+        </div>
+        <a asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4" style="padding-top: 0.72rem; padding-bottom: 0.71rem;">
+            <i class="bi bi-arrow-left me-2"></i>Voltar
+        </a>
+    </div>
+
+    @* Filtros Estilizados *@
+    <div class="card shadow-sm border-0 mb-4 rounded-3">
+        <div class="card-body p-4">
+            <div class="row g-3 align-items-end text-start">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold text-uppercase small text-muted mb-1">Estado</label>
+                    <select class="form-select" id="statusFilter">
+                        <option value="todos">Todos os Estados</option>
+                        <option value="0">Pendente</option>
+                        <option value="1">Em preparação</option>
+                        <option value="2">Entrega Pendente</option>
+                        <option value="3">Entregue</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold text-uppercase small text-muted mb-1">Pesquisar Pedido</label>
+                    <input type="text" id="searchInput" class="form-control" placeholder="Nº Pedido, Código ou ID Utilizador...">
+                </div>
+                <div class="col-md-3 d-flex align-items-center gap-3 mt-2">
+                    <a href="javascript:void(0)" onclick="clearFilters()" class="text-muted small text-decoration-none d-flex align-items-center">
+                        Limpar <i class="bi bi-x-circle ms-1"></i>
+                    </a>
+                    <button type="button" onclick="filterTable()" class="btn btn-ips px-4 py-2 fw-bold text-uppercase shadow-sm">
+                        <i class="bi bi-search me-2"></i> PESQUISAR
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Tabela de Pedidos *@
+    <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
+        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold text-color-ips">
+                <i class="bi bi-receipt-cutoff me-2"></i>Registo de Pedidos
+            </h5>
+            <span class="badge bg-light text-dark border fs-6">Total: @(Model?.Count() ?? 0) registos</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 text-center" id="ordersTable">
+                <thead class="bg-color-ips text-white">
+                    <tr>
+                        <th class="ps-4 py-3 text-start">Utilizador</th>
+                        <th class="py-3">Nº Pedido</th>
+                        <th class="py-3">Código do Pedido</th>
+                        <th class="py-3">Data/Hora</th>
+                        <th class="py-3">Estado</th>
+                        <th class="pe-4 py-3">Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model == null || !Model.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox display-4 d-block mb-3 opacity-25"></i>
+                                Nenhum pedido registado no sistema.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var order in Model)
+                        {
+                            <tr class="order-row" data-status="@order.Status">
+                                <td class="ps-4 text-start small">
+                                    <span class="fw-bold user-id">@order.UserId</span>
+                                </td>
+                                <td class="fw-bold order-id">
+                                    #@order.Id.ToString("D5")
+                                </td>
+                                <td>
+                                    <code class="fw-bold text-color-ips bg-light px-2 py-1 rounded redemption-code">
+                                        @order.RedemptionCode
+                                    </code>
+                                </td>
+                                <td class="small">@order.OrderDate.ToString("dd/MM/yy HH:mm")</td>
+                                <td>
+                                    @switch (order.Status)
+                                    {
+                                        case 0:
+                                            <span class="badge bg-secondary px-3">Pendente</span>
+                                            break;
+                                        case 1:
+
+                                            <span class="badge bg-info text-dark px-3">Em preparação</span>
+                                            break;
+                                        case 2:
+
+                                            <span class="badge bg-warning text-dark px-3">Entrega Pendente</span>
+                                            break;
+                                        case 3:
+
+                                            <span class="badge bg-success px-3">Entregue</span>
+                                            break;
+                                    }
+                                </td>
+                                <td class="pe-4">
+                                    <button type="button" class="btn btn-sm btn-ips fw-bold px-3 shadow-sm"
+                                            onclick="loadOrderDetails(@order.Id)">
+                                        <i class="bi bi-search me-1"></i> Detalhes
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@* Modal (Popup) *@
+<div class="modal fade" id="orderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div id="modalContent">
+                @* Conteúdo carregado via AJAX *@
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function filterTable() {
+            let searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            let status = document.getElementById('statusFilter').value;
+            let rows = document.querySelectorAll('.order-row');
+
+            rows.forEach(row => {
+                let userId = row.querySelector('.user-id').textContent.toLowerCase();
+                let orderId = row.querySelector('.order-id').textContent.toLowerCase();
+                let code = row.querySelector('.redemption-code').textContent.toLowerCase();
+                let orderStatus = row.getAttribute('data-status');
+
+                let matchesSearch = userId.includes(searchTerm) || orderId.includes(searchTerm) || code.includes(searchTerm);
+                let matchesStatus = (status === "todos" || orderStatus === status);
+
+                row.style.display = (matchesSearch && matchesStatus) ? "" : "none";
+            });
+        }
+
+        function clearFilters() {
+            document.getElementById('searchInput').value = "";
+            document.getElementById('statusFilter').value = "todos";
+            filterTable();
+        }
+
+        function loadOrderDetails(id) {
+            $('#orderModal').modal('show');
+            document.getElementById('modalContent').innerHTML =
+                '<div class="p-5 text-center"><div class="spinner-border text-color-ips" role="status"></div><p class="mt-2 text-muted">A carregar detalhes do pedido...</p></div>';
+
+            // Aqui chamaremos a Partial View via AJAX mais tarde
+        }
+    </script>
+}

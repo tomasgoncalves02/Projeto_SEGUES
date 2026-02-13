@@ -12,7 +12,7 @@ using Projeto_SEGUES.Data;
 namespace Projeto_SEGUES.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260213152301_initial")]
+    [Migration("20260213224233_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -298,6 +298,9 @@ namespace Projeto_SEGUES.Migrations
                         .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
                     b.Property<string>("UserId")
                         .IsRequired()

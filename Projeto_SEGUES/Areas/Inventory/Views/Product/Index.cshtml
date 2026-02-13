@@ -1,0 +1,168 @@
+﻿@model Projeto_SEGUES.Areas.Inventory.ViewModels.BarProductViewModel
+@{
+    ViewData["Title"] = "Gestão de Inventário - SEGUES";
+    var products = ViewBag.Products as IEnumerable<Projeto_SEGUES.Models.Inventory.Product>;
+}
+
+<div class="container mt-5">
+    @* Cabeçalho principal *@
+    <div class="row mb-5 align-items-center">
+        <div class="col-md-6 text-start">
+            <h2 class="fw-bold title-underline mb-0">Gestão de Inventário</h2>
+            <p class="text-muted mt-2">Inventário de lanches e bebidas do Bar.</p>
+        </div>
+        <div class="col-md-6 text-end">
+            <a asp-area="Bar" asp-controller="OrderManagement" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4" style="padding-top: 0.72rem; padding-bottom: 0.71rem;">
+                <i class="bi bi-arrow-left me-2"></i>Voltar
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        @* LADO ESQUERDO: Formulário de Criação *@
+        <div class="col-lg-4 text-start">
+            <div class="card shadow-sm card-ips h-100">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="fw-bold mb-0 text-color-ips"><i class="bi bi-plus-circle me-2"></i>Novo Produto</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Create" method="post">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-uppercase small text-muted">Nome</label>
+                            <input asp-for="Product.Name" class="form-control" />
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-bold text-uppercase small text-muted">Preço (€)</label>
+                                <input asp-for="Product.Price" type="number" step="0.01" class="form-control fw-bold" />
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-bold text-uppercase small text-muted">Stock</label>
+                                <input asp-for="Product.Stock" type="number" class="form-control fw-bold" />
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-uppercase small text-muted">Descrição</label>
+                            <textarea asp-for="Product.Description" class="form-control" rows="3"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-ips w-100 py-3 fw-bold shadow-sm">
+                            <i class="bi bi-check-lg me-2"></i>CONFIRMAR REGISTO
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        @* LADO DIREITO: Filtro e Tabela *@
+        <div class="col-lg-8">
+            @* BARRA DE FILTROS INTEGRADA (Design idêntico à Auditoria) *@
+            <div class="card shadow-sm border-0 mb-4 rounded-3">
+                <div class="card-body p-4">
+                    <div class="row g-3 align-items-end text-start">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold text-uppercase small text-muted mb-1">Estado</label>
+                            <select class="form-select" id="statusFilter">
+                                <option value="todos">Todos</option>
+                                <option value="disponivel">Disponível</option>
+                                <option value="esgotado">Esgotado</option>
+                            </select>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold text-uppercase small text-muted mb-1">Pesquisar</label>
+                            <input type="text" id="searchInput" class="form-control" placeholder="Nome do produto...">
+                        </div>
+                        <div class="col-12 d-flex align-items-center gap-3 mt-2">
+                            <a href="javascript:void(0)" onclick="clearFilters()" class="text-muted small text-decoration-none d-flex align-items-center">
+                                Limpar Filtros <i class="bi bi-x-circle ms-1"></i>
+                            </a>
+                            <button type="button" onclick="filterTable()" class="btn btn-ips px-4 py-2 fw-bold text-uppercase d-flex align-items-center shadow-sm">
+                                <i class="bi bi-search me-2"></i> PESQUISAR
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* TABELA DE PRODUTOS *@
+            <div class="card shadow-sm card-ips rounded-3 overflow-hidden">
+                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-color-ips">
+                        <i class="bi bi-list-ul me-2"></i>Lista de Produtos
+                    </h5>
+                    <span class="badge bg-light text-dark border">@products?.Count() registos</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 text-center" id="productsTable">
+                        <thead class="bg-color-ips text-white">
+                            <tr>
+                                <th class="py-3 text-start ps-4">Produto</th>
+                                <th class="py-3 text-start">Descrição</th>
+                                <th class="py-3">Preço</th>
+                                <th class="py-3">Stock</th>
+                                <th class="py-3 text-center pe-4">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (products == null || !products.Any())
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center py-5 text-muted">
+                                        <i class="bi bi-inbox display-4 d-block mb-3 opacity-25"></i>
+                                        Nenhum produto encontrado.
+                                    </td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var p in products)
+                                {
+                                    <tr class="product-row" data-stock="@p.Stock">
+                                        <td class="fw-bold product-name text-start ps-4">@p.Name</td>
+                                        <td class="small text-muted text-start">@p.Description</td>
+                                        <td class="text-color-ips fw-bold">@p.Price.ToString("C")</td>
+                                        <td>
+                                            <span class="badge @(p.Stock < 5 ? "bg-danger" : "bg-success")">@p.Stock</span>
+                                        </td>
+                                        <td class="text-center pe-4">
+                                            <a class="text-color-ips fs-5 me-2" style="cursor:pointer;"><i class="bi bi-pencil-square"></i></a>
+                                            <a class="text-danger fs-5" style="cursor:pointer;"><i class="bi bi-trash"></i></a>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function filterTable() {
+            let searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            let status = document.getElementById('statusFilter').value;
+            let rows = document.querySelectorAll('.product-row');
+
+            rows.forEach(row => {
+                let name = row.querySelector('.product-name').textContent.toLowerCase();
+                let stock = parseInt(row.getAttribute('data-stock'));
+
+                let matchesSearch = name.includes(searchTerm);
+                let matchesStatus = true;
+
+                if (status === "disponivel") matchesStatus = stock > 0;
+                else if (status === "esgotado") matchesStatus = stock <= 0;
+
+                row.style.display = (matchesSearch && matchesStatus) ? "" : "none";
+            });
+        }
+
+        function clearFilters() {
+            document.getElementById('searchInput').value = "";
+            document.getElementById('statusFilter').value = "todos";
+            filterTable();
+        }
+    </script>
+}
