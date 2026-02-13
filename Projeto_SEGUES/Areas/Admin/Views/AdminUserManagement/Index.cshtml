@@ -9,10 +9,8 @@
     ViewData["Title"] = "Lista de Utilizadores";
     var roles = ViewBag.Roles as List<SelectListItem> ?? [];
     var categories = ViewBag.Categories as List<SelectListItem> ?? [];
-    var combinedFilters = roles
-        .Where(r => r.Value != "Client")
-        .Concat(categories).ToList();
     var currentRole = ViewData["CurrentRole"] as string ?? "";
+    var currentCategory = ViewData["CurrentCategory"] as string ?? "";
 }
 
 <div class="container mt-5">
@@ -47,10 +45,24 @@
                         <label for="roleFilter" class="col-form-label fw-bold small me-3">Role:</label>
                         <select id="roleFilter" name="roleFilter" class="form-select border-0 bg-light"
                                 onchange="this.form.submit()" style="border-radius: 8px;">
-                            <option value="" selected=@(string.IsNullOrEmpty(currentRole) ? "selected" : null)>Todos os Utilizadores</option>
-                            @foreach (var r in combinedFilters)
+                            <option value="" selected=@(string.IsNullOrEmpty(currentRole) ? "selected" : null)>Todos os Roles</option>
+                            @foreach (var r in roles)
                             {
                                 <option value="@r.Value" selected=@(r.Value == currentRole ? "selected" : null)>@r.Text</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                @* CategoryFilter *@
+                <div class="col-md-auto">
+                    <div class="input-group flex-nowrap">
+                        <label for="categoryFilter" class="col-form-label fw-bold small me-3">Categoria:</label>
+                        <select id="categoryFilter" name="categoryFilter" class="form-select border-0 bg-light"
+                                onchange="this.form.submit()" style="border-radius: 8px;">
+                            <option value="" selected=@(string.IsNullOrEmpty(currentCategory) ? "selected" : null)>Todas as Categorias</option>
+                            @foreach (var r in categories)
+                            {
+                                <option value="@r.Value" selected=@(r.Value == currentCategory ? "selected" : null)>@r.Text</option>
                             }
                         </select>
                     </div>
@@ -72,6 +84,7 @@
                     <th class="ps-4 py-3">Nome</th>
                     <th class="py-3">Email</th>
                     <th class="py-3">Role</th>
+                    <th class="py-3">Categoria</th>
                     <th class="py-3">Saldo</th>
                     <th class="pe-4 py-3">Ações</th>
                 </tr>
@@ -96,21 +109,20 @@
                             @{
                                 var userRoles = await UserManager.GetRolesAsync(user);
                                 var userRole = userRoles.FirstOrDefault() ?? "Client";
+                                var roleText = roles.Find(r => r.Value == userRole)?.Text!;
+                            }
+                            <span class="badge @userRole.ToBadgeClass()" style="min-width: 100px; padding: 8px;">
+                                @roleText.ToUpper()
+                            </span>
+                        </td>
+                        @* Category *@
+                        <td>
+                            @{
                                 var categoryName = user.UserCategory.Name;
-                                var roleText = roles.Find(r => userRole != "Client" && r.Value == userRole)?.Text ?? categoryName;
                             }
-                            @if (userRole == "Client")
-                            {
-                                <span class="badge @categoryName.ToBadgeClass()" style="min-width: 100px; padding: 8px;">
-                                    @roleText.ToUpper()
-                                </span>
-                            }
-                            else
-                            {
-                                <span class="badge @userRole.ToBadgeClass()" style="min-width: 100px; padding: 8px;">
-                                    @roleText.ToUpper()
-                                </span>
-                            }
+                            <span class="badge @categoryName.ToBadgeClass()" style="min-width: 100px; padding: 8px;">
+                                @categoryName.ToUpper()
+                            </span>
                         </td>
                         @* Balance *@
                         <td class="fw-bold text-color-ips">@user.Balance.ToString("C")</td>

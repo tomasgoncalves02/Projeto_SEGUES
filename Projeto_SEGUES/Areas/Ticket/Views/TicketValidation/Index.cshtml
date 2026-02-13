@@ -4,167 +4,120 @@
     ViewData["Title"] = "Validar Senhas";
 }
 
-<style>
-    /* Estilo Institucional SEGUES */
-    
-    .card-segues {
-        border-radius: 15px;
-        border: none;
-        overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
-
-    .thead-teal {
-        background-color: #009697;
-        color: white;
-    }
-
-        .thead-teal th {
-            border: none;
-            padding: 12px;
-            font-weight: 500;
-        }
-
-    /* Input de Código Gigante */
-    .input-codigo {
-        letter-spacing: 8px;
-        text-transform: uppercase;
-        height: 90px;
-        border: 2px solid #eee;
-        transition: 0.3s;
-    }
-
-        .input-codigo:focus {
-            border-color: #009697;
-            box-shadow: 0 0 0 0.25rem rgba(0, 150, 151, 0.15);
-        }
-
-    /* Badges Sólidos conforme pedido anteriormente */
-    .badge-estado {
-        display: inline-block;
-        padding: 5px 12px;
-        border-radius: 6px;
-        color: white !important;
-        font-weight: bold;
-        font-size: 0.75rem;
-        min-width: 80px;
-        text-align: center;
-    }
-
-    .bg-usada {
-        background-color: #198754;
-    }
-    /* Verde sólido para validada */
-
-    /* Ajuste para a tabela não cortar */
-    .table-compact td {
-        padding: 10px 8px;
-        font-size: 0.9rem;
-    }
-</style>
-
-@* Usamos container-fluid para dar mais espaço lateral *@
+@* Container-fluid gives more lateral space *@
 <div class="container-fluid px-lg-5 mt-4">
-
+    @* Top row *@
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold title-underline">
-            <i class="bi bi-qr-code-scan me-2" style="color: #009697;"></i>Validar Senhas
+        <h2 class="fw-bold title-underline mb-0">
+            <i class="bi bi-qr-code-scan me-2 text-color-ips"></i>Validar Senhas
         </h2>
 
-        <a asp-area="Admin" asp-controller="Employee" asp-action="Index" class="btn fw-bold px-4"
-           style="border: 2px solid #009697; color: #009697; border-radius: 8px;">
+        <a asp-area="Admin" asp-controller="Employee" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4 rounded-3">
             <i class="bi bi-arrow-left me-2"></i>Voltar
         </a>
     </div>
 
-    <div class="row">
-        @* --- COLUNA ESQUERDA: INPUT --- *@
-        <div class="col-xl-4 col-lg-5 mb-4">
-            <div class="card card-segues h-100">
-                <div class="card-body text-center p-4 d-flex flex-column justify-content-center">
-                    <h4 class="fw-bold mb-4" style="color: #009697;">Leitura de Código</h4>
-
-                    <form asp-action="Index" method="post" id="validationForm">
+    <div class="row g-4">
+        @* Left column (input) *@
+        <div class="col-xl-5 col-lg-6">
+            <div class="card card-ips h-100 shadow-sm">
+                <div class="card-body text-center p-5 d-flex flex-column justify-content-center">
+                    <div class="mb-4">
+                        <div class="card-ips-icon mb-3">
+                            <i class="bi bi-qr-code-scan fs-1"></i>
+                        </div>
+                        <h4 class="fw-bold text-color-ips">Leitura de Código</h4>
+                        <p class="text-muted small">Aguardando leitura de QR Code ou RFID...</p>
+                    </div>
+                    @* Code form *@
+                    <form asp-action="Index" method="post" id="validationForm" autocomplete="off">
                         <div class="mb-4">
-                            <input asp-for="Code" id="Code"
-                                   class="form-control form-control-lg text-center fs-1 fw-bold input-codigo"
+                            <input asp-for="Code" id="TicketCodeInput"
+                                   class="form-control form-control-lg text-center code-input py-3"
                                    placeholder="XXXXXXXX" maxlength="8"
-                                   autofocus autocomplete="off" />
+                                   autofocus />
 
                             <span asp-validation-for="Code" class="text-danger mt-2 d-block small fw-bold"></span>
                         </div>
 
-                        <button type="submit" class="btn btn-lg w-100 py-3 fw-bold text-white shadow-sm"
-                                style="background-color: #009697; border: none; border-radius: 10px;">
+                        <button type="submit" class="btn btn-ips w-100 py-3 fw-bold shadow-sm rounded-3">
                             <i class="bi bi-check2-circle me-2"></i>VALIDAR AGORA
                         </button>
                     </form>
 
-                    <div class="mt-4 p-3 bg-light rounded-3">
-                        <small class="text-muted d-block">
-                            <i class="bi bi-info-circle me-1"></i> Use um leitor de laser ou digite o código de 8 dígitos.
+                    <div class="mt-4 p-3 bg-light rounded-3 border border-light">
+                        <small class="text-muted d-block fw-bold">
+                            <i class="bi bi-info-circle-fill me-1 text-color-ips"></i> Instruções: 
+                        </small>
+                        <small class="text-muted">
+                            Use um dispositivo de leitura ou digite manualmente o código de 8 dígitos.
                         </small>
                     </div>
                 </div>
             </div>
         </div>
 
-        @* --- COLUNA DIREITA: TABELA (Ajustada para não cortar) --- *@
-        <div class="col-xl-8 col-lg-7">
-            <div class="card card-segues h-100">
-                <div class="card-header bg-white py-3 border-0">
-                    <h5 class="mb-0 fw-bold text-secondary">
-                        <i class="bi bi-clock-history me-2 text-ips"></i>Histórico Recente
+        @* Right column *@
+        <div class="col-xl-7 col-lg-6">
+            <div class="card shadow-sm border-0 h-100 rounded-3 overflow-hidden">
+                <div class="card-header bg-white py-3 border-bottom d-flex align-items-center">
+                    <h5 class="mb-0 fw-bold text-dark">
+                        <i class="bi bi-clock-history me-2 text-color-ips"></i>Histórico Recente
                     </h5>
                 </div>
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0 table-compact">
-                        <thead class="thead-teal">
+                    <table class="table table-hover align-middle mb-0 text-center">
+                        <thead class="bg-color-ips text-white">
                             <tr>
-                                <th class="ps-4">Código</th>
-                                <th>Utente</th>
-                                <th>Hora</th>
-                                <th class="text-center">Estado</th>
+                                <th class="ps-4 py-3">Código</th>
+                                <th class="ps-4 py-3">Cliente</th>
+                                <th class="ps-4 py-3">Hora</th>
+                                <th class="ps-4 py-3">Estado</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @if (Model.RecentTickets != null && Model.RecentTickets.Any())
-                            {
-                                @foreach (var ticket in Model.RecentTickets)
-                                {
-                                    <tr>
-                                        <td class="ps-4">
-                                            <code class="fw-bold fs-6" style="color: #009697;">@ticket.ValidationCode</code>
-                                        </td>
-                                        <td>
-                                            @if (ticket.Owner != null)
-                                            {
-                                                <div class="fw-bold text-dark text-truncate" style="max-width: 200px;">
-                                                    @ticket.Owner.FirstName @ticket.Owner.LastName
-                                                </div>
-                                                <div class="text-muted" style="font-size: 0.75rem;">@ticket.Owner.Email</div>
-                                            }
-                                            else
-                                            {
-                                                <span class="text-muted">Desconhecido</span>
-                                            }
-                                        </td>
-                                        <td class="text-muted">@ticket.UsedDate?.ToString("HH:mm")</td>
-                                        <td class="text-center">
-                                            <span class="badge-estado bg-usada">VALIDADA</span>
-                                        </td>
-                                    </tr>
-                                }
-                            }
-                            else
+                        @if (Model.RecentTickets.Any())
+                        {
+                            @foreach (var ticket in Model.RecentTickets)
                             {
                                 <tr>
-                                    <td colspan="4" class="text-center text-muted py-5">
-                                        <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
-                                        Aguardando validações...
+                                    <td class="ps-4">
+                                        <code class="fw-bold fs-6 text-color-ips bg-light px-2 py-1 rounded">
+                                            @ticket.ValidationCode
+                                        </code>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark text-truncate" style="max-width: 250px;">
+                                            @ticket.Owner.FirstName @ticket.Owner.LastName
+                                        </div>
+                                        <div class="text-muted small">@ticket.Owner.Email</div>
+                                    </td>
+                                    <td class="text-muted fw-bold">
+                                        <div class="fw-bold text-dark text-truncate" style="max-width: 250px;">
+                                            @ticket.UsedDate?.ToString("dd/MM/yyyy")
+                                        </div>
+                                        <div class="text-muted small">@ticket.UsedDate?.ToString("HH:mm")</div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success px-3">
+                                            <i class="bi bi-check-circle-fill me-1"></i> VALIDADA
+                                        </span>
                                     </td>
                                 </tr>
                             }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-5">
+                                    <div class="py-4">
+                                        <i class="bi bi-inbox fs-1 d-block mb-3 opacity-25"></i>
+                                        <span class="fw-bold">Nenhuma validação recente.</span>
+                                        <p class="small mb-0">As senhas validadas aparecerão aqui.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
                         </tbody>
                     </table>
                 </div>
@@ -172,47 +125,3 @@
         </div>
     </div>
 </div>
-@*
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            var successMsg = @Html.Raw(Json.Serialize(TempData["Success"]));
-            var errorMsg = @Html.Raw(Json.Serialize(TempData["Error"]));
-            var hasValidationErrors = @((!ViewData.ModelState.IsValid).ToString().ToLower());
-
-            if (successMsg) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Validado!',
-                    text: successMsg,
-                    confirmButtonColor: '#009697',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-            }
-
-            if (errorMsg) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Erro na Validação',
-                    text: errorMsg,
-                    confirmButtonColor: '#d33'
-                });
-            }
-
-            // Garante que o foco volta sempre para o input para a próxima leitura
-            const codeInput = document.getElementById("Code");
-            if(codeInput) {
-                codeInput.focus();
-                // Se o utilizador clicar fora, o foco volta após 3 segundos (útil para leitores de código)
-                document.addEventListener("click", () => {
-                    setTimeout(() => codeInput.focus(), 100);
-                });
-            }
-        });
-    </script>
-    
-}
-*@

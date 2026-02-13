@@ -2,115 +2,39 @@
     ViewData["Title"] = "Painel de Gestão";
 }
 
-<style>
-    /* Fundo suave para dar profundidade */
-    body {
-        background-color: #f8f9fa;
-    }
-
-    /* Contentor centralizado */
-    .validation-wrapper {
-        min-height: 70vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    /* Cartão de Ação Única */
-    .action-card {
-        border: none;
-        border-radius: 20px;
-        background: white;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        max-width: 500px;
-        width: 100%;
-    }
-
-        .action-card:hover {
-            transform: scale(1.02);
-            box-shadow: 0 15px 35px rgba(0, 150, 151, 0.15) !important;
-        }
-
-    /* Decoração superior */
-    .card-accent {
-        height: 8px;
-        background: var(--ips);
-        border-radius: 20px 20px 0 0;
-    }
-
-    /* ESTILIZAÇÃO DO ÍCONE MAIOR */
-    .icon-circle {
-        width: 110px;
-        height: 110px;
-        background: rgba(0, 150, 151, 0.08);
-        color: var(--ips);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 2rem auto;
-        font-size: 3.5rem; /* Ícone bem visível */
-        transition: all 0.4s ease;
-    }
-
-    .action-card:hover .icon-circle {
-        background: var(--ips);
-        color: white;
-        transform: rotate(10deg) scale(1.1);
-    }
-
-    .btn-validate {
-        background-color: var(--ips);
-        color: white;
-        border: none;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        transition: all 0.3s;
-    }
-
-        .btn-validate:hover {
-            background-color: #007a7b;
-            color: white;
-            box-shadow: 0 4px 15px rgba(0, 150, 151, 0.3);
-        }
-</style>
-
-<div class="container">
-    @* Cabeçalho Minimalista *@
-    <div class="pt-5 text-center">
-        <h2 class="fw-bold text-dark">Painel de Gestão</h2>
-        <div class="d-flex justify-content-center">
-            <hr style="width: 50px; border: 2px solid var(--ips); opacity: 1;">
-        </div>
+<div class="container d-flex flex-column align-items-center justify-content-center" style="min-height: 80vh;">
+    @* Header *@
+    <div class="text-center mb-5">
+        <h2 class="fw-bold title-underline mx-auto mb-2">Painel de Gestão</h2>
+        <p class="text-muted">Área de Funcionário</p>
     </div>
-
-    <div class="validation-wrapper">
-        <div class="card shadow-lg action-card">
-            <div class="card-accent"></div>
-            <div class="card-body p-5 text-center">
-
-                @* Ícone Flutuante *@
-                <div class="icon-circle shadow-sm">
-                    <i class="bi bi-shield-check"></i>
-                </div>
-
-                <h3 class="fw-bold mb-3" style="color: #333;">Validar Senhas</h3>
-
-                <p class="text-muted mb-5">
-                    Utilize esta ferramenta para confirmar a validade das senhas de refeição.
-                </p>
-
-                @* Botão de Ação Direta *@
-                <a asp-area="Ticket" asp-controller="TicketValidation" asp-action="Index" class="btn btn-validate w-100 py-3 rounded-pill shadow-sm">
-                    <i class="bi bi-qr-code-scan me-2"></i> Validar
+    
+    @* Card *@
+    <div class="card card-ips shadow-lg w-100" style="max-width: 480px;">
+        <div class="card-body p-5 text-center">
+            @* Icon *@
+            <div class="card-ips-icon mb-4">
+                <i class="bi bi-qr-code-scan fs-1"></i>
+            </div>
+            
+            <h3 class="fw-bold mb-3 text-dark">Validar Senhas</h3>
+            
+            <p class="text-muted mb-4 small">
+                Utilize esta ferramenta para confirmar a validade das senhas de refeição.
+            </p>
+            
+            @* Main Button *@
+            <a asp-area="Ticket" asp-controller="TicketValidation" asp-action="Index"
+               class="btn btn-ips w-100 py-3 rounded-pill fw-bold shadow-sm text-uppercase">
+                Validar <i class="bi bi-arrow-right ms-2 fs-6"></i>
+            </a>
+            
+            @* Footer Link *@
+            <div class="mt-4 pt-3 border-top">
+                <a asp-area="" asp-controller="Home" asp-action="Index" 
+                   class="text-muted small fw-bold">
+                    <i class="bi bi-chevron-left me-1 fs-6"></i> Voltar ao Início
                 </a>
-
-                <div class="mt-4">
-                    <a asp-area="" asp-controller="Home" asp-action="Index" class="text-decoration-none text-muted small fw-bold">
-                        <i class="bi bi-chevron-left"></i> Voltar ao Início
-                    </a>
-                </div>
             </div>
         </div>
     </div>

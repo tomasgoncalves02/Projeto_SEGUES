@@ -59,15 +59,6 @@ builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
-// Set culture
-builder.Services.Configure<RequestLocalizationOptions>(options =>
-{
-    var supportedCultures = new[] { "pt-PT"};
-    options.SetDefaultCulture(supportedCultures[0])
-        .AddSupportedCultures(supportedCultures)
-        .AddSupportedUICultures(supportedCultures);
-});
-
 // Adiciona isto antes do var app = builder.Build();
 builder.Services.AddHttpClient("MbWayClient", client =>
 {
@@ -75,6 +66,22 @@ builder.Services.AddHttpClient("MbWayClient", client =>
 });
 var app = builder.Build();
 
+// Set localization (first thing after build!)
+var supportedCultures = new[] { "pt-PT" };
+var localizationOptions = new RequestLocalizationOptions()
+    .SetDefaultCulture(supportedCultures[0])
+    .AddSupportedCultures(supportedCultures)
+    .AddSupportedUICultures(supportedCultures);
+
+/*
+ * This clears the providers. By default, ASP.NET checks the Browser's Language Header.
+ * If the browser is in English, it might try to override.
+ * Clearing this list forces the app to use the DefaultCulture (pt-PT) for EVERYONE.
+ */
+localizationOptions.RequestCultureProviders.Clear();
+
+app.UseRequestLocalization(localizationOptions);
+// Rest of pipeline after localization!
 
 using (var scope = app.Services.CreateScope())
 {

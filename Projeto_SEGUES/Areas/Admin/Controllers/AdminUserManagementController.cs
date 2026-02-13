@@ -23,11 +23,12 @@ public class AdminUserManagementController : Controller
         _adminService = adminService;
     }
     
-    public async Task<IActionResult> Index(string? searchString, string? roleFilter)
+    public async Task<IActionResult> Index(string? searchString, string? roleFilter, string? categoryFilter)
     {
-        var users = await _adminService.GetFilteredUsersAsync(searchString, roleFilter);
+        var users = await _adminService.GetFilteredUsersAsync(searchString, roleFilter, categoryFilter);
         ViewData["SearchString"] = searchString;
         ViewData["CurrentRole"] = roleFilter;
+        ViewData["CurrentCategory"] = categoryFilter;
         
         ViewBag.Roles = await _adminService.GetAllRolesForDropdownAsync();
         ViewBag.Categories = await _adminService.GetAllCategoriesForDropdownAsync();
@@ -101,6 +102,8 @@ public class AdminUserManagementController : Controller
             await _userManager.AddToRoleAsync(user, model.Role);
 
             TempData.SetSwalSuccess("Utilizador atualizado.");
+            // If the user is currently logged in and their role was changed, sign them out to refresh their claims
+            await _userManager.UpdateSecurityStampAsync(user);
             return RedirectToAction(nameof(Index));
         }
 

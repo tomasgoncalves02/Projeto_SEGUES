@@ -1,11 +1,7 @@
 using System.Security.Cryptography;
-using System.Text;
-using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.Ticket;
@@ -26,9 +22,7 @@ public class AdminService : IAdminService
         AppDbContext context, 
         UserManager<AppUser> userManager, 
         RoleManager<Role> roleManager, 
-        IEmailSender emailSender, 
-        LinkGenerator linkGenerator,
-        IHttpContextAccessor httpContextAccessor)
+        IEmailSender emailSender)
     {
         _context = context;
         _userManager = userManager;
@@ -139,7 +133,7 @@ public class AdminService : IAdminService
     /*
      * User Management
      */
-    public async Task<List<AppUser>> GetFilteredUsersAsync(string? searchString, string? roleFilter)
+    public async Task<List<AppUser>> GetFilteredUsersAsync(string? searchString, string? roleFilter, string? categoryFilter)
     {
         // All users
         var query = _userManager.Users.Include(u => u.UserCategory).AsQueryable();
@@ -153,12 +147,10 @@ public class AdminService : IAdminService
                                      || u.Email!.ToLower().Contains(searchString));
         }
         
-        // Role filter
-        if (string.IsNullOrWhiteSpace(roleFilter)) return await query.ToListAsync();
-        
-        roleFilter = roleFilter.Trim();
-        if (roleFilter is "Admin" or "Employee")
+        // Role
+        if (!string.IsNullOrEmpty(roleFilter))
         {
+            roleFilter = roleFilter.Trim();
             var role = await _roleManager.FindByNameAsync(roleFilter);
             if (role == null) return await query.ToListAsync();
                 
@@ -168,21 +160,12 @@ public class AdminService : IAdminService
 
             query = query.Where(u => userIdsInRole.Contains(u.Id));
         }
-        else
-        {
-            query = query.Where(u => u.UserCategory.Name == roleFilter);
-            
-            // Exclude Admins and Employees from category filter
-            var excludedRoleIds = await _roleManager.Roles
-                .Where(r => r.Name == "Admin" || r.Name == "Employee")
-                .Select(r => r.Id)
-                .ToListAsync();
-            var excludedUserIds = _context.UserRoles
-                .Where(ur => excludedRoleIds.Contains(ur.RoleId))
-                .Select(ur => ur.UserId);
-            query = query.Where(u => !excludedUserIds.Contains(u.Id));
-        }
+
+        if (string.IsNullOrEmpty(categoryFilter)) return await query.ToListAsync();
         
+        // Category
+        categoryFilter = categoryFilter.Trim();
+        query = query.Where(u => u.UserCategory.Name == categoryFilter);
         return await query.ToListAsync();
     }
 

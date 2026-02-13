@@ -32,6 +32,9 @@ function addEvents() {
     const qrBtnList = document.getElementsByClassName("showQr");
     for (let btn of qrBtnList)
         btn.addEventListener("click", () => showQr(btn.dataset.code));
+    
+    // Focus ticket code validation
+    setupTicketCodeValidation('TicketCodeInput');
 }
 
 /*
@@ -204,5 +207,17 @@ function showQr(code) {
                  </p>
               </div>`,
         backdrop: 'var(--ips-shadow-soft)'
+    });
+}
+
+// Ticket Code Validation
+function setupTicketCodeValidation(inputId) {
+    const codeInput = document.getElementById(inputId);
+    if (!codeInput) return;
+    document.addEventListener("DOMContentLoaded", function() {
+        codeInput.focus();
+        codeInput.addEventListener('blur', function() { 
+            setTimeout(() => this.focus(), 100); 
+        });
     });
 }
