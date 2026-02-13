@@ -74,7 +74,7 @@ public class AdminService : IAdminService
         const string lowercase = "abcdefghijklmnopqrstuvwxyz";
         const string uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         const string digits = "0123456789";
-        const string symbols = "!@#$%^&*()_+-=[]{}|;:,.<>?";
+        const string symbols = "!@#$%^&*()_+-=[]{}|;:,.?";
         const string allChars = lowercase + uppercase + digits + symbols;
     
         var password = new char[length];
