@@ -17,7 +17,7 @@
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label asp-for="FirstName" class="form-label fw-bold">Nome</label>
+                                <label asp-for="FirstName" class="form-label fw-bold">Primeiro Nome</label>
                                 <input asp-for="FirstName" class="form-control" placeholder="Nome"/>
                                 <span asp-validation-for="FirstName" class="text-danger small"></span>
                             </div>
@@ -44,7 +44,7 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label asp-for="BirthDate" class="form-label fw-bold">Data de Nascimento</label>
-                                <input asp-for="BirthDate" class="form-control" type="date"/>
+                                <input asp-for="BirthDate" class="form-control" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd")"/>
                                 <span asp-validation-for="BirthDate" class="text-danger small"></span>
                             </div>
                         </div>

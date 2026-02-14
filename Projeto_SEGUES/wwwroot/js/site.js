@@ -57,7 +57,7 @@ function showSwal(options) {
         allowOutsideClick: options.allowOutsideClick ?? true,
         allowEscapeKey: options.allowEscapeKey ?? true,
         showCloseButton: options.showCloseButton ?? false,
-        backdrop: options.backdrop || undefined,
+        backdrop: options.backdrop || "var(--ips-shadow-soft)",
         // Confirm Button
         showConfirmButton: options.showConfirmButton ?? true,
         confirmButtonText: options.confirmButtonText || 'OK',
@@ -169,10 +169,10 @@ function togglePasswordVisibility(toggleBtn, passwordInput) {
  * Input Validation and Formatting
  */
 function calculateTotal(quantityString, priceString) {
-    if (!quantityString || !priceString) return "0.00";
+    if (!quantityString || !priceString) return "0,00 €";
     const quantity = Number(quantityString) || 0;
     const price = Number(priceString) || 0;
-    return (quantity * price).toFixed(2);
+    return (quantity * price).toFixed(2).toString().replace('.', ',') + ' €';
 }
 
 /*

@@ -58,7 +58,7 @@
                         
                         @* Birth Date *@
                         <div class="form-floating mb-3">
-                            <input asp-for="Input.BirthDate" class="form-control" type="date" aria-required="true" value="@DateTime.Today"/>
+                            <input asp-for="Input.BirthDate" class="form-control" type="date" aria-required="true" value="@DateTime.Today.ToString("yyyy-MM-dd")"/>
                             <label asp-for="Input.BirthDate">Data de Nascimento</label>
                             <span asp-validation-for="Input.BirthDate" class="text-danger small"></span>
                         </div>

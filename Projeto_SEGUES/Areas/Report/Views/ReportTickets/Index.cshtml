@@ -1,5 +1,4 @@
 ﻿@model IEnumerable<Projeto_SEGUES.Models.Ticket.Ticket>
-@using Projeto_SEGUES.Models.Enums
 
 @{
     ViewData["Title"] = "Histórico de Senhas - SEGUES";
@@ -22,14 +21,14 @@
         </div>
     </div>
 
-    @* Barra de Filtros - Design Unificado *@
-    <div class="card shadow-sm mb-4 border-0 rounded-3">
+    @* Filters row *@
+    <div class="card card-ips shadow-sm mb-4 border-0 rounded-3">
         <div class="card-body p-4">
-            <form asp-area="Report" asp-controller="ReportTickets" asp-action="Index" method="get" class="row g-3 align-items-end text-start">
+            <form asp-area="Report" asp-controller="ReportTickets" asp-action="Index" method="get" class="row g-3 align-items-end">
 
                 @* State filter *@
-                <div class="col-md-2">
-                    <label for="stateFilter" class="form-label small fw-bold text-muted text-uppercase">Estado</label>
+                <div class="col-md-4 col-xl-2">
+                    <label for="stateFilter" class="form-label small fw-bold">Estado</label>
                     <select id="stateFilter" name="stateFilter" class="form-select form-select-sm" onchange="this.form.submit()">
                         <option value="">Todos</option>
                         <option value="Available" selected="@(ViewData["CurrentState"]?.ToString() == "Available")">Disponível</option>
@@ -39,16 +38,16 @@
                 </div>
 
                 @* Date filter *@
-                <div class="col-md-2">
-                    <label for="dateFilter" class="form-label small fw-bold text-muted text-uppercase text-nowrap">Compradas Em</label>
+                <div class="col-md-4 col-xl-2">
+                    <label for="dateFilter" class="form-label small fw-bold text-nowrap">Compradas Em</label>
                     <input id="dateFilter" type="date" name="dateFilter" class="form-control form-control-sm"
-                           value="@(ViewData["CurrentDate"] is DateTime dt ? dt.ToString("yyyy-MM-dd") : "")"
+                           value="@(ViewData["CurrentDate"] is DateTime dt ? dt.ToString("yyyy-MM-dd") : DateTime.Today.ToString("yyyy-MM-dd"))"
                            onchange="this.form.submit()">
                 </div>
 
                 @* Flow filter *@
-                <div class="col-md-2">
-                    <label for="flowFilter" class="form-label small fw-bold text-muted text-uppercase">Origem/Destino</label>
+                <div class="col-md-4 col-xl-2">
+                    <label for="flowFilter" class="form-label small fw-bold">Origem/Destino</label>
                     <select id="flowFilter" name="flowFilter" class="form-select form-select-sm" onchange="this.form.submit()">
                         <option value="">Todas</option>
                         <option value="Compradas" selected="@(ViewData["CurrentFlow"]?.ToString() == "Compradas")">Compradas</option>
@@ -58,21 +57,23 @@
                 </div>
 
                 @* Search filter *@
-                <div class="col-md-3">
-                    <label for="searchFilter" class="form-label small fw-bold text-muted text-uppercase">Pesquisar</label>
+                <div class="col-md-6 col-xl">
+                    <label for="searchFilter" class="form-label small fw-bold">Pesquisar</label>
                     <input id="searchFilter" type="text" name="searchString" class="form-control form-control-sm"
                            placeholder="Código ou Nome..." value="@ViewData["CurrentSearch"]" onchange="this.form.submit()">
                 </div>
 
-                @* Ações de Filtro - Botão com texto e link Limpar *@
-                <div class="col-md-3 d-flex align-items-center gap-3">
-                    <a asp-area="Report" asp-controller="ReportTickets" asp-action="Index"
-                       class="text-muted small text-decoration-none d-flex align-items-center text-nowrap">
-                        Limpar Filtros <i class="bi bi-x-circle ms-1"></i>
-                    </a>
-                    <button type="submit" class="btn btn-ips fw-bold px-4 py-2 text-uppercase shadow-sm d-flex align-items-center">
-                        <i class="bi bi-search me-2"></i> PESQUISAR
-                    </button>
+                @* Filter actions: Clean and Search *@
+                <div class="col-md-4 col-xl-auto text-end text-xl-start" style="width: fit-content">
+                    <div class="d-flex align-items-center justify-content-end justify-content-xl-start gap-3">
+                        <a asp-area="Report" asp-controller="ReportTickets" asp-action="Index"
+                           class="text-muted small text-decoration-none d-flex align-items-center text-nowrap btn-reset-x">
+                            Limpar filtros <i class="bi bi-x-circle ms-1"></i>
+                        </a>
+                        <button type="submit" class="btn btn-ips fw-bold px-3 py-2 shadow-sm d-flex align-items-center" style="height: 38px;">
+                            <i class="bi bi-search me-2"></i> PESQUISAR
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>

@@ -76,8 +76,8 @@
     </div>
 
     @* User table *@
-    <div class="card shadow-sm border-0 rounded-3">
-        <div class="table-responsive">
+    <div class="card shadow-sm border-0">
+        <div class="table-responsive rounded-3">
             <table class="table table-hover align-middle mb-0 text-center">
                 <thead class="bg-color-ips text-white">
                 <tr>
@@ -131,14 +131,15 @@
                                 <a asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Details" asp-route-id="@user.Id" class="btn btn-sm btn-ips" title="Detalhes">
                                     <i class="bi bi-eye"></i>
                                 </a>
-                                <a asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Edit" asp-route-id="@user.Id" class="btn btn-sm btn-outline-secondary" title="Editar">
+                                <a asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Edit" asp-route-id="@user.Id" 
+                                   class="btn btn-sm btn-outline-secondary m-md-0 border-start-0 @(user.Id != User.FindFirstValue(ClaimTypes.NameIdentifier) && user.Status != UserStatus.Inactive ? "border-end-0" : "")" title="Editar">
                                     <i class="bi bi-pencil"></i>
                                 </a>
                                 @if (user.Id != User.FindFirstValue(ClaimTypes.NameIdentifier) && user.Status != UserStatus.Inactive)
                                 {
                                     <form asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Deactivate" asp-route-id="@user.Id" method="post" 
                                           id="deactivate-form-@user.Id" style="display:inline;">
-                                        <button type="button" class="btn btn-sm btn-outline-danger" 
+                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-0 rounded-end" 
                                                 onclick="confirmDeactivate('@user.Id', '@user.FirstName @user.LastName')"
                                                 title="Desativar Conta">
                                             <i class="bi bi-trash"></i>
