@@ -6,44 +6,45 @@
 
 <div class="container mt-5">
     @* Cabeçalho principal *@
-    <div class="row mb-5 align-items-center">
-        <div class="col-md-6 text-start">
+    <div class="row mb-5 align-items-center text-start">
+        <div class="col-md-6">
             <h2 class="fw-bold title-underline mb-0">Gestão de Inventário</h2>
             <p class="text-muted mt-2">Inventário de lanches e bebidas do Bar.</p>
         </div>
         <div class="col-md-6 text-end">
-            <a asp-area="Bar" asp-controller="OrderManagement" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4" style="padding-top: 0.72rem; padding-bottom: 0.71rem;">
+            <a asp-area="Bar" asp-controller="OrderManagement" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4">
                 <i class="bi bi-arrow-left me-2"></i>Voltar
             </a>
         </div>
     </div>
 
-    <div class="row g-4">
-        @* LADO ESQUERDO: Formulário de Criação *@
-        <div class="col-lg-4 text-start">
-            <div class="card shadow-sm card-ips h-100">
+    <div class="row g-4 text-start">
+        @* FORMULÁRIO DE CRIAÇÃO (Sem Categorias) *@
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 h-100">
                 <div class="card-header bg-white py-3 border-0">
                     <h5 class="fw-bold mb-0 text-color-ips"><i class="bi bi-plus-circle me-2"></i>Novo Produto</h5>
                 </div>
                 <div class="card-body p-4">
                     <form asp-action="Create" method="post">
+                        @* Removemos ImageUrl e Category do ModelState no Controller *@
                         <div class="mb-3">
-                            <label class="form-label fw-bold small">Nome</label>
-                            <input asp-for="Product.Name" class="form-control" />
+                            <label class="form-label fw-bold small text-muted">NOME</label>
+                            <input asp-for="Product.Name" class="form-control" placeholder="Ex: Sandes de Atum" />
                         </div>
                         <div class="row mb-3">
                             <div class="col-6">
-                                <label class="form-label fw-bold small">Preço (€)</label>
-                                <input asp-for="Product.Price" type="number" step="0.01" class="form-control fw-bold" />
+                                <label class="form-label fw-bold small text-muted">PREÇO (€)</label>
+                                <input asp-for="Product.Price" type="number" step="0.01" class="form-control fw-bold text-color-ips" />
                             </div>
                             <div class="col-6">
-                                <label class="form-label fw-bold small">Stock</label>
+                                <label class="form-label fw-bold small text-muted">STOCK</label>
                                 <input asp-for="Product.Stock" type="number" class="form-control fw-bold" />
                             </div>
                         </div>
                         <div class="mb-4">
-                            <label class="form-label fw-bold small">Descrição</label>
-                            <textarea asp-for="Product.Description" class="form-control" rows="3"></textarea>
+                            <label class="form-label fw-bold small text-muted">DESCRIÇÃO</label>
+                            <textarea asp-for="Product.Description" class="form-control" rows="4" placeholder="Breve descrição do produto..."></textarea>
                         </div>
                         <button type="submit" class="btn btn-ips w-100 py-3 fw-bold shadow-sm">
                             <i class="bi bi-check-lg me-2"></i>CONFIRMAR REGISTO
@@ -53,29 +54,29 @@
             </div>
         </div>
 
-        @* LADO DIREITO: Filtro e Tabela *@
+        @* FILTRO E TABELA *@
         <div class="col-lg-8">
-            @* BARRA DE FILTROS INTEGRADA (Design idêntico à Auditoria) *@
-            <div class="card card-ips shadow-sm border-0 mb-4 rounded-3">
+            <div class="card shadow-sm border-0 mb-4 rounded-3">
                 <div class="card-body p-4">
-                    <div class="row g-3 align-items-end text-start">
+                    <div class="row g-3 align-items-end">
                         <div class="col-md-4">
-                            <label class="form-label fw-bold small mb-1">Estado</label>
+                            <label class="form-label fw-bold small text-muted mb-1 text-uppercase">Estado</label>
                             <select class="form-select" id="statusFilter">
                                 <option value="todos">Todos</option>
                                 <option value="disponivel">Disponível</option>
+                                <option value="baixo-stock">Baixo Stock (< 5)</option>
                                 <option value="esgotado">Esgotado</option>
                             </select>
                         </div>
                         <div class="col-md-8">
-                            <label class="form-label fw-bold small mb-1">Pesquisar</label>
+                            <label class="form-label fw-bold small text-muted mb-1 text-uppercase">Pesquisar</label>
                             <input type="text" id="searchInput" class="form-control" placeholder="Nome do produto...">
                         </div>
                         <div class="col-12 d-flex align-items-center gap-3 mt-2">
                             <a href="javascript:void(0)" onclick="clearFilters()" class="text-muted small text-decoration-none d-flex align-items-center">
                                 Limpar Filtros <i class="bi bi-x-circle ms-1"></i>
                             </a>
-                            <button type="button" onclick="filterTable()" class="btn btn-ips px-4 py-2 fw-bold text-uppercase d-flex align-items-center shadow-sm">
+                            <button type="button" onclick="filterTable()" class="btn btn-ips px-4 py-2 fw-bold text-uppercase shadow-sm">
                                 <i class="bi bi-search me-2"></i> PESQUISAR
                             </button>
                         </div>
@@ -83,12 +84,10 @@
                 </div>
             </div>
 
-            @* TABELA DE PRODUTOS *@
-            <div class="card shadow-sm card-ips rounded-3 overflow-hidden">
+            @* TABELA *@
+            <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
                 <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 fw-bold text-color-ips">
-                        <i class="bi bi-list-ul me-2"></i>Lista de Produtos
-                    </h5>
+                    <h5 class="mb-0 fw-bold text-color-ips"><i class="bi bi-list-ul me-2"></i>Lista de Produtos</h5>
                     <span class="badge bg-light text-dark border">@products?.Count() registos</span>
                 </div>
                 <div class="table-responsive">
@@ -96,7 +95,6 @@
                         <thead class="bg-color-ips text-white">
                             <tr>
                                 <th class="py-3 text-start ps-4">Produto</th>
-                                <th class="py-3 text-start">Descrição</th>
                                 <th class="py-3">Preço</th>
                                 <th class="py-3">Stock</th>
                                 <th class="py-3 text-center pe-4">Ação</th>
@@ -106,7 +104,7 @@
                             @if (products == null || !products.Any())
                             {
                                 <tr>
-                                    <td colspan="5" class="text-center py-5 text-muted">
+                                    <td colspan="4" class="text-center py-5 text-muted">
                                         <i class="bi bi-inbox display-4 d-block mb-3 opacity-25"></i>
                                         Nenhum produto encontrado.
                                     </td>
@@ -118,14 +116,29 @@
                                 {
                                     <tr class="product-row" data-stock="@p.Stock">
                                         <td class="fw-bold product-name text-start ps-4">@p.Name</td>
-                                        <td class="small text-muted text-start">@p.Description</td>
                                         <td class="text-color-ips fw-bold">@p.Price.ToString("C")</td>
                                         <td>
-                                            <span class="badge @(p.Stock < 5 ? "bg-danger" : "bg-success")">@p.Stock</span>
+                                            <span class="badge @(p.Stock <= 0 ? "bg-danger" : (p.Stock < 5 ? "bg-warning text-dark" : "bg-success")) px-3">@p.Stock</span>
                                         </td>
                                         <td class="text-center pe-4">
-                                            <a class="text-color-ips fs-5 me-2" style="cursor:pointer;"><i class="bi bi-pencil-square"></i></a>
-                                            <a class="text-danger fs-5" style="cursor:pointer;"><i class="bi bi-trash"></i></a>
+                                            <div class="btn-group shadow-sm">
+                                                @* Botão Ver (Olho) *@
+                                                <button type="button" class="btn btn-sm btn-ips" title="Detalhes"
+                                                        onclick="showProductDetails(@p.Id, '@p.Name', '@p.Description', '@p.Price', @p.Stock)">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                @* Botão Editar *@
+                                                <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-sm btn-outline-secondary" title="Editar">
+                                                    <i class="bi bi-pencil-square"></i>
+                                                </a>
+                                                @* Botão Eliminar *@
+                                                <form asp-action="Delete" asp-route-id="@p.Id" method="post" id="delete-form-@p.Id" style="display:inline;">
+                                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-0 rounded-end"
+                                                            onclick="confirmDelete('@p.Id', '@p.Name')" title="Eliminar">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </td>
                                     </tr>
                                 }
@@ -138,8 +151,59 @@
     </div>
 </div>
 
+@* MODAL DE DETALHES (Sem Categoria) *@
+<div class="modal fade" id="productModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered text-start">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-color-ips text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-info-circle me-2"></i>Detalhes do Produto</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-4">
+                    <label class="fw-bold text-muted small text-uppercase mb-1 d-block">Nome do Produto</label>
+                    <span id="view-name" class="fs-5 fw-bold text-color-ips"></span>
+                </div>
+                <div class="mb-4">
+                    <label class="fw-bold text-muted small text-uppercase mb-1 d-block">Descrição</label>
+                    <p id="view-description" class="text-muted mb-0 bg-light p-3 rounded border-start border-4 border-color-ips"></p>
+                </div>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border rounded p-3 bg-light">
+                            <label class="fw-bold text-muted small text-uppercase d-block">Preço</label>
+                            <span id="view-price" class="fw-bold text-color-ips fs-4"></span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="border rounded p-3 bg-light">
+                            <label class="fw-bold text-muted small text-uppercase d-block">Stock</label>
+                            <span id="view-stock" class="fw-bold fs-4"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-ips-outline-secondary fw-bold px-4" data-bs-dismiss="modal">FECHAR</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
+        function showProductDetails(id, name, description, price, stock) {
+            document.getElementById('view-name').innerText = name;
+            document.getElementById('view-description').innerText = description || "Sem descrição disponível.";
+            document.getElementById('view-price').innerText = price + " €";
+
+            const stockElem = document.getElementById('view-stock');
+            stockElem.innerText = stock;
+            stockElem.className = "fw-bold fs-4 " + (stock <= 0 ? "text-danger" : (stock < 5 ? "text-warning" : "text-success"));
+
+            new bootstrap.Modal(document.getElementById('productModal')).show();
+        }
+
         function filterTable() {
             let searchTerm = document.getElementById('searchInput').value.toLowerCase();
             let status = document.getElementById('statusFilter').value;
@@ -150,10 +214,10 @@
                 let stock = parseInt(row.getAttribute('data-stock'));
 
                 let matchesSearch = name.includes(searchTerm);
-                let matchesStatus = true;
-
-                if (status === "disponivel") matchesStatus = stock > 0;
-                else if (status === "esgotado") matchesStatus = stock <= 0;
+                let matchesStatus = (status === "todos") ||
+                                    (status === "disponivel" && stock > 0) ||
+                                    (status === "baixo-stock" && stock > 0 && stock < 5) ||
+                                    (status === "esgotado" && stock <= 0);
 
                 row.style.display = (matchesSearch && matchesStatus) ? "" : "none";
             });
@@ -163,6 +227,18 @@
             document.getElementById('searchInput').value = "";
             document.getElementById('statusFilter').value = "todos";
             filterTable();
+        }
+
+        function confirmDelete(productId, productName) {
+            Notifications.confirm(
+                '',
+                `Tem a certeza que deseja eliminar o produto <b>${productName}</b>?<br>
+                 <small class='text-muted'>Esta ação removerá permanentemente o item do inventário.</small>`,
+            ).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('delete-form-' + productId).submit();
+                }
+            });
         }
     </script>
 }

@@ -18,7 +18,7 @@ namespace Projeto_SEGUES.Areas.Inventory.ViewModels
             {
                 Name = string.Empty,
                 Description = string.Empty,
-                ImageUrl = string.Empty,
+                //ImageUrl = string.Empty,
                 Category = null! 
             };
         }

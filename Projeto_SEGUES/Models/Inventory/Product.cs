@@ -12,17 +12,17 @@ namespace Projeto_SEGUES.Models.Inventory
         [Display(Name = "Nome")]
         public required string Name { get; set; }
         
-        [Required]
+        //[Required]
         [MaxLength(250)]
         [Display(Name = "Descrição")]
         public required string Description { get; set; }
         
-        [Required]
-        [MaxLength(100)]
-        public required string ImageUrl { get; set; }
+        //[Required]
+        /*[MaxLength(100)]
+        public required string ImageUrl { get; set; }*/
         
-        [Required]
-        public required ProductCategory Category { get; set; } // FK
+        //[Required]
+        public ProductCategory? Category { get; set; } // FK
         
         [Range(0, double.MaxValue)]
         [Display(Name = "Preço")]
