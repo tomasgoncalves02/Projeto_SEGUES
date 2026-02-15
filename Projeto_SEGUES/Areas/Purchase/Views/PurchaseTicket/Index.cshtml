@@ -79,7 +79,7 @@
                         @* O HTMX vai atualizar este tbody a cada 5 segundos *@
                         <tbody id="ticket-history-body"
                                hx-get="/Ticket/Ticket/GetUpdatedTickets"
-                               hx-trigger="every 1s"
+                               hx-trigger="every 2s"
                                hx-swap="innerHTML">
                             <partial name="_TicketTable" model="Model" />
                         </tbody>
@@ -92,27 +92,31 @@
 
 @section Scripts {
     <script>
+        // Referência ao formulário
         const purchaseTicketForm = document.getElementById('purchaseTicketForm');
+
         if (purchaseTicketForm) {
-            // Update total value
             const quantityInput = document.getElementById('quantityInput');
-            quantityInput.addEventListener('change', function() {
+
+            // Atualiza o total usando a função calculateTotal do teu ficheiro original
+            quantityInput.addEventListener('input', function() {
                 const totalDisplay = document.getElementById('totalValue');
-                if (!totalDisplay) return;
-                const quantityString = this?.value;
-                const priceString = document.getElementById('unitPrice')?.textContent;
-                totalDisplay.textContent = calculateTotal(quantityString, priceString);
+                const unitPrice = document.getElementById('unitPrice')?.textContent;
+                if (totalDisplay) {
+                    totalDisplay.textContent = calculateTotal(this.value, unitPrice);
+                }
             });
-            // Confirmation popup and submit
+
+            // Submissão usando o Notifications.confirm do teu ficheiro original
             purchaseTicketForm.addEventListener('submit', function(e) {
-                e.preventDefault(); // Prevent immediate submission
-                const quantity = document.getElementById('quantityInput')?.value;
+                e.preventDefault();
+                const quantity = quantityInput.value;
                 const totalValue = document.getElementById('totalValue')?.textContent;
+
                 Notifications.confirm(null,
-                    `Deseja comprar <b>${quantity}</b> senha(s)?<br>Total a descontar: <b>${totalValue}</b>`,
+                    `Deseja comprar <b>${quantity}</b> senha(s)?<br>Total a descontar: <b>${totalValue}</b>`
                 ).then((result) => {
                     if (result.isConfirmed) {
-                        // If user confirmed, submit the form
                         purchaseTicketForm.submit();
                     }
                 });

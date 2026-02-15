@@ -63,4 +63,17 @@ public class TicketController : Controller
         // Certifica-te que a vista está em Views/Shared/ para ser encontrada aqui
         return PartialView("_TicketTable", tickets);
     }
+
+    [HttpGet]
+    public async Task<IActionResult> GetUpdatedActiveTickets()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Unauthorized();
+
+        // Utiliza o serviço para buscar apenas as senhas ativas (Available)
+        var activeTickets = await _ticketService.GetActiveTicketsAsync(user.Id);
+
+        // Retorna apenas a Partial View para o htmx atualizar os cartões
+        return PartialView("_ActiveTicketsCards", activeTickets);
+    }
 }

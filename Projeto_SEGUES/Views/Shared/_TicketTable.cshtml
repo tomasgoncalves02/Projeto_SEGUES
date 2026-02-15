@@ -15,7 +15,8 @@
         <td class="text-center">
             @if (item.State == TicketState.Available)
             {
-                <button type="button" class="btn btn-ips btn-sm fw-bold showQr" data-code="@item.ValidationCode">
+                <button type="button" class="btn btn-ips btn-sm fw-bold"
+                        onclick="showQr('@item.ValidationCode')">
                     <i class="bi bi-qr-code"></i>
                 </button>
             }
