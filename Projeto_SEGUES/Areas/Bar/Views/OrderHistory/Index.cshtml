@@ -1,0 +1,135 @@
+﻿@model IEnumerable<Projeto_SEGUES.Areas.Bar.ViewModels.OrderHistoryViewModel>
+@{
+    ViewData["Title"] = "Histórico de Bar - SEGUES";
+}
+
+<div class="container mt-5 text-start">
+    @* Cabeçalho *@
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-8">
+            <h1 class="fw-bold title-underline mb-0">Histórico de Bar</h1>
+            <p class="text-muted mt-2">Consulta detalhada de todas as suas compras no Bar.</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-ips-outline-secondary px-4 fw-bold">Voltar</a>
+        </div>
+    </div>
+
+    @* Filtros *@
+    <div class="card card-ips shadow-sm mb-4">
+        <div class="card-body p-4 filter-bar">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold small">Estado</label>
+                    <select class="form-select" id="statusFilter" onchange="filterHistory()">
+                        <option value="todos">Todos</option>
+                        <option value="0">Pendente</option>
+                        <option value="1">Em preparação</option>
+                        <option value="2">Entrega Pendente</option>
+                        <option value="3">Entregue</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold small">Compradas em</label>
+                    <input type="date" id="dateFilter" class="form-control" onchange="filterHistory()" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold small">Pesquisar</label>
+                    <input type="text" id="searchInput" class="form-control" placeholder="Código ou nome" onkeyup="filterHistory()" />
+                </div>
+                <div class="col-md-3 d-flex align-items-center gap-2">
+                    <a href="javascript:void(0)" onclick="clearFilters()" class="btn-reset-x text-nowrap">Limpar Filtros <i class="bi bi-x-circle"></i></a>
+                    <button type="button" onclick="filterHistory()" class="btn btn-ips w-100 fw-bold shadow-sm">PESQUISAR</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Tabela Completa *@
+    <div class="card card-ips shadow-sm overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 text-center" id="historyTable">
+                <thead class="bg-color-ips text-white">
+                    <tr>
+                        <th class="py-3">Código</th>
+                        <th class="py-3">Data de compra</th>
+                        <th class="py-3">Hora de Recolha</th>
+                        <th class="py-3">Estado</th>
+                        <th class="py-3">Validade</th>
+                        <th class="py-3">Recolhido em</th>
+                        <th class="py-3">Produtos</th>
+                        <th class="py-3">Preço</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="8" class="py-5 text-muted">Nenhum pedido encontrado.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var item in Model)
+                        {
+                            <tr class="history-row" data-estado="@item.StatusValue" data-data="@item.DataCompra.ToString("yyyy-MM-dd")">
+                                <td class="fw-bold text-color-ips">@item.Codigo</td>
+                                <td>@item.DataCompra.ToString("dd/MM/yyyy")</td>
+                                <td>@item.HoraRecolha</td>
+                                <td>
+                                    <span class="fw-bold @(item.StatusValue == 0 ? "text-color-ips" : "text-muted")">
+                                        @item.Estado
+                                    </span>
+                                </td>
+                                <td>@item.Validade.ToString("dd/MM/yyyy")</td>
+                                <td>@(item.RecolhidoEm ?? "---")</td>
+                                <td>
+                                    <button class="btn btn-sm btn-ips shadow-sm"><i class="bi bi-eye"></i></button>
+                                </td>
+                                <td class="fw-bold text-color-ips">@item.PrecoTotal.ToString("C")</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        /**
+         * Filtra a tabela localmente por texto, estado e data
+         */
+        function filterHistory() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const status = document.getElementById('statusFilter').value;
+            const date = document.getElementById('dateFilter').value;
+            const rows = document.querySelectorAll('.history-row');
+
+            rows.forEach(row => {
+                const codigo = row.cells[0].textContent.toLowerCase();
+                const rowStatus = row.getAttribute('data-estado');
+                const rowDate = row.getAttribute('data-data');
+
+                const matchesSearch = codigo.includes(search);
+                const matchesStatus = (status === "todos" || rowStatus === status);
+                const matchesDate = (date === "" || rowDate === date);
+
+                if (matchesSearch && matchesStatus && matchesDate) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        }
+
+        /**
+         * Limpa todos os campos de filtro
+         */
+        function clearFilters() {
+            document.getElementById('searchInput').value = "";
+            document.getElementById('statusFilter').value = "todos";
+            document.getElementById('dateFilter').value = "";
+            filterHistory();
+        }
+    </script>
+}
