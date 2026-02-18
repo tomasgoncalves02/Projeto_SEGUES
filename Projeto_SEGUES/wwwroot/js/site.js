@@ -265,3 +265,90 @@ function handleEditNameSubmit() {
     Swal.close();
 }
 
+/* ==========================================
+   Novas Funcionalidades: Inventário e Bar
+   ========================================== */
+
+/**
+ * Filtra tabelas genericamente por texto e estado.
+ * Usado no Inventário, Histórico e Pedidos.
+ */
+function filterTableGeneric(tableId, searchInputId, statusFilterId, rowClass) {
+    const searchTerm = document.getElementById(searchInputId).value.toLowerCase();
+    const status = statusFilterId ? document.getElementById(statusFilterId).value : "todos";
+    const rows = document.querySelectorAll(`.${rowClass}`);
+
+    rows.forEach(row => {
+        const textContent = row.innerText.toLowerCase();
+        const rowStatus = row.getAttribute('data-estado') || row.getAttribute('data-stock');
+
+        const matchesSearch = textContent.includes(searchTerm);
+        const matchesStatus = (status === "todos" || rowStatus === status);
+
+        row.style.display = (matchesSearch && matchesStatus) ? "" : "none";
+    });
+}
+
+/**
+ * Lógica do Carrinho de Compras (Efetuar Pedido)
+ */
+let cartCount = 0;
+function updateCartBadge(quantity) {
+    cartCount += parseInt(quantity);
+    const badge = document.getElementById('cart-count');
+    if (badge) {
+        badge.innerText = cartCount;
+        badge.style.display = cartCount > 0 ? "block" : "none";
+    }
+}
+
+/**
+ * Formatação de Moeda para Modais (Portugal)
+ */
+function formatCurrency(value) {
+    return new Intl.NumberFormat('pt-PT', {
+        style: 'currency',
+        currency: 'EUR'
+    }).format(value);
+}
+
+/**
+ * Exibe Detalhes do Produto no Inventário (BarProductViewModel)
+ */
+function showProductDetails(id, name, description, price, stock) {
+    const nameElem = document.getElementById('view-name');
+    const descElem = document.getElementById('view-description');
+    const priceElem = document.getElementById('view-price');
+    const stockElem = document.getElementById('view-stock');
+
+    if (nameElem) nameElem.innerText = name;
+    if (descElem) descElem.innerText = description || "Sem descrição disponível.";
+    if (priceElem) priceElem.innerText = formatCurrency(price.replace(',', '.'));
+
+    if (stockElem) {
+        stockElem.innerText = stock;
+        stockElem.className = "fw-bold fs-4 " +
+            (stock <= 0 ? "text-danger" : (stock < 5 ? "text-warning" : "text-success"));
+    }
+
+    const modalElem = document.getElementById('productModal');
+    if (modalElem) {
+        new bootstrap.Modal(modalElem).show();
+    }
+}
+
+/**
+ * Confirmação de Eliminação Customizada usando o teu objeto Notifications
+ */
+function confirmDelete(id, name, formPrefix) {
+    Notifications.confirm(
+        '',
+        `Tem a certeza que deseja eliminar <b>${name}</b>?<br>` +
+        `<small class='text-muted'>Esta ação não pode ser revertida.</small>`
+    ).then((result) => {
+        if (result.isConfirmed) {
+            document.getElementById(`${formPrefix}${id}`).submit();
+        }
+    });
+}
+

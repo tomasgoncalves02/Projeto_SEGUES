@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Projeto_SEGUES.Areas.Bar.ViewModels;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.Bar;
 
@@ -32,6 +33,25 @@ namespace Projeto_SEGUES.Areas.Bar.Controllers
                 .ToListAsync();
 
             return View(history);
+        }
+
+        [Area("Bar")]
+        public async Task<IActionResult> CreateOrder()
+        {
+            // Vamos buscar os produtos que têm stock disponível na Gestão de Inventário
+            var products = await _context.Products
+                .Where(p => p.Stock > 0)
+                .Select(p => new ProductItemViewModel
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description,
+                    Price = p.Price,
+                    Stock = p.Stock
+                }).ToListAsync();
+
+            var model = new PlaceOrderViewModel { AvailableProducts = products };
+            return View(model);
         }
     }
 }
