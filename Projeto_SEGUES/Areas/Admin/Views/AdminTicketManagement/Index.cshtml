@@ -43,17 +43,20 @@
                                 @for (int i = 0; i < prices.Count; i++)
                                 {
                                     <div class="col-md">
-                                        <label class="form-label small fw-bold">@prices[i].UserCategory.Name</label>
+                                        <input type="hidden" name="updatedPrices[@i].Id" value="@prices[i].Id" />
+                                        <input type="hidden" name="updatedPrices[@i].UserCategory.Id" value="@prices[i].UserCategory.Id" />
+                                        <input type="hidden" name="updatedPrices[@i].UserCategory.Name" value="@prices[i].UserCategory.Name" />
 
-                                        @* Crucial: Enviar o ID para o FindAsync funcionar *@
-                                        <input type="hidden" name="[@i].Id" value="@prices[i].Id" />
+                                        <label class="form-label small fw-bold">@prices[i].UserCategory.Name</label>
 
                                         <div class="input-group">
                                             <span class="input-group-text">€</span>
-                                            @* lang="en-US" força o uso do ponto para o C# não se confundir *@
-                                            <input type="number" step="0.01" lang="en-US" name="[@i].Price"
-                                                   class="form-control fw-bold"
-                                                   value="@prices[i].Price.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)" />
+                                            <input type="text"
+                                                   name="updatedPrices[@i].Price"
+                                                   class="form-control fw-bold decimal-input"
+                                                   value="@prices[i].Price.ToString("N2", new System.Globalization.CultureInfo("pt-PT"))"                                           
+                                                   onkeypress="if(event.which == 46) return false;"
+                                                   oninput="this.value = this.value.replace('.', ',')" />
                                         </div>
                                     </div>
                                 }
@@ -164,3 +167,12 @@
         </div>
     </div>
 </div>
+@section Scripts {
+    <script>
+        document.querySelector('form').addEventListener('submit', function (e) {
+            document.querySelectorAll('.decimal-input').forEach(function (input) {
+                input.value = input.value.replace(',', '.');
+            });
+        });
+    </script>
+}

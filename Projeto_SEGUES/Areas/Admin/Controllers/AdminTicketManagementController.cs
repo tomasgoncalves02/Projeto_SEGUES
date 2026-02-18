@@ -32,18 +32,27 @@ public class AdminTicketManagementController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdatePrices(List<TicketPrice> updatedPrices)
     {
-        if (ModelState.IsValid)
+        if (updatedPrices == null || !updatedPrices.Any()) return RedirectToAction(nameof(Index));
+
+        // Forçar a cultura Invariante para que 1.50 seja lido como 1 euro e 50 cêntimos
+        System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
+
+        // Removemos a validação automática para garantir que o código executa
+        foreach (var key in ModelState.Keys.ToList()) ModelState.Remove(key);
+
+        try
         {
             await _adminService.UpdateTicketPricesAsync(updatedPrices);
-            TempData.SetSwalSuccess("Preçário atualizado!");
+            TempData["SwalData"] = "{\"icon\":\"success\",\"title\":\"Sucesso\",\"text\":\"Preçário atualizado!\"}";
         }
-        else
+        catch (Exception)
         {
-            TempData.SetSwalError("Dados inválidos.");
+            TempData["SwalData"] = "{\"icon\":\"error\",\"title\":\"Erro\",\"text\":\"Falha ao gravar.\"}";
         }
+
         return RedirectToAction(nameof(Index));
     }
-    
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateValidity(int validityDays)

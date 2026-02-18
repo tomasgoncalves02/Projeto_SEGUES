@@ -184,13 +184,21 @@ public class AdminService : IAdminService
 
     public async Task UpdateTicketPricesAsync(List<TicketPrice> prices)
     {
-        foreach (var price in prices)
+        foreach (var p in prices)
         {
-            _context.TicketPrices.Update(price);
+            var dbPrice = await _context.TicketPrices.FindAsync(p.Id);
+            if (dbPrice != null)
+            {
+                if (p.Price > 0)
+                {
+                    dbPrice.Price = p.Price;
+                    dbPrice.EndDatePrice = DateTime.Today.AddDays(1).AddTicks(-1);
+                }
+            }
         }
         await _context.SaveChangesAsync();
     }
-    
+
     public async Task<int> GetTicketValidityDaysAsync()
     {
         int days = (await _context.AppConfigs.FirstAsync()).TicketValidityDays;
