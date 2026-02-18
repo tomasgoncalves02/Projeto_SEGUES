@@ -444,4 +444,39 @@ function verDetalhesProdutos(id) {
             Notifications.error("Erro ao carregar detalhes.");
         });
 }
+function verDetalhesProdutos(id) {
+    // Reutilizamos a tua Action GetOrderDetails (que deve estar no OrderManagementController ou UserOrdersController)
+    fetch(`/Bar/OrderManagement/GetOrderDetails/${id}`)
+        .then(res => res.json())
+        .then(data => {
+            let pRows = data.produtos.map(p => `
+                <tr>
+                    <td class="text-start fw-bold">${p.nome}</td>
+                    <td class="text-color-ips fw-bold">${p.preco.toFixed(2)}€</td>
+                    <td class="fw-bold">${p.quantidade}</td>
+                </tr>
+            `).join('');
+
+            document.getElementById('modalContentBody').innerHTML = `
+                <div class="modal-body p-4 text-center">
+                    <div class="mb-3"><i class="bi bi-info-circle text-info" style="font-size: 4rem;"></i></div>
+                    <h2 class="fw-bold mb-4">Detalhes do Pedido</h2>
+                    <div class="text-start mb-3">
+                        <p class="mb-0 text-muted small fw-bold">Código</p>
+                        <h4 class="text-color-ips fw-bold">${data.codigo}</h4>
+                    </div>
+                    <div class="table-responsive border rounded-3">
+                        <table class="table table-hover mb-0">
+                            <thead class="bg-color-ips text-white small">
+                                <tr><th>Nome</th><th>Preço</th><th>Qtd</th></tr>
+                            </thead>
+                            <tbody>${pRows}</tbody>
+                        </table>
+                    </div>
+                    <button type="button" class="btn btn-ips mt-4 px-5 py-2 fw-bold" data-bs-dismiss="modal">Fechar</button>
+                </div>`;
+
+            new bootstrap.Modal(document.getElementById('modalDetalhes')).show();
+        });
+}
 
