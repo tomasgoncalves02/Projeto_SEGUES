@@ -223,7 +223,7 @@ function setupTicketCodeValidation(inputId) {
 }
 
 //Edit personal data
-function showEditName(typeName,currentName) {
+function showEdit(typeName,currentName,key) {
     showSwal({
         icon: null,
         showConfirmButton: false,
@@ -263,16 +263,79 @@ function showEditName(typeName,currentName) {
     });
 }
 
-// Função para processar o clique no botão
+function showEditData(typeName, currentName, key) {
+
+    const inputValue = currentName
+        ? new Date(currentName).toISOString().split('T')[0]
+        : '';
+
+
+    showSwal({
+        icon: null,
+        showConfirmButton: false,
+        showCloseButton: false,
+        html: `
+            <div class="p-4 d-flex flex-column align-items-center" style="font-family: Arial, sans-serif; color: #000;">
+                
+                <h2 class="fw-bold mb-4" style="font-size: 2.2rem; margin-top: 10px;">${typeName}</h2>
+                
+                <p class="fw-bold mb-3" style="font-size: 1.1rem;">Insira o ${typeName} pretendido</p>
+                
+                <input type="date" 
+                       id="${typeName}" 
+                       class="form-control text-center mb-4 p-2" 
+                       style="max-width: 320px; width: 100%; border: 1px solid #a9a9a9; font-size: 1.4rem; color: #6c757d; border-radius: 4px;" 
+                       value="${inputValue}">
+                
+                <div class="d-flex gap-3 w-100" style="max-width: 320px;">
+                    
+                    <button class="btn text-white w-50 p-2" 
+                            style="background-color: #009A93; font-size: 1.1rem; border-radius: 4px; transition: background-color 0.3s;" 
+                            onclick="handleEditNameSubmit()">
+                        Editar
+                    </button>
+                    
+                    <button class="btn text-white w-50 p-2" 
+                            style="background-color: #A6A6A6; font-size: 1.1rem; border-radius: 4px; transition: background-color 0.3s;" 
+                            onclick="Swal.close()">
+                        Fechar
+                    </button>
+
+                </div>
+                
+            </div>
+        `,
+        backdrop: 'var(--ips-shadow-soft)'
+    });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function handleEditNameSubmit() {
     const newName = document.getElementById('inputEditName').value;
 
-    // Aqui adicionas a tua lógica para atualizar o nome na base de dados/interface
-    console.log("A atualizar o nome para:", newName);
 
-    // Fecha o modal após clicar em Editar
+
+
     Swal.close();
 }
+//-----------------------------------------------------------------------------------------
 
 /* ==========================================
    Novas Funcionalidades: Inventário e Bar
