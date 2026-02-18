@@ -39,18 +39,20 @@
     var genre = user?.Gender;
 
     
-    
-    
-    var fields = new List<(string Label, string Value)>
-{
-    ("Nome", name),
-    ("Apelido", lastname),
-    ("Email", email),
-    ("Data de Nascimento", birthDate?.ToString("dd/MM/yyyy") ?? "Não definido"),
-    ("Género", genre?.ToDisplayName() ?? "Não definido"),
-    ("Password","******")
 
-};
+    
+    
+    
+    var fields = new List<(string Label, string Value, string Key)>
+    {
+        ("Nome", name, "name"),
+        ("Apelido", lastname, "lastname"),
+        ("Email", email, "email"),
+        ("Data de Nascimento", birthDate?.ToString("dd/MM/yyyy") ?? "Não definido", "birthDate"),
+        ("Género", genre?.ToDisplayName() ?? "Não definido","genre"),
+        ("Password","******","password")
+
+    };
     var initialLetter = name[0].ToString().ToUpper();
 
 
@@ -82,7 +84,7 @@
                             {
                                 <div class="d-flex justify-content-between align-items-center px-3 py-2 rounded" style="background-color: #d8efeb;">
                                     <span class="text-dark">@field.Label: <span class="fw-bold">@field.Value</span></span>
-                                    <a onclick="showEditName('@name')" class="text-decoration-none fw-semibold" style="cursor: pointer; color: #129b8e;">Editar</a>
+                                    <a onclick="showEditName('@field.Label', '@field.Value')" class="text-decoration-none fw-semibold" style="cursor: pointer; color: #129b8e;">Editar</a>
                                 </div>
                             }
                         </div>
