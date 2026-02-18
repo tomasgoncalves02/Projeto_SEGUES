@@ -45,7 +45,9 @@
                         </div>
                         <div class="mb-4">
                             <label class="form-label fw-bold small text-muted text-uppercase">Descrição</label>
-                            <textarea asp-for="Product.Description" class="form-control" rows="4" placeholder="Breve descrição..."></textarea>
+                            <textarea asp-for="Product.Description" class="form-control" rows="4"
+                                      placeholder="Breve descrição..." maxlength="250"></textarea>
+                            <div class="form-text text-end small">Máximo 250 caracteres.</div>
                         </div>
                         <button type="submit" class="btn btn-ips w-100 py-3 fw-bold shadow-sm">
                             <i class="bi bi-check-lg me-2"></i>CONFIRMAR REGISTO
@@ -165,8 +167,8 @@
                     <span id="view-name" class="fs-5 fw-bold text-color-ips"></span>
                 </div>
                 <div class="mb-4">
-                    <label class="fw-bold text-muted small text-uppercase d-block mb-1">Descrição</label>
-                    <p id="view-description" class="text-muted bg-light p-3 rounded border-start border-4 border-color-ips mb-0"></p>
+                   <label class="fw-bold text-muted small text-uppercase d-block mb-1">Descrição</label>                  
+                    <p id="view-description" class="text-muted bg-light p-3 rounded border-start border-4 border-color-ips mb-0 text-break"></p>
                 </div>
                 <div class="row text-center">
                     <div class="col-6">
@@ -227,9 +229,12 @@
         }
 
         function confirmDelete(id, name) {
-            if (confirm(`Eliminar o produto "${name}"?`)) {
-                document.getElementById('delete-form-' + id).submit();
-            }
+            Notifications.confirm(`Tem a certeza que deseja eliminar o produto "${name}"?`)
+            .then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('delete-form-' + id).submit();
+                }
+            });
         }
     </script>
 }
