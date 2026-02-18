@@ -15,7 +15,7 @@
                 <small class="fw-bold text-uppercase" style="font-size: 0.7rem;">Saldo Atual</small>
                 <span class="fw-bold fs-5">@Model.UserBalance.ToString("N2") €</span>
             </div>
-            <a asp-area="Bar" asp-controller="OrderManagement" asp-action="CreateOrder" class="btn btn-ips-outline-secondary fw-bold px-4 shadow-sm">
+            <a asp-area="Bar" asp-controller="UserOrders" asp-action="CreateOrder" class="btn btn-ips-outline-secondary fw-bold px-4 shadow-sm">
                 <i class="bi bi-arrow-left me-2"></i> Voltar
             </a>
         </div>
@@ -30,7 +30,7 @@
                         <span class="fs-1 fw-bold text-color-ips">@Model.TotalAmount.ToString("N2") €</span>
                     </div>
 
-                    <form id="formConfirmacao" asp-area="Bar" asp-controller="OrderManagement" asp-action="ConfirmPurchase" method="post">
+                    <form id="formConfirmacao" asp-area="Bar" asp-controller="UserOrders" asp-action="ConfirmPurchase" method="post">
                         @Html.AntiForgeryToken()
                         <p class="fw-bold small mb-2 text-uppercase text-muted text-start">Data de recebimento</p>
                         <div class="row g-2 mb-4">
