@@ -37,12 +37,36 @@ public class AdminUserManagementController : Controller
 
     public async Task<IActionResult> Details(string id)
     {
-        var user = await _userManager.Users.Include(u => u.UserCategory).FirstOrDefaultAsync(u => u.Id == id);
+        var user = await _userManager.Users
+            .Include(u => u.UserCategory)
+            .FirstOrDefaultAsync(u => u.Id == id);
+
         if (user == null) return NotFound();
-        
+
+       
         var roles = await _userManager.GetRolesAsync(user);
+        var userRoleRaw = roles.FirstOrDefault() ?? "Client"; 
         var allRoles = await _adminService.GetAllRolesForDropdownAsync();
-        ViewBag.UserRole = allRoles.Find(r => r.Value == roles.First())?.Text;
+
+       
+        ViewBag.UserRole = allRoles.Find(r => r.Value == userRoleRaw)?.Text ?? userRoleRaw;
+       
+        ViewBag.UserRoleRaw = userRoleRaw;
+
+       
+        ViewBag.GenderPT = user.Gender switch
+        {
+            Gender.Male => "Masculino",
+            Gender.Female => "Feminino",
+            Gender.Other => "Outro",
+            _ => "Não especificado"
+        };
+
+        // 3. Tradução do Estado e Cores
+        ViewBag.StatusPT = user.Status == UserStatus.Active ? "ATIVO" : "INATIVO";
+        ViewBag.StatusClass = user.Status == UserStatus.Active ? "bg-success" : "bg-danger";
+        ViewBag.StatusIcon = user.Status == UserStatus.Active ? "bi-check-circle" : "bi-x-circle";
+
         return View(user);
     }
 
@@ -145,5 +169,35 @@ public class AdminUserManagementController : Controller
             TempData.SetSwalError("Erro ao desativar utilizador.");
         }
         return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Activate(string id)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null)
+        {
+            TempData.SetSwalError("Utilizador não encontrado.");
+            return RedirectToAction(nameof(Index));
+        }
+
+        user.Status = UserStatus.Active;
+
+        // Remove o lockout para permitir o login novamente
+        await _userManager.SetLockoutEndDateAsync(user, null);
+
+        var result = await _userManager.UpdateAsync(user);
+
+        if (result.Succeeded)
+        {
+            TempData.SetSwalSuccess($"A conta de {user.FirstName} foi reativada.");
+        }
+        else
+        {
+            TempData.SetSwalError("Erro ao reativar utilizador.");
+        }
+
+        return RedirectToAction(nameof(Details), new { id });
     }
 }

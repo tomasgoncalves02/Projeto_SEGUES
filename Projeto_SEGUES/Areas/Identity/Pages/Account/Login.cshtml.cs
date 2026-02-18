@@ -15,11 +15,13 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
     {
         private readonly SignInManager<AppUser> _signInManager;
         private readonly ILogger<LoginModel> _logger;
+        private readonly UserManager<AppUser> _userManager;
 
-        public LoginModel(SignInManager<AppUser> signInManager, ILogger<LoginModel> logger)
+        public LoginModel(SignInManager<AppUser> signInManager, ILogger<LoginModel> logger, UserManager<AppUser> userManager)
         {
             _signInManager = signInManager;
             _logger = logger;
+            _userManager = userManager;
         }
         
         // Identity
@@ -72,37 +74,45 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
         {
             returnUrl ??= Url.Content("~/");
-            
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
             if (ModelState.IsValid)
             {
-                /* Email+Password only now. When adding external providers:
-                 * https://learn.microsoft.com/en-us/aspnet/core/security/authentication/social/microsoft-logins?view=aspnetcore-10.0
-                 * Ensure password creation: https://learn.microsoft.com/en-us/aspnet/core/security/authentication/social/?view=aspnetcore-10.0&tabs=visual-studio
-                 */
-                
-                // Password failures trigger account lockout for 5 minutes after 5 failed attempts.
+                // 1. Procurar o utilizador pelo email
+                var user = await _userManager.FindByEmailAsync(Input.Email);
+
+                if (user != null)
+                {
+                    // 2. Verificar se está desativado (usando o teu Enum)
+                    if (user.Status == Projeto_SEGUES.Models.Enums.UserStatus.Inactive)
+                    {
+                        _logger.LogWarning("Tentativa de login em conta desativada: {Email}", Input.Email);
+                        TempData.SetSwalError("A sua conta foi desativada pela administração.");
+                        return Page();
+                    }
+                }
+
+                // 3. Se passar o check, tenta o login normal
                 var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: true);
+
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User logged in.");
-                    TempData.SetSwalSuccess( "Login efetuado com sucesso!");
+                    TempData.SetSwalSuccess("Login efetuado com sucesso!");
                     return LocalRedirect(returnUrl);
                 }
-                if (result.RequiresTwoFactor)
-                {
-                    return RedirectToPage("./LoginWith2Fa", new { ReturnUrl = returnUrl, Input.RememberMe });
-                }
+
+                // Se chegar aqui e for IsLockedOut, é porque ERROU a pass demasiadas vezes
                 if (result.IsLockedOut)
                 {
-                    _logger.LogWarning("User account locked out.");
+                    _logger.LogWarning("User account locked out due to failed attempts.");
                     return RedirectToPage("./Lockout");
                 }
+
                 TempData.SetSwalError("Tentativa de login inválida.");
                 return Page();
             }
-            // If we got this far, something failed, redisplay form
+
             return Page();
         }
     }

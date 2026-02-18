@@ -20,10 +20,7 @@
     <div class="card shadow-sm card-ips">
         @* Card header *@
         <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
-            @* Name *@
-            <h4 class="mb-0 fw-bold">
-                @Model.FirstName @Model.LastName
-            </h4>
+            <h4 class="mb-0 fw-bold">@Model.FirstName @Model.LastName</h4>
         </div>
 
         <div class="card-body p-4 p-md-5">
@@ -33,13 +30,13 @@
                     <dl class="row mb-0">
                         <dt class="col-sm-5 text-muted text-uppercase small">Email / Username</dt>
                         <dd class="col-sm-7 fw-bold">@Model.Email</dd>
-                        
+
                         <dt class="col-sm-5 text-muted text-uppercase small mt-3">Género</dt>
-                        <dd class="col-sm-7 mt-3">@Model.Gender</dd>
-                        
+                        <dd class="col-sm-7 mt-3">@ViewBag.GenderPT</dd>
+
                         <dt class="col-sm-5 text-muted text-uppercase small mt-3">Data de Nascimento</dt>
                         <dd class="col-sm-7 mt-3">@Model.BirthDate.ToShortDateString()</dd>
-                        
+
                         <dt class="col-sm-5 text-muted text-uppercase small mt-3">Saldo Atual</dt>
                         <dd class="col-sm-7 mt-3 text-ips fs-4 fw-bold">@Model.Balance.ToString("C")</dd>
                     </dl>
@@ -50,27 +47,32 @@
                     <dl class="row mb-0">
                         <dt class="col-sm-5 text-muted text-uppercase small">Data de Criação</dt>
                         <dd class="col-sm-7">@Model.CreationDate.ToShortDateString()</dd>
-                        
+
                         <dt class="col-sm-5 text-muted text-uppercase small mt-3">Estado da Conta</dt>
                         <dd class="col-sm-7 mt-3">
-                            <span class="badge @accountStatus.ToBadgeClass() fs-6 px-3 py-2 border">
-                                @accountStatus.ToUpper()
+                            <span class="badge @ViewBag.StatusClass fs-6 px-3 py-2 border-0 shadow-sm">
+                                <i class="bi @ViewBag.StatusIcon me-1"></i>
+                                @ViewBag.StatusPT
                             </span>
                         </dd>
-                        
-                        @* Role *@
+
                         <dt class="col-sm-5 text-muted text-uppercase small mt-3">Role</dt>
                         <dd class="col-sm-7 mt-3">
-                            <span class="badge @roleDisplay.ToBadgeClass() fs-6 px-3 py-2">
-                                @roleDisplay.ToUpper()
+                            @{
+                                string roleRaw = ViewBag.UserRoleRaw as string ?? "Client";
+                            }
+                            <span class="badge @roleRaw.ToBadgeClass() fs-6 px-3 py-2 shadow-sm" style="min-width: 100px;">
+                                @ViewBag.UserRole.ToUpper()
                             </span>
                         </dd>
-                        
-                        @* Category *@
+
                         <dt class="col-sm-5 text-muted text-uppercase small mt-3">Categoria</dt>
                         <dd class="col-sm-7 mt-3">
-                            <span class="badge @categoryDisplay.ToBadgeClass() fs-6 px-3 py-2">
-                                @categoryDisplay.ToUpper()
+                            @{
+                                string categoryName = Model.UserCategory?.Name ?? "N/A";
+                            }
+                            <span class="badge @categoryName.ToBadgeClass() fs-6 px-3 py-2 shadow-sm" style="min-width: 100px;">
+                                @categoryName.ToUpper()
                             </span>
                         </dd>
                     </dl>
@@ -81,20 +83,50 @@
         @* Actions footer *@
         <div class="card-footer bg-light border-0 py-4 px-4 px-md-5">
             <div class="d-flex flex-wrap gap-3">
-                @* Edit button *@
                 <a asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-ips fw-bold px-4 py-2">
                     <i class="bi bi-pencil-square me-2"></i>Editar Dados
                 </a>
 
-                @* Delete button *@
                 @if (User.Identity?.Name != Model.UserName)
                 {
-                    <a asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger fw-bold px-4 py-2"
-                       style="border-radius: 8px;">
-                        <i class="bi bi-trash me-2"></i>Apagar Conta
-                    </a>
+                    if (Model.Status == Projeto_SEGUES.Models.Enums.UserStatus.Inactive)
+                    {
+                        <form asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Activate" asp-route-id="@Model.Id" method="post" id="activate-form" style="display:inline;">
+                            <button type="button" class="btn btn-success fw-bold px-4 py-2" style="border-radius: 8px;"
+                                    onclick="confirmAction('activate', '@Model.FirstName @Model.LastName')">
+                                <i class="bi bi-person-check me-2"></i>Ativar Conta
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Deactivate" asp-route-id="@Model.Id" method="post" id="deactivate-form" style="display:inline;">
+                            <button type="button" class="btn btn-outline-danger fw-bold px-4 py-2" style="border-radius: 8px;"
+                                    onclick="confirmAction('deactivate', '@Model.FirstName @Model.LastName')">
+                                <i class="bi bi-person-x me-2"></i>Desativar Conta
+                            </button>
+                        </form>
+                    }
                 }
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        function confirmAction(type, userName) {
+            const isActivate = type === 'activate';
+            const message = isActivate
+                ? `Deseja devolver o acesso à plataforma ao utilizador ${userName}?`
+                : `Tem a certeza que deseja desativar o utilizador ${userName}? O utilizador deixará de conseguir entrar no sistema.`;
+
+            Notifications.confirm(message, undefined).then((result) => {
+                if (result.isConfirmed) {
+                    const formId = isActivate ? 'activate-form' : 'deactivate-form';
+                    document.getElementById(formId).submit();
+                }
+            });
+        }
+    </script>
+}

@@ -1,0 +1,26 @@
+﻿@using Projeto_SEGUES.Extensions
+
+@if (TempData["SwalError"] != null)
+{
+    <script>
+        Swal.fire({
+            icon: 'error',
+            title: 'Erro!',
+            text: '@Html.Raw(TempData["SwalError"])',
+            confirmButtonColor: '#008c8c'
+        });
+    </script>
+}
+
+@if (TempData["SwalSuccess"] != null)
+{
+    <script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Sucesso!',
+            text: '@Html.Raw(TempData["SwalSuccess"])',
+            timer: 3000,
+            showConfirmButton: false
+        });
+    </script>
+}
