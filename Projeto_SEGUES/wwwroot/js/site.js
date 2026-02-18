@@ -47,7 +47,7 @@ function showSwal(options) {
     }
 
     const config = {
-        icon: options.icon || 'info',
+        icon: options.icon !== undefined ? options.icon : 'info',
         title: options.title || '',
         text: options.text || '',
         html: options.html || undefined,
@@ -221,3 +221,47 @@ function setupTicketCodeValidation(inputId) {
         });
     });
 }
+
+//Edit personal data
+function showEditName(currentName) {
+    showSwal({
+        // Ocultamos os botões nativos do alerta para usar o nosso próprio botão "Editar"
+        icon:null,
+        showConfirmButton: false,
+        showCloseButton: false,
+        html: `
+            <div class="p-4 d-flex flex-column align-items-center" style="font-family: Arial, sans-serif; color: #000;">
+                
+                <h2 class="fw-bold mb-4" style="font-size: 2.2rem; margin-top: 10px;">Nome</h2>
+                
+                <p class="fw-bold mb-3" style="font-size: 1.1rem;">Insira o nome pretendido</p>
+                
+                <input type="text" 
+                       id="inputEditName" 
+                       class="form-control text-center mb-4 p-2" 
+                       style="max-width: 320px; width: 100%; border: 2px solid #2196F3; font-size: 1.4rem; color: #6c757d; border-radius: 4px;" 
+                       value="${currentName}">
+                
+                <button class="btn text-white w-100 p-2" 
+                        style="max-width: 320px; background-color: #009A93; font-size: 1.1rem; border-radius: 4px; transition: background-color 0.3s;" 
+                        onclick="handleEditNameSubmit()">
+                    Editar
+                </button>
+                
+            </div>
+        `,
+        backdrop: 'var(--ips-shadow-soft)' // Mantive a tua variável de ambiente para o fundo
+    });
+}
+
+// Função para processar o clique no botão
+function handleEditNameSubmit() {
+    const newName = document.getElementById('inputEditName').value;
+
+    // Aqui adicionas a tua lógica para atualizar o nome na base de dados/interface
+    console.log("A atualizar o nome para:", newName);
+
+    // Fecha o modal após clicar em Editar
+    Swal.close();
+}
+
