@@ -1,5 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Projeto_SEGUES.Models.Inventory;
+﻿using Projeto_SEGUES.Models.Inventory;
+using Projeto_SEGUES.Models.User;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Projeto_SEGUES.Models.Bar;
 
@@ -10,11 +12,17 @@ public class BarOrder
     [Required]
     public string UserId { get; set; } = string.Empty;
 
+    [ForeignKey("UserId")]
+    public virtual AppUser? User { get; set; }
+
     [Required]
     public int ProductId { get; set; }
     public virtual Product? Product { get; set; }
 
     public DateTime OrderDate { get; set; } = DateTime.Now;
+
+    [Range(1, 100)]
+    public int Quantity { get; set; } = 1;
 
     [Range(0, double.MaxValue)]
     public decimal PriceAtTime { get; set; } // Congela o preço no momento da compra

@@ -3,6 +3,12 @@
     ViewData["Title"] = "Histórico de Bar - SEGUES";
 }
 
+@* Gancho para o site.js disparar o pop-up de SUCESSO vindo do Checkout *@
+@if (TempData["SwalJson"] != null)
+{
+    <div id="swal-data" data-json='@TempData["SwalJson"]'></div>
+}
+
 <div class="container mt-5 text-start">
     @* Cabeçalho *@
     <div class="row mb-4 align-items-center">
@@ -11,18 +17,20 @@
             <p class="text-muted mt-2">Consulta detalhada de todas as suas compras no Bar.</p>
         </div>
         <div class="col-md-4 text-end">
-            <a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-ips-outline-secondary px-4 fw-bold">Voltar</a>
+            <a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-ips-outline-secondary px-4 fw-bold shadow-sm">
+                <i class="bi bi-arrow-left me-2"></i>Voltar
+            </a>
         </div>
     </div>
 
-    @* Filtros *@
-    <div class="card card-ips shadow-sm mb-4">
+    @* Barra de Filtros Estilizada *@
+    <div class="card card-ips shadow-sm mb-4 border-0 rounded-3">
         <div class="card-body p-4 filter-bar">
             <div class="row g-3 align-items-end">
                 <div class="col-md-3">
-                    <label class="form-label fw-bold small">Estado</label>
+                    <label class="form-label fw-bold small text-uppercase text-muted">Estado</label>
                     <select class="form-select" id="statusFilter" onchange="filterHistory()">
-                        <option value="todos">Todos</option>
+                        <option value="todos">Todos os estados</option>
                         <option value="0">Pendente</option>
                         <option value="1">Em preparação</option>
                         <option value="2">Entrega Pendente</option>
@@ -30,61 +38,86 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label fw-bold small">Compradas em</label>
+                    <label class="form-label fw-bold small text-uppercase text-muted">Compradas em</label>
                     <input type="date" id="dateFilter" class="form-control" onchange="filterHistory()" />
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label fw-bold small">Pesquisar</label>
+                    <label class="form-label fw-bold small text-uppercase text-muted">Pesquisar</label>
                     <input type="text" id="searchInput" class="form-control" placeholder="Código ou nome" onkeyup="filterHistory()" />
                 </div>
                 <div class="col-md-3 d-flex align-items-center gap-2">
-                    <a href="javascript:void(0)" onclick="clearFilters()" class="btn-reset-x text-nowrap">Limpar Filtros <i class="bi bi-x-circle"></i></a>
-                    <button type="button" onclick="filterHistory()" class="btn btn-ips w-100 fw-bold shadow-sm">PESQUISAR</button>
+                    <a href="javascript:void(0)" onclick="clearFilters()" class="btn-reset-x text-nowrap small text-decoration-none text-muted">
+                        Limpar <i class="bi bi-x-circle ms-1"></i>
+                    </a>
+                    <button type="button" onclick="filterHistory()" class="btn btn-ips w-100 fw-bold shadow-sm text-uppercase">
+                        <i class="bi bi-search me-2"></i>Pesquisar
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    @* Tabela Completa *@
-    <div class="card card-ips shadow-sm overflow-hidden">
+    @* Tabela de Pedidos com Badges de Estado *@
+    <div class="card card-ips shadow-sm border-0 rounded-3 overflow-hidden">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0 text-center" id="historyTable">
                 <thead class="bg-color-ips text-white">
                     <tr>
-                        <th class="py-3">Código</th>
+                        <th class="py-3 ps-4 text-start">Código</th>
                         <th class="py-3">Data de compra</th>
                         <th class="py-3">Hora de Recolha</th>
                         <th class="py-3">Estado</th>
-                        <th class="py-3">Validade</th>
                         <th class="py-3">Recolhido em</th>
-                        <th class="py-3">Produtos</th>
-                        <th class="py-3">Preço</th>
+                        <th class="py-3">Produtos</th> @* Coluna onde o olho fica *@
+                        <th class="py-3 pe-4">Preço</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (!Model.Any())
                     {
-                        <tr><td colspan="8" class="py-5 text-muted">Nenhum pedido encontrado.</td></tr>
+                        <tr>
+                            <td colspan="7" class="py-5 text-muted">Nenhum pedido encontrado.</td>
+                        </tr>
                     }
                     else
                     {
                         @foreach (var item in Model)
                         {
                             <tr class="history-row" data-estado="@item.StatusValue" data-data="@item.DataCompra.ToString("yyyy-MM-dd")">
-                                <td class="fw-bold text-color-ips">@item.Codigo</td>
+                                <td class="fw-bold text-color-ips ps-4 text-start">@item.Codigo</td>
                                 <td>@item.DataCompra.ToString("dd/MM/yyyy")</td>
-                                <td>@item.HoraRecolha</td>
+                                <td>@(string.IsNullOrEmpty(item.HoraRecolha) ? "---" : item.HoraRecolha)</td>
                                 <td>
-                                    <span class="fw-bold @(item.StatusValue == 0 ? "text-color-ips" : "text-muted")">
-                                        @item.Estado
-                                    </span>
+                                    @switch (item.StatusValue)
+                                    {
+                                        case 0:
+                                            <span class="badge bg-secondary px-3 py-2">Pendente</span>
+                                            break;
+                                        case 1:
+
+                                            <span class="badge bg-info text-dark px-3 py-2">Em preparação</span>
+                                            break;
+                                        case 2:
+
+                                            <span class="badge bg-warning text-dark px-3 py-2">Entrega Pendente</span>
+                                            break;
+                                        case 3:
+
+                                            <span class="badge bg-success px-3 py-2">Entregue</span>
+                                            break;
+                                    }
                                 </td>
-                                <td>@item.Validade.ToString("dd/MM/yyyy")</td>
                                 <td>@(item.RecolhidoEm ?? "---")</td>
                                 <td>
-                                    <button class="btn btn-sm btn-ips shadow-sm"><i class="bi bi-eye"></i></button>
+                                    @* O BOTÃO DO OLHO RECOLOCADO AQUI *@
+                                    <button type="button"
+                                            class="btn btn-sm btn-ips shadow-sm px-3"
+                                            onclick="verDetalhesProdutos(@item.Id)"
+                                            title="Ver Produtos">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
                                 </td>
-                                <td class="fw-bold text-color-ips">@item.PrecoTotal.ToString("C")</td>
+                                <td class="fw-bold text-color-ips pe-4">@item.PrecoTotal.ToString("N2") €</td>
                             </tr>
                         }
                     }
@@ -92,8 +125,52 @@
             </table>
         </div>
     </div>
-</div>
 
+    <div class="modal fade" id="modalDetalhes" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+                <div class="modal-body p-4 text-center">
+
+                    <div class="mb-3">
+                        <i class="bi bi-info-circle text-info" style="font-size: 4rem; opacity: 0.8;"></i>
+                    </div>
+
+                    <h2 class="fw-bold mb-4">Detalhes do Pedido</h2>
+
+                    <div class="text-start mb-3">
+                        <p class="mb-1 text-muted small fw-bold">Codigo</p>
+                        <h5 class="text-color-ips fw-bold" id="modalCodigo">--------</h5>
+                    </div>
+
+                    <div class="text-start mb-2">
+                        <p class="mb-1 text-muted small fw-bold">Produtos</p>
+                    </div>
+
+                    <div class="table-responsive rounded-3 border">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-color-ips text-white">
+                                <tr class="small text-uppercase">
+                                    <th>Nome</th>
+                                    <th>Informações</th>
+                                    <th>Preço</th>
+                                    <th>Quantidade</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modalTabelaCorpo" class="small">
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="button" class="btn btn-ips px-5 py-2 fw-bold" data-bs-dismiss="modal" style="border-radius: 8px;">
+                            Fechar
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
 @section Scripts {
     <script>
         /**

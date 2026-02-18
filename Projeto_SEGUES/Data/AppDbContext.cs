@@ -58,7 +58,9 @@ namespace Projeto_SEGUES.Data
         public DbSet<Discount> Discounts { get; set; }
         public DbSet<ProductPurchase> ProductPurchases { get; set; }
         public DbSet<Purchase> Purchases { get; set; }
-        
+        public DbSet<CartItem> CartItems { get; set; }
+
+
         /* =========
          * Tickets
          * ========= */

@@ -361,3 +361,87 @@ function confirmDelete(id, name, formPrefix) {
     });
 }
 
+// Adicionar ao carrinho (BD)
+function processAddToCart(id, name) {
+    const qty = document.getElementById('qty-' + id).value;
+
+    fetch(`/Bar/OrderManagement/AddToCart?id=${id}&qty=${qty}`, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                updateCartBadgeManual(data.count); // Usa a função de badge
+                Notifications.success(`${qty}x ${name} adicionado!`);
+            }
+        });
+}
+
+// Remover do carrinho (BD)
+function removeFromCart(id, name) {
+    Notifications.confirm(`Desejas remover ${name}?`).then(res => {
+        if (res.isConfirmed) {
+            fetch(`/Bar/OrderManagement/RemoveFromCart?id=${id}`, { method: 'POST' })
+                .then(() => location.reload()); // Refresh apenas no checkout para atualizar totais
+        }
+    });
+}
+
+// Helper para atualizar a badge com valor exato da BD
+function updateCartBadgeManual(count) {
+    const badge = document.getElementById('cart-count');
+    if (badge) {
+        badge.innerText = count;
+        badge.style.display = count > 0 ? "block" : "none";
+    }
+}
+// Adiciona isto no início do site.js
+function confirmarCompraBar(formId) {
+    // Verifica se o objeto de notificações existe
+    if (typeof Notifications !== 'undefined' && Notifications.confirm) {
+        Notifications.confirm("Tem a certeza que deseja efetuar este pedido?")
+            .then((result) => {
+                if (result.isConfirmed) {
+                    const form = document.getElementById(formId);
+                    if (form) form.submit();
+                }
+            });
+    } else {
+        // Fallback de segurança
+        if (confirm("Tem a certeza que deseja efetuar este pedido?")) {
+            document.getElementById(formId).submit();
+        }
+    }
+}
+
+function verDetalhesProdutos(id) {
+    // 1. Mostrar spinner ou limpar dados antigos
+    document.getElementById('modalTabelaCorpo').innerHTML = '<tr><td colspan="4">A carregar...</td></tr>';
+
+    // 2. Chamada ao Controller
+    fetch(`/Bar/OrderManagement/GetOrderDetails/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            // Preencher Código
+            document.getElementById('modalCodigo').innerText = data.codigo;
+
+            // Preencher Tabela
+            let html = '';
+            data.produtos.forEach(p => {
+                html += `
+                <tr>
+                    <td class="fw-bold text-start">${p.nome}</td>
+                    <td><button class="btn btn-sm btn-ips"><i class="bi bi-eye text-white"></i></button></td>
+                    <td class="text-color-ips fw-bold">${p.preco.toFixed(2)}€</td>
+                    <td>${p.quantidade}</td>
+                </tr>`;
+            });
+            document.getElementById('modalTabelaCorpo').innerHTML = html;
+
+            // 3. Abrir o Modal
+            new bootstrap.Modal(document.getElementById('modalDetalhes')).show();
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            Notifications.error("Erro ao carregar detalhes.");
+        });
+}
+
