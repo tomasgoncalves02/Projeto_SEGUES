@@ -16,7 +16,8 @@
             <span class="ms-2 d-none d-sm-inline text-dark fw-bold">Olá, @nome!</span>
         </div>
         <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
-            <li><a class="dropdown-item fw-bold" asp-area="User" asp-page="/Index">Perfil</a></li>
+            @* See Profile  *@
+            <li><a class="dropdown-item fw-bold" asp-area="User" asp-controller="User" asp-action="Index">Perfil</a></li>
             <li><hr class="dropdown-divider"></li>
             <li>
                 @* Logout (POST for security) *@

@@ -15,7 +15,6 @@
     <EmbeddedResource Remove="NovaPasta\**" />
     <None Remove="NovaPasta1\**" />
     <None Remove="NovaPasta\**" />
-    <Compile Remove="Migrations\AppDbContextModelSnapshot.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -36,7 +35,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Migrations\" />
     <Folder Include="Models\Report\" />
     <Folder Include="wwwroot\images\" />
   </ItemGroup>
