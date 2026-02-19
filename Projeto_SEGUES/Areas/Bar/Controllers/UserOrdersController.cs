@@ -112,7 +112,7 @@ namespace Projeto_SEGUES.Areas.Bar.Controllers
 
             decimal total = cartItems.Sum(i => i.Product.Price * i.Quantity);
 
-            // Validação de Saldo
+            // 1. Validação de Saldo
             if (user.Balance < total)
             {
                 TempData["SwalJson"] = JsonConvert.SerializeObject(new
@@ -124,8 +124,13 @@ namespace Projeto_SEGUES.Areas.Bar.Controllers
                 return RedirectToAction(nameof(Checkout));
             }
 
-            // Processamento da compra
+            // 2. GERAR CÓDIGO ÚNICO PARA TODO O PEDIDO
+            // Geramos o código aqui fora para que todos os produtos tenham o mesmo
+            string codigoUnicoPedido = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
+
+            // 3. Processamento da compra
             user.Balance -= total;
+
             foreach (var item in cartItems)
             {
                 var dbP = await _context.Products.FindAsync(item.ProductId);
@@ -139,14 +144,14 @@ namespace Projeto_SEGUES.Areas.Bar.Controllers
                     OrderDate = DateTime.Now,
                     PriceAtTime = item.Product.Price,
                     Status = 0, // Pendente
-                    RedemptionCode = Guid.NewGuid().ToString().Substring(0, 8).ToUpper()
+                    RedemptionCode = codigoUnicoPedido // Atribui o mesmo código a todos os itens
                 });
             }
 
             _context.CartItems.RemoveRange(cartItems);
             await _context.SaveChangesAsync();
 
-            // Mensagem de SUCESSO para o site.js ler após o redirecionamento
+            // 4. Mensagem de SUCESSO
             TempData["SwalJson"] = JsonConvert.SerializeObject(new
             {
                 icon = "success",
@@ -154,8 +159,9 @@ namespace Projeto_SEGUES.Areas.Bar.Controllers
                 text = "O seu pedido já se encontra pendente no bar."
             });
 
-            // Manda para a página do histórico do bar
-            return RedirectToAction("Index", "OrderHistory", new { area = "Bar" });
+            // 5. REDIRECIONAMENTO
+            // Como agora tens a página de cartões (ActiveOrders), deves mandar o user para lá
+            return RedirectToAction("ActiveOrders", "UserOrders", new { area = "Bar" });
         }
 
         [HttpPost]
