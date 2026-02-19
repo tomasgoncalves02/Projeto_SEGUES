@@ -27,7 +27,14 @@
                             <i class="bi bi-qr-code-scan fs-1"></i>
                         </div>
                         <h4 class="fw-bold text-color-ips">Leitura de Código</h4>
-                       
+                        <div id="qr-reader" class="mx-auto mt-4 mb-3" style="width: 100%; max-width: 300px; border-radius: 8px; overflow: hidden;"></div>                    <div class="mt-4 p-3 bg-light rounded-3 border border-light">
+                            <small class="text-muted d-block fw-bold">
+                                <i class="bi bi-info-circle-fill me-1 text-color-ips"></i> Instruções:
+                            </small>
+                            <small class="text-muted">
+                                Use um dispositivo de leitura ou digite manualmente o código de 8 dígitos.
+                            </small>
+                        </div>
                     </div>
                     @* Code form *@
                     <form asp-action="Index" method="post" id="validationForm" autocomplete="off">
@@ -44,14 +51,7 @@
                             <i class="bi bi-check2-circle me-2"></i>VALIDAR AGORA
                         </button>
                     </form>
-                    <div id="qr-reader" class="mx-auto mt-4 mb-3" style="width: 100%; max-width: 300px; border-radius: 8px; overflow: hidden;"></div>                    <div class="mt-4 p-3 bg-light rounded-3 border border-light">
-                        <small class="text-muted d-block fw-bold">
-                            <i class="bi bi-info-circle-fill me-1 text-color-ips"></i> Instruções: 
-                        </small>
-                        <small class="text-muted">
-                            Use um dispositivo de leitura ou digite manualmente o código de 8 dígitos.
-                        </small>
-                    </div>
+
                 </div>
             </div>
         </div>
