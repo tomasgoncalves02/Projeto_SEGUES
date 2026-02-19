@@ -1,6 +1,11 @@
 ﻿@model Projeto_SEGUES.Areas.Bar.ViewModels.PlaceOrderViewModel
+@inject Projeto_SEGUES.Data.AppDbContext _context
 @{
     ViewData["Title"] = "Efetuar Pedido - SEGUES";
+
+    // Obtém a contagem inicial real do carrinho na Base de Dados para o utilizador atual
+    var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    var initialCartCount = _context.CartItems.Where(c => c.UserId == userId).Sum(c => c.Quantity);
 }
 
 <div class="container mt-4 text-start">
@@ -14,33 +19,29 @@
             <p class="text-muted small">Seleciona os produtos e as quantidades que pretendes adquirir.</p>
         </div>
         <div class="col-md-5 text-end">
-            <a asp-area="Bar" asp-controller="OrderManagement" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4 shadow-sm">
+            <a asp-area="Bar" asp-controller="Bar" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4 shadow-sm">
                 <i class="bi bi-arrow-left me-2"></i>Voltar
             </a>
         </div>
     </div>
 
-    @* Barra de Filtros (Estilo Histórico de Senhas) *@
+    @* Barra de Filtros Estilizada *@
     <div class="card card-ips shadow-sm mb-4 border-0 rounded-3">
         <div class="card-body p-4 filter-bar">
             <div class="row g-3 align-items-end">
 
-                @* Secção do Carrinho *@
+                @* Secção do Carrinho Clicável com Badge Ajustada *@
                 <div class="col-md-4 col-xl-2 border-end pe-4 d-flex align-items-center justify-content-center">
                     <div class="text-center">
                         <span class="fw-bold small d-block text-uppercase text-muted mb-1">Carrinho</span>
-
-                        @* Link que envolve o ícone e a badge *@
-                        <a asp-area="Bar" asp-controller="OrderManagement" asp-action="Checkout" class="position-relative d-inline-block text-decoration-none shadow-hover">
-
-                            @* Ícone de carrinho *@
+                        <a asp-area="Bar" asp-controller="UserOrders" asp-action="Checkout" class="position-relative d-inline-block text-decoration-none">
                             <i class="bi bi-cart-plus fs-2 text-color-ips"></i>
 
-                            @* Badge da Notificação - Ajustada para estar mais junta *@
+                            @* Badge inicializada com o valor da BD *@
                             <span id="cart-count"
                                   class="position-absolute badge rounded-pill bg-danger"
-                                  style="display:none; font-size: 0.65rem; top: -2px; right: -5px; padding: 0.35em 0.5em; border: 2px solid white;">
-                                0
+                                  style="display: @(initialCartCount > 0 ? "block" : "none"); font-size: 0.65rem; top: -2px; right: -5px; padding: 0.35em 0.5em; border: 2px solid white;">
+                                @initialCartCount
                             </span>
                         </a>
                     </div>
@@ -68,7 +69,7 @@
                            class="text-muted small text-decoration-none d-flex align-items-center text-nowrap btn-reset-x">
                             Limpar filtros <i class="bi bi-x-circle ms-1"></i>
                         </a>
-                        <button type="button" onclick="filterOrderTable()" class="btn btn-ips fw-bold px-3 py-2 shadow-sm d-flex align-items-center" style="height: 38px;">
+                        <button type="button" onclick="filterOrderTable()" class="btn btn-ips fw-bold px-3 py-2 shadow-sm d-flex align-items-center text-uppercase" style="height: 38px;">
                             <i class="bi bi-search me-2"></i> PESQUISAR
                         </button>
                     </div>
@@ -139,7 +140,6 @@
         function filterOrderTable() {
             const input = document.getElementById('orderSearch').value.toLowerCase();
             const rows = document.querySelectorAll('.order-row');
-
             rows.forEach(row => {
                 const name = row.querySelector('.product-name').textContent.toLowerCase();
                 row.style.display = name.includes(input) ? "" : "none";
@@ -151,12 +151,40 @@
             filterOrderTable();
         }
 
+        /**
+         * Adiciona ao carrinho salvando na Base de Dados (via Controller)
+         */
         function processAddToCart(id, name) {
             const qty = document.getElementById('qty-' + id).value;
-            if (typeof updateCartBadge === "function") {
-                updateCartBadge(qty);
-            }
-            Notifications.success(`${qty}x ${name} adicionado ao carrinho!`);
+            const url = '@Url.Action("AddToCart", "UserOrders", new { area = "Bar" })';
+
+            fetch(`${url}?id=${id}&qty=${qty}`, {
+                method: 'POST',
+                headers: {
+                    // Importante para requisições POST em ASP.NET Core
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Atualiza a badge com o total real retornado pela BD (data.count)
+                    const badge = document.getElementById('cart-count');
+                    if (badge) {
+                        badge.innerText = data.count;
+                        badge.style.display = "block";
+                    }
+
+                    // Notificação do seu site.js
+                    Notifications.success(`${qty}x ${name} adicionado ao carrinho!`);
+                } else {
+                    Notifications.error(data.message || "Erro ao adicionar ao carrinho.");
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                Notifications.error("Ocorreu um erro na comunicação com o servidor.");
+            });
         }
     </script>
 }

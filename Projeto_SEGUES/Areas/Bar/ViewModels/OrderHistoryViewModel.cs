@@ -4,6 +4,7 @@ namespace Projeto_SEGUES.Areas.Bar.ViewModels
 {
     public class OrderHistoryViewModel
     {
+        public int Id { get; set; }
         public string Codigo { get; set; } = string.Empty;
         public DateTime DataCompra { get; set; }
         public string HoraRecolha { get; set; } = string.Empty; // Novo

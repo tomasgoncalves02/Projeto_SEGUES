@@ -33,7 +33,7 @@
                     <h5 class="fw-bold">Efetuar Pedido</h5>
                     <p class="text-muted small mb-4">Adquire aqui o teu snack.</p>
                     <div class="mt-auto">
-                        <a asp-area="Bar" asp-controller="OrderManagement" asp-for asp-action="CreateOrder" class="btn w-100 py-2 fw-bold btn-ips">
+                        <a asp-area="Bar" asp-controller="UserOrders" asp-for asp-action="CreateOrder" class="btn w-100 py-2 fw-bold btn-ips">
                             Ir para a Loja
                         </a>
                     </div>
@@ -49,7 +49,7 @@
                     <h5 class="fw-bold">Pedidos</h5>
                     <p class="text-muted small mb-4">Visualiza os teus pedidos.</p>
                     <div class="mt-auto">
-                        <a asp-action="OrderHistory" class="btn w-100 py-2 fw-bold btn-ips">Ver Pedidos</a>
+                        <a asp-area="Bar" asp-controller="UserOrders" asp-action="ActiveOrders" class="btn w-100 py-2 fw-bold btn-ips">Ver Pedidos</a>
                     </div>
                 </div>
             </div>

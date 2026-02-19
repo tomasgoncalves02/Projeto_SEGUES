@@ -1,57 +1,67 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using Projeto_SEGUES.Areas.Bar.ViewModels;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.Bar;
+using Projeto_SEGUES.Models.User;
+using Projeto_SEGUES.Models.Payment;
 
 namespace Projeto_SEGUES.Areas.Bar.Controllers
 {
     [Area("Bar")]
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public class OrderManagementController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly UserManager<AppUser> _userManager;
 
-        public OrderManagementController(AppDbContext context)
+        public OrderManagementController(AppDbContext context, UserManager<AppUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
-        // Dashboard com os cards (Gestão de Produtos / Histórico)
-        public IActionResult Index()
-        {
-            return View();
-        }
+        public IActionResult Index() => View();
 
-        // Listagem de todos os pedidos efetuados
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AllOrders()
         {
+            // Carregamos o pedido, o produto relacionado e o utilizador que fez o pedido
             var history = await _context.BarOrders
                 .Include(o => o.Product)
+                .Include(o => o.User)
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
 
             return View(history);
-        }
-
-        [Area("Bar")]
-        public async Task<IActionResult> CreateOrder()
+        }        
+        [HttpGet]
+        public async Task<IActionResult> GetOrderDetails(int id)
         {
-            // Vamos buscar os produtos que têm stock disponível na Gestão de Inventário
-            var products = await _context.Products
-                .Where(p => p.Stock > 0)
-                .Select(p => new ProductItemViewModel
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    Description = p.Description,
-                    Price = p.Price,
-                    Stock = p.Stock
-                }).ToListAsync();
+            var baseOrder = await _context.BarOrders.FindAsync(id);
+            if (baseOrder == null) return NotFound();
 
-            var model = new PlaceOrderViewModel { AvailableProducts = products };
-            return View(model);
+            var produtos = await _context.BarOrders
+                .Include(o => o.Product)
+                .Where(o => o.RedemptionCode == baseOrder.RedemptionCode)
+                .Select(o => new
+                {
+                    nome = o.Product.Name,
+                    preco = o.PriceAtTime,
+                    quantidade = o.Quantity // Lê a nova coluna física
+                })
+                .ToListAsync();
+
+            return Json(new
+            {
+                codigo = baseOrder.RedemptionCode,
+                produtos = produtos
+            });
         }
+
     }
+
 }
