@@ -51,6 +51,31 @@ namespace Projeto_SEGUES.Areas.Bar.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> GetOrderDetails(int id)
+        {
+            // 1. Primeiro buscamos o pedido pelo ID para saber qual é o RedemptionCode
+            var pedidoReferencia = await _context.BarOrders.FindAsync(id);
+            if (pedidoReferencia == null) return NotFound();
+
+            // 2. Buscamos todos os produtos que pertencem a esse mesmo código de grupo
+            var todosOsProdutos = await _context.BarOrders
+                .Include(o => o.Product) // Certifica-te que incluis a tabela de produtos
+                .Where(o => o.RedemptionCode == pedidoReferencia.RedemptionCode)
+                .ToListAsync();
+
+            // 3. Montamos o objeto JSON exatamente como o teu site.js espera
+            return Json(new
+            {
+                codigo = pedidoReferencia.RedemptionCode,
+                produtos = todosOsProdutos.Select(p => new {
+                    nome = p.Product.Name,
+                    preco = p.PriceAtTime,
+                    quantidade = p.Quantity
+                })
+            });
+        }
+
+        [HttpGet]
         public async Task<IActionResult> Checkout()
         {
             var user = await _userManager.GetUserAsync(User);

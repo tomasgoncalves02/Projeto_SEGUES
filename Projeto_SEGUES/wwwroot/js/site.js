@@ -581,22 +581,24 @@ function verDetalhesProdutos(id) {
     const modalElement = document.getElementById('modalDetalhes');
     const contentElement = document.getElementById('modalContentBody');
 
-    if (!modalElement || !contentElement) {
-        console.error("Elementos do modal não encontrados no HTML.");
-        return;
-    }
+    if (!modalElement || !contentElement) return;
 
     contentElement.innerHTML = '<div class="p-5 text-center"><div class="spinner-border text-color-ips"></div></div>';
 
-    // Alterado para UserOrders
     fetch(`/Bar/UserOrders/GetOrderDetails/${id}`)
         .then(res => res.json())
         .then(data => {
+            // Validação de segurança: se não houver produtos, mostra mensagem amigável
+            if (!data.produtos || data.produtos.length === 0) {
+                contentElement.innerHTML = '<div class="p-4">Nenhum detalhe encontrado.</div>';
+                return;
+            }
+
             let pRows = data.produtos.map(p => `
                 <tr>
                     <td class="text-start fw-bold">${p.nome}</td>
                     <td class="text-color-ips fw-bold">${p.preco.toFixed(2)}€</td>
-                    <td class="fw-bold">${p.quantidade}</td>
+                    <td class="fw-bold text-center">${p.quantidade}</td>
                 </tr>
             `).join('');
 
@@ -605,25 +607,29 @@ function verDetalhesProdutos(id) {
                     <div class="mb-3"><i class="bi bi-info-circle text-info" style="font-size: 4rem;"></i></div>
                     <h2 class="fw-bold mb-4">Detalhes do Pedido</h2>
                     <div class="text-start mb-3">
-                        <p class="mb-0 text-muted small fw-bold">Código</p>
-                        <h4 class="text-color-ips fw-bold">${data.codigo}</h4>
+                        <p class="mb-0 text-muted small fw-bold text-uppercase">Código de Recolha</p>
+                        <h4 class="text-color-ips fw-bold" style="letter-spacing: 2px;">${data.codigo}</h4>
                     </div>
-                    <div class="table-responsive border rounded-3">
+                    <div class="table-responsive border rounded-3 shadow-sm">
                         <table class="table table-hover mb-0">
                             <thead class="bg-color-ips text-white small">
-                                <tr><th>Nome</th><th>Preço</th><th>Qtd</th></tr>
+                                <tr>
+                                    <th class="text-start">Produto</th>
+                                    <th>Preço</th>
+                                    <th>Qtd</th>
+                                </tr>
                             </thead>
                             <tbody>${pRows}</tbody>
                         </table>
                     </div>
-                    <button type="button" class="btn btn-ips mt-4 px-5 py-2 fw-bold" data-bs-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-ips mt-4 px-5 py-2 fw-bold w-100" data-bs-dismiss="modal">FECHAR</button>
                 </div>`;
 
             new bootstrap.Modal(modalElement).show();
         })
         .catch(err => {
-            console.error(err);
-            Notifications.error("Erro ao carregar os detalhes.");
+            console.error("Erro ao carregar detalhes:", err);
+            Notifications.error("Não foi possível carregar os detalhes do pedido.");
         });
 }
 
