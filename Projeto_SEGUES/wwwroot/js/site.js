@@ -627,3 +627,66 @@ function verDetalhesProdutos(id) {
         });
 }
 
+/**
+ * Lógica de atualização de estado com validação de código para entrega
+ */
+function handleUpdate() {
+    const statusSelect = document.getElementById('statusSelect');
+    const orderIdInput = document.getElementById('orderId');
+
+    const status = statusSelect.value;
+    const orderId = orderIdInput.value;
+
+    // CASO 1: SE FOR ENTREGUE (STATUS 3) -> ABRE POPUP
+    if (status === "3") {
+        Swal.fire({
+            title: 'Validar Entrega',
+            text: 'Introduza o código do cliente:',
+            input: 'text',
+            inputAttributes: { autocapitalize: 'characters' },
+            showCancelButton: true,
+            confirmButtonText: 'Validar',
+            confirmButtonColor: 'var(--ips)',
+            showLoaderOnConfirm: true,
+            preConfirm: (code) => {
+                return fetch(`/Bar/OrderManagement/ValidateOrderCode?id=${orderId}&codeEntered=${code}`, {
+                    method: 'POST',
+                    headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value }
+                })
+                    .then(response => {
+                        if (!response.ok) return response.json().then(data => { throw new Error(data.message) });
+                        return response.json();
+                    })
+                    .catch(error => { Swal.showValidationMessage(error.message) });
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Notifications.success("Pedido entregue!");
+                setTimeout(() => window.location.reload(), 1000);
+            }
+        });
+    }
+    // CASO 2: OUTROS ESTADOS (PENDENTE, PREPARAÇÃO, PRONTO) -> UPDATE DIRETO
+    else {
+        // Fazemos um fetch para a Action UpdateStatus que já tinhas
+        fetch(`/Bar/OrderManagement/UpdateStatus`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+            },
+            body: `id=${orderId}&newStatus=${status}`
+        })
+            .then(response => {
+                if (response.ok) {
+                    Notifications.success("Estado atualizado com sucesso!");
+                    // Se usas HTMX para o painel lateral, podes recarregar apenas o painel
+                    // Para simplificar agora, vamos recarregar a página:
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    Notifications.error("Erro ao atualizar o estado.");
+                }
+            });
+    }
+}
+
