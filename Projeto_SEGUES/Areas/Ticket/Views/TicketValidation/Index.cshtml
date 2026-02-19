@@ -27,7 +27,7 @@
                             <i class="bi bi-qr-code-scan fs-1"></i>
                         </div>
                         <h4 class="fw-bold text-color-ips">Leitura de Código</h4>
-                        <p class="text-muted small">Aguardando leitura de QR Code ou RFID...</p>
+                       
                     </div>
                     @* Code form *@
                     <form asp-action="Index" method="post" id="validationForm" autocomplete="off">
@@ -44,8 +44,7 @@
                             <i class="bi bi-check2-circle me-2"></i>VALIDAR AGORA
                         </button>
                     </form>
-
-                    <div class="mt-4 p-3 bg-light rounded-3 border border-light">
+                    <div id="qr-reader" class="mx-auto mt-4 mb-3" style="width: 100%; max-width: 300px; border-radius: 8px; overflow: hidden;"></div>                    <div class="mt-4 p-3 bg-light rounded-3 border border-light">
                         <small class="text-muted d-block fw-bold">
                             <i class="bi bi-info-circle-fill me-1 text-color-ips"></i> Instruções: 
                         </small>
@@ -125,3 +124,51 @@
         </div>
     </div>
 </div>
+@section Scripts {
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const qrContainerId = "qr-reader";
+            const html5QrCode = new Html5Qrcode(qrContainerId);
+
+            function onScanSuccess(decodedText, decodedResult) {
+                document.getElementById('TicketCodeInput').value = decodedText;
+
+                html5QrCode.stop().then(() => {
+                    document.getElementById('validationForm').querySelector('button[type="submit"]').focus();
+                }).catch((err) => {
+                    console.error("Erro ao parar a câmara.", err);
+                });
+            }
+
+            html5QrCode.start(
+                { facingMode: "environment" },
+                {
+                    fps: 10,
+                    qrbox: { width: 200, height: 200 }
+                },
+                onScanSuccess,
+                (errorMessage) => {
+                    // Ignorar erros de procura de foco
+                }
+            ).catch((err) => {
+                console.error("Erro ao iniciar a câmara:", err);
+
+                const qrContainer = document.getElementById(qrContainerId);
+                qrContainer.innerHTML = `
+                    <div class="alert alert-warning d-flex align-items-center text-start m-0 border-0 shadow-sm" role="alert" style="border-radius: 8px;">
+                        <i class="bi bi-exclamation-triangle-fill fs-3 me-3 text-warning"></i>
+                        <div>
+                            <strong>Câmara Inacessível</strong><br>
+                            <small class="text-muted">Verifique as permissões do navegador ou insira o código manualmente.</small>
+                        </div>
+                    </div>
+                `;
+
+                
+            });
+        });
+    </script>
+}
