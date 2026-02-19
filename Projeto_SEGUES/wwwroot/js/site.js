@@ -323,7 +323,7 @@ function showEditGenre(typeName, currentName, key) {
                 
                 <p class="fw-bold mb-3" style="font-size: 1.1rem;">Insira o ${typeName} pretendido</p>
                 
-                <select class="form-select" asp-items=" ${ Html.GetEnumSelectList<Projeto_SEGUES.Models.Enums.Gender>()} "> 
+                <select class="form-select" asp-items=""> 
                 <option value="">Selecione...</option>
                 </select>
                 
@@ -475,14 +475,79 @@ function processAddToCart(id, name) {
         });
 }
 
-// Remover do carrinho (BD)
+// REMOVER DO CARRINHO (Corrigido para UserOrders)
 function removeFromCart(id, name) {
     Notifications.confirm(`Desejas remover ${name}?`).then(res => {
         if (res.isConfirmed) {
-            fetch(`/Bar/OrderManagement/RemoveFromCart?id=${id}`, { method: 'POST' })
-                .then(() => location.reload()); // Refresh apenas no checkout para atualizar totais
+            // Alterado para UserOrders e corrigido o formato do ID no URL
+            fetch(`/Bar/UserOrders/RemoveFromCart/${id}`, {
+                method: 'POST',
+                headers: {
+                    // Importante para não dar erro 400 Bad Request
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload(); // Refresh para atualizar os totais no Checkout
+                    } else {
+                        Notifications.error("Não foi possível remover o item.");
+                    }
+                });
         }
     });
+}
+
+// DETALHES DO PEDIDO (Unificada e corrigida para UserOrders)
+function verDetalhesProdutos(id) {
+    const modalElement = document.getElementById('modalDetalhes');
+    const contentElement = document.getElementById('modalContentBody');
+
+    if (!modalElement || !contentElement) {
+        console.error("Elementos do modal não encontrados no HTML.");
+        return;
+    }
+
+    contentElement.innerHTML = '<div class="p-5 text-center"><div class="spinner-border text-color-ips"></div></div>';
+
+    // Alterado para UserOrders
+    fetch(`/Bar/UserOrders/GetOrderDetails/${id}`)
+        .then(res => res.json())
+        .then(data => {
+            let pRows = data.produtos.map(p => `
+                <tr>
+                    <td class="text-start fw-bold">${p.nome}</td>
+                    <td class="text-color-ips fw-bold">${p.preco.toFixed(2)}€</td>
+                    <td class="fw-bold">${p.quantidade}</td>
+                </tr>
+            `).join('');
+
+            contentElement.innerHTML = `
+                <div class="modal-body p-4 text-center">
+                    <div class="mb-3"><i class="bi bi-info-circle text-info" style="font-size: 4rem;"></i></div>
+                    <h2 class="fw-bold mb-4">Detalhes do Pedido</h2>
+                    <div class="text-start mb-3">
+                        <p class="mb-0 text-muted small fw-bold">Código</p>
+                        <h4 class="text-color-ips fw-bold">${data.codigo}</h4>
+                    </div>
+                    <div class="table-responsive border rounded-3">
+                        <table class="table table-hover mb-0">
+                            <thead class="bg-color-ips text-white small">
+                                <tr><th>Nome</th><th>Preço</th><th>Qtd</th></tr>
+                            </thead>
+                            <tbody>${pRows}</tbody>
+                        </table>
+                    </div>
+                    <button type="button" class="btn btn-ips mt-4 px-5 py-2 fw-bold" data-bs-dismiss="modal">Fechar</button>
+                </div>`;
+
+            new bootstrap.Modal(modalElement).show();
+        })
+        .catch(err => {
+            console.error(err);
+            Notifications.error("Erro ao carregar os detalhes.");
+        });
 }
 
 // Helper para atualizar a badge com valor exato da BD
@@ -513,40 +578,18 @@ function confirmarCompraBar(formId) {
 }
 
 function verDetalhesProdutos(id) {
-    // 1. Mostrar spinner ou limpar dados antigos
-    document.getElementById('modalTabelaCorpo').innerHTML = '<tr><td colspan="4">A carregar...</td></tr>';
+    const modalElement = document.getElementById('modalDetalhes');
+    const contentElement = document.getElementById('modalContentBody');
 
-    // 2. Chamada ao Controller
-    fetch(`/Bar/OrderManagement/GetOrderDetails/${id}`)
-        .then(response => response.json())
-        .then(data => {
-            // Preencher Código
-            document.getElementById('modalCodigo').innerText = data.codigo;
+    if (!modalElement || !contentElement) {
+        console.error("Elementos do modal não encontrados no HTML.");
+        return;
+    }
 
-            // Preencher Tabela
-            let html = '';
-            data.produtos.forEach(p => {
-                html += `
-                <tr>
-                    <td class="fw-bold text-start">${p.nome}</td>
-                    <td><button class="btn btn-sm btn-ips"><i class="bi bi-eye text-white"></i></button></td>
-                    <td class="text-color-ips fw-bold">${p.preco.toFixed(2)}€</td>
-                    <td>${p.quantidade}</td>
-                </tr>`;
-            });
-            document.getElementById('modalTabelaCorpo').innerHTML = html;
+    contentElement.innerHTML = '<div class="p-5 text-center"><div class="spinner-border text-color-ips"></div></div>';
 
-            // 3. Abrir o Modal
-            new bootstrap.Modal(document.getElementById('modalDetalhes')).show();
-        })
-        .catch(error => {
-            console.error('Erro:', error);
-            Notifications.error("Erro ao carregar detalhes.");
-        });
-}
-function verDetalhesProdutos(id) {
-    // Reutilizamos a tua Action GetOrderDetails (que deve estar no OrderManagementController ou UserOrdersController)
-    fetch(`/Bar/OrderManagement/GetOrderDetails/${id}`)
+    // Alterado para UserOrders
+    fetch(`/Bar/UserOrders/GetOrderDetails/${id}`)
         .then(res => res.json())
         .then(data => {
             let pRows = data.produtos.map(p => `
@@ -557,7 +600,7 @@ function verDetalhesProdutos(id) {
                 </tr>
             `).join('');
 
-            document.getElementById('modalContentBody').innerHTML = `
+            contentElement.innerHTML = `
                 <div class="modal-body p-4 text-center">
                     <div class="mb-3"><i class="bi bi-info-circle text-info" style="font-size: 4rem;"></i></div>
                     <h2 class="fw-bold mb-4">Detalhes do Pedido</h2>
@@ -576,7 +619,11 @@ function verDetalhesProdutos(id) {
                     <button type="button" class="btn btn-ips mt-4 px-5 py-2 fw-bold" data-bs-dismiss="modal">Fechar</button>
                 </div>`;
 
-            new bootstrap.Modal(document.getElementById('modalDetalhes')).show();
+            new bootstrap.Modal(modalElement).show();
+        })
+        .catch(err => {
+            console.error(err);
+            Notifications.error("Erro ao carregar os detalhes.");
         });
 }
 
