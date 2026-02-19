@@ -311,6 +311,43 @@ function showEditData(typeName, currentName, key) {
 
 
 
+function showEditGenre(typeName, currentName, key) {
+    showSwal({
+        icon: null,
+        showConfirmButton: false,
+        showCloseButton: false,
+        html: `
+            <div class="p-4 d-flex flex-column align-items-center" style="font-family: Arial, sans-serif; color: #000;">
+                
+                <h2 class="fw-bold mb-4" style="font-size: 2.2rem; margin-top: 10px;">${typeName}</h2>
+                
+                <p class="fw-bold mb-3" style="font-size: 1.1rem;">Insira o ${typeName} pretendido</p>
+                
+                <select class="form-select" asp-items=" ${ Html.GetEnumSelectList<Projeto_SEGUES.Models.Enums.Gender>()} "> 
+                <option value="">Selecione...</option>
+                </select>
+                
+                <div class="d-flex gap-3 w-100" style="max-width: 320px;">
+                    
+                    <button class="btn text-white w-50 p-2" 
+                            style="background-color: #009A93; font-size: 1.1rem; border-radius: 4px; transition: background-color 0.3s;" 
+                            onclick="handleEditNameSubmit()">
+                        Editar
+                    </button>
+                    
+                    <button class="btn text-white w-50 p-2" 
+                            style="background-color: #A6A6A6; font-size: 1.1rem; border-radius: 4px; transition: background-color 0.3s;" 
+                            onclick="Swal.close()">
+                        Fechar
+                    </button>
+
+                </div>
+                
+            </div>
+        `,
+        backdrop: 'var(--ips-shadow-soft)'
+    });
+}
 
 
 
