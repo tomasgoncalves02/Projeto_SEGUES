@@ -173,10 +173,12 @@ namespace Projeto_SEGUES.Areas.Bar.Controllers
                     ProductId = item.ProductId,
                     Quantity = item.Quantity,
                     OrderDate = DateTime.Now,
+                    OrderPickUp = orderPickUp,
+                    CreationTime = DateOnly.FromDateTime(DateTime.Today),
+                    Expired = DateOnly.FromDateTime(DateTime.Today), 
                     PriceAtTime = item.Product.Price,
-                    Status = 0, // Pendente
-                    RedemptionCode = codigoUnicoPedido, // Atribui o mesmo código a todos os itens
-                    OrderPickUp = orderPickUp
+                    Status = 0,
+                    RedemptionCode = codigoUnicoPedido
                 });
             }
 

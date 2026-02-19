@@ -294,6 +294,9 @@ namespace Projeto_SEGUES.Migrations
                     b.Property<TimeSpan>("OrderPickUp")
                         .HasColumnType("time");
 
+                    b.Property<DateOnly>("PickDate")
+                        .HasColumnType("date");
+
                     b.Property<decimal>("PriceAtTime")
                         .HasColumnType("decimal(18,2)");
 

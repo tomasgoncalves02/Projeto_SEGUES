@@ -11,7 +11,7 @@ namespace Projeto_SEGUES.Areas.Bar.ViewModels
         public string Estado { get; set; } = string.Empty;
         public int StatusValue { get; set; }
         public DateOnly Validade { get; set; }      
-        public DateOnly Recolhido { get; set; }    
+        public DateOnly Recolhido { get; set; }   
         public decimal PrecoTotal { get; set; }
     }
 }

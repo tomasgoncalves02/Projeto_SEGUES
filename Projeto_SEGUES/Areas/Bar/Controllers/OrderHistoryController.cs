@@ -40,7 +40,7 @@ namespace Projeto_SEGUES.Areas.Bar.Controllers
                 HoraRecolha = o.OrderPickUp,
                 StatusValue = o.Status,
                 Validade = o.Expired,
-                Recolhido = o.CreationTime,
+                Recolhido = o.PickDate,
                 PrecoTotal = o.PriceAtTime,
 
               

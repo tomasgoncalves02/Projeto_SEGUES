@@ -397,6 +397,7 @@ namespace Projeto_SEGUES.Migrations
                     OrderPickUp = table.Column<TimeSpan>(type: "time", nullable: false),
                     Expired = table.Column<DateOnly>(type: "date", nullable: false),
                     CreationTime = table.Column<DateOnly>(type: "date", nullable: false),
+                    PickDate = table.Column<DateOnly>(type: "date", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     PriceAtTime = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     IsConsumed = table.Column<bool>(type: "bit", nullable: false),
