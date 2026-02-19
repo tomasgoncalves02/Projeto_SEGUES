@@ -279,11 +279,20 @@ namespace Projeto_SEGUES.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateOnly>("CreationTime")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly>("Expired")
+                        .HasColumnType("date");
+
                     b.Property<bool>("IsConsumed")
                         .HasColumnType("bit");
 
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<TimeSpan>("OrderPickUp")
+                        .HasColumnType("time");
 
                     b.Property<decimal>("PriceAtTime")
                         .HasColumnType("decimal(18,2)");

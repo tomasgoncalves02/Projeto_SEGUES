@@ -21,6 +21,12 @@ public class BarOrder
 
     public DateTime OrderDate { get; set; } = DateTime.Now;
 
+    public TimeSpan OrderPickUp { get; set; }
+
+    public DateOnly Expired { get; set; }
+
+    public DateOnly CreationTime { get; set; }
+
     [Range(1, 100)]
     public int Quantity { get; set; } = 1;
 

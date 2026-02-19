@@ -37,8 +37,13 @@ namespace Projeto_SEGUES.Areas.Bar.Controllers
             {
                 Codigo = o.RedemptionCode,
                 DataCompra = o.OrderDate,
-                PrecoTotal = o.PriceAtTime,
+                HoraRecolha = o.OrderPickUp,
                 StatusValue = o.Status,
+                Validade = o.Expired,
+                Recolhido = o.CreationTime,
+                PrecoTotal = o.PriceAtTime,
+
+              
                 Estado = o.Status switch
                 {
                     0 => "Pendente",

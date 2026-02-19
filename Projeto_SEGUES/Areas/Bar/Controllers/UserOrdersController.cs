@@ -125,7 +125,7 @@ namespace Projeto_SEGUES.Areas.Bar.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ConfirmPurchase(bool receiveNow)
+        public async Task<IActionResult> ConfirmPurchase(bool receiveNow, string? pickupTime)
         {
             var user = await _userManager.GetUserAsync(User);
             var cartItems = await _context.CartItems
@@ -153,6 +153,12 @@ namespace Projeto_SEGUES.Areas.Bar.Controllers
             // Geramos o código aqui fora para que todos os produtos tenham o mesmo
             string codigoUnicoPedido = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
 
+
+            TimeSpan orderPickUp = receiveNow
+            ? DateTime.Now.TimeOfDay
+            : TimeSpan.Parse(pickupTime!);
+
+
             // 3. Processamento da compra
             user.Balance -= total;
 
@@ -169,7 +175,8 @@ namespace Projeto_SEGUES.Areas.Bar.Controllers
                     OrderDate = DateTime.Now,
                     PriceAtTime = item.Product.Price,
                     Status = 0, // Pendente
-                    RedemptionCode = codigoUnicoPedido // Atribui o mesmo código a todos os itens
+                    RedemptionCode = codigoUnicoPedido, // Atribui o mesmo código a todos os itens
+                    OrderPickUp = orderPickUp
                 });
             }
 

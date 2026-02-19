@@ -72,6 +72,7 @@
                         <th class="py-3">Data de compra</th>
                         <th class="py-3">Hora de Recolha</th>
                         <th class="py-3">Estado</th>
+                        <th class="py-3">Validade</th>
                         <th class="py-3">Recolhido em</th>
                         <th class="py-3">Produtos</th>
                         <th class="py-3 pe-4">Preço Total</th>
@@ -81,7 +82,7 @@
                     @if (!historicoAgrupado.Any())
                     {
                         <tr>
-                            <td colspan="7" class="py-5 text-muted">Nenhum pedido encontrado.</td>
+                            <td colspan="8" class="py-5 text-muted">Nenhum pedido encontrado.</td>
                         </tr>
                     }
                     else
@@ -94,7 +95,7 @@
                             <tr class="history-row" data-estado="@item.StatusValue" data-data="@item.DataCompra.ToString("yyyy-MM-dd")">
                                 <td class="fw-bold text-color-ips ps-4 text-start">@item.Codigo</td>
                                 <td>@item.DataCompra.ToString("dd/MM/yyyy")</td>
-                                <td>@(string.IsNullOrEmpty(item.HoraRecolha) || item.HoraRecolha == "---" ? "---" : item.HoraRecolha)</td>
+                                <td>@(item.HoraRecolha == TimeSpan.Zero ? "---" : item.HoraRecolha.ToString(@"hh\:mm"))</td>
                                 <td>
                                     @switch (item.StatusValue)
                                     {
@@ -115,7 +116,8 @@
                                             break;
                                     }
                                 </td>
-                                <td>@(item.RecolhidoEm ?? "---")</td>
+                                <td>@(item.Validade == DateOnly.MinValue ? "---" : item.Validade.ToString("dd/MM/yyyy"))</td>
+                                <td>@(item.Recolhido == DateOnly.MinValue ? "---" : item.Recolhido.ToString("dd/MM/yyyy"))</td>
                                 <td>
                                     @* Passamos o Id de um dos itens, o site.js já deve tratar de buscar todos pelo Código *@
                                     <button type="button" class="btn btn-sm btn-ips shadow-sm px-3" onclick="verDetalhesProdutos(@item.Id)" title="Ver Produtos">
