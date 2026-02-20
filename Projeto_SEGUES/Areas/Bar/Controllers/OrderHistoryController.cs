@@ -35,6 +35,7 @@ namespace Projeto_SEGUES.Areas.Bar.Controllers
             // 3. Mapear para o ViewModel (se a lista estiver vazia, o select devolve uma lista vazia)
             var model = ordersFromDb.Select(o => new OrderHistoryViewModel
             {
+                Id = o.Id,
                 Codigo = o.RedemptionCode,
                 DataCompra = o.OrderDate,
                 HoraRecolha = o.OrderPickUp,

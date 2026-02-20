@@ -130,16 +130,13 @@ namespace Projeto_SEGUES.Areas.Bar.Controllers
 
                 foreach (var o in relatedOrders)
                 {
-                    o.Status = 3;
+                    o.Status = 3; // Entregue
                     o.IsConsumed = true;
-                    o.PickDate = DateTime.Now;
+                    o.PickDate = DateTime.Now; // REGISTA A HORA EXATA AQUI
                 }
 
                 await _context.SaveChangesAsync();
-
-                // ESTA LINHA É A CHAVE: Dispara um evento para a tabela atualizar
                 Response.Headers.Add("HX-Trigger", "orderUpdated");
-
                 return Ok(new { success = true });
             }
             return BadRequest(new { message = "Código inválido!" });
