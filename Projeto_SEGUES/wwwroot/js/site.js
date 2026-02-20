@@ -210,6 +210,20 @@ function showQr(code) {
     });
 }
 
+function showCode(code) {
+    showSwal({
+        title: 'Codigo de Pedido',
+        html: `<div class="p-3 text-color-ips">
+                 <h2 class="fw-bold text-color-ips" style="letter-spacing: 6px;">${code}</h2>
+                 <p class="text-muted small mt-2">
+                    Apresente este código no bar para validação.<br />
+                    Mantém o brilho do telemóvel alto para facilitar a leitura.
+                 </p>
+              </div>`,
+        backdrop: 'var(--ips-shadow-soft)'
+    });
+}
+
 // Ticket Code Validation
 function setupTicketCodeValidation(inputId) {
     const codeInput = document.getElementById(inputId);

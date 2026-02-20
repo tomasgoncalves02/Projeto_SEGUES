@@ -50,7 +50,11 @@
                         </p>
                         <p class="mb-1 text-muted small fw-bold text-uppercase">
                             Recolha <div class="alert alert-light border-0 small mb-4" style="background-color: var(--ips-shadow-soft);">
-                               <strong class="text-color-ips fs-5">@Model.OrderPickUp</strong>
+                                <strong class="text-color-ips fs-5">
+                                    @(Model.OrderPickUp == TimeSpan.Zero
+                                                                        ? Model.OrderDate.TimeOfDay.ToString(@"hh\:mm")
+                                                                        : Model.OrderPickUp.ToString(@"hh\:mm"))
+                                </strong>
                             </div>
                         </p>
                     </div>
@@ -58,7 +62,7 @@
 
                 <div class="card-body">
                     <div class="d-flex flex-column gap-2">
-                        <button class="btn btn-ips w-100 py-2 fw-bold text-uppercase">
+                        <button onclick="showCode('@Model.RedemptionCode')" class="btn btn-ips w-100 py-2 fw-bold text-uppercase">
                             CÓDIGO
                         </button>
                         <button class="btn btn-secondary w-100 py-2 fw-bold text-uppercase">
