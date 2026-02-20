@@ -265,6 +265,42 @@ namespace Projeto_SEGUES.Areas.Bar.Controllers
             return View(model);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> CancelOrder(int id)
+        {
+            var order = await _context.BarOrders.FindAsync(id);
+            if (order == null) return NotFound();
+
+            if(order.Status == 0)
+            {
+                _context.BarOrders.Remove(order);
+                await _context.SaveChangesAsync();
+                TempData["SwalJson"] = JsonConvert.SerializeObject(new
+                {
+                    icon = "success",
+                    title = "Sucesso",
+                    text = "Pedido cancelado com sucesso"
+                });
+                return RedirectToAction(nameof(ActiveOrders));
+                
+            }
+            else
+            {
+                TempData["SwalJson"] = JsonConvert.SerializeObject(new
+                {
+                    icon = "error",
+                    title = "Pedido não pode ser cancelado",
+                    text = "Pedido não pode ser cancelado pois o mesmo já se encontra em preparação."
+                });
+                return RedirectToAction(nameof(OrderDetails), new { id });
+            }
+
+
+           
+
+            
+        }
+
 
 
 

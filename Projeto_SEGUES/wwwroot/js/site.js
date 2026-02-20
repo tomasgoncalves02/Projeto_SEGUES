@@ -741,3 +741,10 @@ function showProductDetails(name, description, price) {
     });
 }
 
+function confirmarCancelamento(form) {
+    Notifications.confirm("Tens a certeza que queres cancelar este pedido?")
+        .then(result => {
+            if (result.isConfirmed) form.submit();
+        });
+}
+
