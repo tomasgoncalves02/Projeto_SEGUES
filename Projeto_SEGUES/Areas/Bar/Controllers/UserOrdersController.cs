@@ -7,6 +7,7 @@ using Projeto_SEGUES.Data; // Ajusta para o teu namespace de Data
 using Projeto_SEGUES.Models.Bar;
 using Projeto_SEGUES.Models.User;
 
+
 namespace Projeto_SEGUES.Areas.Bar.Controllers
 {
     [Area("Bar")]
@@ -232,5 +233,41 @@ namespace Projeto_SEGUES.Areas.Bar.Controllers
             var totalCount = await _context.CartItems.Where(c => c.UserId == userId).SumAsync(c => c.Quantity);
             return Json(new { success = true, count = totalCount });
         }
+
+        [HttpGet]
+        public async Task<IActionResult> OrderDetails(int id)
+        {
+            var pedidoReferencia = await _context.BarOrders.FindAsync(id);
+            if (pedidoReferencia == null) return NotFound();
+
+            var todosProdutos = await _context.BarOrders
+                .Include(o => o.Product)
+                .Where(o => o.RedemptionCode == pedidoReferencia.RedemptionCode)
+                .ToListAsync();
+
+            var model = new OrderDetailsViewModel
+            {
+                Id = pedidoReferencia.Id,
+                RedemptionCode = pedidoReferencia.RedemptionCode,
+                OrderDate = pedidoReferencia.OrderDate,
+                OrderPickUp = pedidoReferencia.OrderPickUp,
+                Status = pedidoReferencia.Status,
+                Total = todosProdutos.Sum(p => p.PriceAtTime * p.Quantity),
+                Products = todosProdutos.Select(p => new OrderDetailsItemViewModel
+                {
+                    Name = p.Product.Name,
+                    Price = p.PriceAtTime,
+                    Quantity = p.Quantity,
+                    Description = p.Product.Description
+                }).ToList()
+            };
+
+            return View(model);
+        }
+
+
+
+
+
     }
 }

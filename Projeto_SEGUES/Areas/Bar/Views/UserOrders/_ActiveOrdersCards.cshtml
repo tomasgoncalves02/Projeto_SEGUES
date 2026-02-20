@@ -60,9 +60,10 @@ else
                     </div>
 
                     <div class="mt-auto">
-                        <button class="btn btn-ips w-100 py-2 fw-bold shadow-sm" onclick="verDetalhesProdutos(@item.Id)">
+                        <a asp-area="Bar" asp-controller="UserOrders" asp-action="OrderDetails" asp-route-id="@item.Id"
+                           class="btn btn-ips w-100 py-2 fw-bold">
                             <i class="bi bi-info-circle me-2"></i>INFORMAÇÕES
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>

@@ -696,3 +696,34 @@ function handleUpdate() {
     }
 }
 
+function showProductDetails(name, description, price) {
+    Swal.fire({
+        title: '<strong>Detalhes do Produto</strong>',
+        icon: 'info',
+        html: `
+                    <div class="text-start mt-3">
+                        <small class="text-muted fw-bold text-uppercase d-block mb-1" style="font-size: 0.7rem;">Nome do Produto</small>
+                        <h5 class="fw-bold mb-4" style="color: #009697;">${name}</h5>
+
+                        <small class="text-muted fw-bold text-uppercase d-block mb-1" style="font-size: 0.7rem;">Descrição</small>
+                        <p class="text-muted small mb-4">${description || 'Nenhuma descrição disponível para este produto.'}</p>
+
+                        <div class="card bg-light border-0 shadow-sm rounded-3">
+                            <div class="card-body text-center py-3">
+                                <small class="text-muted fw-bold text-uppercase d-block mb-1" style="font-size: 0.7rem;">Preço</small>
+                                <h3 class="fw-bold text-dark mb-0">${price}</h3>
+                            </div>
+                        </div>
+                    </div>
+                `,
+        showCloseButton: false,
+        focusConfirm: false,
+        confirmButtonText: 'Fechar',
+        confirmButtonColor: '#009697',
+        customClass: {
+            popup: 'rounded-4 shadow-lg',
+            confirmButton: 'px-4 py-2 fw-bold rounded-3 shadow-sm'
+        }
+    });
+}
+
