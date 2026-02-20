@@ -12,7 +12,7 @@ using Projeto_SEGUES.Data;
 namespace Projeto_SEGUES.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260219203752_initial")]
+    [Migration("20260220090716_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -297,8 +297,8 @@ namespace Projeto_SEGUES.Migrations
                     b.Property<TimeSpan>("OrderPickUp")
                         .HasColumnType("time");
 
-                    b.Property<DateOnly>("PickDate")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("PickDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<decimal>("PriceAtTime")
                         .HasColumnType("decimal(18,2)");

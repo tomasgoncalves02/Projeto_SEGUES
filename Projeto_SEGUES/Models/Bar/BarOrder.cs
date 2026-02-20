@@ -27,7 +27,7 @@ public class BarOrder
 
     public DateOnly CreationTime { get; set; }
 
-    public DateOnly PickDate { get; set; }
+    public DateTime PickDate { get; set; }
 
     [Range(1, 100)]
     public int Quantity { get; set; } = 1;

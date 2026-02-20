@@ -2,24 +2,24 @@
 @{
     ViewData["Title"] = "Histórico de Bar - SEGUES";
 
-    // AGRUPAMENTO: Agrupamos os itens pelo Código para evitar linhas duplicadas no histórico
+    // Agrupamento por código para evitar linhas repetidas quando há múltiplos itens no mesmo pedido
     var historicoAgrupado = Model.GroupBy(o => o.Codigo)
                                  .OrderByDescending(g => g.First().DataCompra)
                                  .ToList();
 }
 
-@* Gancho para o site.js disparar o pop-up de SUCESSO vindo do Checkout *@
+@* Gancho para disparar alertas (Sucesso/Erro) via site.js *@
 @if (TempData["SwalJson"] != null)
 {
     <div id="swal-data" data-json='@TempData["SwalJson"]'></div>
 }
 
-<div class="container mt-5 text-start">
-    @* Cabeçalho *@
+<div class="container-fluid mt-5 text-start px-4">
+    @* Cabeçalho da Página *@
     <div class="row mb-4 align-items-center">
         <div class="col-md-8">
             <h1 class="fw-bold title-underline mb-0">Histórico de Bar</h1>
-            <p class="text-muted mt-2">Consulta detalhada de todas as suas compras no Bar.</p>
+            <p class="text-muted mt-2">Consulta detalhada de todas as suas compras efetuadas.</p>
         </div>
         <div class="col-md-4 text-end">
             <a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-ips-outline-secondary px-4 fw-bold shadow-sm">
@@ -28,13 +28,13 @@
         </div>
     </div>
 
-    @* Barra de Filtros *@
+    @* Barra de Filtros Dinâmicos *@
     <div class="card card-ips shadow-sm mb-4 border-0 rounded-3">
         <div class="card-body p-4 filter-bar">
             <div class="row g-3 align-items-end">
                 <div class="col-md-3">
                     <label class="form-label fw-bold small text-uppercase text-muted">Estado</label>
-                    <select class="form-select" id="statusFilter" onchange="filterHistory()">
+                    <select class="form-select shadow-none" id="statusFilter" onchange="filterHistory()">
                         <option value="todos">Todos os estados</option>
                         <option value="0">Pendente</option>
                         <option value="1">Em preparação</option>
@@ -43,12 +43,12 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label fw-bold small text-uppercase text-muted">Compradas em</label>
-                    <input type="date" id="dateFilter" class="form-control" onchange="filterHistory()" />
+                    <label class="form-label fw-bold small text-uppercase text-muted">Data da Compra</label>
+                    <input type="date" id="dateFilter" class="form-control shadow-none" onchange="filterHistory()" />
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label fw-bold small text-uppercase text-muted">Pesquisar</label>
-                    <input type="text" id="searchInput" class="form-control" placeholder="Código" onkeyup="filterHistory()" />
+                    <label class="form-label fw-bold small text-uppercase text-muted">Pesquisa Rápida</label>
+                    <input type="text" id="searchInput" class="form-control shadow-none" placeholder="Código do pedido..." onkeyup="filterHistory()" />
                 </div>
                 <div class="col-md-3 d-flex align-items-center gap-2">
                     <a href="javascript:void(0)" onclick="clearFilters()" class="btn-reset-x text-nowrap small text-decoration-none text-muted">
@@ -62,40 +62,65 @@
         </div>
     </div>
 
-    @* Tabela de Pedidos *@
+    @* Tabela de Dados *@
     <div class="card card-ips shadow-sm border-0 rounded-3 overflow-hidden">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0 text-center" id="historyTable">
+            <table class="table table-hover align-middle mb-0 text-center" id="historyTable" style="min-width: 1100px;">
                 <thead class="bg-color-ips text-white">
                     <tr>
                         <th class="py-3 ps-4 text-start">Código</th>
-                        <th class="py-3">Data de compra</th>
-                        <th class="py-3">Hora de Recolha</th>
+                        <th class="py-3">Data</th>
+                        <th class="py-3">Hora Pedido</th>
+                        <th class="py-3">Para Depois?</th>
+                        <th class="py-3">Hora p/ Recolha</th>
                         <th class="py-3">Estado</th>
                         <th class="py-3">Validade</th>
                         <th class="py-3">Recolhido em</th>
                         <th class="py-3">Produtos</th>
-                        <th class="py-3 pe-4">Preço Total</th>
+                        <th class="py-3 pe-4 text-end">Preço Total</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (!historicoAgrupado.Any())
                     {
                         <tr>
-                            <td colspan="8" class="py-5 text-muted">Nenhum pedido encontrado.</td>
+                            <td colspan="10" class="py-5 text-muted">
+                                <i class="bi bi-inbox display-4 d-block mb-3 opacity-25"></i>
+                                Ainda não efetuou pedidos no bar.
+                            </td>
                         </tr>
                     }
                     else
                     {
                         @foreach (var grupo in historicoAgrupado)
                         {
-                            var item = grupo.First(); // Info comum ao pedido
-                            var precoTotalPedido = grupo.Sum(x => x.PrecoTotal); // Soma de todos os produtos do grupo
+                            var item = grupo.First();
+                            var precoTotalPedido = grupo.Sum(x => x.PrecoTotal);
+
+                            // Lógica de Tempo: Agora que o Controller envia Zero para "Imediato",
+                            // validamos apenas se o tempo de recolha é superior a 0.
+                            bool eParaDepois = item.HoraRecolha.TotalSeconds > 0;
 
                             <tr class="history-row" data-estado="@item.StatusValue" data-data="@item.DataCompra.ToString("yyyy-MM-dd")">
                                 <td class="fw-bold text-color-ips ps-4 text-start">@item.Codigo</td>
                                 <td>@item.DataCompra.ToString("dd/MM/yyyy")</td>
-                                <td>@(item.HoraRecolha == TimeSpan.Zero ? "---" : item.HoraRecolha.ToString(@"hh\:mm"))</td>
+                                <td>@item.DataCompra.ToString("HH:mm")</td>
+
+                                <td>
+                                    @if (eParaDepois)
+                                    {
+                                        <span class="badge bg-light text-color-ips border border-color-ips">Sim</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-light text-color-ips border border-color-ips">Não</span>
+                                    }
+                                </td>
+
+                                <td class="fw-bold text-dark">
+                                    @(eParaDepois? item.HoraRecolha.ToString(@"hh\:mm") : "---")
+                                </td>
+
                                 <td>
                                     @switch (item.StatusValue)
                                     {
@@ -116,15 +141,28 @@
                                             break;
                                     }
                                 </td>
+
                                 <td>@(item.Validade == DateOnly.MinValue ? "---" : item.Validade.ToString("dd/MM/yyyy"))</td>
-                                <td>@(item.Recolhido == DateOnly.MinValue ? "---" : item.Recolhido.ToString("dd/MM/yyyy"))</td>
+
                                 <td>
-                                    @* Passamos o Id de um dos itens, o site.js já deve tratar de buscar todos pelo Código *@
-                                    <button type="button" class="btn btn-sm btn-ips shadow-sm px-3" onclick="verDetalhesProdutos(@item.Id)" title="Ver Produtos">
+                                    @if (item.StatusValue == 3 && item.Recolhido != DateTime.MinValue)
+                                    {
+                                        <span class="text-success small fw-bold">
+                                            @item.Recolhido.ToString("dd/MM/yyyy HH:mm")
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">---</span>
+                                    }
+                                </td>
+
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-ips shadow-sm px-3" onclick="verDetalhesProdutos(@item.Id)" title="Ver Detalhes">
                                         <i class="bi bi-eye"></i>
                                     </button>
                                 </td>
-                                <td class="fw-bold text-color-ips pe-4">@precoTotalPedido.ToString("N2") €</td>
+                                <td class="fw-bold text-color-ips pe-4 text-end">@precoTotalPedido.ToString("N2") €</td>
                             </tr>
                         }
                     }
@@ -134,12 +172,12 @@
     </div>
 </div>
 
-@* Modal Detalhes (Mantido conforme o teu original) *@
+@* Modal de Visualização de Itens *@
 <div class="modal fade" id="modalDetalhes" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
             <div id="modalContentBody">
-                @* Conteúdo preenchido dinamicamente pelo site.js *@
+                @* Conteúdo carregado via AJAX pelo site.js *@
             </div>
         </div>
     </div>
@@ -147,6 +185,7 @@
 
 @section Scripts {
     <script>
+        // Lógica de Filtragem no lado do Cliente
         function filterHistory() {
             const search = document.getElementById('searchInput').value.toLowerCase();
             const status = document.getElementById('statusFilter').value;

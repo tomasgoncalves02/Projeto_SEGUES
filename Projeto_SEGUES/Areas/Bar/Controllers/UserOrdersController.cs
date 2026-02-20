@@ -149,29 +149,26 @@ namespace Projeto_SEGUES.Areas.Bar.Controllers
                 return RedirectToAction(nameof(Checkout));
             }
 
-            // 2. GERAR CÓDIGO ÚNICO PARA TODO O PEDIDO
-            // Geramos o código aqui fora para que todos os produtos tenham o mesmo
-            string codigoUnicoPedido = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
-
-
+            // 2. Lógica de Horário (A CORREÇÃO ESTÁ AQUI)
+            // Se receiveNow for true, gravamos TimeSpan.Zero (00:00:00). 
+            // Se gravarmos a hora atual, a View pensa que é um agendamento.
             TimeSpan orderPickUp = receiveNow
-            ? DateTime.Now.TimeOfDay
-            : TimeSpan.Parse(pickupTime!);
+                ? TimeSpan.Zero
+                : TimeSpan.Parse(pickupTime!);
 
-            if (orderPickUp < DateTime.Now.TimeOfDay.Add(TimeSpan.FromMinutes(-1)))
+            if (!receiveNow && orderPickUp < DateTime.Now.TimeOfDay.Add(TimeSpan.FromMinutes(-1)))
             {
                 TempData["SwalJson"] = JsonConvert.SerializeObject(new
                 {
                     icon = "error",
-                    title = "Hora Invalida",
-                    text = $"Não dá para efetuar pedidos para horas ({pickupTime}) que já passaram."
+                    title = "Hora Inválida",
+                    text = "Não é possível agendar para o passado."
                 });
-                
                 return RedirectToAction(nameof(Checkout));
             }
 
-
-            // 3. Processamento da compra
+            // 3. Processamento e Gravação
+            string codigoUnicoPedido = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
             user.Balance -= total;
 
             foreach (var item in cartItems)
@@ -185,9 +182,9 @@ namespace Projeto_SEGUES.Areas.Bar.Controllers
                     ProductId = item.ProductId,
                     Quantity = item.Quantity,
                     OrderDate = DateTime.Now,
-                    OrderPickUp = orderPickUp,
+                    OrderPickUp = orderPickUp, // Ficará 00:00:00 para pedidos imediatos
                     CreationTime = DateOnly.FromDateTime(DateTime.Today),
-                    Expired = DateOnly.FromDateTime(DateTime.Today), 
+                    Expired = DateOnly.FromDateTime(DateTime.Today),
                     PriceAtTime = item.Product.Price,
                     Status = 0,
                     RedemptionCode = codigoUnicoPedido
@@ -197,17 +194,14 @@ namespace Projeto_SEGUES.Areas.Bar.Controllers
             _context.CartItems.RemoveRange(cartItems);
             await _context.SaveChangesAsync();
 
-            // 4. Mensagem de SUCESSO
             TempData["SwalJson"] = JsonConvert.SerializeObject(new
             {
                 icon = "success",
-                title = "Compra efetuada com sucesso!",
-                text = "O seu pedido já se encontra pendente no bar."
+                title = "Sucesso!",
+                text = "Pedido efetuado."
             });
 
-            // 5. REDIRECIONAMENTO
-            // Como agora tens a página de cartões (ActiveOrders), deves mandar o user para lá
-            return RedirectToAction("ActiveOrders", "UserOrders", new { area = "Bar" });
+            return RedirectToAction("ActiveOrders");
         }
 
         [HttpPost]

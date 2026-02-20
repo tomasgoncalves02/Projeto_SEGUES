@@ -132,6 +132,7 @@ namespace Projeto_SEGUES.Areas.Bar.Controllers
                 {
                     o.Status = 3;
                     o.IsConsumed = true;
+                    o.PickDate = DateTime.Now;
                 }
 
                 await _context.SaveChangesAsync();
