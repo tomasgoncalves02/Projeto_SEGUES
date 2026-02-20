@@ -158,6 +158,18 @@ namespace Projeto_SEGUES.Areas.Bar.Controllers
             ? DateTime.Now.TimeOfDay
             : TimeSpan.Parse(pickupTime!);
 
+            if (orderPickUp < DateTime.Now.TimeOfDay.Add(TimeSpan.FromMinutes(-1)))
+            {
+                TempData["SwalJson"] = JsonConvert.SerializeObject(new
+                {
+                    icon = "error",
+                    title = "Hora Invalida",
+                    text = $"Não dá para efetuar pedidos para horas ({pickupTime}) que já passaram."
+                });
+                
+                return RedirectToAction(nameof(Checkout));
+            }
+
 
             // 3. Processamento da compra
             user.Balance -= total;

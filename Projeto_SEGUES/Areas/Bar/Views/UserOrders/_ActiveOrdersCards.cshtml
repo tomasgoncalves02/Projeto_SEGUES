@@ -34,7 +34,7 @@ else
                         <span class="badge @(item.Status == 0 ? "bg-secondary" : item.Status == 1 ? "bg-info text-dark" : "bg-warning text-dark")">
                             @((item.Status == 0) ? "Pendente" : (item.Status == 1) ? "Em Preparação" : "Pronto")
                         </span>
-                        <small class="text-muted"><i class="bi bi-clock"></i> @item.OrderDate.ToString("HH:mm")</small>
+                        <small class="text-muted"><i class="bi bi-clock"></i> @item.OrderPickUp.ToString(@"hh\:mm")</small>
                     </div>
 
                     @* Código único do pedido agrupado *@
