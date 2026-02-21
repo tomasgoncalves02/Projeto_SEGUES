@@ -15,5 +15,6 @@ public interface ITicketService
     Task<ServiceResult> BuyTicketsAsync(string userId, int quantity);
     Task<ServiceResult> ValidateTicketAsync(string code, AppUser validator);
     Task<List<Ticket>> QueryHistoryAsync(string userId, string searchString, TicketState? stateFilter, string flowFilter, DateTime? dateFilter);
-    Task<List<Ticket>> GetAllTicketsAsync();  
+    Task<List<Ticket>> GetAllTicketsAsync();
+    Task<ServiceResult> TransferTicketsAsync(string senderId, string recipientEmail, List<string> selectedTickets);
 }

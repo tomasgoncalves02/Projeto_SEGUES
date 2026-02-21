@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using Projeto_SEGUES.Data;
-using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.Enums;
+using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.User;
 
 namespace Projeto_SEGUES.Services;
@@ -10,10 +12,15 @@ namespace Projeto_SEGUES.Services;
 public class TicketService : ITicketService
 {
     private readonly AppDbContext _context;
+    private readonly UserManager<AppUser> _userManager;
+    private readonly RoleManager<Role> _roleManager;
 
-    public TicketService(AppDbContext context)
+    public TicketService(AppDbContext context, UserManager<AppUser> userManager, RoleManager<Role> roleManager)
     {
         _context = context;
+        _userManager = userManager;
+        _roleManager = roleManager;
+
     }
 
     // Set expired tickets state to expired
@@ -268,5 +275,78 @@ public class TicketService : ITicketService
             .Include(t => t.TicketPurchase)
             .OrderByDescending(t => t.TicketPurchase.TransactionDate)
             .ToListAsync();
+    }
+
+
+
+
+    public async Task<ServiceResult> TransferTicketsAsync(string senderId, string recipientEmail, List<string> selectedTickets)
+    {
+        var sender = await _userManager.FindByIdAsync(senderId);
+        if (sender == null)
+            return ServiceResult.Fail("Utilizador remetente não encontrado.");
+
+        if (sender.Email!.Equals(recipientEmail, StringComparison.OrdinalIgnoreCase))
+            return ServiceResult.Fail("Não pode transferir senhas para si próprio.");
+
+        var receiver = await _userManager.FindByEmailAsync(recipientEmail);
+        if (receiver == null)
+            return ServiceResult.Fail("Não foi encontrado nenhum utilizador com esse e-mail.");
+
+        var senderRoles = await _userManager.GetRolesAsync(sender);
+        var receiverRoles = await _userManager.GetRolesAsync(receiver);
+
+        var senderRoleName = senderRoles.FirstOrDefault();
+        var receiverRoleName = receiverRoles.FirstOrDefault();
+
+        if (senderRoleName != receiverRoleName)
+        {
+            var senderRole = await _roleManager.FindByNameAsync(senderRoleName ?? "");
+            var receiverRole = await _roleManager.FindByNameAsync(receiverRoleName ?? "");
+
+            string senderDisplay = senderRole?.DisplayName ?? "a sua categoria";
+            string receiverDisplay = receiverRole?.DisplayName ?? "outra categoria";
+
+            return ServiceResult.Fail($"Transferência recusada: Só pode enviar senhas para {senderDisplay}. O destinatário pertence aos {receiverDisplay}.");
+        }
+
+        var ticketsToTransfer = await _context.Tickets
+            .Include(t => t.Owner)
+            .Where(t => t.Owner.Id == sender.Id
+                     && selectedTickets.Contains(t.ValidationCode)
+                     && t.State == TicketState.Available)
+            .ToListAsync();
+
+        if (!ticketsToTransfer.Any())
+            return ServiceResult.Fail("As senhas selecionadas já não estão disponíveis ou não lhe pertencem.");
+
+        await using var tx = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            foreach (var ticket in ticketsToTransfer)
+            {
+                ticket.Owner = receiver;
+
+                var transferRecord = new TicketTransfer
+                {
+                    TransferDate = DateTime.Now,
+                    Ticket = ticket,
+                    Sender = sender,
+                    Receiver = receiver
+                };
+
+                _context.TicketTransfers.Add(transferRecord);
+            }
+
+            await _context.SaveChangesAsync();
+            await tx.CommitAsync();
+
+            return ServiceResult.Ok($"{ticketsToTransfer.Count} senha(s) transferida(s) com sucesso para {receiver.FirstName} {receiver.LastName}!");
+        }
+        catch (Exception)
+        {
+            await tx.RollbackAsync();
+            return ServiceResult.Fail("Ocorreu um erro interno ao processar a transferência.");
+        }
     }
 }
