@@ -269,17 +269,21 @@ namespace Projeto_SEGUES.Areas.Bar.Controllers
         public async Task<IActionResult> CancelOrder(int id)
         {
             var order = await _context.BarOrders.FindAsync(id);
+            var user = await _userManager.GetUserAsync(User);
+
             if (order == null) return NotFound();
 
             if(order.Status == 0)
             {
+                user.Balance += order.PriceAtTime * order.Quantity;
+
                 _context.BarOrders.Remove(order);
                 await _context.SaveChangesAsync();
                 TempData["SwalJson"] = JsonConvert.SerializeObject(new
                 {
                     icon = "success",
                     title = "Sucesso",
-                    text = "Pedido cancelado com sucesso"
+                    text = "Pedido cancelado com sucesso e " + order.PriceAtTime.ToString() + "€ adicionado ao seu saldo."
                 });
                 return RedirectToAction(nameof(ActiveOrders));
                 

@@ -44,11 +44,26 @@ namespace Projeto_SEGUES.Areas.Bar.Controllers
             var orders = await _context.BarOrders
                 .Include(o => o.Product)
                 .Include(o => o.User)
-                .OrderByDescending(o => o.OrderDate)
+                .OrderBy(o => o.OrderPickUp == TimeSpan.Zero ? o.OrderDate.TimeOfDay : o.OrderPickUp)
                 .ToListAsync();
 
             return View(orders);
         }
+
+        //Apenas a tabela 
+        [HttpGet]
+        public async Task<IActionResult> GetOrdersTable()
+        {
+            var orders = await _context.BarOrders
+                .Include(o => o.Product)
+                .Include(o => o.User)
+                .OrderBy(o => o.OrderPickUp == TimeSpan.Zero ? o.OrderDate.TimeOfDay : o.OrderPickUp)
+                .ToListAsync();
+
+            return PartialView("_ManageOrdersTable", orders);
+        }
+
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]

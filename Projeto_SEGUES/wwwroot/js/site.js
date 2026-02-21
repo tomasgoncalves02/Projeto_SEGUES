@@ -682,7 +682,9 @@ function handleUpdate() {
         }).then((result) => {
             if (result.isConfirmed) {
                 Notifications.success("Pedido entregue!");
-                setTimeout(() => window.location.reload(), 1000);
+                setTimeout(() => {
+                    document.querySelector(`tr[data-order-id="${orderId}"]`)?.remove();
+                }, 1000);
             }
         });
     }
@@ -707,6 +709,7 @@ function handleUpdate() {
                     Notifications.error("Erro ao atualizar o estado.");
                 }
             });
+
     }
 }
 

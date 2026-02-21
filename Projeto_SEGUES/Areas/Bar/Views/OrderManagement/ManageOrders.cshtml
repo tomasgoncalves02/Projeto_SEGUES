@@ -1,6 +1,6 @@
 ﻿@model IEnumerable<Projeto_SEGUES.Models.Bar.BarOrder>
 
-<div class="container mt-4">
+<div class="container">
     <div class="row mb-4 align-items-center">
         <div class="col-md-7 text-start">
             <h2 class="fw-bold title-underline mb-0">Gerir Pedidos</h2>
@@ -24,47 +24,11 @@
         </div>
 
         @* PAINEL DIREITO: Tabela de Monitorização *@
-        <div class="col-lg-8">
-            <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
-                <table class="table table-hover align-middle mb-0 text-center">
-                    <thead class="bg-color-ips text-white">
-                        <tr>
-                            <th>Numero</th>
-                            <th>Itens</th>
-                            <th>Preço</th>
-                            <th>Estado</th>
-                            <th>Pedido efetuado</th>
-                            <th>Ação</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var order in Model.GroupBy(o => o.RedemptionCode).Select(g => g.First()))
-                        {
-                            var totalAmount = Model.Where(o => o.RedemptionCode == order.RedemptionCode).Sum(o => o.PriceAtTime * o.Quantity);
-                            var itemCount = Model.Where(o => o.RedemptionCode == order.RedemptionCode).Sum(o => o.Quantity);
-
-                            <tr>
-                                <td class="fw-bold">Pedido:@order.Id</td>
-                                <td>@itemCount</td>
-                                <td class="text-color-ips fw-bold">@totalAmount.ToString("N2")€</td>
-                                <td>
-                                    <span class="badge @(order.Status == 0 ? "bg-secondary" : order.Status == 1 ? "bg-info" : "bg-warning")">
-                                        @((order.Status == 0) ? "Pendente" : (order.Status == 1) ? "Em Preparação" : "Pronto")
-                                    </span>
-                                </td>
-                                <td>@order.OrderDate.ToString("HH:mm")</td>
-                                <td>
-                                    <button class="btn btn-sm btn-ips shadow-sm" 
-                                            hx-get="/Bar/OrderManagement/GetOrderDetailsSide/@order.Id" 
-                                            hx-target="#side-panel-target">
-                                        <i class="bi bi-eye text-white"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+        <div class="col-lg-8"
+             hx-get="/Bar/OrderManagement/GetOrdersTable"
+             hx-trigger="every 5s"
+             hx-swap="innerHTML">
+            <partial name="_ManageOrdersTable" model="Model" />
         </div>
     </div>
 </div>
