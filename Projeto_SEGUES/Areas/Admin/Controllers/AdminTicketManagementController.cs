@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Ticket;
+using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 
 namespace Projeto_SEGUES.Areas.Admin;
@@ -11,20 +13,26 @@ namespace Projeto_SEGUES.Areas.Admin;
 public class AdminTicketManagementController : Controller
 {
     private readonly IAdminService _adminService;
+    private readonly UserManager<AppUser> _userManager;
     private readonly ITicketService _ticketService;
     
-    public AdminTicketManagementController(IAdminService adminService, ITicketService ticketService)
+    public AdminTicketManagementController(IAdminService adminService, UserManager<AppUser> userManager, ITicketService ticketService)
     {
         _adminService = adminService;
+        _userManager = userManager;
         _ticketService = ticketService;
     }
-    
+
     // Displays Prices + Global Ticket History
     public async Task<IActionResult> Index()
     {
+        ViewBag.CurrentUserId = _userManager.GetUserId(User);
+
         ViewBag.Prices = await _adminService.GetTicketPricesAsync();
         ViewBag.CurrentValidityDays = await _adminService.GetTicketValidityDaysAsync();
+
         var history = await _ticketService.GetAllTicketsAsync();
+
         return View(history);
     }
 

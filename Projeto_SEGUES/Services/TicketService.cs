@@ -270,9 +270,14 @@ public class TicketService : ITicketService
     public async Task<List<Ticket>> GetAllTicketsAsync()
     {
         await ExpireTicketsGlobalAsync();
+
         return await _context.Tickets
-            .Include(t => t.Owner)
-            .Include(t => t.TicketPurchase)
+            .Include(t => t.Owner)                      
+            .Include(t => t.TicketPurchase)             
+            .Include(t => t.Transfers)                  
+                .ThenInclude(tr => tr.Sender)           
+            .Include(t => t.Transfers)
+                .ThenInclude(tr => tr.Receiver)      
             .OrderByDescending(t => t.TicketPurchase.TransactionDate)
             .ToListAsync();
     }
