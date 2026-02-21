@@ -37,13 +37,14 @@ namespace Projeto_SEGUES.Areas.Bar.Controllers
                 .ToListAsync();
 
             return View(history);
-        }
+        } 
 
         public async Task<IActionResult> ManageOrders()
         {
             var orders = await _context.BarOrders
                 .Include(o => o.Product)
                 .Include(o => o.User)
+                .Where(o => o.Status < 3) 
                 .OrderBy(o => o.OrderPickUp == TimeSpan.Zero ? o.OrderDate.TimeOfDay : o.OrderPickUp)
                 .ToListAsync();
 
@@ -57,6 +58,7 @@ namespace Projeto_SEGUES.Areas.Bar.Controllers
             var orders = await _context.BarOrders
                 .Include(o => o.Product)
                 .Include(o => o.User)
+                .Where(o => o.Status < 3)
                 .OrderBy(o => o.OrderPickUp == TimeSpan.Zero ? o.OrderDate.TimeOfDay : o.OrderPickUp)
                 .ToListAsync();
 

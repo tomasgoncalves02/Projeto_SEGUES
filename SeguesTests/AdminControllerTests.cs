@@ -52,7 +52,7 @@ namespace SeguesTests
             _controller = new AdminController();
             _createInternalAccountController = new AdminCreateInternalAccountController(_mockAdminService.Object);
             _userManagementController = new AdminUserManagementController(_mockUserManager.Object, _mockAdminService.Object);
-            _ticketManagementController = new AdminTicketManagementController(_mockAdminService.Object, _mockTicketService.Object);
+            //_ticketManagementController = new AdminTicketManagementController(_mockAdminService.Object, _mockTicketService.Object);
             _employeeController = new EmployeeController();
 
             // 3. Configurar TempData

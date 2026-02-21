@@ -682,9 +682,19 @@ function handleUpdate() {
         }).then((result) => {
             if (result.isConfirmed) {
                 Notifications.success("Pedido entregue!");
+                // Atualiza o badge para Entregue em vez de remover
+                const row = document.querySelector(`tr[data-order-id="${orderId}"]`);
+                if (row) {
+                    const badge = row.querySelector('.badge');
+                    if (badge) {
+                        badge.className = 'badge bg-success';
+                        badge.textContent = 'Entregue';
+                    }
+                }
+                // Remove após 5 segundos
                 setTimeout(() => {
-                    document.querySelector(`tr[data-order-id="${orderId}"]`)?.remove();
-                }, 1000);
+                    row?.remove();
+                }, 5000);
             }
         });
     }

@@ -1,6 +1,7 @@
 ﻿@model IEnumerable<Projeto_SEGUES.Models.Bar.BarOrder>
 
 <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
+   <div class="table-responsive">
     <table class="table table-hover align-middle mb-0 text-center">
         <thead class="bg-color-ips text-white">
             <tr>
@@ -26,14 +27,14 @@
                     <td>@itemCount</td>
                     <td class="text-color-ips fw-bold">@totalAmount.ToString("N2")€</td>
                     <td>
-                        <span class="badge @(order.Status == 0 ? "bg-secondary" : order.Status == 1 ? "bg-info" : "bg-warning")">
-                            @((order.Status == 0) ? "Pendente" : (order.Status == 1) ? "Em Preparação" : "Pronto")
+                        <span class="badge @(order.Status == 0 ? "bg-secondary" : order.Status == 1 ? "bg-info" : order.Status == 2 ? "bg-warning" : "bg-success")">
+                            @((order.Status == 0) ? "Pendente" : (order.Status == 1) ? "Em Preparação" : (order.Status == 2) ? "Pronto" : "Entregue")
                         </span>
                     </td>
                     <td>@order.OrderDate.ToString("HH:mm")</td>
-                    <td>@((order.Status == 3) ? "Sim" : "Não") </td>
+                        <td>@(order.OrderPickUp == TimeSpan.Zero ? "Sim" : "Não")</td>
 
-                    <td>@(order.OrderPickUp == TimeSpan.Zero ? order.OrderDate.ToString("HH:mm") : order.OrderPickUp.ToString(@"hh\:mm"))</td>
+                    <td>@(order.OrderPickUp == TimeSpan.Zero ? "" : order.OrderPickUp.ToString(@"hh\:mm"))</td>
 
                     <td>
                         <button class="btn btn-sm btn-ips shadow-sm"
@@ -46,4 +47,5 @@
             }
         </tbody>
     </table>
+</div>
 </div>

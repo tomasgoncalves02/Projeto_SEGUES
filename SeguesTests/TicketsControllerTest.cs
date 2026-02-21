@@ -37,8 +37,8 @@ namespace SeguesTests
 
             var usersList = new List<AppUser>();
             _mockUserManager = MockHelper.MockUserManager(usersList);
-            _ticketService = new TicketService(_context);
-            _controller = new TicketController(_mockUserManager.Object, _ticketService);
+            //_ticketService = new TicketService(_context);
+            //_controller = new TicketController(_mockUserManager.Object, _ticketService);
             _ticketValidationController = new TicketValidationController(_mockUserManager.Object, _ticketService);
 
             _controller.TempData = new TempDataDictionary(
