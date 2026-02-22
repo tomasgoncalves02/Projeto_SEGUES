@@ -296,7 +296,8 @@ namespace Projeto_SEGUES.Areas.Bar.Controllers
                     title = "Pedido não pode ser cancelado",
                     text = "Pedido não pode ser cancelado pois o mesmo já se encontra em preparação."
                 });
-                return RedirectToAction(nameof(OrderDetails), new { id });
+                return RedirectToAction(nameof(OrderDetails), new { id = order.Id });
+
             }
 
 
