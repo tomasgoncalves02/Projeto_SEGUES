@@ -1,11 +1,13 @@
-﻿@model IEnumerable<Projeto_SEGUES.Models.Ticket.Ticket>
+﻿@using Projeto_SEGUES.Models.Enums
+@model IEnumerable<Projeto_SEGUES.Models.Ticket.Ticket>
 
 @{
     ViewData["Title"] = "Histórico de Senhas - SEGUES";
+    var currentUserId = ViewBag.CurrentUserId as string;
 }
 
 <div class="container mt-4">
-    @* Top row *@
+    @* Cabeçalho *@
     <div class="row mb-4 align-items-center">
         <div class="col-md-7">
             <h2 class="fw-bold title-underline mb-2">
@@ -21,12 +23,10 @@
         </div>
     </div>
 
-    @* Filters row *@
+    @* Seção de Filtros *@
     <div class="card card-ips shadow-sm mb-4 border-0 rounded-3">
         <div class="card-body p-4">
             <form asp-area="Report" asp-controller="ReportTickets" asp-action="Index" method="get" class="row g-3 align-items-end">
-
-                @* State filter *@
                 <div class="col-md-4 col-xl-2">
                     <label for="stateFilter" class="form-label small fw-bold">Estado</label>
                     <select id="stateFilter" name="stateFilter" class="form-select form-select-sm" onchange="this.form.submit()">
@@ -37,15 +37,13 @@
                     </select>
                 </div>
 
-                @* Date filter *@
                 <div class="col-md-4 col-xl-2">
                     <label for="dateFilter" class="form-label small fw-bold text-nowrap">Compradas Em</label>
                     <input id="dateFilter" type="date" name="dateFilter" class="form-control form-control-sm"
-                           value="@(ViewData["CurrentDate"] is DateTime dt ? dt.ToString("yyyy-MM-dd") : DateTime.Today.ToString("yyyy-MM-dd"))"
+                           value="@(ViewData["CurrentDate"] is DateTime dt ? dt.ToString("yyyy-MM-dd") : "")"
                            onchange="this.form.submit()">
                 </div>
 
-                @* Flow filter *@
                 <div class="col-md-4 col-xl-2">
                     <label for="flowFilter" class="form-label small fw-bold">Origem/Destino</label>
                     <select id="flowFilter" name="flowFilter" class="form-select form-select-sm" onchange="this.form.submit()">
@@ -56,21 +54,19 @@
                     </select>
                 </div>
 
-                @* Search filter *@
                 <div class="col-md-6 col-xl">
                     <label for="searchFilter" class="form-label small fw-bold">Pesquisar</label>
                     <input id="searchFilter" type="text" name="searchString" class="form-control form-control-sm"
                            placeholder="Código ou Nome..." value="@ViewData["CurrentSearch"]" onchange="this.form.submit()">
                 </div>
 
-                @* Filter actions: Clean and Search *@
-                <div class="col-md-4 col-xl-auto text-end text-xl-start" style="width: fit-content">
-                    <div class="d-flex align-items-center justify-content-end justify-content-xl-start gap-3">
+                <div class="col-md-4 col-xl-auto text-end text-xl-start">
+                    <div class="d-flex align-items-center gap-3">
                         <a asp-area="Report" asp-controller="ReportTickets" asp-action="Index"
-                           class="text-muted small text-decoration-none d-flex align-items-center text-nowrap btn-reset-x">
-                            Limpar filtros <i class="bi bi-x-circle ms-1"></i>
+                           class="text-muted small text-decoration-none btn-reset-x">
+                            Limpar <i class="bi bi-x-circle ms-1"></i>
                         </a>
-                        <button type="submit" class="btn btn-ips fw-bold px-3 py-2 shadow-sm d-flex align-items-center" style="height: 38px;">
+                        <button type="submit" class="btn btn-ips fw-bold px-3 py-2 shadow-sm">
                             <i class="bi bi-search me-2"></i> PESQUISAR
                         </button>
                     </div>
@@ -79,7 +75,7 @@
         </div>
     </div>
 
-    @* Tabela *@
+    @* Tabela de Dados *@
     <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
         <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
             <table class="table table-hover align-middle mb-0 text-center">
@@ -109,28 +105,47 @@
                     {
                         @foreach (var item in Model)
                         {
-                            var currentUserId = ViewBag.CurrentUserId as string;
-                            var transfer = item.Transfers.OrderByDescending(t => t.TransferDate).FirstOrDefault();
+                            // Encontra a transferência mais recente para verificar se eu fui o remetente
+                            var lastTransfer = item.Transfers.OrderByDescending(t => t.TransferDate).FirstOrDefault();
+
+                            // Lógica Central: Eu enviei esta senha?
+                            bool euEnviei = lastTransfer != null && lastTransfer.Sender?.Id == currentUserId;
 
                             <tr>
                                 <td class="ps-4 text-start">
-                                    <code class="fw-bold text-color-ips bg-light px-2 py-1 rounded">@item.ValidationCode</code>
+                                    @if (euEnviei)
+                                    {
+                                        <span class="text-muted small italic">Oculto (Enviada)</span>
+                                    }
+                                    else
+                                    {
+                                        <code class="fw-bold text-color-ips bg-light px-2 py-1 rounded">@item.ValidationCode</code>
+                                    }
                                 </td>
-                                <td class="small">@item.TicketPurchase.TransactionDate.ToString("dd/MM/yyyy")</td>
+                                <td>@(euEnviei ? "---" : item.TicketPurchase.TransactionDate.ToString("dd/MM/yyyy"))</td>
                                 <td>
-                                    <span class="badge @item.State.ToString().ToBadgeClass() px-3">
-                                        @item.State.ToDisplayName()
-                                    </span>
+                                    @if (euEnviei)
+                                    {
+                                        @* Para quem enviou, o estado visual é sempre "Transferida" *@
+                                        <span class="badge bg-secondary px-3">Transferida</span>
+                                    }
+                                    else
+                                    {
+                                        @* Para quem recebeu (ou comprou), mostra o estado REAL (Disponível, Usada, etc) *@
+                                        <span class="badge @item.State.ToString().ToBadgeClass() px-3">
+                                            @item.State.ToDisplayName()
+                                        </span>
+                                    }
                                 </td>
-                                <td class="small">@item.ExpirationDate.ToString("dd/MM/yyyy")</td>
-                                <td class="small fw-bold text-muted">@(item.UsedDate?.ToString("dd/MM/yyyy") ?? "-")</td>
-                                <td class="small">@(transfer?.TransferDate.ToString("dd/MM/yyyy") ?? "-")</td>
+                                <td>@(euEnviei ? "---" : item.ExpirationDate.ToString("dd/MM/yyyy"))</td>
+                                <td>@(euEnviei ? "---" : (item.UsedDate?.ToString("dd/MM/yyyy") ?? "-"))</td>
+                                <td>@(lastTransfer?.TransferDate.ToString("dd/MM/yyyy") ?? "-")</td>
                                 <td>
-                                    @if (transfer != null && transfer.Sender.Id == currentUserId)
+                                    @if (lastTransfer != null && lastTransfer.Sender?.Id == currentUserId)
                                     {
                                         <span class="text-dark small fw-bold">
                                             <i class="bi bi-person-up text-danger me-1"></i>
-                                            @transfer.Receiver?.FirstName @transfer.Receiver?.LastName
+                                            @lastTransfer.Receiver?.FirstName @lastTransfer.Receiver?.LastName
                                         </span>
                                     }
                                     else
@@ -140,14 +155,14 @@
                                     }
                                 </td>
                                 <td class="pe-4">
-                                    @if (transfer != null && transfer.Receiver?.Id == currentUserId)
+                                    @if (lastTransfer != null && lastTransfer.Receiver?.Id == currentUserId)
                                     {
                                         <span class="text-dark small fw-bold">
                                             <i class="bi bi-person-down text-success me-1"></i>
-                                            @transfer.Sender?.FirstName @transfer.Sender?.LastName
+                                            @lastTransfer.Sender?.FirstName @lastTransfer.Sender?.LastName
                                         </span>
                                     }
-                                    else if (transfer == null)
+                                    else if (lastTransfer == null)
                                     {
                                         <span class="badge bg-light text-muted border small">Compra Própria</span>
                                     }

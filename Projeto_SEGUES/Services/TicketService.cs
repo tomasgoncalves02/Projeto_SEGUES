@@ -287,34 +287,29 @@ public class TicketService : ITicketService
 
     public async Task<ServiceResult> TransferTicketsAsync(string senderId, string recipientEmail, List<string> selectedTickets)
     {
-        var sender = await _userManager.FindByIdAsync(senderId);
-        if (sender == null)
-            return ServiceResult.Fail("Utilizador remetente não encontrado.");
+        // 1. Carregar Sender e Receiver com suas CATEGORIAS (usando Include para evitar NullReference)
+        var sender = await _context.Users
+            .Include(u => u.UserCategory)
+            .FirstOrDefaultAsync(u => u.Id == senderId);
+
+        var receiver = await _context.Users
+            .Include(u => u.UserCategory)
+            .FirstOrDefaultAsync(u => u.Email == recipientEmail);
+
+        if (sender == null) return ServiceResult.Fail("Utilizador remetente não encontrado.");
+        if (receiver == null) return ServiceResult.Fail("Não foi encontrado nenhum utilizador com esse e-mail.");
 
         if (sender.Email!.Equals(recipientEmail, StringComparison.OrdinalIgnoreCase))
             return ServiceResult.Fail("Não pode transferir senhas para si próprio.");
 
-        var receiver = await _userManager.FindByEmailAsync(recipientEmail);
-        if (receiver == null)
-            return ServiceResult.Fail("Não foi encontrado nenhum utilizador com esse e-mail.");
-
-        var senderRoles = await _userManager.GetRolesAsync(sender);
-        var receiverRoles = await _userManager.GetRolesAsync(receiver);
-
-        var senderRoleName = senderRoles.FirstOrDefault();
-        var receiverRoleName = receiverRoles.FirstOrDefault();
-
-        if (senderRoleName != receiverRoleName)
+        // 2. NOVA REGRA: Comparar Categorias (Trabalhador, Estudante, etc.) em vez de Roles
+        if (sender.UserCategory.Id != receiver.UserCategory.Id)
         {
-            var senderRole = await _roleManager.FindByNameAsync(senderRoleName ?? "");
-            var receiverRole = await _roleManager.FindByNameAsync(receiverRoleName ?? "");
-
-            string senderDisplay = senderRole?.DisplayName ?? "a sua categoria";
-            string receiverDisplay = receiverRole?.DisplayName ?? "outra categoria";
-
-            return ServiceResult.Fail($"Transferência recusada: Só pode enviar senhas para {senderDisplay}. O destinatário pertence aos {receiverDisplay}.");
+            return ServiceResult.Fail($"Transferência recusada: Só pode enviar senhas para utilizadores da categoria {sender.UserCategory.Name}. " +
+                                      $"O destinatário é {receiver.UserCategory.Name}.");
         }
 
+        // 3. Procurar os tickets
         var ticketsToTransfer = await _context.Tickets
             .Include(t => t.Owner)
             .Where(t => t.Owner.Id == sender.Id
@@ -330,7 +325,8 @@ public class TicketService : ITicketService
         {
             foreach (var ticket in ticketsToTransfer)
             {
-                ticket.Owner = receiver;
+                ticket.State = TicketState.Available;
+                ticket.Owner = receiver; // O destinatário passa a ser o novo dono
 
                 var transferRecord = new TicketTransfer
                 {
@@ -339,14 +335,13 @@ public class TicketService : ITicketService
                     Sender = sender,
                     Receiver = receiver
                 };
-
                 _context.TicketTransfers.Add(transferRecord);
             }
 
             await _context.SaveChangesAsync();
             await tx.CommitAsync();
 
-            return ServiceResult.Ok($"{ticketsToTransfer.Count} senha(s) transferida(s) com sucesso para {receiver.FirstName} {receiver.LastName}!");
+            return ServiceResult.Ok($"{ticketsToTransfer.Count} senha(s) transferida(s) com sucesso!");
         }
         catch (Exception)
         {

@@ -9,5 +9,7 @@ public enum TicketState
     [Display(Name = "Utilizada")]
     Used,
     [Display(Name = "Expirada")]
-    Expired
+    Expired,
+    [Display(Name = "Transferida")]
+    Transferred
 }
