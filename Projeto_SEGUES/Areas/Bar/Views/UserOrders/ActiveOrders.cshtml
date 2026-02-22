@@ -27,7 +27,7 @@
     @* Contentor HTMX: Verifica mudanças a cada 5 segundos *@
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4"
          hx-get="/Bar/UserOrders/GetUpdatedActiveOrders"
-         hx-trigger="every 5s"
+         hx-trigger="every 2s"
          hx-swap="innerHTML">
 
         <partial name="_ActiveOrdersCards" model="Model" />

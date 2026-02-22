@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
@@ -36,5 +37,24 @@ public class ReportTicketsController : Controller
         ViewBag.CurrentUserId = userId;
 
         return View(tickets);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetFilteredHistory(string stateFilter, DateTime? dateFilter, string flowFilter, string searchString)
+    {
+        var userId = _userManager.GetUserId(User);
+        ViewBag.CurrentUserId = userId;
+
+        // Converte a string do filtro para o Enum TicketState (se não for nula)
+        TicketState? state = null;
+        if (!string.IsNullOrEmpty(stateFilter) && Enum.TryParse<TicketState>(stateFilter, out var parsedState))
+        {
+            state = parsedState;
+        }
+
+        // Chama o método QueryHistoryAsync que já tens no TicketService
+        var history = await _ticketService.QueryHistoryAsync(userId, searchString, state, flowFilter, dateFilter);
+
+        return PartialView("_TicketHistoryRows", history);
     }
 }
