@@ -5,6 +5,8 @@ using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
+using System.Net.Mail;
+using System.Text.RegularExpressions;
 
 namespace Projeto_SEGUES.Areas.User.Controllers;
 
@@ -29,6 +31,7 @@ public class UserController : Controller
 
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateType(string key, string value)
     {
         var user = await _userManager.GetUserAsync(User);
@@ -41,40 +44,94 @@ public class UserController : Controller
         switch (key)
         {
             case "name":
+                if (string.IsNullOrWhiteSpace(value))
+                    return BadRequest(new { success = false, message = "O Nome não pode estar vazio." });
+
+                if (value.Length < 2 || value.Length > 50)
+                    return BadRequest(new { success = false, message = "O Nome deve ter entre 2 e 50 letras." });
+
+                if (!Regex.IsMatch(value, @"^[a-zA-Z\u00C0-\u00FF\s]*$"))
+                    return BadRequest(new { success = false, message = "O Nome não pode conter números nem símbolos." });
+
                 user.FirstName = value;
                 break;
 
             case "lastname":
+
+                if (string.IsNullOrWhiteSpace(value))
+                    return BadRequest(new { success = false, message = "O Apelido não pode estar vazio." });
+
+                if (value.Length < 2 || value.Length > 50)
+                    return BadRequest(new { success = false, message = "O Apelido deve ter entre 2 e 50 letras." });
+
+                if (!Regex.IsMatch(value, @"^[a-zA-Z\u00C0-\u00FF\s]*$"))
+                    return BadRequest(new { success = false, message = "O Apelido não pode conter números nem símbolos." });
+
                 user.LastName = value;
                 break;
 
             case "email":
+                if (string.IsNullOrWhiteSpace(value))
+                    return BadRequest(new { success = false, message = "O email é obrigatório." });
+
+                try
+                {
+                    var addr = new MailAddress(value);
+                    if (addr.Address != value) throw new Exception();
+                }
+                catch
+                {
+                    return BadRequest(new { success = false, message = "Email inválido." });
+                }
+
                 user.Email = value;
                 user.UserName = value;
                 break;
 
             case "birthDate":
-                if (DateTime.TryParse(value, out var date))
-                    user.BirthDate = date;
+                if (!DateTime.TryParse(value, out var date))
+                    return BadRequest(new { success = false, message = "Data de nascimento inválida." });
+
+                if (date > DateTime.Now.AddYears(-18))
+                    return BadRequest(new { success = false, message = "Deve ter pelo menos 18 anos." });
+
+                user.BirthDate = date;
                 break;
 
             case "genre":
-                if (Enum.TryParse<Gender>(value, out var gender))
-                    user.Gender = gender;
-                break;
 
-            case "password":
-                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-                await _userManager.ResetPasswordAsync(user, token, value);
+                if (!Enum.TryParse<Gender>(value, out var gender))
+                    return BadRequest(new { success = false, message = "Género inválido." });
+
+                user.Gender = gender;
                 break;
 
             default:
                 return BadRequest(new { success = false, message = "Campo inválido." });
                
         }
-        await _userManager.UpdateAsync(user);
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+            return BadRequest(new { success = false, message = "Erro ao atualizar utilizador." });
+
         return Ok(new { success = true });
     }
+
+    [HttpPost]
+
+    public async Task<IActionResult> UpdatePassword(string currentPassword, string newPassword)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return NotFound();
+
+        var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+
+        if (result.Succeeded)
+            return Ok(new { success = true });
+
+        return BadRequest(new { success = false, message = "Password atual incorreta." });
+    }
+
 
     [HttpGet]
     public IActionResult GetGenders()

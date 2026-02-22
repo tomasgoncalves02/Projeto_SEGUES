@@ -259,7 +259,7 @@ function showEdit(typeName,currentName,key) {
                     
                     <button class="btn text-white w-50 p-2" 
                             style="background-color: #009A93; font-size: 1.1rem; border-radius: 4px; transition: background-color 0.3s;" 
-                            onclick="handleEditSubmit('${key}', document.getElementById('${typeName}').value)"">
+                            onclick="handleEditSubmit( '${typeName}','${key}', document.getElementById('${typeName}').value)"">
                         Editar
                     </button>
                     
@@ -278,11 +278,14 @@ function showEdit(typeName,currentName,key) {
 }
 
 function showEditData(typeName, currentName, key) {
-
-    const inputValue = currentName
-        ? new Date(currentName).toISOString().split('T')[0]
-        : '';
-
+    let inputValue = '';
+    if (currentName && currentName !== 'Não definido') {
+        
+        const parts = currentName.split('/');
+        if (parts.length === 3) {
+            inputValue = `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+    }
 
     showSwal({
         icon: null,
@@ -290,33 +293,25 @@ function showEditData(typeName, currentName, key) {
         showCloseButton: false,
         html: `
             <div class="p-4 d-flex flex-column align-items-center" style="font-family: Arial, sans-serif; color: #000;">
-                
                 <h2 class="fw-bold mb-4" style="font-size: 2.2rem; margin-top: 10px;">${typeName}</h2>
-                
                 <p class="fw-bold mb-3" style="font-size: 1.1rem;">Insira o ${typeName} pretendido</p>
-                
                 <input type="date" 
                        id="${typeName}" 
                        class="form-control text-center mb-4 p-2" 
-                       style="max-width: 320px; width: 100%; border: 1px solid #a9a9a9; font-size: 1.4rem; color: #6c757d; border-radius: 4px;" 
+                       style="max-width: 320px; width: 100%;" 
                        value="${inputValue}">
-                
                 <div class="d-flex gap-3 w-100" style="max-width: 320px;">
-                    
                     <button class="btn text-white w-50 p-2" 
-                            style="background-color: #009A93; font-size: 1.1rem; border-radius: 4px; transition: background-color 0.3s;" 
-                            onclick="handleEditSubmit('${key}', document.getElementById('${typeName}').value)"">
+                            style="background-color: #009A93;"
+                            onclick="handleEditSubmit('${typeName}', '${key}', document.getElementById('${typeName}').value)">
                         Editar
                     </button>
-                    
                     <button class="btn text-white w-50 p-2" 
-                            style="background-color: #A6A6A6; font-size: 1.1rem; border-radius: 4px; transition: background-color 0.3s;" 
+                            style="background-color: #A6A6A6;"
                             onclick="Swal.close()">
                         Fechar
                     </button>
-
                 </div>
-                
             </div>
         `,
         backdrop: 'var(--ips-shadow-soft)'
@@ -341,14 +336,14 @@ function showEditGenre(typeName, currentName, key) {
                     <div class="p-4 d-flex flex-column align-items-center" style="font-family: Arial, sans-serif; color: #000;">
                         <h2 class="fw-bold mb-4" style="font-size: 2.2rem; margin-top: 10px;">${typeName}</h2>
                         <p class="fw-bold mb-3" style="font-size: 1.1rem;">Insira o ${typeName} pretendido</p>
-                        <select id="${typeName}" class="form-select mb-4">
-                            <option value="">Selecione...</option>
-                            ${options}
+                       <select id="genreSelect" class="form-select mb-4">
+                        <option value="">Selecione...</option>
+                        ${options}
                         </select>
                         <div class="d-flex gap-3 w-100" style="max-width: 320px;">
                             <button class="btn text-white w-50 p-2" 
                                     style="background-color: #009A93;"
-                                    onclick="handleEditSubmit('${key}', document.getElementById('${typeName}').value)">
+                                    onclick="handleEditSubmit('${typeName}', '${key}', document.getElementById('genreSelect').value)">
                                 Editar
                             </button>
                             <button class="btn text-white w-50 p-2" 
@@ -361,32 +356,132 @@ function showEditGenre(typeName, currentName, key) {
                 `,
                 backdrop: 'var(--ips-shadow-soft)'
             });
-        }); // <- faltava este fecho
+        }); 
 }
 
 
+function showEditPassword(typeName, key) {
+    showSwal({
+        icon: null,
+        showConfirmButton: false,
+        showCloseButton: false,
+        html: `
+            <div class="p-4 d-flex flex-column align-items-center" style="font-family: Arial, sans-serif; color: #000;">
+                
+                <h2 class="fw-bold mb-4" style="font-size: 2.2rem; margin-top: 10px;">${typeName}</h2>
+                
+                <p class="fw-bold mb-3" style="font-size: 1.1rem;">Altere a sua o ${typeName}</p>
+                
+                <input type="password" 
+                       placeholder="Password Antiga"
+                       id="oldpassword" 
+                       class="form-control text-center mb-4 p-2" 
+                       style="max-width: 320px; width: 100%; border: 1px solid #a9a9a9; font-size: 1.4rem; color: #6c757d; border-radius: 4px;" 
+                       value="">
 
+                <input type="password"
+                       placeholder="Nova Password"
+                       id="newpassword" 
+                       class="form-control text-center mb-4 p-2" 
+                       style="max-width: 320px; width: 100%; border: 1px solid #a9a9a9; font-size: 1.4rem; color: #6c757d; border-radius: 4px;" 
+                       value="">
 
+                <input type="password"
+                       id="confirmnewpassword"
+                       placeholder="Confirme a Nova Password"
+                       class="form-control text-center mb-4 p-2" 
+                       style="max-width: 320px; width: 100%; border: 1px solid #a9a9a9; font-size: 1.4rem; color: #6c757d; border-radius: 4px;" 
+                       value="">
+                
+                <div class="d-flex gap-3 w-100" style="max-width: 320px;">
+                    
+                    <button class="btn text-white w-50 p-2" 
+                            style="background-color: #009A93; font-size: 1.1rem; border-radius: 4px; transition: background-color 0.3s;" 
+                            onclick="handlePasswordSubmit()">
+                        Editar
+                    </button>
+                    
+                    <button class="btn text-white w-50 p-2" 
+                            style="background-color: #A6A6A6; font-size: 1.1rem; border-radius: 4px; transition: background-color 0.3s;" 
+                            onclick="Swal.close()">
+                        Fechar
+                    </button>
 
-
-
-
-
-
-
-
-
-
-
-
-function handleEditNameSubmit() {
-    const newName = document.getElementById('inputEditName').value;
-
-
-
-
-    Swal.close();
+                </div>
+                
+            </div>
+        `,
+        backdrop: 'var(--ips-shadow-soft)'
+    });
 }
+
+function handlePasswordSubmit() {
+    const currentPassword = document.getElementById('oldpassword').value;
+    const newPassword = document.getElementById('newpassword').value;
+    const confirmPassword = document.getElementById('confirmnewpassword').value;
+
+    if (newPassword === currentPassword) {
+        Notifications.error("A nova password não pode ser igual à password atual.");
+        return;
+    }
+
+
+    if (newPassword !== confirmPassword) {
+        Notifications.error("As passwords não coincidem.");
+        return;
+    }
+
+
+
+    fetch('/User/User/UpdatePassword', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+        },
+        body: `currentPassword=${encodeURIComponent(currentPassword)}&newPassword=${encodeURIComponent(newPassword)}`
+    })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                Swal.close(); 
+                setTimeout(() => {
+                    Notifications.success("Password atualizada com sucesso!");
+                    setTimeout(() => location.reload(), 1500);
+                }, 300);
+            } else {
+                Notifications.error(data.message || "Erro ao atualizar password.");
+            }
+        });
+}
+
+function handleEditSubmit(typeName, key, value) {
+    fetch('/User/User/UpdateType', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+        },
+        body: `key=${key}&value=${encodeURIComponent(value)}`
+    })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                Swal.close();
+                setTimeout(() => {
+                    Notifications.success(typeName + " atualizado com sucesso!");
+                    setTimeout(() => location.reload(), 1500);
+                }, 300);
+            } else {
+                Notifications.error(data.message || "Erro ao atualizar.");
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            Notifications.error("Erro de comunicação com o servidor.");
+        });
+}
+
 //-----------------------------------------------------------------------------------------
 
 /* ==========================================
@@ -762,24 +857,5 @@ function confirmarCancelamento(form) {
         });
 }
 
-function handleEditSubmit(key, value) {
-    fetch('/User/User/UpdateType', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
-        },
-        body: `key=${key}&value=${encodeURIComponent(value)}`
-    })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                Notifications.success("Dados atualizados com sucesso!");
-                setTimeout(() => location.reload(), 1500);
-                Swal.close();
-            } else {
-                Notifications.error("Erro ao atualizar.");
-            }
-        });
-}
+
 
