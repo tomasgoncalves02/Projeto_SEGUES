@@ -1,0 +1,60 @@
+﻿@model IEnumerable<Projeto_SEGUES.Models.Ticket.Ticket>
+@using Projeto_SEGUES.Models.Ticket
+
+@if (!Model.Any())
+{
+    <tr>
+        <td colspan="9" class="text-center py-5 text-muted">
+            <i class="bi bi-inbox display-4 d-block mb-3 opacity-25"></i>
+            Nenhum registo encontrado.
+        </td>
+    </tr>
+}
+else
+{
+    @foreach (var item in Model)
+    {
+        var transfer = item.Transfers?.OrderByDescending(t => t.TransferDate).FirstOrDefault();
+
+        <tr>
+            <td class="ps-4 text-start">
+                <div class="fw-bold text-dark">@item.Owner.FirstName @item.Owner.LastName</div>
+                <div class="text-muted small">@item.Owner.Email</div>
+            </td>
+            <td><code class="fw-bold text-color-ips bg-light px-2 py-1 rounded">@item.ValidationCode</code></td>
+            <td>
+                <span class="badge @item.State.ToString().ToBadgeClass()">
+                    @item.State.ToDisplayName()
+                </span>
+            </td>
+            <td class="small">@item.TicketPurchase.TransactionDate.ToString("dd/MM/yy HH:mm")</td>
+            <td class="small">@(transfer?.TransferDate.ToString("dd/MM/yy HH:mm") ?? "-")</td>
+            <td class="small">
+                @if (transfer != null)
+                {
+                    <div class="fw-bold">@transfer.Sender.FirstName @transfer.Sender.LastName</div>
+                    <div class="text-muted" style="font-size: 0.75rem;">@transfer.Sender.Email</div>
+                }
+                else
+                {
+                    <span class="text-muted">-</span>
+                }
+            </td>
+            <td class="small">
+                @if (transfer != null)
+                {
+                    <div class="fw-bold">@transfer.Receiver.FirstName @transfer.Receiver.LastName</div>
+                    <div class="text-muted" style="font-size: 0.75rem;">@transfer.Receiver.Email</div>
+                }
+                else
+                {
+                    <span class="badge bg-light text-muted border">Compra Direta</span>
+                }
+            </td>
+            <td class="small fw-bold">
+                @(item.UsedDate.HasValue? item.UsedDate.Value.ToString("dd/MM/yy HH:mm") : "-")
+            </td>
+            <td class="small pe-4">@item.ExpirationDate.ToString("dd/MM/yyyy")</td>
+        </tr>
+    }
+}

@@ -76,4 +76,14 @@ public class AdminTicketManagementController : Controller
     
         return RedirectToAction(nameof(Index));
     }
+
+    [HttpGet]
+    public async Task<IActionResult> GetUpdatedAuditTable()
+    {
+        // Vai buscar os mesmos dados que a Index, mas retorna apenas a Partial
+        var history = await _ticketService.GetAllTicketsAsync();
+
+        // Importante: O nome deve coincidir com o ficheiro .cshtml que criaste
+        return PartialView("_AuditTableRows", history);
+    }
 }

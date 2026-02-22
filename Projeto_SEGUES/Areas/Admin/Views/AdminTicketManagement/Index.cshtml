@@ -19,12 +19,12 @@
             <p class="text-muted small mb-0">Administração de Preçários e Registo Global de Senhas</p>
         </div>
 
-        <a asp-area="Admin" asp-controller="Admin" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4" style="padding-top: 0.72rem; padding-bottom: 0.71rem;">
+        <a asp-area="Admin" asp-controller="Admin" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4">
             <i class="bi bi-arrow-left me-2"></i>Voltar ao Painel
         </a>
     </div>
 
-    @* Price management (Admin only) - Mantido igual *@
+    @* Price management (Admin only) *@
     @if (isAdmin && prices != null && prices.Any())
     {
         <div class="row g-4 mb-5">
@@ -47,11 +47,8 @@
                                         <label class="form-label small fw-bold">@prices[i].UserCategory.Name</label>
                                         <div class="input-group">
                                             <span class="input-group-text">€</span>
-                                            <input type="text"
-                                                   name="updatedPrices[@i].Price"
-                                                   class="form-control fw-bold decimal-input"
+                                            <input type="text" name="updatedPrices[@i].Price" class="form-control fw-bold decimal-input"
                                                    value="@prices[i].Price.ToString("N2", new System.Globalization.CultureInfo("pt-PT"))"
-                                                   onkeypress="if(event.which == 46) return false;"
                                                    oninput="this.value = this.value.replace('.', ',')" />
                                         </div>
                                     </div>
@@ -80,12 +77,11 @@
                                 <div class="col">
                                     <label class="form-label small fw-bold text-muted text-uppercase mb-1">Dias de Validade</label>
                                     <div class="input-group">
-                                        <input type="number" name="validityDays" class="form-control fw-bold"
-                                               value="@currentValidityDays" min="1" />
+                                        <input type="number" name="validityDays" class="form-control fw-bold" value="@currentValidityDays" min="1" />
                                         <span class="input-group-text bg-white text-muted small fw-bold">Dias</span>
                                     </div>
                                 </div>
-                                <div class="col-auto align-self-center">
+                                <div class="col-auto align-items-end">
                                     <button type="submit" class="btn btn-ips fw-bold shadow-sm">
                                         <i class="bi bi-check-lg"></i>
                                     </button>
@@ -98,7 +94,7 @@
         </div>
     }
 
-    @* Global Audit Table Atualizada *@
+    @* Global Audit Table *@
     <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
         <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
             <h5 class="mb-0 fw-bold text-color-ips">
@@ -122,70 +118,12 @@
                         <th class="py-3 pe-4">Expiração</th>
                     </tr>
                 </thead>
-                <tbody>
-                    @if (!Model.Any())
-                    {
-                        <tr>
-                            <td colspan="9" class="text-center py-5 text-muted">
-                                <i class="bi bi-inbox display-4 d-block mb-3 opacity-25"></i>
-                                Nenhum registo encontrado.
-                            </td>
-                        </tr>
-                    }
-                    else
-                    {
-                        @foreach (var item in Model)
-                        {
-                            var currentUserId = ViewBag.CurrentUserId as string;
-
-                            var transfer = item.Transfers?.OrderByDescending(t => t.TransferDate).FirstOrDefault();
-
-                            <tr>
-                                <td class="ps-4 text-start">
-                                    <div class="fw-bold text-dark">@item.Owner.FirstName @item.Owner.LastName</div>
-                                    <div class="text-muted small">@item.Owner.Email</div>
-                                </td>
-                                <td><code class="fw-bold text-color-ips bg-light px-2 py-1 rounded">@item.ValidationCode</code></td>
-                                <td>
-                                    <span class="badge @item.State.ToString().ToBadgeClass()">
-                                        @item.State.ToDisplayName()
-                                    </span>
-                                </td>
-                                <td class="small">@item.TicketPurchase.TransactionDate.ToString("dd/MM/yy HH:mm")</td>
-
-                                <td class="small">@(transfer?.TransferDate.ToString("dd/MM/yy HH:mm") ?? "-")</td>
-
-                                <td class="small">
-                                    @if (transfer != null)
-                                    {
-                                        <div class="fw-bold">@transfer.Sender.FirstName @transfer.Sender.LastName</div>
-                                        <div class="text-muted" style="font-size: 0.75rem;">@transfer.Sender.Email</div>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">-</span>
-                                    }
-                                </td>
-
-                                <td class="small">
-                                    @if (transfer != null)
-                                    {
-                                        <div class="fw-bold">@transfer.Receiver.FirstName @transfer.Receiver.LastName</div>
-                                        <div class="text-muted" style="font-size: 0.75rem;">@transfer.Receiver.Email</div>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-light text-muted border">Compra Direta</span>
-                                    }
-                                </td>
-
-                                <td class="small fw-bold">
-                                    @(item.UsedDate.HasValue? item.UsedDate.Value.ToString("dd/MM/yy HH:mm") : "-")
-                                </td>
-                                <td class="small pe-4">@item.ExpirationDate.ToString("dd/MM/yyyy")</td>
-                            </tr>
-                        }
-                    }
+                @* AQUI ENTRA O HTMX *@
+                <tbody id="auditTableBody"
+                       hx-get="/Admin/AdminTicketManagement/GetUpdatedAuditTable"
+                       hx-trigger="every 5s"
+                       hx-swap="innerHTML">
+                    <partial name="_AuditTableRows" model="Model" />
                 </tbody>
             </table>
         </div>
@@ -198,6 +136,11 @@
             document.querySelectorAll('.decimal-input').forEach(function (input) {
                 input.value = input.value.replace(',', '.');
             });
+        });
+
+        // Log opcional para debug
+        document.addEventListener('htmx:afterProcess', function() {
+            console.log("Auditoria atualizada.");
         });
     </script>
 }
