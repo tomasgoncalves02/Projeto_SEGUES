@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using System.Security.Claims;
@@ -15,12 +16,14 @@ public class TicketController : Controller
     private readonly UserManager<AppUser> _userManager;
     private readonly ITicketService _ticketService;
     private readonly RoleManager<Role> _roleManager;
+    private readonly AppDbContext _context;
 
-    public TicketController(UserManager<AppUser> userManager, RoleManager<Role> roleManager, ITicketService ticketService)
+    public TicketController(UserManager<AppUser> userManager, RoleManager<Role> roleManager, ITicketService ticketService, AppDbContext context)
     {
         _userManager = userManager;
         _roleManager = roleManager;
         _ticketService = ticketService;
+        _context = context;
     }
 
     // Canteen
@@ -32,19 +35,19 @@ public class TicketController : Controller
         ViewBag.UserBalance = user.Balance;
         return View();
     }
-    
+
     public async Task<IActionResult> ActiveTickets()
     {
         var user = await _userManager.GetUserAsync(User);
         if (user == null) return Challenge();
-        
+
         // Filter only available tickets (not yet used or expired)
         var activeTickets = await _ticketService.GetActiveTicketsAsync(user.Id);
-        
+
         // Get role
         var roles = await _userManager.GetRolesAsync(user);
         ViewBag.UserRole = roles.FirstOrDefault();
-        
+
         return View(activeTickets);
     }
 
@@ -120,41 +123,40 @@ public class TicketController : Controller
         return RedirectToAction(nameof(SendTicket));
     }
 
-    [HttpGet]
     public async Task<IActionResult> CheckTransferEligibility(string email)
     {
         var currentUserId = _userManager.GetUserId(User);
-        if (string.IsNullOrEmpty(currentUserId))
-            return Json(new { success = false, message = "Sessão expirada." });
 
-        var sender = await _userManager.FindByIdAsync(currentUserId);
-        var receiver = await _userManager.FindByEmailAsync(email);
+        var currentUser = await _context.Users
+            .Include(u => u.UserCategory)
+            .FirstOrDefaultAsync(u => u.Id == currentUserId);
 
-        if (receiver == null)
-            return Json(new { success = false, message = "Utilizador não encontrado." });
+        // 3. Carregar o destinatário também com a categoria
+        var recipient = await _context.Users
+            .Include(u => u.UserCategory)
+            .FirstOrDefaultAsync(u => u.Email == email);
 
-        var senderRoles = await _userManager.GetRolesAsync(sender!);
-        var receiverRoles = await _userManager.GetRolesAsync(receiver);
+        if (currentUser == null) return Unauthorized();
 
-        var senderRoleName = senderRoles.FirstOrDefault();
-        var receiverRoleName = receiverRoles.FirstOrDefault();
-
-        if (senderRoleName != receiverRoleName)
+        if (recipient == null)
         {
-            var senderRole = await _roleManager.FindByNameAsync(senderRoleName ?? "");
-            var receiverRole = await _roleManager.FindByNameAsync(receiverRoleName ?? "");
+            return Json(new { success = false, message = "Utilizador não encontrado." });
+        }
 
-            string senderDisplay = senderRole?.DisplayName ?? "Utilizadores comuns";
-            string receiverDisplay = receiverRole?.DisplayName ?? "Utilizadores comuns";
-
+        if (currentUser.UserCategory.Id != recipient.UserCategory.Id)
+        {
             return Json(new
             {
                 success = false,
-                message = $"Transferência recusada! Só pode enviar senhas para {senderDisplay}. O destinatário pertence aos {receiverDisplay}."
+                message = $"Não é permitido transferir senhas para utilizadores da categoria '{recipient.UserCategory.Name}'. " +
+                          $"Apenas pode enviar para outros '{currentUser.UserCategory.Name}'."
             });
         }
 
-        return Json(new { success = true, recipientName = $"{receiver.FirstName} {receiver.LastName}" });
+        return Json(new
+        {
+            success = true,
+            recipientName = $"{recipient.FirstName} {recipient.LastName}"
+        });
     }
-
 }
