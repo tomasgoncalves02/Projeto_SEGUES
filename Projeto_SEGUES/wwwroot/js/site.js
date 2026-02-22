@@ -256,10 +256,10 @@ function showEdit(typeName,currentName,key) {
                        value="${currentName}">
                 
                 <div class="d-flex gap-3 w-100" style="max-width: 320px;">
-                    
-                    <button class="btn text-white w-50 p-2" 
-                            style="background-color: #009A93; font-size: 1.1rem; border-radius: 4px; transition: background-color 0.3s;" 
-                            onclick="handleEditSubmit( '${typeName}','${key}', document.getElementById('${typeName}').value)"">
+                      
+                   <button class="btn text-white w-50 p-2"
+                            style="background-color: #009A93; font-size: 1.1rem; border-radius: 4px; transition: background-color 0.3s;"
+                             onclick="confirmarEdicao('${typeName}', '${key}')">
                         Editar
                     </button>
                     
@@ -301,13 +301,14 @@ function showEditData(typeName, currentName, key) {
                        style="max-width: 320px; width: 100%;" 
                        value="${inputValue}">
                 <div class="d-flex gap-3 w-100" style="max-width: 320px;">
-                    <button class="btn text-white w-50 p-2" 
-                            style="background-color: #009A93;"
-                            onclick="handleEditSubmit('${typeName}', '${key}', document.getElementById('${typeName}').value)">
+                    <button class="btn text-white w-50 p-2"
+                            style="background-color: #009A93; font-size: 1.1rem; border-radius: 4px; transition: background-color 0.3s;"
+                             onclick="confirmarEdicao('${typeName}', '${key}')">
                         Editar
                     </button>
+                    
                     <button class="btn text-white w-50 p-2" 
-                            style="background-color: #A6A6A6;"
+                            style="background-color: #A6A6A6; font-size: 1.1rem; border-radius: 4px; transition: background-color 0.3s;" 
                             onclick="Swal.close()">
                         Fechar
                     </button>
@@ -341,16 +342,17 @@ function showEditGenre(typeName, currentName, key) {
                         ${options}
                         </select>
                         <div class="d-flex gap-3 w-100" style="max-width: 320px;">
-                            <button class="btn text-white w-50 p-2" 
-                                    style="background-color: #009A93;"
-                                    onclick="handleEditSubmit('${typeName}', '${key}', document.getElementById('genreSelect').value)">
-                                Editar
-                            </button>
-                            <button class="btn text-white w-50 p-2" 
-                                    style="background-color: #A6A6A6;"
-                                    onclick="Swal.close()">
-                                Fechar
-                            </button>
+                             <button class="btn text-white w-50 p-2"
+                            style="background-color: #009A93; font-size: 1.1rem; border-radius: 4px; transition: background-color 0.3s;"
+                             onclick="confirmarEdicao('${typeName}', '${key}')">
+                        Editar
+                    </button>
+                    
+                    <button class="btn text-white w-50 p-2" 
+                            style="background-color: #A6A6A6; font-size: 1.1rem; border-radius: 4px; transition: background-color 0.3s;" 
+                            onclick="Swal.close()">
+                        Fechar
+                    </button>
                         </div>
                     </div>
                 `,
@@ -397,7 +399,7 @@ function showEditPassword(typeName, key) {
                     
                     <button class="btn text-white w-50 p-2" 
                             style="background-color: #009A93; font-size: 1.1rem; border-radius: 4px; transition: background-color 0.3s;" 
-                            onclick="handlePasswordSubmit()">
+                             onclick="confirmarEdicao('${typeName}', '${key}')">
                         Editar
                     </button>
                     
@@ -414,6 +416,34 @@ function showEditPassword(typeName, key) {
         backdrop: 'var(--ips-shadow-soft)'
     });
 }
+
+
+function confirmarEdicao(typeName, key) {
+    let value;
+
+    if (key === 'genre') {
+        value = document.getElementById('genreSelect').value;
+    } else {
+        value = document.getElementById(typeName)?.value;
+    }
+
+
+    Notifications.confirm(`Tens a certeza que queres alterar ${typeName}?`)
+        .then(r => {
+            if (r.isConfirmed) {
+
+                if (typeName == 'password') {
+                    handlePasswordSubmit(typeName, key, value);
+                } else {
+                    handleEditSubmit(typeName, key, value);
+                }
+
+                
+            }
+        });
+}
+
+
 
 function handlePasswordSubmit() {
     const currentPassword = document.getElementById('oldpassword').value;
@@ -852,6 +882,13 @@ function showProductDetails(name, description, price) {
 
 function confirmarCancelamento(form) {
     Notifications.confirm("Tens a certeza que queres cancelar este pedido?")
+        .then(result => {
+            if (result.isConfirmed) form.submit();
+        });
+}
+
+function confirmarEdição(type,form) {
+    Notifications.confirm("Tens a certeza que queres alterar o teu " + type + " ?")
         .then(result => {
             if (result.isConfirmed) form.submit();
         });
