@@ -42,7 +42,7 @@
                 </div>
 
                 <div class="col-md-4 col-xl-2">
-                    <label class="form-label small fw-bold">Compradas Em</label>
+                    <label class="form-label small fw-bold">A partir de</label>
                     <input type="date" name="dateFilter" class="form-control form-control-sm">
                 </div>
 
@@ -66,6 +66,10 @@
                     <div class="d-flex align-items-center gap-2">
                         <a asp-action="Index" class="btn btn-sm btn-reset-x">Limpar</a>
                         <div class="spinner-border spinner-border-sm text-primary htmx-indicator loader-spinner" role="status"></div>
+                        <button type="submit" class="btn btn-ips fw-bold px-3 py-2 shadow-sm d-flex align-items-center">
+                            <i class="bi bi-search me-2"></i> PESQUISAR
+                            <div class="spinner-border spinner-border-sm text-white htmx-indicator loader-spinner ms-2" role="status"></div>
+                        </button>
                     </div>
                 </div>
             </form>
