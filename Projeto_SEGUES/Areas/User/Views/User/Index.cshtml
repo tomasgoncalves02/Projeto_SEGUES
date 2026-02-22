@@ -2,7 +2,7 @@
 @using Projeto_SEGUES.Models.User
 @inject SignInManager<AppUser> SignInManager
 @inject UserManager<AppUser> UserManager
-
+@Html.AntiForgeryToken()
 
 @{
     ViewData["Title"] = "Perfil - SEGUES";
@@ -38,11 +38,6 @@
     var birthDate = user?.BirthDate;
     var genre = user?.Gender;
 
-    
-
-
-
-    
     
     var fields = new List<(string Label, string Value, string Key)>
     {

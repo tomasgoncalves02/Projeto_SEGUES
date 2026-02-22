@@ -259,7 +259,7 @@ function showEdit(typeName,currentName,key) {
                     
                     <button class="btn text-white w-50 p-2" 
                             style="background-color: #009A93; font-size: 1.1rem; border-radius: 4px; transition: background-color 0.3s;" 
-                            onclick="handleEditNameSubmit()">
+                            onclick="handleEditSubmit('${key}', document.getElementById('${typeName}').value)"">
                         Editar
                     </button>
                     
@@ -305,7 +305,7 @@ function showEditData(typeName, currentName, key) {
                     
                     <button class="btn text-white w-50 p-2" 
                             style="background-color: #009A93; font-size: 1.1rem; border-radius: 4px; transition: background-color 0.3s;" 
-                            onclick="handleEditNameSubmit()">
+                            onclick="handleEditSubmit('${key}', document.getElementById('${typeName}').value)"">
                         Editar
                     </button>
                     
@@ -326,41 +326,42 @@ function showEditData(typeName, currentName, key) {
 
 
 function showEditGenre(typeName, currentName, key) {
-    showSwal({
-        icon: null,
-        showConfirmButton: false,
-        showCloseButton: false,
-        html: `
-            <div class="p-4 d-flex flex-column align-items-center" style="font-family: Arial, sans-serif; color: #000;">
-                
-                <h2 class="fw-bold mb-4" style="font-size: 2.2rem; margin-top: 10px;">${typeName}</h2>
-                
-                <p class="fw-bold mb-3" style="font-size: 1.1rem;">Insira o ${typeName} pretendido</p>
-                
-                <select class="form-select" asp-items=""> 
-                <option value="">Selecione...</option>
-                </select>
-                
-                <div class="d-flex gap-3 w-100" style="max-width: 320px;">
-                    
-                    <button class="btn text-white w-50 p-2" 
-                            style="background-color: #009A93; font-size: 1.1rem; border-radius: 4px; transition: background-color 0.3s;" 
-                            onclick="handleEditNameSubmit()">
-                        Editar
-                    </button>
-                    
-                    <button class="btn text-white w-50 p-2" 
-                            style="background-color: #A6A6A6; font-size: 1.1rem; border-radius: 4px; transition: background-color 0.3s;" 
-                            onclick="Swal.close()">
-                        Fechar
-                    </button>
+    fetch('/User/User/GetGenders')
+        .then(r => r.json())
+        .then(genders => {
+            const options = genders.map(g =>
+                `<option value="${g.value}" ${currentName === g.text ? 'selected' : ''}>${g.text}</option>`
+            ).join('');
 
-                </div>
-                
-            </div>
-        `,
-        backdrop: 'var(--ips-shadow-soft)'
-    });
+            showSwal({
+                icon: null,
+                showConfirmButton: false,
+                showCloseButton: false,
+                html: `
+                    <div class="p-4 d-flex flex-column align-items-center" style="font-family: Arial, sans-serif; color: #000;">
+                        <h2 class="fw-bold mb-4" style="font-size: 2.2rem; margin-top: 10px;">${typeName}</h2>
+                        <p class="fw-bold mb-3" style="font-size: 1.1rem;">Insira o ${typeName} pretendido</p>
+                        <select id="${typeName}" class="form-select mb-4">
+                            <option value="">Selecione...</option>
+                            ${options}
+                        </select>
+                        <div class="d-flex gap-3 w-100" style="max-width: 320px;">
+                            <button class="btn text-white w-50 p-2" 
+                                    style="background-color: #009A93;"
+                                    onclick="handleEditSubmit('${key}', document.getElementById('${typeName}').value)">
+                                Editar
+                            </button>
+                            <button class="btn text-white w-50 p-2" 
+                                    style="background-color: #A6A6A6;"
+                                    onclick="Swal.close()">
+                                Fechar
+                            </button>
+                        </div>
+                    </div>
+                `,
+                backdrop: 'var(--ips-shadow-soft)'
+            });
+        }); // <- faltava este fecho
 }
 
 
@@ -758,6 +759,27 @@ function confirmarCancelamento(form) {
     Notifications.confirm("Tens a certeza que queres cancelar este pedido?")
         .then(result => {
             if (result.isConfirmed) form.submit();
+        });
+}
+
+function handleEditSubmit(key, value) {
+    fetch('/User/User/UpdateType', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+        },
+        body: `key=${key}&value=${encodeURIComponent(value)}`
+    })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                Notifications.success("Dados atualizados com sucesso!");
+                setTimeout(() => location.reload(), 1500);
+                Swal.close();
+            } else {
+                Notifications.error("Erro ao atualizar.");
+            }
         });
 }
 
