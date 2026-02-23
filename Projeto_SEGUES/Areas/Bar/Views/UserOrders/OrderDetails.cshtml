@@ -70,7 +70,7 @@
                         <button onclick="showCode('@Model.RedemptionCode')" class="btn btn-ips w-100 py-2 fw-bold text-uppercase">
                             CÓDIGO
                         </button>
-                        <form asp-area="Bar" asp-controller="UserOrders" asp-action="CancelOrder" asp-route-id="@Model.Id" method="post">
+                        <form asp-area="Bar" asp-controller="UserOrders" asp-action="CancelOrder" asp-route-redemptionCode="@Model.RedemptionCode" method="post">
                             @Html.AntiForgeryToken()
                             <button type="button" onclick="confirmarCancelamento(this.form)"
                                     class="btn btn-secondary w-100 py-2 fw-bold text-uppercase">

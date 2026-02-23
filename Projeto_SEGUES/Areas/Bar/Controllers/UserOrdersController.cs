@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Projeto_SEGUES.Areas.Bar.ViewModels;
 using Projeto_SEGUES.Data; // Ajusta para o teu namespace de Data
@@ -266,24 +267,32 @@ namespace Projeto_SEGUES.Areas.Bar.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CancelOrder(int id)
+        public async Task<IActionResult> CancelOrder(string redemptionCode)
         {
-            var order = await _context.BarOrders.FindAsync(id);
             var user = await _userManager.GetUserAsync(User);
-
-            if (order == null) return NotFound();
-
-            if(order.Status == 0)
+            if (user == null) return Challenge();
+            var orders = await _context.BarOrders
+                .Include(o => o.Product)
+                .Where(o => o.RedemptionCode == redemptionCode && o.UserId == user.Id)
+                .ToListAsync();
+            if (orders.IsNullOrEmpty()) return NotFound();
+            
+            if(orders[0].Status == 0)
             {
-                user.Balance += order.PriceAtTime * order.Quantity;
-
-                _context.BarOrders.Remove(order);
+                foreach(var order in orders)
+                {
+                    user.Balance += order.PriceAtTime * order.Quantity;
+                    order.Status = 4;
+                    order.Product.Stock += order.Quantity;
+                }
+                
+                // Readd stock
                 await _context.SaveChangesAsync();
                 TempData["SwalJson"] = JsonConvert.SerializeObject(new
                 {
                     icon = "success",
                     title = "Sucesso",
-                    text = "Pedido cancelado com sucesso e " + order.PriceAtTime.ToString() + "€ adicionado ao seu saldo."
+                    text = "Pedido cancelado com sucesso e " + orders[0].PriceAtTime + "€ adicionado ao seu saldo."
                 });
                 return RedirectToAction(nameof(ActiveOrders));
                 
@@ -296,7 +305,7 @@ namespace Projeto_SEGUES.Areas.Bar.Controllers
                     title = "Pedido não pode ser cancelado",
                     text = "Pedido não pode ser cancelado pois o mesmo já se encontra em preparação."
                 });
-                return RedirectToAction(nameof(OrderDetails), new { id = order.Id });
+                return RedirectToAction(nameof(OrderDetails), new { id = orders[0].Id });
 
             }
 

@@ -41,5 +41,5 @@ public class BarOrder
     public string RedemptionCode { get; set; } = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
     // No teu BarOrder.cs
     public int Status { get; set; } = 0;
-    // 0: Pendente, 1: Em preparação, 2: Entrega Pendente, 3: Entregue
+    // 0: Pendente, 1: Em preparação, 2: Entrega Pendente, 3: Entregue, 4: Cancelado
 }
