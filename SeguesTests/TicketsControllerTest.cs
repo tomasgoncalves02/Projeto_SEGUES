@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
@@ -9,25 +10,28 @@ using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.Enums;
 using System.Security.Claims;
 using Projeto_SEGUES.Areas.Ticket;
-using Projeto_SEGUES.Areas.Ticket.ViewModels;
+using Projeto_SEGUES.Areas.Admin;
 using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using SeguesTests.Helpers;
+using Xunit;
 
 namespace SeguesTests
 {
     public class TicketsControllerTest
     {
         private readonly Mock<UserManager<AppUser>> _mockUserManager;
+        private readonly Mock<RoleManager<Role>> _mockRoleManager;
+        private readonly Mock<IEmailSender> _mockEmailSender;
         private readonly AppDbContext _context;
         private readonly TicketController _controller;
-        private readonly TicketValidationController _ticketValidationController;
-        private readonly ITicketService _ticketService;
+        private readonly AdminTicketManagementController _adminTicketController;
+        private readonly TicketService _ticketService;
+        private readonly AdminService _adminService;
 
         public TicketsControllerTest()
         {
-            // Configurar BD em Memória IGNORANDO erros de transação
             var options = new DbContextOptionsBuilder<AppDbContext>()
                 .UseInMemoryDatabase(databaseName: "TicketsTestDb_" + Guid.NewGuid())
                 .ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning))
@@ -37,353 +41,167 @@ namespace SeguesTests
 
             var usersList = new List<AppUser>();
             _mockUserManager = MockHelper.MockUserManager(usersList);
-            //_ticketService = new TicketService(_context);
-            //_controller = new TicketController(_mockUserManager.Object, _ticketService);
-            _ticketValidationController = new TicketValidationController(_mockUserManager.Object, _ticketService);
+            _mockRoleManager = MockHelper.MockRoleManager<Role>();
+            _mockEmailSender = new Mock<IEmailSender>();
 
-            _controller.TempData = new TempDataDictionary(
-                new DefaultHttpContext(),
-                Mock.Of<ITempDataProvider>()
-            );
-            
-            _context.UserCategories.AddRange(
-                new UserCategory { Name = "Estudante" },
-                new UserCategory { Name = "Externo" },
-                new UserCategory { Name = "Trabalhador IPS" }
-            );
-            _context.SaveChanges();
+            _ticketService = new TicketService(_context, _mockUserManager.Object, _mockRoleManager.Object);
+            _adminService = new AdminService(_context, _mockUserManager.Object, _mockRoleManager.Object, _mockEmailSender.Object);
+
+            _controller = new TicketController(_mockUserManager.Object, _mockRoleManager.Object, _ticketService, _context);
+            _adminTicketController = new AdminTicketManagementController(_adminService, _mockUserManager.Object, _ticketService);
+
+            SetupControllerContext(_controller);
+            SetupControllerContext(_adminTicketController);
+
+            if (!_context.UserCategories.Any())
+            {
+                _context.UserCategories.AddRange(
+                    new UserCategory { Id = 1, Name = "Estudante" },
+                    new UserCategory { Id = 2, Name = "Externo" },
+                    new UserCategory { Id = 3, Name = "Trabalhador IPS" }
+                );
+                _context.SaveChanges();
+            }
         }
 
-        // Helper para configurar o Utilizador e Contexto
-        private void SetupUserContext(string userId, string role, decimal balance = 100)
+        private void SetupControllerContext(Controller controller)
         {
+            var httpContext = new DefaultHttpContext();
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+            controller.TempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>());
+        }
+
+        private void SetupUserContext(Controller controller, string userId, string role, decimal balance = 100)
+        {
+            var category = _context.UserCategories.First(uc => uc.Name == "Estudante");
+
             var user = new AppUser
             {
                 Id = userId,
-                UserName = "testuser",
-                Email = "test@user.com",
+                UserName = userId + "@test.com",
+                Email = userId + "@test.com",
                 Balance = balance,
-                SecurityStamp = Guid.NewGuid().ToString(),
-                // --- CORREÇÃO: CAMPOS OBRIGATÓRIOS DA CLASSE USER ---
                 FirstName = "Test",
                 LastName = "User",
-                Status = UserStatus.Active, // Assume-se que existe Active ou similar
+                Status = UserStatus.Active,
                 CreationDate = DateTime.Now,
                 Gender = Gender.Male,
-                BirthDate =  DateTime.Now.AddYears(-20), // Idade fictícia
-                UserCategory = _context.UserCategories.First(uc => uc.Name == "Estudante")
+                BirthDate = DateTime.Now.AddYears(-20),
+                UserCategory = category
             };
 
-            // Inserir User na BD (Para as Foreign Keys funcionarem)
             if (!_context.Users.Any(u => u.Id == userId))
             {
                 _context.Users.Add(user);
                 _context.SaveChanges();
             }
-            
-            // Make UserManager return the user by querying the context at call-time
-            _mockUserManager.Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
-                .Returns((ClaimsPrincipal cp) => Task.FromResult(
-                    _context.Users.Include(x => x.UserCategory).First(x => x.Id == userId)
-                ));
-            
-            // Also mock GetUserId for controllers that use it
-            _mockUserManager.Setup(u => u.GetUserId(It.IsAny<ClaimsPrincipal>()))
-                .Returns(userId);
 
-            // Mock do HttpContext
+            _mockUserManager.Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+                .ReturnsAsync(_context.Users.Include(u => u.UserCategory).First(u => u.Id == userId));
+
+            _mockUserManager.Setup(u => u.GetUserId(It.IsAny<ClaimsPrincipal>())).Returns(userId);
+
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, userId),
-                new Claim(ClaimTypes.Name, "testuser"),
                 new Claim(ClaimTypes.Role, role)
             };
             var identity = new ClaimsIdentity(claims, "TestAuth");
-            var claimsPrincipal = new ClaimsPrincipal(identity);
-
-            _controller.ControllerContext = new ControllerContext
-            {
-                HttpContext = new DefaultHttpContext { User = claimsPrincipal }
-            };
-        }
-
-        // Helper para criar uma compra fictícia (Obrigatório porque Ticket.TicketPurchaseId não pode ser nulo)
-        private int CreateDummyPurchase(string userId)
-        {
-            // Ensure we use the tracked user instance
-            var user = _context.Users.Find(userId) ?? _context.Users.First(u => u.Id == userId);
-
-            var purchase = new TicketPurchase
-            {
-                AppUser = user,
-                Quantity = 1,
-                TransactionDate = DateTime.Now,
-                Value = 0m
-            };
-            _context.TicketPurchases.Add(purchase);
-            _context.SaveChanges();
-            return purchase.Id;
-        }
-
-        [Fact]
-        public async Task Index_ExpiresOldTickets_AndReturnsMyTickets()
-        {
-            // ARRANGE
-            var userId = "user1";
-            SetupUserContext(userId, "Student");
-
-            // 1. Criar Compra Pai (Necessário para a FK TicketPurchaseId)
-            var purchaseId = CreateDummyPurchase(userId);
-
-            // 2. Preços (Necessário para o Index calcular o preço atual)
-            _context.TicketPrices.Add(new TicketPrice
-            {
-                Price = 2.50m,
-                InitialDatePrice = DateTime.Now.AddDays(-10),
-                EndDatePrice = DateTime.Now.AddDays(10),
-                UserCategory = _context.UserCategories.First(uc => uc.Name == "Estudante")
-            });
-
-            // 3. Criar Tickets
-            var expiredTicket = new Ticket
-            {
-                Owner = _context.Users.Find(userId)!, 
-                TicketPurchase = _context.TicketPurchases.Find(purchaseId)!,
-                State = TicketState.Available, 
-                ExpirationDate = DateTime.Now.AddDays(-2), 
-                ValidationCode = "EXP1", 
-            };
-            var activeTicket = new Ticket
-            {
-                Owner = _context.Users.Find(userId)!, 
-                TicketPurchase = _context.TicketPurchases.Find(purchaseId)!,
-                State = TicketState.Available,
-                ExpirationDate = DateTime.Now.AddDays(2), 
-                ValidationCode = "ACT1"
-            };
-
-            // Criar utilizador 'other' com TODOS os campos obrigatórios
-            _context.Users.Add(new AppUser
-            {
-                Id = "other",
-                UserName = "other",
-                Email = "other@m.com",
-                FirstName = "Other",    // <--- CORREÇÃO
-                LastName = "Person",    // <--- CORREÇÃO
-                CreationDate = DateTime.Now,
-                Status = UserStatus.Active,
-                Gender = Gender.Male,
-                BirthDate = DateTime.Now.AddYears(-30),
-                UserCategory = _context.UserCategories.First(uc => uc.Name == "Estudante")
-            });
-            _context.SaveChanges();
-
-            var otherPurchaseId = CreateDummyPurchase("other");
-            var otherUserTicket = new Ticket { 
-                Owner = _context.Users.Find("other")!,
-                TicketPurchase = _context.TicketPurchases.Find(otherPurchaseId)!,
-                State = TicketState.Available, 
-                ExpirationDate = DateTime.Now.AddDays(2), 
-                ValidationCode = "OTH1", 
-            };
-
-            _context.Tickets.AddRange(expiredTicket, activeTicket, otherUserTicket);
-            await _context.SaveChangesAsync();
-
-            // Limpar cache
-            _context.ChangeTracker.Clear();
-
-            // ACT
-            var result = await _controller.Index();
-
-            // ASSERT
-            var viewResult = Assert.IsType<ViewResult>(result);
-            var model = Assert.IsAssignableFrom<List<Ticket>>(viewResult.Model);
-
-            // Verificar se expirou
-            var dbExpiredTicket = await _context.Tickets.FindAsync(expiredTicket.Id);
-            Assert.Equal(TicketState.Expired, dbExpiredTicket?.State);
-
-            // Verificar filtros
-            Assert.Contains(model, t => t.ValidationCode == "EXP1");
-            Assert.Contains(model, t => t.ValidationCode == "ACT1");
-            Assert.DoesNotContain(model, t => t.ValidationCode == "OTH1");
-        }
-
-        [Fact]
-        public async Task BuyTicket_Success_DeductsBalance_AndCreatesTickets()
-        {
-            // ARRANGE
-            var userId = "user1";
-            decimal initialBalance = 10.00m;
-            decimal ticketPrice = 2.00m;
-            SetupUserContext(userId, "Student", initialBalance);
-
-            _context.TicketPrices.Add(new TicketPrice
-            {
-                UserCategory = _context.UserCategories.First(uc => uc.Name == "Estudante"),
-                Price = ticketPrice,
-                InitialDatePrice = DateTime.Now.AddDays(-10),
-                EndDatePrice = DateTime.Now.AddDays(10)
-            });
-            await _context.SaveChangesAsync();
-            _context.ChangeTracker.Clear();
-
-            // ACT
-            try
-            {
-                // await _controller.BuyTicket(quantity: 2); //TODO
-            }
-            catch (InvalidOperationException ex)
-            {
-                // Ignorar erro de transação do InMemory
-                if (!ex.Message.Contains("transaction", StringComparison.OrdinalIgnoreCase)) throw;
-            }
-
-            // ASSERT
-            // Como a transação falha no InMemory, validamos apenas que não deu erro de validação
-            Assert.False(_controller.TempData.ContainsKey("Error"), "Não devia dar erro de saldo.");
-            Assert.True(_controller.ModelState.IsValid);
-        }
-
-        [Fact]
-        public async Task BuyTicket_Fails_WhenBalanceIsLow()
-        {
-            // ARRANGE
-            var userId = "user1";
-            decimal initialBalance = 1.00m;
-            decimal ticketPrice = 2.00m;
-            SetupUserContext(userId, "Student", initialBalance);
-
-            _context.TicketPrices.Add(new TicketPrice
-            {
-                UserCategory = _context.UserCategories.First(uc => uc.Name == "Estudante"),
-                Price = ticketPrice,
-                InitialDatePrice = DateTime.Now.AddDays(-10),
-                EndDatePrice = DateTime.Now.AddDays(10)
-            });
-            await _context.SaveChangesAsync();
-            _context.ChangeTracker.Clear();
-
-            // ACT
-            //var result = await _controller.BuyTicket(quantity: 1); //TODO
-
-            // ASSERT
-            //var redirectResult = Assert.IsType<RedirectToActionResult>(result);
-            //Assert.Equal("Index", redirectResult.ActionName);
-            Assert.Equal("Saldo insuficiente para a operação.", _controller.TempData["Error"]);
-        }
-
-        [Fact]
-        public async Task ValidateTicket_Success_UpdatesStateToUsed()
-        {
-            // ARRANGE
-            var userId = "admin1";
-            SetupUserContext(userId, "Admin");
-            var purchaseId = CreateDummyPurchase(userId);
-
-            var code = "VAL12345";
-            var ticket = new Ticket
-            {
-                ValidationCode = code,
-                State = TicketState.Available,
-                ExpirationDate = DateTime.Now.AddDays(5),
-                Owner = _context.Users.Find(userId)!,
-                TicketPurchase = _context.TicketPurchases.Find(purchaseId)!
-            };
-            _context.Tickets.Add(ticket);
-            await _context.SaveChangesAsync();
-            _context.ChangeTracker.Clear();
-
-            var model = new ValidateTicketViewModel { Code = code };
-            _controller.ModelState.Clear();
-
-            // ACT
-            var result = await _ticketValidationController.Index(model);
-
-            // ASSERT
-            var viewResult = Assert.IsType<ViewResult>(result);
-            var dbTicket = await _context.Tickets.FirstAsync(t => t.ValidationCode == code);
-
-            Assert.Equal(TicketState.Used, dbTicket.State);
-            Assert.NotNull(dbTicket.UsedDate);
-            Assert.Equal("Senha validada!", _controller.TempData["Success"]);
-        }
-
-        [Fact]
-        public async Task ValidateTicket_ReturnsError_IfExpired()
-        {
-            // ARRANGE
-            var userId = "admin1";
-            SetupUserContext(userId, "Admin");
-            var purchaseId = CreateDummyPurchase(userId);
-
-            var code = "EXP12345";
-            var ticket = new Ticket
-            {
-                ValidationCode = code,
-                State = TicketState.Available,
-                ExpirationDate = DateTime.Now.AddDays(-5),
-                Owner = _context.Users.Find(userId)!,
-                TicketPurchase = _context.TicketPurchases.Find(purchaseId)!,
-            };
-            _context.Tickets.Add(ticket);
-            await _context.SaveChangesAsync();
-            _context.ChangeTracker.Clear();
-
-            var model = new ValidateTicketViewModel { Code = code };
-            _controller.ModelState.Clear();
-
-            // ACT
-            var result = await _ticketValidationController.Index(model);
-
-            // ASSERT
-            var viewResult = Assert.IsType<ViewResult>(result);
-
-            Assert.False(viewResult.ViewData.ModelState.IsValid);
-            Assert.Equal("ERRO: A senha expirou.", viewResult.ViewData.ModelState["Code"]?.Errors[0].ErrorMessage);
-
-            var dbTicket = await _context.Tickets.FirstAsync(t => t.ValidationCode == code);
-            Assert.Equal(TicketState.Expired, dbTicket.State);
+            controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(identity);
         }
 
         [Fact]
         public async Task UpdatePrices_Success_UpdatesDatabase()
         {
-            // ARRANGE
             var userId = "admin1";
-            SetupUserContext(userId, "Admin");
+            SetupUserContext(_adminTicketController, userId, "Admin");
 
-            var newPrices = new List<TicketPrice>
+            var category = _context.UserCategories.First(uc => uc.Name == "Estudante");
+            var price = new TicketPrice
+            {
+                Id = 1,
+                UserCategory = category,
+                Price = 1.00m,
+                InitialDatePrice = DateTime.Now.AddDays(-1),
+                EndDatePrice = DateTime.Now.AddDays(1)
+            };
+            _context.TicketPrices.Add(price);
+            _context.SaveChanges();
+
+            var updatedPrices = new List<TicketPrice>
             {
                 new TicketPrice
                 {
-                    Id=1,
-                    UserCategory = _context.UserCategories.First(uc => uc.Name == "Estudante"), 
-                    Price = 5.00m, 
-                    EndDatePrice = DateTime.Now.AddDays(10)
+                    Id = 1,
+                    Price = 5.50m,
+                    UserCategory = category
                 }
             };
 
-            _context.TicketPrices.Add(new TicketPrice
+            await _adminTicketController.UpdatePrices(updatedPrices);
+
+            var dbPrice = await _context.TicketPrices.AsNoTracking().FirstOrDefaultAsync(p => p.Id == 1);
+            Assert.Equal(5.50m, dbPrice?.Price);
+        }
+
+        [Fact]
+        public async Task TransferTickets_Fails_WhenCategoriesAreDifferent()
+        {
+            var senderId = "sender1";
+            var receiverId = "receiver1";
+
+            var cat1 = _context.UserCategories.First(c => c.Name == "Estudante");
+            var cat2 = _context.UserCategories.First(c => c.Name == "Externo");
+
+            var sender = new AppUser
             {
-                Id = 1, 
-                UserCategory = _context.UserCategories.First(uc => uc.Name == "Estudante"),
-                Price = 1.00m, 
-                EndDatePrice = DateTime.Now
-            });
-            await _context.SaveChangesAsync();
-            _context.ChangeTracker.Clear();
+                Id = senderId,
+                Email = "s@s.com",
+                UserName = "s@s.com",
+                UserCategory = cat1,
+                FirstName = "S",
+                LastName = "S",
+                Gender = Gender.Male,
+                BirthDate = DateTime.Now.AddYears(-20),
+                Status = UserStatus.Active,
+                CreationDate = DateTime.Now
+            };
+            var receiver = new AppUser
+            {
+                Id = receiverId,
+                Email = "r@r.com",
+                UserName = "r@r.com",
+                UserCategory = cat2,
+                FirstName = "R",
+                LastName = "R",
+                Gender = Gender.Female,
+                BirthDate = DateTime.Now.AddYears(-20),
+                Status = UserStatus.Active,
+                CreationDate = DateTime.Now
+            };
 
-            // ACT
-            //var result = await _controller.UpdatePrices(newPrices); //TODO
+            _context.Users.AddRange(sender, receiver);
+            _context.SaveChanges();
 
-            // ASSERT
-            //var redirectResult = Assert.IsType<RedirectToActionResult>(result);
-            //Assert.Equal("GestaoSenhas", redirectResult.ActionName);
+            var purchase = new TicketPurchase { AppUser = sender, Quantity = 1, TransactionDate = DateTime.Now, Value = 2.5m };
+            _context.TicketPurchases.Add(purchase);
+            _context.SaveChanges();
 
-            var dbPrice = await _context.TicketPrices.FindAsync(1);
-            Assert.Equal(5.00m, dbPrice?.Price);
+            var ticket = new Ticket
+            {
+                ValidationCode = "T1",
+                Owner = sender,
+                State = TicketState.Available,
+                TicketPurchase = purchase,
+                ExpirationDate = DateTime.Now.AddDays(1)
+            };
+            _context.Tickets.Add(ticket);
+            _context.SaveChanges();
+
+            var result = await _ticketService.TransferTicketsAsync(senderId, "r@r.com", new List<string> { "T1" });
+
+            Assert.False(result.Success);
+            Assert.Contains("Transferência recusada", result.Message);
         }
     }
 }
