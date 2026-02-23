@@ -157,7 +157,7 @@
                                 </td>
                                 <td class="fw-bold text-color-ips">@totalPedido.ToString("N2")€</td>
                                 <td class="pe-4">
-                                    <button type="button" class="btn btn-sm btn-ips fw-bold px-3 shadow-sm" onclick="loadOrderDetails(@order.Id)">
+                                    <button type="button" class="btn btn-sm btn-ips fw-bold px-3 shadow-sm" onclick="verDetalhesProdutos(@order.Id)">
                                         <i class="bi bi-search"></i>
                                     </button>
                                 </td>
@@ -166,15 +166,6 @@
                     }
                 </tbody>
             </table>
-        </div>
-    </div>
-</div>
-
-@* Modal *@
-<div class="modal fade" id="orderModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
-            <div id="modalContent"></div>
         </div>
     </div>
 </div>
@@ -213,15 +204,6 @@
             document.getElementById('exactDateFilter').value = "";
             filterTable();
         }
-
-        function loadOrderDetails(id) {
-            $('#orderModal').modal('show');
-            document.getElementById('modalContent').innerHTML =
-                '<div class="p-5 text-center"><div class="spinner-border text-color-ips" role="status"></div></div>';
-
-            $.get('@Url.Action("GetOrderDetails", "OrderManagement")/' + id, function(data) {
-                // Lógica de preenchimento do modal
-            });
-        }
+        
     </script>
 }

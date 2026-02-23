@@ -75,116 +75,117 @@
         </div>
     </div>
 
-@* User table *@
+    @* User table *@
     <div class="card shadow-sm border-0">
         <div class="table-responsive rounded-3">
             <table class="table table-hover align-middle mb-0 text-center">
                 <thead class="bg-color-ips text-white">
-                    <tr>
-                        <th class="ps-4 py-3">Nome</th>
-                        <th class="py-3">Email</th>
-                        <th class="py-3">Role</th>
-                        <th class="py-3">Categoria</th>
-                        <th class="py-3">Estado</th>
-                        <th class="py-3">Saldo</th>
-                        <th class="pe-4 py-3">Ações</th>
-                    </tr>
+                <tr>
+                    <th class="ps-4 py-3">Nome</th>
+                    <th class="py-3">Email</th>
+                    <th class="py-3">Role</th>
+                    <th class="py-3">Categoria</th>
+                    <th class="py-3">Estado</th>
+                    <th class="py-3">Saldo</th>
+                    <th class="pe-4 py-3">Ações</th>
+                </tr>
                 </thead>
                 <tbody>
-                    @foreach (var user in Model)
-                    {
-                        <tr>
-                            @* Name *@
-                            <td class="ps-4">
-                                <div class="d-flex align-items-center">
-                                    <div class="avatar-circle me-3">
-                                        @(string.IsNullOrEmpty(user.FirstName) ? "?" : user.FirstName.Substring(0, 1).ToUpper())
-                                    </div>
-                                    <div class="fw-bold text-dark text-start">@user.FirstName @user.LastName</div>
+                @foreach (var user in Model)
+                {
+                    <tr>
+                        @* Name *@
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle me-3">
+                                    @(string.IsNullOrEmpty(user.FirstName) ? "?" : user.FirstName.Substring(0, 1).ToUpper())
                                 </div>
-                            </td>
-                            @* Email *@
-                            <td class="text-muted">@user.Email</td>
-                            @* Role *@
-                            <td>
-                                @{
-                                    var userRoles = await UserManager.GetRolesAsync(user);
-                                    var userRole = userRoles.FirstOrDefault() ?? "Client";
-                                    var roleText = roles.Find(r => r.Value == userRole)?.Text ?? userRole;
-                                }
-                                <span class="badge @userRole.ToBadgeClass()" style="min-width: 90px; padding: 7px;">
-                                    @roleText.ToUpper()
-                                </span>
-                            </td>
-                            @* Category *@
-                            <td>
-                                @{
-                                    var categoryName = user.UserCategory?.Name ?? "N/A";
-                                }
-                                <span class="badge @categoryName.ToBadgeClass()" style="min-width: 90px; padding: 7px;">
-                                    @categoryName.ToUpper()
-                                </span>
-                            </td>
-                            @* Status (NOVO) *@
-                            <td>
-                                @{                                    
-                                    var statusPortu = user.Status == UserStatus.Active ? "ATIVO" : "INATIVO";
-                                    var statusColor = user.Status == UserStatus.Active ? "bg-success" : "bg-danger";
-                                }
-                                <span class="badge @statusColor border-0 shadow-sm" style="min-width: 90px; padding: 7px; font-weight: 600;">
-                                    <i class="bi @(user.Status == UserStatus.Active ? "bi-check-circle" : "bi-x-circle") me-1"></i>
-                                    @statusPortu
-                                </span>
-                            </td>
-                            @* Balance *@
-                            <td class="fw-bold text-color-ips">@user.Balance.ToString("C")</td>
-                            @* Actions *@
-                            <td class="text-start pe-4">
-                                <div class="btn-group">
-                                    @* Detalhes *@
-                                    <a asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Details" asp-route-id="@user.Id"
-                                       class="btn btn-sm btn-ips" title="Detalhes">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
+                                <div class="fw-bold text-dark text-start">@user.FirstName @user.LastName</div>
+                            </div>
+                        </td>
+                        @* Email *@
+                        <td class="text-muted">@user.Email</td>
+                        @* Role *@
+                        <td>
+                            @{
+                                var userRoles = await UserManager.GetRolesAsync(user);
+                                var userRole = userRoles.FirstOrDefault() ?? "Client";
+                                var roleText = roles.Find(r => r.Value == userRole)?.Text ?? userRole;
+                            }
+                            <span class="badge @userRole.ToBadgeClass()" style="min-width: 90px; padding: 7px;">
+                                @roleText.ToUpper()
+                            </span>
+                        </td>
+                        @* Category *@
+                        <td>
+                            @{
+                                var categoryName = user.UserCategory?.Name ?? "N/A";
+                            }
+                            <span class="badge @categoryName.ToBadgeClass()" style="min-width: 90px; padding: 7px;">
+                                @categoryName.ToUpper()
+                            </span>
+                        </td>
+                        @* Status (NOVO) *@
+                        <td>
+                            @{                                    
+                                var statusPortu = user.Status == UserStatus.Active ? "ATIVO" : "INATIVO";
+                                var statusColor = user.Status == UserStatus.Active ? "bg-success" : "bg-danger";
+                            }
+                            <span class="badge @statusColor border-0 shadow-sm" style="min-width: 90px; padding: 7px; font-weight: 600;">
+                                <i class="bi @(user.Status == UserStatus.Active ? "bi-check-circle" : "bi-x-circle") me-1"></i>
+                                @statusPortu
+                            </span>
+                        </td>
+                        @* Balance *@
+                        <td class="fw-bold text-color-ips">@user.Balance.ToString("C")</td>
+                        @* Actions *@
+                        <td class="text-start pe-4">
+                            <div class="btn-group">
+                                @* Detalhes *@
+                                <a asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Details" asp-route-id="@user.Id"
+                                   class="btn btn-sm btn-ips" title="Detalhes">
+                                    <i class="bi bi-eye"></i>
+                                </a>
 
-                                    @* Editar - Agora com a lógica de bordas original *@
-                                    <a asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Edit" asp-route-id="@user.Id"
-                                       class="btn btn-sm btn-outline-secondary m-md-0 border-start-0 @(user.Id != User.FindFirstValue(ClaimTypes.NameIdentifier) ? "border-end-0" : "")"
-                                       title="Editar">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
+                                @* Editar - Agora com a lógica de bordas original *@
+                                <a asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Edit" asp-route-id="@user.Id"
+                                   class="btn btn-sm btn-outline-secondary m-md-0 border-start-0 @(user.Id != User.FindFirstValue(ClaimTypes.NameIdentifier) ? "border-end-0" : "")"
+                                   title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
 
-                                    @if (user.Id != User.FindFirstValue(ClaimTypes.NameIdentifier))
+                                @if (user.Id != User.FindFirstValue(ClaimTypes.NameIdentifier))
+                                {
+                                    if (user.Status == UserStatus.Inactive)
                                     {
-                                        if (user.Status == UserStatus.Inactive)
-                                        {
-                                            @* Botão Ativar *@
-                                            <form asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Activate" asp-route-id="@user.Id" method="post" style="display:inline;">
-                                                <button type="submit" class="btn btn-sm btn-outline-success rounded-0 rounded-end" title="Ativar Conta">
-                                                    <i class="bi bi-person-check"></i>
-                                                </button>
-                                            </form>
-                                        }
-                                        else
-                                        {
-                                            @* Botão Desativar *@
-                                            <form asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Deactivate" asp-route-id="@user.Id" method="post" id="deactivate-form-@user.Id" style="display:inline;">
-                                                <button type="button" class="btn btn-sm btn-outline-danger rounded-0 rounded-end"
-                                                        onclick="confirmDeactivate('@user.Id', '@user.FirstName @user.LastName')"
-                                                        title="Desativar Conta">
-                                                    <i class="bi bi-person-x"></i>
-                                                </button>
-                                            </form>
-                                        }
+                                        @* Botão Ativar *@
+                                        <form asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Activate" asp-route-id="@user.Id" method="post" style="display:inline;">
+                                            <button type="submit" class="btn btn-sm btn-outline-success rounded-0 rounded-end" title="Ativar Conta">
+                                                <i class="bi bi-person-check"></i>
+                                            </button>
+                                        </form>
                                     }
-                                </div>
-                            </td>
-                        </tr>
-                    }
+                                    else
+                                    {
+                                        @* Botão Desativar *@
+                                        <form asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Deactivate" asp-route-id="@user.Id" method="post" id="deactivate-form-@user.Id" style="display:inline;">
+                                            <button type="button" class="btn btn-sm btn-outline-danger rounded-0 rounded-end"
+                                                    onclick="confirmDeactivate('@user.Id', '@user.FirstName @user.LastName')"
+                                                    title="Desativar Conta">
+                                                <i class="bi bi-person-x"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
                 </tbody>
             </table>
         </div>
     </div>
+</div>
 
 @section Scripts {
     <script>

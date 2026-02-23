@@ -120,15 +120,15 @@ const Notifications = {
     },
 
     // Info (Auto-close 4s)
-    info: function(message, html = undefined) {
+    info: function(message, html = undefined, showConfirmButton = false, timer = 4000) {
         if (html) message = ''; // If HTML is provided, ignore text to avoid redundancy
         return showSwal({
             icon: 'info',
             title: 'Informação',
             text: message,
             html: html,
-            timer: 4000,
-            showConfirmButton: false,
+            timer: timer,
+            showConfirmButton: showConfirmButton,
             showCloseButton: true
         });
     },
@@ -639,57 +639,6 @@ function removeFromCart(id, name) {
     });
 }
 
-// DETALHES DO PEDIDO (Unificada e corrigida para UserOrders)
-function verDetalhesProdutos(id) {
-    const modalElement = document.getElementById('modalDetalhes');
-    const contentElement = document.getElementById('modalContentBody');
-
-    if (!modalElement || !contentElement) {
-        console.error("Elementos do modal não encontrados no HTML.");
-        return;
-    }
-
-    contentElement.innerHTML = '<div class="p-5 text-center"><div class="spinner-border text-color-ips"></div></div>';
-
-    // Alterado para UserOrders
-    fetch(`/Bar/UserOrders/GetOrderDetails/${id}`)
-        .then(res => res.json())
-        .then(data => {
-            let pRows = data.produtos.map(p => `
-                <tr>
-                    <td class="text-start fw-bold">${p.nome}</td>
-                    <td class="text-color-ips fw-bold">${p.preco.toFixed(2)}€</td>
-                    <td class="fw-bold">${p.quantidade}</td>
-                </tr>
-            `).join('');
-
-            contentElement.innerHTML = `
-                <div class="modal-body p-4 text-center">
-                    <div class="mb-3"><i class="bi bi-info-circle text-info" style="font-size: 4rem;"></i></div>
-                    <h2 class="fw-bold mb-4">Detalhes do Pedido</h2>
-                    <div class="text-start mb-3">
-                        <p class="mb-0 text-muted small fw-bold">Código</p>
-                        <h4 class="text-color-ips fw-bold">${data.codigo}</h4>
-                    </div>
-                    <div class="table-responsive border rounded-3">
-                        <table class="table table-hover mb-0">
-                            <thead class="bg-color-ips text-white small">
-                                <tr><th>Nome</th><th>Preço</th><th>Qtd</th></tr>
-                            </thead>
-                            <tbody>${pRows}</tbody>
-                        </table>
-                    </div>
-                    <button type="button" class="btn btn-ips mt-4 px-5 py-2 fw-bold" data-bs-dismiss="modal">Fechar</button>
-                </div>`;
-
-            new bootstrap.Modal(modalElement).show();
-        })
-        .catch(err => {
-            console.error(err);
-            Notifications.error("Erro ao carregar os detalhes.");
-        });
-}
-
 // Helper para atualizar a badge com valor exato da BD
 function updateCartBadgeManual(count) {
     const badge = document.getElementById('cart-count');
@@ -718,19 +667,15 @@ function confirmarCompraBar(formId) {
 }
 
 function verDetalhesProdutos(id) {
-    const modalElement = document.getElementById('modalDetalhes');
-    const contentElement = document.getElementById('modalContentBody');
-
-    if (!modalElement || !contentElement) return;
-
-    contentElement.innerHTML = '<div class="p-5 text-center"><div class="spinner-border text-color-ips"></div></div>';
+    Notifications.info(null, '<div id="detailsModal" class="p-5 text-center"><div class="spinner-border text-color-ips"></div></div>', true, 0);
+    let detailsModal = document.getElementById('detailsModal');
 
     fetch(`/Bar/UserOrders/GetOrderDetails/${id}`)
         .then(res => res.json())
         .then(data => {
             // Validação de segurança: se não houver produtos, mostra mensagem amigável
             if (!data.produtos || data.produtos.length === 0) {
-                contentElement.innerHTML = '<div class="p-4">Nenhum detalhe encontrado.</div>';
+                detailsModal.innerHTML = '<div class="p-4">Nenhum detalhe encontrado.</div>';
                 return;
             }
 
@@ -742,9 +687,7 @@ function verDetalhesProdutos(id) {
                 </tr>
             `).join('');
 
-            contentElement.innerHTML = `
-                <div class="modal-body p-4 text-center">
-                    <div class="mb-3"><i class="bi bi-info-circle text-info" style="font-size: 4rem;"></i></div>
+            detailsModal.innerHTML = `
                     <h2 class="fw-bold mb-4">Detalhes do Pedido</h2>
                     <div class="text-start mb-3">
                         <p class="mb-0 text-muted small fw-bold text-uppercase">Código de Recolha</p>
@@ -761,11 +704,7 @@ function verDetalhesProdutos(id) {
                             </thead>
                             <tbody>${pRows}</tbody>
                         </table>
-                    </div>
-                    <button type="button" class="btn btn-ips mt-4 px-5 py-2 fw-bold w-100" data-bs-dismiss="modal">FECHAR</button>
-                </div>`;
-
-            new bootstrap.Modal(modalElement).show();
+                    </div>`;
         })
         .catch(err => {
             console.error("Erro ao carregar detalhes:", err);
