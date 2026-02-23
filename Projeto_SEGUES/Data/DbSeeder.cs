@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Models.Admin;
 using Projeto_SEGUES.Models.Enums;
+using Projeto_SEGUES.Models.Inventory;
 using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.User;
 
@@ -110,6 +111,41 @@ namespace Projeto_SEGUES.Data
                     await userManager.AddToRoleAsync(newAdmin, "Admin");
                 }
             }
+
+            if (!await context.Products.AnyAsync())
+            {
+                var defaultProducts = new List<Product>
+                {
+                    new Product
+                    {
+                        Name = "folhado misto",
+                        Description = "Folhado quente após sair do forno",
+                        Price = 1.80m,
+                        Stock = 20,
+                        IsActive = true
+                    },
+                    new Product
+                    {
+                        Name = "Café Expresso",
+                        Description = "Café simples de máquina",
+                        Price = 0.70m,
+                        Stock = 100,
+                        IsActive = true
+                    },
+                    new Product
+                    {
+                        Name = "Água Mineral 0.5L",
+                        Description = "Água mineral sem gás",
+                        Price = 1.00m,
+                        Stock = 50,
+                        IsActive = true
+                    }
+                };
+
+                await context.Products.AddRangeAsync(defaultProducts);
+                await context.SaveChangesAsync();
+            }
+
         }
     }
 }
