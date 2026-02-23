@@ -103,7 +103,7 @@ namespace SeguesTests
         }
 
         [Fact]
-        public async Task RF22_Consulta_Historico_Filtro_Data()
+        public async Task Consulta_Historico_Filtro_Data()
         {
             var user = SetupUser("u22", "u22@test.com", "Estudante");
 
