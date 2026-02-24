@@ -363,82 +363,89 @@ function showEditGenre(typeName, currentName, key) {
 
 
 function showEditPassword(typeName, key) {
-    showSwal({
-        icon: null,
-        showConfirmButton: false,
-        showCloseButton: false,
+    Swal.fire({
+        title: `<h2 class="fw-bold mb-4">${typeName}</h2>`,
         html: `
-            <div class="p-4 d-flex flex-column align-items-center" style="font-family: Arial, sans-serif; color: #000;">
-                
-                <h2 class="fw-bold mb-4" style="font-size: 2.2rem; margin-top: 10px;">${typeName}</h2>
-                
-                <p class="fw-bold mb-3" style="font-size: 1.1rem;">Altere a sua o ${typeName}</p>
-                
-                <input type="password" 
-                       placeholder="Password Antiga"
-                       id="oldpassword" 
-                       class="form-control text-center mb-4 p-2" 
-                       style="max-width: 320px; width: 100%; border: 1px solid #a9a9a9; font-size: 1.4rem; color: #6c757d; border-radius: 4px;" 
-                       value="">
+            <div class="p-2 d-flex flex-column align-items-center">
+                <input type="password" id="oldpassword" class="swal2-input w-100" placeholder="Password Atual">
+                <input type="password" id="newpassword" class="swal2-input w-100" placeholder="Nova Password">
+                <input type="password" id="confirmnewpassword" class="swal2-input w-100" placeholder="Confirme a Nova Password">
+            </div>`,
+        showCancelButton: true,
+        confirmButtonText: 'Editar',
+        confirmButtonColor: '#009A93',
+        cancelButtonText: 'Fechar',
+        preConfirm: () => {
+            // Capturamos os valores AQUI, enquanto o modal está aberto
+            const currentPassword = Swal.getPopup().querySelector('#oldpassword').value;
+            const newPassword = Swal.getPopup().querySelector('#newpassword').value;
+            const confirmPassword = Swal.getPopup().querySelector('#confirmnewpassword').value;
 
-                <input type="password"
-                       placeholder="Nova Password"
-                       id="newpassword" 
-                       class="form-control text-center mb-4 p-2" 
-                       style="max-width: 320px; width: 100%; border: 1px solid #a9a9a9; font-size: 1.4rem; color: #6c757d; border-radius: 4px;" 
-                       value="">
-
-                <input type="password"
-                       id="confirmnewpassword"
-                       placeholder="Confirme a Nova Password"
-                       class="form-control text-center mb-4 p-2" 
-                       style="max-width: 320px; width: 100%; border: 1px solid #a9a9a9; font-size: 1.4rem; color: #6c757d; border-radius: 4px;" 
-                       value="">
-                
-                <div class="d-flex gap-3 w-100" style="max-width: 320px;">
-                    
-                    <button class="btn text-white w-50 p-2" 
-                            style="background-color: #009A93; font-size: 1.1rem; border-radius: 4px; transition: background-color 0.3s;" 
-                             onclick="confirmarEdicao('${typeName}', '${key}')">
-                        Editar
-                    </button>
-                    
-                    <button class="btn text-white w-50 p-2" 
-                            style="background-color: #A6A6A6; font-size: 1.1rem; border-radius: 4px; transition: background-color 0.3s;" 
-                            onclick="Swal.close()">
-                        Fechar
-                    </button>
-
-                </div>
-                
-            </div>
-        `,
-        backdrop: 'var(--ips-shadow-soft)'
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                Swal.showValidationMessage(`Por favor, preencha todos os campos`);
+                return false;
+            }
+            if (newPassword !== confirmPassword) {
+                Swal.showValidationMessage(`As passwords novas não coincidem`);
+                return false;
+            }
+            // Retornamos os dados para o .then()
+            return { currentPassword, newPassword };
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Agora chamamos o envio com os dados já validados
+            enviarNovaPassword(result.value.currentPassword, result.value.newPassword);
+        }
     });
+}
+
+function enviarNovaPassword(currentPassword, newPassword) {
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+    const params = new URLSearchParams();
+    params.append('currentPassword', currentPassword);
+    params.append('newPassword', newPassword);
+
+    fetch('/User/User/UpdatePassword', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'RequestVerificationToken': token
+        },
+        body: params.toString()
+    })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                Notifications.success("Password alterada com sucesso!");
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                Notifications.error(data.message || "Erro ao atualizar password.");
+            }
+        })
+        .catch(() => Notifications.error("Erro de comunicação com o servidor."));
 }
 
 
 function confirmarEdicao(typeName, key) {
-    let value;
+    let value = "";
 
+    // Evita tentar ler valor de um campo de password que não existe como input único
     if (key === 'genre') {
-        value = document.getElementById('genreSelect').value;
-    } else {
+        value = document.getElementById('genreSelect')?.value;
+    } else if (key !== 'password') {
         value = document.getElementById(typeName)?.value;
     }
-
 
     Notifications.confirm(`Tens a certeza que queres alterar ${typeName}?`)
         .then(r => {
             if (r.isConfirmed) {
-
-                if (typeName == 'password') {
-                    handlePasswordSubmit(typeName, key, value);
+                if (key === 'password') {
+                    handlePasswordSubmit(); // Agora sem parâmetros
                 } else {
                     handleEditSubmit(typeName, key, value);
                 }
-
-                
             }
         });
 }
@@ -446,70 +453,78 @@ function confirmarEdicao(typeName, key) {
 
 
 function handlePasswordSubmit() {
-    const currentPassword = document.getElementById('oldpassword').value;
-    const newPassword = document.getElementById('newpassword').value;
-    const confirmPassword = document.getElementById('confirmnewpassword').value;
+    // Adicionei verificações de existência para evitar o erro "null reading value"
+    const oldInput = document.getElementById('oldpassword');
+    const newInput = document.getElementById('newpassword');
+    const confirmInput = document.getElementById('confirmnewpassword');
 
-    if (newPassword === currentPassword) {
-        Notifications.error("A nova password não pode ser igual à password atual.");
+    if (!oldInput || !newInput || !confirmInput) {
+        console.error("Erro: Inputs de password não encontrados no DOM.");
         return;
     }
 
+    const currentPassword = oldInput.value;
+    const newPassword = newInput.value;
+    const confirmPassword = confirmInput.value;
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
 
     if (newPassword !== confirmPassword) {
         Notifications.error("As passwords não coincidem.");
         return;
     }
 
-
+    // Usar URLSearchParams garante que o formato enviado não causa erro 400
+    const bodyParams = new URLSearchParams();
+    bodyParams.append('currentPassword', currentPassword);
+    bodyParams.append('newPassword', newPassword);
 
     fetch('/User/User/UpdatePassword', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+            'RequestVerificationToken': token
         },
-        body: `currentPassword=${encodeURIComponent(currentPassword)}&newPassword=${encodeURIComponent(newPassword)}`
-    })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                Swal.close(); 
-                setTimeout(() => {
-                    Notifications.success("Password atualizada com sucesso!");
-                    setTimeout(() => location.reload(), 1500);
-                }, 300);
-            } else {
-                Notifications.error(data.message || "Erro ao atualizar password.");
-            }
-        });
-}
-
-function handleEditSubmit(typeName, key, value) {
-    fetch('/User/User/UpdateType', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
-        },
-        body: `key=${key}&value=${encodeURIComponent(value)}`
+        body: bodyParams.toString()
     })
         .then(r => r.json())
         .then(data => {
             if (data.success) {
                 Swal.close();
-                setTimeout(() => {
-                    Notifications.success(typeName + " atualizado com sucesso!");
-                    setTimeout(() => location.reload(), 1500);
-                }, 300);
+                Notifications.success("Password atualizada!");
+                setTimeout(() => location.reload(), 1500);
             } else {
                 Notifications.error(data.message || "Erro ao atualizar.");
             }
         })
-        .catch(err => {
-            console.error(err);
-            Notifications.error("Erro de comunicação com o servidor.");
-        });
+        .catch(() => Notifications.error("Erro de comunicação com o servidor."));
+}
+
+function handleEditSubmit(typeName, key, value) {
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+    const bodyParams = new URLSearchParams();
+    bodyParams.append('key', key);
+    bodyParams.append('value', value);
+
+    fetch('/User/User/UpdateType', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'RequestVerificationToken': token
+        },
+        body: bodyParams.toString()
+    })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                Swal.close();
+                Notifications.success(typeName + " atualizado!");
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                Notifications.error(data.message || "Erro na atualização.");
+            }
+        })
+        .catch(() => Notifications.error("Erro de rede."));
 }
 
 //-----------------------------------------------------------------------------------------
