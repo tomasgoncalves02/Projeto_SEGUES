@@ -95,10 +95,10 @@ namespace SeguesTests.Users
         {
             var (controller, mockUserMgr, _, user) = SetupController();
 
-            mockUserMgr.Setup(m => m.ChangePasswordAsync(user, "oldPass", "newPass"))
+            mockUserMgr.Setup(m => m.ChangePasswordAsync(user, "OldPass123@A", "NewPass123@B"))
                 .ReturnsAsync(IdentityResult.Success);
 
-            var result = await controller.UpdatePassword("oldPass", "newPass");
+            var result = await controller.UpdatePassword("OldPass123@A", "NewPass123@B");
 
             var okResult = Assert.IsType<OkObjectResult>(result);
         }
@@ -108,10 +108,10 @@ namespace SeguesTests.Users
         {
             var (controller, mockUserMgr, _, user) = SetupController();
 
-            mockUserMgr.Setup(m => m.ChangePasswordAsync(user, "wrongPass", "newPass"))
+            mockUserMgr.Setup(m => m.ChangePasswordAsync(user, "OldPass123@A", "NewPass123@B"))
                 .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Error" }));
 
-            var result = await controller.UpdatePassword("wrongPass", "newPass");
+            var result = await controller.UpdatePassword("OldPass123@A", "NewPass123@B");
 
             var badRequest = Assert.IsType<BadRequestObjectResult>(result);
         }

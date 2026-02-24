@@ -368,7 +368,7 @@ function showEditPassword(typeName, key) {
             const currentPassword = Swal.getPopup().querySelector('#oldpassword').value;
             const newPassword = Swal.getPopup().querySelector('#newpassword').value;
             const confirmPassword = Swal.getPopup().querySelector('#confirmnewpassword').value;
-            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,}$/;
 
             if (!currentPassword || !newPassword || !confirmPassword) {
                 Swal.showValidationMessage(`Por favor, preencha todos os campos`);
@@ -379,9 +379,13 @@ function showEditPassword(typeName, key) {
                 return false;
             }
             if (!passwordRegex.test(newPassword)) {
-                Swal.showValidationMessage(`A password deve ter mínimo 8 caracteres, uma maiúscula, uma minúscula, um número e um símbolo (@$!%*?&)`);
+                Swal.showValidationMessage(`A password deve ter mínimo 12 caracteres, uma maiúscula, uma minúscula, um número e um símbolo (@$!%*?&)`);
                 return false;
             }
+
+          
+                
+
             return { currentPassword, newPassword };
         }
     }).then((result) => {

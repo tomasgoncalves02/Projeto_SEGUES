@@ -122,7 +122,18 @@ public class UserController : Controller
     public async Task<IActionResult> UpdatePassword(string currentPassword, string newPassword)
     {
         var user = await _userManager.GetUserAsync(User);
+        var passwordRegex = new Regex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,}$");
+
         if (user == null) return NotFound();
+
+        if(currentPassword == newPassword)
+          return BadRequest(new { success = false, message = "Não pode usar a mesma password outra vez" });
+        
+
+        if (!passwordRegex.IsMatch(newPassword))
+            return BadRequest(new { success = false, message = "A password deve ter mínimo 12 caracteres, uma maiúscula, uma minúscula, um número e um símbolo (@$!%*?&)." });
+
+       
 
         var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
 
