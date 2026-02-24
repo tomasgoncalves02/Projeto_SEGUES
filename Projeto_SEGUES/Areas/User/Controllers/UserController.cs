@@ -28,8 +28,7 @@ public class UserController : Controller
         ViewBag.Roles = await _adminService.GetAllRolesForDropdownAsync();
         return View();
     }
-
-
+    
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateType(string key, string value)
@@ -39,19 +38,18 @@ public class UserController : Controller
         {
             return NotFound();
         }
-
-
+        
         switch (key)
         {
             case "name":
                 if (string.IsNullOrWhiteSpace(value))
-                    return BadRequest(new { success = false, message = "O Nome não pode estar vazio." });
+                    return BadRequest(new { success = false, message = "O Nome nÃ£o pode estar vazio." });
 
                 if (value.Length < 2 || value.Length > 50)
                     return BadRequest(new { success = false, message = "O Nome deve ter entre 2 e 50 letras." });
 
                 if (!Regex.IsMatch(value, @"^[a-zA-Z\u00C0-\u00FF\s]*$"))
-                    return BadRequest(new { success = false, message = "O Nome não pode conter números nem símbolos." });
+                    return BadRequest(new { success = false, message = "O Nome nÃ£o pode conter nÃºmeros nem sÃ­mbolos." });
 
                 user.FirstName = value;
                 break;
@@ -59,20 +57,20 @@ public class UserController : Controller
             case "lastname":
 
                 if (string.IsNullOrWhiteSpace(value))
-                    return BadRequest(new { success = false, message = "O Apelido não pode estar vazio." });
+                    return BadRequest(new { success = false, message = "O Apelido nÃ£o pode estar vazio." });
 
                 if (value.Length < 2 || value.Length > 50)
                     return BadRequest(new { success = false, message = "O Apelido deve ter entre 2 e 50 letras." });
 
                 if (!Regex.IsMatch(value, @"^[a-zA-Z\u00C0-\u00FF\s]*$"))
-                    return BadRequest(new { success = false, message = "O Apelido não pode conter números nem símbolos." });
+                    return BadRequest(new { success = false, message = "O Apelido nÃ£o pode conter nÃºmeros nem sÃ­mbolos." });
 
                 user.LastName = value;
                 break;
 
             case "email":
                 if (string.IsNullOrWhiteSpace(value))
-                    return BadRequest(new { success = false, message = "O email é obrigatório." });
+                    return BadRequest(new { success = false, message = "O email Ã© obrigatÃ³rio." });
 
                 try
                 {
@@ -81,7 +79,7 @@ public class UserController : Controller
                 }
                 catch
                 {
-                    return BadRequest(new { success = false, message = "Email inválido." });
+                    return BadRequest(new { success = false, message = "Email invÃ¡lido." });
                 }
 
                 user.Email = value;
@@ -90,7 +88,7 @@ public class UserController : Controller
 
             case "birthDate":
                 if (!DateTime.TryParse(value, out var date))
-                    return BadRequest(new { success = false, message = "Data de nascimento inválida." });
+                    return BadRequest(new { success = false, message = "Data de nascimento invÃ¡lida." });
 
                 if (date > DateTime.Now.AddYears(-18))
                     return BadRequest(new { success = false, message = "Deve ter pelo menos 18 anos." });
@@ -101,13 +99,13 @@ public class UserController : Controller
             case "genre":
 
                 if (!Enum.TryParse<Gender>(value, out var gender))
-                    return BadRequest(new { success = false, message = "Género inválido." });
+                    return BadRequest(new { success = false, message = "GÃ©nero invÃ¡lido." });
 
                 user.Gender = gender;
                 break;
 
             default:
-                return BadRequest(new { success = false, message = "Campo inválido." });
+                return BadRequest(new { success = false, message = "Campo invÃ¡lido." });
                
         }
         var result = await _userManager.UpdateAsync(user);
@@ -127,11 +125,11 @@ public class UserController : Controller
         if (user == null) return NotFound();
 
         if(currentPassword == newPassword)
-          return BadRequest(new { success = false, message = "Não pode usar a mesma password outra vez" });
+          return BadRequest(new { success = false, message = "Nï¿½o pode usar a mesma password outra vez" });
         
 
         if (!passwordRegex.IsMatch(newPassword))
-            return BadRequest(new { success = false, message = "A password deve ter mínimo 12 caracteres, uma maiúscula, uma minúscula, um número e um símbolo (@$!%*?&)." });
+            return BadRequest(new { success = false, message = "A password deve ter mï¿½nimo 12 caracteres, uma maiï¿½scula, uma minï¿½scula, um nï¿½mero e um sï¿½mbolo (@$!%*?&)." });
 
        
 
@@ -152,8 +150,5 @@ public class UserController : Controller
             .ToList();
         return Json(genders);
     }
-
-
-
 
 }

@@ -6,6 +6,7 @@ using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using System.Security.Claims;
+using Projeto_SEGUES.Extensions;
 
 namespace Projeto_SEGUES.Areas.Ticket;
 
@@ -15,13 +16,11 @@ public class TicketController : Controller
 {
     private readonly UserManager<AppUser> _userManager;
     private readonly ITicketService _ticketService;
-    private readonly RoleManager<Role> _roleManager;
     private readonly AppDbContext _context;
 
-    public TicketController(UserManager<AppUser> userManager, RoleManager<Role> roleManager, ITicketService ticketService, AppDbContext context)
+    public TicketController(UserManager<AppUser> userManager, ITicketService ticketService, AppDbContext context)
     {
         _userManager = userManager;
-        _roleManager = roleManager;
         _ticketService = ticketService;
         _context = context;
     }
@@ -91,33 +90,33 @@ public class TicketController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> TransferTickets(List<string> SelectedTickets, string RecipientEmail)
+    public async Task<IActionResult> TransferTickets(List<string> selectedTickets, string recipientEmail)
     {
         var currentUserId = _userManager.GetUserId(User);
         if (string.IsNullOrEmpty(currentUserId)) return Challenge();
 
-        if (SelectedTickets == null || !SelectedTickets.Any())
+        if (selectedTickets == null || !selectedTickets.Any())
         {
-            TempData["Error"] = "Por favor, selecione pelo menos uma senha para transferir.";
+            TempData.SetSwalError("Por favor, selecione pelo menos uma senha para transferir.");
             return RedirectToAction(nameof(SendTicket));
         }
 
-        if (string.IsNullOrWhiteSpace(RecipientEmail))
+        if (string.IsNullOrWhiteSpace(recipientEmail))
         {
-            TempData["Error"] = "O e-mail do destinatário é obrigatório.";
+            TempData.SetSwalError("O e-mail do destinatário é obrigatório.");
             return RedirectToAction(nameof(SendTicket));
         }
 
         // Chama o serviço
-        var result = await _ticketService.TransferTicketsAsync(currentUserId, RecipientEmail, SelectedTickets);
+        var result = await _ticketService.TransferTicketsAsync(currentUserId, recipientEmail, selectedTickets);
 
         if (!result.Success)
         {
-            TempData["Error"] = result.Message;
+            TempData.SetSwalError(result.Message);
         }
         else
         {
-            TempData["Success"] = result.Message;
+            TempData.SetSwalSuccess(result.Message);
         }
 
         return RedirectToAction(nameof(SendTicket));

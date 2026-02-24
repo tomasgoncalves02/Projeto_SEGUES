@@ -1,13 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using Projeto_SEGUES.Areas.Bar.ViewModels;
 using Projeto_SEGUES.Data;
-using Projeto_SEGUES.Models.Bar;
-using Projeto_SEGUES.Models.User;
-using Projeto_SEGUES.Models.Payment;
 
 namespace Projeto_SEGUES.Areas.Bar.Controllers
 {
@@ -16,12 +10,10 @@ namespace Projeto_SEGUES.Areas.Bar.Controllers
     public class OrderManagementController : Controller
     {
         private readonly AppDbContext _context;
-        private readonly UserManager<AppUser> _userManager;
 
-        public OrderManagementController(AppDbContext context, UserManager<AppUser> userManager)
+        public OrderManagementController(AppDbContext context)
         {
             _context = context;
-            _userManager = userManager;
         }
 
         public IActionResult Index() => View();
@@ -64,9 +56,7 @@ namespace Projeto_SEGUES.Areas.Bar.Controllers
 
             return PartialView("_ManageOrdersTable", orders);
         }
-
-
-
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateStatus(int id, int newStatus)

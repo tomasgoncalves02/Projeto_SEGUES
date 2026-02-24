@@ -29,6 +29,7 @@ thumbs.db
 .DS_Store
 .idea
 qodana.yaml
+qodana.sarif.json
 .output.txt
 
 [Pp]roperties/PublishProfiles/

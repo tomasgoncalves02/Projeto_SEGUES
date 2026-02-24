@@ -29,7 +29,7 @@ namespace SeguesTests.Services
         public async Task GetCurrentPriceForUserAsync_ReturnsCorrectPrice()
         {
             var context = GetDatabaseContext();
-            var service = new TicketService(context, GetMockUserManager().Object, GetMockRoleManager().Object);
+            var service = new TicketService(context);
 
             var cat = new UserCategory { Name = "Estudante" };
             var user = new AppUser { Id = "u1", FirstName = "A", LastName = "B", UserCategory = cat, BirthDate = new DateTime(2000, 1, 1), Gender = Gender.Other };
@@ -49,7 +49,7 @@ namespace SeguesTests.Services
         public async Task BuyTicketsAsync_Success_UpdatesBalanceAndCreatesTickets()
         {
             var context = GetDatabaseContext();
-            var service = new TicketService(context, GetMockUserManager().Object, GetMockRoleManager().Object);
+            var service = new TicketService(context);
 
             var cat = new UserCategory { Id = 1, Name = "Estudante" };
             var user = new AppUser { Id = "u1", FirstName = "A", LastName = "B", UserCategory = cat, BirthDate = new DateTime(2000, 1, 1), Gender = Gender.Other, Balance = 10m };
@@ -73,7 +73,7 @@ namespace SeguesTests.Services
         public async Task ValidateTicketAsync_ValidCode_SetsToUsed()
         {
             var context = GetDatabaseContext();
-            var service = new TicketService(context, GetMockUserManager().Object, GetMockRoleManager().Object);
+            var service = new TicketService(context);
 
             var cat = new UserCategory { Name = "Estudante" };
             var owner = new AppUser { Id = "u1", FirstName = "A", LastName = "B", UserCategory = cat, BirthDate = new DateTime(2000, 1, 1), Gender = Gender.Other };
@@ -99,7 +99,7 @@ namespace SeguesTests.Services
         public async Task TransferTicketsAsync_Success_ChangesOwner()
         {
             var context = GetDatabaseContext();
-            var service = new TicketService(context, GetMockUserManager().Object, GetMockRoleManager().Object);
+            var service = new TicketService(context);
 
             var cat = new UserCategory { Name = "Estudante" };
             var sender = new AppUser { Id = "s1", Email = "sender@pt.pt", FirstName = "S", LastName = "S", UserCategory = cat, BirthDate = new DateTime(2000, 1, 1), Gender = Gender.Other };
@@ -125,7 +125,7 @@ namespace SeguesTests.Services
         public async Task TransferTicketsAsync_DifferentCategories_Fails()
         {
             var context = GetDatabaseContext();
-            var service = new TicketService(context, GetMockUserManager().Object, GetMockRoleManager().Object);
+            var service = new TicketService(context);
 
             var cat1 = new UserCategory { Id = 1, Name = "Estudante" };
             var cat2 = new UserCategory { Id = 2, Name = "Professor" };

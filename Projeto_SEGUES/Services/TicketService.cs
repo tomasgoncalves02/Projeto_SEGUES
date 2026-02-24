@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Moq;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Ticket;
@@ -12,19 +10,14 @@ namespace Projeto_SEGUES.Services;
 public class TicketService : ITicketService
 {
     private readonly AppDbContext _context;
-    private readonly UserManager<AppUser> _userManager;
-    private readonly RoleManager<Role> _roleManager;
 
-    public TicketService(AppDbContext context, UserManager<AppUser> userManager, RoleManager<Role> roleManager)
+    public TicketService(AppDbContext context)
     {
         _context = context;
-        _userManager = userManager;
-        _roleManager = roleManager;
-
     }
 
     // Set expired tickets state to expired
-    public async Task ExpireUserTicketsAsync(string userId)
+    private async Task ExpireUserTicketsAsync(string userId)
     {
         var now = DateTime.Now;
         // Executes directly in the database without loading entities into memory
@@ -35,7 +28,7 @@ public class TicketService : ITicketService
             .ExecuteUpdateAsync(s => s.SetProperty(t => t.State, TicketState.Expired));
     }
     
-    public async Task ExpireTicketsGlobalAsync()
+    private async Task ExpireTicketsGlobalAsync()
     {
         var now = DateTime.Now;
         // Updates ALL expired tickets in the system in one go

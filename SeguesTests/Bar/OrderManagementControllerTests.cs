@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Projeto_SEGUES.Areas.Bar.Controllers;
@@ -22,13 +21,7 @@ namespace SeguesTests.Bar
             databaseContext.Database.EnsureCreated();
             return databaseContext;
         }
-
-        private Mock<UserManager<AppUser>> GetMockUserManager()
-        {
-            var store = new Mock<IUserStore<AppUser>>();
-            return new Mock<UserManager<AppUser>>(store.Object, null, null, null, null, null, null, null, null);
-        }
-
+        
         // Método auxiliar para criar as dependências necessárias (User e Product)
         private async Task<(string userId, int productId)> SeedDependencies(AppDbContext context)
         {
@@ -54,8 +47,7 @@ namespace SeguesTests.Bar
         public async Task ManageOrders_ReturnsOnlyActiveOrders()
         {
             using var context = GetDatabaseContext();
-            var mockUserMgr = GetMockUserManager();
-            var controller = new OrderManagementController(context, mockUserMgr.Object);
+            var controller = new OrderManagementController(context);
             var (uid, pid) = await SeedDependencies(context);
 
             context.BarOrders.AddRange(new List<BarOrder>
@@ -76,8 +68,7 @@ namespace SeguesTests.Bar
         public async Task GetOrderDetailsSide_ReturnsPartialViewWithOrder()
         {
             using var context = GetDatabaseContext();
-            var mockUserMgr = GetMockUserManager();
-            var controller = new OrderManagementController(context, mockUserMgr.Object);
+            var controller = new OrderManagementController(context);
             var (uid, pid) = await SeedDependencies(context);
 
             var order = new BarOrder { Id = 40, RedemptionCode = "SIDE", UserId = uid, ProductId = pid, PriceAtTime = 1m };
@@ -95,8 +86,7 @@ namespace SeguesTests.Bar
         public async Task UpdateStatus_UpdatesRelatedOrders()
         {
             using var context = GetDatabaseContext();
-            var mockUserMgr = GetMockUserManager();
-            var controller = new OrderManagementController(context, mockUserMgr.Object);
+            var controller = new OrderManagementController(context);
             var (uid, pid) = await SeedDependencies(context);
 
             var code = "UP123";

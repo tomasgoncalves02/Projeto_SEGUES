@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Projeto_SEGUES.Models.User;
 
 namespace Projeto_SEGUES.Models.Ticket
 {
@@ -15,9 +16,9 @@ namespace Projeto_SEGUES.Models.Ticket
         public required Ticket Ticket { get; set; } // FK
         
         [Required]
-        public required User.AppUser Sender { get; set; } // FK
+        public required AppUser Sender { get; set; } // FK
         
         [Required]
-        public required User.AppUser Receiver { get; set; } // FK
+        public required AppUser Receiver { get; set; } // FK
     }
 }

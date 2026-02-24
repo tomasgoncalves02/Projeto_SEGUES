@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Projeto_SEGUES.Models.User;
 
 namespace Projeto_SEGUES.Models.Ticket
 {
@@ -21,7 +22,7 @@ namespace Projeto_SEGUES.Models.Ticket
         public decimal Value { get; set; }
         
         [Required]
-        public required User.AppUser AppUser { get; set; } // FK
+        public required AppUser AppUser { get; set; } // FK
         
         public ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
     }

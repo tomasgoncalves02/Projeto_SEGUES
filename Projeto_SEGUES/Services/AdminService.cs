@@ -211,17 +211,4 @@ public class AdminService : IAdminService
         config.TicketValidityDays = days;
         await _context.SaveChangesAsync();
     }
-
-    public async Task<List<Ticket>> GetAllTicketsForAuditAsync()
-    {
-        return await _context.Tickets
-            .Include(t => t.Owner)                      
-            .Include(t => t.TicketPurchase)             
-            .Include(t => t.Transfers)                 
-                .ThenInclude(tr => tr.Sender)           
-            .Include(t => t.Transfers)
-                .ThenInclude(tr => tr.Receiver)         
-            .OrderByDescending(t => t.TicketPurchase.TransactionDate)
-            .ToListAsync();
-    }
 }
