@@ -237,89 +237,65 @@ function setupTicketCodeValidation(inputId) {
 }
 
 //Edit personal data
-function showEdit(typeName,currentName,key) {
-    showSwal({
-        icon: null,
-        showConfirmButton: false,
-        showCloseButton: false,
+function showEdit(typeName, currentName, key) {
+    Swal.fire({
+        title: `<h2 class="fw-bold mb-4">${typeName}</h2>`,
         html: `
-            <div class="p-4 d-flex flex-column align-items-center" style="font-family: Arial, sans-serif; color: #000;">
-                
-                <h2 class="fw-bold mb-4" style="font-size: 2.2rem; margin-top: 10px;">${typeName}</h2>
-                
-                <p class="fw-bold mb-3" style="font-size: 1.1rem;">Insira o ${typeName} pretendido</p>
-                
-                <input type="text" 
-                       id="${typeName}" 
-                       class="form-control text-center mb-4 p-2" 
-                       style="max-width: 320px; width: 100%; border: 1px solid #a9a9a9; font-size: 1.4rem; color: #6c757d; border-radius: 4px;" 
-                       value="${currentName}">
-                
-                <div class="d-flex gap-3 w-100" style="max-width: 320px;">
-                      
-                   <button class="btn text-white w-50 p-2"
-                            style="background-color: #009A93; font-size: 1.1rem; border-radius: 4px; transition: background-color 0.3s;"
-                             onclick="confirmarEdicao('${typeName}', '${key}')">
-                        Editar
-                    </button>
-                    
-                    <button class="btn text-white w-50 p-2" 
-                            style="background-color: #A6A6A6; font-size: 1.1rem; border-radius: 4px; transition: background-color 0.3s;" 
-                            onclick="Swal.close()">
-                        Fechar
-                    </button>
-
-                </div>
-                
-            </div>
-        `,
-        backdrop: 'var(--ips-shadow-soft)'
+            <div class="p-2 d-flex flex-column align-items-center">
+                <input type="text" id="editInput" class="form-control" placeholder="${typeName}" value="${currentName}">
+            </div>`,
+        showCancelButton: true,
+        confirmButtonText: 'Editar',
+        confirmButtonColor: '#009A93',
+        cancelButtonText: 'Fechar',
+        preConfirm: () => {
+            const value = Swal.getPopup().querySelector('#editInput').value;
+            if (!value) {
+                Swal.showValidationMessage(`Por favor, preencha o campo`);
+                return false;
+            }
+            return { value };
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            handleEditSubmit(typeName, key, result.value.value);
+        }
     });
 }
 
 function showEditData(typeName, currentName, key) {
     let inputValue = '';
     if (currentName && currentName !== 'Não definido') {
-        
         const parts = currentName.split('/');
         if (parts.length === 3) {
             inputValue = `${parts[2]}-${parts[1]}-${parts[0]}`;
         }
     }
 
-    showSwal({
-        icon: null,
-        showConfirmButton: false,
-        showCloseButton: false,
+    Swal.fire({
+        title: `<h2 class="fw-bold mb-4">${typeName}</h2>`,
         html: `
-            <div class="p-4 d-flex flex-column align-items-center" style="font-family: Arial, sans-serif; color: #000;">
-                <h2 class="fw-bold mb-4" style="font-size: 2.2rem; margin-top: 10px;">${typeName}</h2>
-                <p class="fw-bold mb-3" style="font-size: 1.1rem;">Insira o ${typeName} pretendido</p>
-                <input type="date" 
-                       id="${typeName}" 
-                       class="form-control text-center mb-4 p-2" 
-                       style="max-width: 320px; width: 100%;" 
-                       value="${inputValue}">
-                <div class="d-flex gap-3 w-100" style="max-width: 320px;">
-                    <button class="btn text-white w-50 p-2"
-                            style="background-color: #009A93; font-size: 1.1rem; border-radius: 4px; transition: background-color 0.3s;"
-                             onclick="confirmarEdicao('${typeName}', '${key}')">
-                        Editar
-                    </button>
-                    
-                    <button class="btn text-white w-50 p-2" 
-                            style="background-color: #A6A6A6; font-size: 1.1rem; border-radius: 4px; transition: background-color 0.3s;" 
-                            onclick="Swal.close()">
-                        Fechar
-                    </button>
-                </div>
-            </div>
-        `,
-        backdrop: 'var(--ips-shadow-soft)'
+            <div class="p-2 d-flex flex-column align-items-center">
+                <input type="date" id="editInput" class="form-control" value="${inputValue}">
+            </div>`,
+        showCancelButton: true,
+        confirmButtonText: 'Editar',
+        confirmButtonColor: '#009A93',
+        cancelButtonText: 'Fechar',
+        preConfirm: () => {
+            const value = Swal.getPopup().querySelector('#editInput').value;
+            if (!value) {
+                Swal.showValidationMessage(`Por favor, selecione uma data`);
+                return false;
+            }
+            return { value };
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            handleEditSubmit(typeName, key, result.value.value);
+        }
     });
 }
-
-
 
 function showEditGenre(typeName, currentName, key) {
     fetch('/User/User/GetGenders')
@@ -329,57 +305,70 @@ function showEditGenre(typeName, currentName, key) {
                 `<option value="${g.value}" ${currentName === g.text ? 'selected' : ''}>${g.text}</option>`
             ).join('');
 
-            showSwal({
-                icon: null,
-                showConfirmButton: false,
-                showCloseButton: false,
+            Swal.fire({
+                title: `<h2 class="fw-bold mb-4">${typeName}</h2>`,
                 html: `
-                    <div class="p-4 d-flex flex-column align-items-center" style="font-family: Arial, sans-serif; color: #000;">
-                        <h2 class="fw-bold mb-4" style="font-size: 2.2rem; margin-top: 10px;">${typeName}</h2>
-                        <p class="fw-bold mb-3" style="font-size: 1.1rem;">Insira o ${typeName} pretendido</p>
-                       <select id="genreSelect" class="form-select mb-4">
-                        <option value="">Selecione...</option>
-                        ${options}
+                    <div class="p-2 d-flex flex-column align-items-center">
+                        <select id="genreSelect" class="form-select">
+                            <option value="">Selecione...</option>
+                            ${options}
                         </select>
-                        <div class="d-flex gap-3 w-100" style="max-width: 320px;">
-                             <button class="btn text-white w-50 p-2"
-                            style="background-color: #009A93; font-size: 1.1rem; border-radius: 4px; transition: background-color 0.3s;"
-                             onclick="confirmarEdicao('${typeName}', '${key}')">
-                        Editar
-                    </button>
-                    
-                    <button class="btn text-white w-50 p-2" 
-                            style="background-color: #A6A6A6; font-size: 1.1rem; border-radius: 4px; transition: background-color 0.3s;" 
-                            onclick="Swal.close()">
-                        Fechar
-                    </button>
-                        </div>
-                    </div>
-                `,
-                backdrop: 'var(--ips-shadow-soft)'
+                    </div>`,
+                showCancelButton: true,
+                confirmButtonText: 'Editar',
+                confirmButtonColor: '#009A93',
+                cancelButtonText: 'Fechar',
+                preConfirm: () => {
+                    const value = Swal.getPopup().querySelector('#genreSelect').value;
+                    if (!value) {
+                        Swal.showValidationMessage(`Por favor, selecione um género`);
+                        return false;
+                    }
+                    return { value };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    handleEditSubmit(typeName, key, result.value.value);
+                }
             });
-        }); 
+        });
 }
-
 
 function showEditPassword(typeName, key) {
     Swal.fire({
         title: `<h2 class="fw-bold mb-4">${typeName}</h2>`,
         html: `
             <div class="p-2 d-flex flex-column align-items-center">
-                <input type="password" id="oldpassword" class="swal2-input w-100" placeholder="Password Atual">
-                <input type="password" id="newpassword" class="swal2-input w-100" placeholder="Nova Password">
-                <input type="password" id="confirmnewpassword" class="swal2-input w-100" placeholder="Confirme a Nova Password">
+
+                    <div class="input-group mb-3">
+            <input type="password" id="oldpassword" class="form-control" placeholder="Password Atual">
+            <button class="btn btn-ips-outline-secondary px-3" type="button" onclick="togglePasswordVisibility(this, document.getElementById('oldpassword'))">
+                <i class="bi fs-5 bi-eye"></i>
+            </button>
+        </div>
+        <div class="input-group mb-3">
+            <input type="password" id="newpassword" class="form-control" placeholder="Nova Password">
+            <button class="btn btn-ips-outline-secondary px-3" type="button" onclick="togglePasswordVisibility(this, document.getElementById('newpassword'))">
+                <i class="bi fs-5 bi-eye"></i>
+            </button>
+        </div>
+        <div class="input-group mb-3">
+            <input type="password" id="confirmnewpassword" class="form-control" placeholder="Confirme a Nova Password">
+            <button class="btn btn-ips-outline-secondary px-3" type="button" onclick="togglePasswordVisibility(this, document.getElementById('confirmnewpassword'))">
+                <i class="bi fs-5 bi-eye"></i>
+            </button>
+        </div>
+  
             </div>`,
         showCancelButton: true,
         confirmButtonText: 'Editar',
         confirmButtonColor: '#009A93',
         cancelButtonText: 'Fechar',
         preConfirm: () => {
-            // Capturamos os valores AQUI, enquanto o modal está aberto
             const currentPassword = Swal.getPopup().querySelector('#oldpassword').value;
             const newPassword = Swal.getPopup().querySelector('#newpassword').value;
             const confirmPassword = Swal.getPopup().querySelector('#confirmnewpassword').value;
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
             if (!currentPassword || !newPassword || !confirmPassword) {
                 Swal.showValidationMessage(`Por favor, preencha todos os campos`);
@@ -389,12 +378,14 @@ function showEditPassword(typeName, key) {
                 Swal.showValidationMessage(`As passwords novas não coincidem`);
                 return false;
             }
-            // Retornamos os dados para o .then()
+            if (!passwordRegex.test(newPassword)) {
+                Swal.showValidationMessage(`A password deve ter mínimo 8 caracteres, uma maiúscula, uma minúscula, um número e um símbolo (@$!%*?&)`);
+                return false;
+            }
             return { currentPassword, newPassword };
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            // Agora chamamos o envio com os dados já validados
             enviarNovaPassword(result.value.currentPassword, result.value.newPassword);
         }
     });
