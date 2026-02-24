@@ -9,7 +9,7 @@ using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
 using SeguesTests.Helpers;
 
-namespace SeguesTests
+namespace SeguesTests.Home
 {
     public class HomeControllerTests
     {
