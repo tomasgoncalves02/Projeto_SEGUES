@@ -54,7 +54,7 @@ namespace SeguesTests.Tickets
                 Email = recipientEmail,
                 FirstName = "Joao",
                 LastName = "Recebe",
-                UserCategory = catEstudante, 
+                UserCategory = catEstudante,
                 BirthDate = new DateTime(1995, 5, 5),
                 Gender = Projeto_SEGUES.Models.Enums.Gender.Male
             };
@@ -89,31 +89,47 @@ namespace SeguesTests.Tickets
         [Fact]
         public async Task TransferTickets_NoTicketsSelected_ReturnsRedirectWithError()
         {
+            // Arrange
             var (_, _, _, controller) = await SetupFullEnv("u-teste", "dest@segues.pt");
 
+            // Act
             var result = await controller.TransferTickets(new List<string>(), "dest@segues.pt");
 
+            // Assert
             var redirect = Assert.IsType<RedirectToActionResult>(result);
             Assert.Equal("SendTicket", redirect.ActionName);
-            //Assert.Equal("Por favor, selecione pelo menos uma senha para transferir.", controller.TempData["Error"]);
+
+            // CORREÇÃO: Verificar a chave correta do SweetAlert (SwalData)
+            var swalData = controller.TempData["SwalData"]?.ToString();
+            Assert.Contains("error", swalData); // Verifica se o ícone é de erro
+            Assert.Contains("Por favor, selecione pelo menos uma senha para transferir.", swalData);
         }
 
         [Fact]
         public async Task TransferTickets_Success_CallsServiceAndRedirects()
         {
+            // Arrange
             var currentUserId = "u-transfere";
             var (user, _, mockService, controller) = await SetupFullEnv(currentUserId, "dest@segues.pt");
-
             var ticketsToTransfer = new List<string> { "TICKET1", "TICKET2" };
 
             mockService.Setup(s => s.TransferTicketsAsync(currentUserId, "dest@segues.pt", ticketsToTransfer))
                 .ReturnsAsync(new ServiceResult(true, "Senhas transferidas com sucesso"));
 
+            // Act
             var result = await controller.TransferTickets(ticketsToTransfer, "dest@segues.pt");
 
+            // Assert
             var redirect = Assert.IsType<RedirectToActionResult>(result);
             Assert.Equal("SendTicket", redirect.ActionName);
-            //Assert.Equal("Senhas transferidas com sucesso", controller.TempData["Success"]);
+
+            // CORREÇÃO: Verificar a chave correta do SweetAlert (SwalData)
+            var swalData = controller.TempData["SwalData"]?.ToString();
+            Assert.Contains("success", swalData); // Verifica se o ícone é de sucesso
+            Assert.Contains("Senhas transferidas com sucesso", swalData);
+
+            // Verificar se o serviço foi mesmo chamado
+            mockService.Verify(s => s.TransferTicketsAsync(currentUserId, "dest@segues.pt", ticketsToTransfer), Times.Once);
         }
 
         [Fact]

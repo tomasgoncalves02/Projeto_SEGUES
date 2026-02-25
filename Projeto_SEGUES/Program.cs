@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Services;
 using Projeto_SEGUES.Models.User;
+using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -65,6 +66,7 @@ builder.Services.AddHttpClient("MbWayClient", client =>
 {
     client.BaseAddress = new Uri("https://sandbox.ifthenpay.com/"); // Exemplo
 });
+QuestPDF.Settings.License = LicenseType.Community;
 var app = builder.Build();
 
 // Set localization (first thing after build!)
