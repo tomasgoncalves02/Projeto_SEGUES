@@ -40,8 +40,7 @@ public class AdminService : IAdminService
         {
             return IdentityResult.Failed(new IdentityError { Description = "Dados inválidos, tente novamente." });
         }
-        
-        // InternalUsers are External to IPS
+
         var category = await _context.UserCategories.FirstAsync(c => c.Name == "Externo");
         var user = new AppUser
         {
@@ -50,34 +49,36 @@ public class AdminService : IAdminService
             FirstName = model.FirstName,
             LastName = model.LastName,
             Gender = model.Gender,
-            BirthDate =  model.BirthDate,
+            BirthDate = model.BirthDate,
             Balance = 0m,
             CreationDate = DateTime.Now,
-            EmailConfirmed = true, // Internal accounts are created by admins, so we can consider their email as confirmed by default
+            EmailConfirmed = true,
             Status = UserStatus.Active,
             UserCategory = category
         };
 
         string password = GenerateSecurePassword();
         var result = await _userManager.CreateAsync(user, password);
+
         if (result.Succeeded)
         {
-            await _userManager.AddToRoleAsync(user, model.AccountType);
             try
-            {
+            {         
+                await _userManager.AddToRoleAsync(user, model.AccountType);             
                 await SendWelcomeEmailAsync(model.Email, model.FirstName, model.AccountType, password);
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                Console.WriteLine(e.Message);
                 await _userManager.DeleteAsync(user);
-                return IdentityResult.Failed(new IdentityError { Description = "Erro ao enviar email de boas-vindas." });
+                return IdentityResult.Failed(new IdentityError
+                {
+                    Description = "Erro de conexão: Não foi possível enviar o e-mail de ativação. A conta não foi criada. Verifique a sua ligação à internet."
+                });
             }
         }
-
         return result;
     }
-    
+
     private static string GenerateSecurePassword(int length = 12)
     {
         const string lowercase = "abcdefghijklmnopqrstuvwxyz";
