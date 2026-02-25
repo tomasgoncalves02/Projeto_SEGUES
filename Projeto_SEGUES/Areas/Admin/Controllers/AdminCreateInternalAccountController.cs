@@ -23,7 +23,7 @@ public class AdminCreateInternalAccountController : Controller
         ViewBag.Roles = await _adminService.GetNonClientRolesForDropdownAsync();
         return View();
     }
-    
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CreateInternalUserViewModel model)
@@ -33,16 +33,25 @@ public class AdminCreateInternalAccountController : Controller
             ViewBag.Roles = await _adminService.GetNonClientRolesForDropdownAsync();
             return View("Index", model);
         }
-        
-        var result = await _adminService.CreateInternalUserAsync(model);
-        if (result.Succeeded)
-        {
-            TempData.SetSwalSuccess($"Conta criada para {model.FirstName}!");
-            return RedirectToAction(nameof(Index));
+
+        try
+        {      
+            var result = await _adminService.CreateInternalUserAsync(model);
+
+            if (result.Succeeded)
+            {
+                TempData.SetSwalSuccess($"Conta criada para {model.FirstName}!");
+                return RedirectToAction(nameof(Index));
+            }
+
+            foreach (var error in result.Errors)
+                ModelState.AddModelError("", error.Description);
         }
-        foreach (var error in result.Errors)
-            ModelState.AddModelError("", error.Description);
-        TempData.SetSwalError(result.Errors.Aggregate("", (current, error) => current + $"{error.Description}\n"));
+        catch (Exception ex)
+        {
+            ModelState.AddModelError("", "Erro ao enviar e-mail de ativação. Verifique a sua conexão à internet.");
+            TempData.SetSwalError("Falha na conexão: O e-mail não pôde ser enviado, por isso a conta não foi criada.");
+        }
 
         ViewBag.Roles = await _adminService.GetNonClientRolesForDropdownAsync();
         return View("Index", model);
