@@ -63,7 +63,16 @@ public class AdminService : IAdminService
         if (result.Succeeded)
         {
             await _userManager.AddToRoleAsync(user, model.AccountType);
-            await SendWelcomeEmailAsync(model.Email, model.FirstName, model.AccountType, password);
+            try
+            {
+                await SendWelcomeEmailAsync(model.Email, model.FirstName, model.AccountType, password);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                await _userManager.DeleteAsync(user);
+                return IdentityResult.Failed(new IdentityError { Description = "Erro ao enviar email de boas-vindas." });
+            }
         }
 
         return result;
@@ -127,7 +136,21 @@ public class AdminService : IAdminService
                  <p>Faça login e altere sua senha o mais breve possível.</p>
              </div>
              """);
-        await _emailSender.SendEmailAsync(email, "SEGUES - Bem-vindo", emailBody);
+        // Retry 5 times
+        for (int i = 0; i < 5; i++)
+        {
+            try
+            {
+                await _emailSender.SendEmailAsync(email, "SEGUES - Bem-vindo", emailBody);
+                return;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Failed to send welcome email to: {email}. Retrying in 2 minutes...");
+                await Task.Delay(120000);
+            }
+        }
+        throw new Exception($"Failed to send welcome email to: {email} after multiple attempts.");
     }
     
     /*

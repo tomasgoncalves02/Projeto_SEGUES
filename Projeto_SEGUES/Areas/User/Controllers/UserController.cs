@@ -125,14 +125,11 @@ public class UserController : Controller
         if (user == null) return NotFound();
 
         if(currentPassword == newPassword)
-          return BadRequest(new { success = false, message = "N�o pode usar a mesma password outra vez" });
-        
+          return BadRequest(new { success = false, message = "Não pode usar a mesma password outra vez" });
 
         if (!passwordRegex.IsMatch(newPassword))
-            return BadRequest(new { success = false, message = "A password deve ter m�nimo 12 caracteres, uma mai�scula, uma min�scula, um n�mero e um s�mbolo (@$!%*?&)." });
-
-       
-
+            return BadRequest(new { success = false, message = "A password deve ter mínimo 12 caracteres, uma maiúscula, uma minúscula, um número e um símbolo (@$!%*?&)." });
+        
         var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
 
         if (result.Succeeded)
@@ -140,8 +137,7 @@ public class UserController : Controller
 
         return BadRequest(new { success = false, message = "Password atual incorreta." });
     }
-
-
+    
     [HttpGet]
     public IActionResult GetGenders()
     {

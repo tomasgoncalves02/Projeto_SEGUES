@@ -32,7 +32,7 @@ else
                     <code class="fw-bold text-color-ips bg-light px-2 py-1 rounded">@item.ValidationCode</code>
                 }
             </td>
-            <td>@(euEnviei ? "---" : item.TicketPurchase.TransactionDate.ToString("dd/MM/yyyy"))</td>
+            <td>@item.TicketPurchase.TransactionDate.ToString("dd/MM/yyyy"))</td>
             <td>
                 @if (euEnviei)
                 {
