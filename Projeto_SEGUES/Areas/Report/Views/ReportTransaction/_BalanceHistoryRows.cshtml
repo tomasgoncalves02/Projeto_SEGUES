@@ -1,0 +1,66 @@
+﻿@model IEnumerable<Projeto_SEGUES.Models.Payment.Transaction>
+
+@if (!Model.Any())
+{
+    <tr>
+        <td colspan="5" class="text-center py-5 text-muted">
+            <i class="bi bi-wallet2 display-4 d-block mb-3 opacity-25"></i>
+            <span class="fw-bold">Ainda não tens movimentos na tua conta.</span>
+        </td>
+    </tr>
+}
+else
+{
+    @foreach (var item in Model)
+    {
+        bool isPositive = item.Amount > 0;
+        // Lógica para definir o ícone e rótulo baseado no valor e descrição
+        string icon = "bi-cash-stack";
+        string label = "Carregamento";
+
+        if (item.Amount < 0)
+        {
+            icon = "bi-cart-dash";
+            label = "Compra";
+        }
+        else if (isPositive && item.Reference == "CANCELAMENTO")
+        {
+            icon = "bi-arrow-counterclockwise";
+            label = "Reembolso";
+        }
+
+        <tr>
+            <td class="ps-4 text-start">
+                <div class="fw-bold">@item.CreatedAt.ToString("dd/MM/yyyy")</div>
+                <div class="small text-muted">@item.CreatedAt.ToString("HH:mm")</div>
+            </td>
+            <td class="text-start">
+                <div class="d-flex align-items-center">
+                    <i class="bi @icon me-2 text-color-ips fs-5"></i>
+                    <div>
+                        <div class="fw-bold text-dark">@label</div>
+                        <div class="small text-muted">@(item.Description ?? item.Reference)</div>
+                    </div>
+                </div>
+            </td>
+            <td>
+                @if (item.IsPaid || item.Amount < 0 || item.Reference == "CANCELAMENTO")
+                {
+                    <span class="badge bg-success-soft text-success border border-success px-3">Concluído</span>
+                }
+                else
+                {
+                    <span class="badge bg-warning-soft text-warning border border-warning px-3">Pendente</span>
+                }
+            </td>
+            <td>
+                <code class="small text-muted">@item.Reference</code>
+            </td>
+            <td class="pe-4 text-end">
+                <span class="fw-bold fs-5 @(isPositive ? "text-success" : "text-danger")">
+                    @(isPositive ? "+" : "")@item.Amount.ToString("N2")€
+                </span>
+            </td>
+        </tr>
+    }
+}

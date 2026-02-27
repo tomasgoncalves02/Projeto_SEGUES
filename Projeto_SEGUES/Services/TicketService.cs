@@ -100,13 +100,11 @@ public class TicketService : ITicketService
     {
         if (quantity <= 0) return ServiceResult.Fail("Quantidade inválida.");
 
-        // Loads user from DB to ensure Fresh Balance and Category.
-        // Includes UserCategory for pricing.
         var dbUser = await _context.Users
             .Include(u => u.UserCategory)
             .FirstOrDefaultAsync(u => u.Id == userId);
         if (dbUser == null) return ServiceResult.Fail("Utilizador não encontrado.");
-            
+
         var now = DateTime.Now;
         var pricePerUnit = await GetCurrentPriceForUserAsync(dbUser);
         if (pricePerUnit <= 0) return ServiceResult.Fail("Preçário não disponível. Contacte a administração.");
@@ -118,7 +116,7 @@ public class TicketService : ITicketService
         await using var tx = await _context.Database.BeginTransactionAsync();
         try
         {
-            // Create Purchase Record
+            // 1. Criar o Registo de Compra de Senhas (Tabela TicketPurchase)
             var purchase = new TicketPurchase
             {
                 AppUser = dbUser,
@@ -128,8 +126,23 @@ public class TicketService : ITicketService
             };
             _context.TicketPurchases.Add(purchase);
 
-            // Get expiration date
+            // 2. NOVO: Criar o Registo no Histórico de Saldo (Tabela Transactions)
+            // É este registo que fará aparecer a linha no teu histórico de movimentos
+            var saldoMovimento = new Projeto_SEGUES.Models.Payment.Transaction
+            {
+                User = dbUser,
+                Amount = -totalCost, // NEGATIVO para indicar saída/gasto
+                Description = $"Compra de {quantity} senha(s) de refeição",
+                Reference = "COMPRA INTERNA",
+                IsPaid = true,
+                CreatedAt = now,
+                PhoneNumber = dbUser.PhoneNumber ?? "N/A"
+            };
+            _context.Transactions.Add(saldoMovimento);
+
+            // 3. Obter validade e gerar as senhas
             var validity = await _context.AppConfigs.Select(c => c.TicketValidityDays).FirstOrDefaultAsync();
+            if (validity == 0) validity = 30; // Valor por defeito caso a config falhe
             var expiration = now.AddDays(validity);
 
             for (int i = 0; i < quantity; i++)
@@ -144,7 +157,9 @@ public class TicketService : ITicketService
                 });
             }
 
+            // 4. Atualizar o Saldo do Utilizador
             dbUser.Balance -= totalCost;
+
             await _context.SaveChangesAsync();
             await tx.CommitAsync();
             return ServiceResult.Ok("Compra realizada.");
@@ -155,7 +170,7 @@ public class TicketService : ITicketService
             return ServiceResult.Fail("Erro ao processar a compra.");
         }
     }
-        
+
     // Validate Ticket: checks code, updates state to used if valid, returns result message
     [Authorize(Roles = "Admin, Employee")]
     public async Task<ServiceResult> ValidateTicketAsync(string code, AppUser validator)

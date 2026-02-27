@@ -1,0 +1,102 @@
+﻿@model IEnumerable<Projeto_SEGUES.Models.Payment.Transaction>
+
+@{
+    ViewData["Title"] = "Histórico de Saldo - SEGUES";
+}
+
+<div class="container mt-4">
+    @* Cabeçalho *@
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-7">
+            <h2 class="fw-bold title-underline mb-2">
+                <i class="bi bi-currency-euro me-2 text-color-ips"></i> Histórico de Saldo
+            </h2>
+            <p class="text-muted small">Consulta detalhada de todos os teus carregamentos, compras e reembolsos.</p>
+        </div>
+        <div class="col-md-5 text-end">
+            <a asp-area="Report" asp-controller="Report" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4">
+                <i class="bi bi-arrow-left me-2"></i>Voltar
+            </a>
+        </div>
+    </div>
+
+    @* Seção de Filtros com HTMX *@
+    <div class="card card-ips shadow-sm mb-4 border-0 rounded-3">
+        <div class="card-body p-4">
+            <form id="balanceFilterForm"
+                  hx-get="/Report/ReportTransaction/GetFilteredBalance"
+                  hx-trigger="change, keyup delay:300ms from:#searchFilter"
+                  hx-target="#balanceTableBody"
+                  hx-indicator=".loader-spinner"
+                  class="row g-3 align-items-end">
+
+                @* Filtro por Fluxo de Dinheiro *@
+                <div class="col-md-4 col-xl-2">
+                    <label class="form-label small fw-bold">Movimento</label>
+                    <select name="typeFilter" class="form-select form-select-sm">
+                        <option value="">Todos</option>
+                        <option value="Entrada">Entradas (Cargas/Reembolsos)</option>
+                        <option value="Saida">Saídas (Compras)</option>
+                    </select>
+                </div>
+
+                @* Filtro de Data *@
+                <div class="col-md-4 col-xl-2">
+                    <label class="form-label small fw-bold">A partir de</label>
+                    <input type="date" name="dateFilter" class="form-control form-control-sm">
+                </div>
+
+                @* Filtro de Pesquisa *@
+                <div class="col-md-6 col-xl">
+                    <label class="form-label small fw-bold">Pesquisar</label>
+                    <input id="searchFilter" type="text" name="searchString" class="form-control form-control-sm"
+                           placeholder="Descrição ou Referência...">
+                </div>
+
+                <div class="col-md-4 col-xl-auto">
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary px-3" onclick="resetFilters()">Limpar</button>
+                        <div class="spinner-border spinner-border-sm text-primary htmx-indicator loader-spinner" role="status"></div>
+                        <button type="submit" class="btn btn-ips fw-bold px-3 py-2 shadow-sm d-flex align-items-center">
+                            <i class="bi bi-search me-2"></i> PESQUISAR
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @* Tabela *@
+    <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
+        <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+            <table class="table table-hover align-middle mb-0 text-center">
+                <thead class="bg-color-ips text-white" style="position: sticky; top: 0; z-index: 2;">
+                    <tr>
+                        <th class="ps-4 py-3 text-start">Data e Hora</th>
+                        <th class="py-3 text-start">Descrição / Detalhes</th>
+                        <th class="py-3">Estado</th>
+                        <th class="py-3 text-start">Referência</th>
+                        <th class="pe-4 py-3 text-end">Valor</th>
+                    </tr>
+                </thead>
+                <tbody id="balanceTableBody"
+                       hx-get="/Report/ReportTransaction/GetFilteredBalance"
+                       hx-trigger="every 3s"
+                       hx-include="#balanceFilterForm"
+                       hx-swap="innerHTML">
+                    <partial name="_BalanceHistoryRows" model="Model" />
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function resetFilters() {
+            const form = document.getElementById('balanceFilterForm');
+            form.reset();
+            htmx.trigger(form, 'change');
+        }
+    </script>
+}

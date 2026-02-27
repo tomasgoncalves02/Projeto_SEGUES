@@ -572,7 +572,8 @@ namespace Projeto_SEGUES.Migrations
                     PhoneNumber = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: false),
                     Reference = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     IsPaid = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true)
                 },
                 constraints: table =>
                 {

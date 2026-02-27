@@ -12,7 +12,7 @@ using Projeto_SEGUES.Data;
 namespace Projeto_SEGUES.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260224172709_initial")]
+    [Migration("20260226232033_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -434,6 +434,10 @@ namespace Projeto_SEGUES.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<bool>("IsPaid")
                         .HasColumnType("bit");

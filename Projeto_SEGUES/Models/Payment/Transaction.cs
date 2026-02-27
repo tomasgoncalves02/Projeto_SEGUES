@@ -34,5 +34,8 @@ namespace Projeto_SEGUES.Models.Payment
         [DataType(DataType.DateTime)]
         [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy HH:mm}", ApplyFormatInEditMode = true)]
         public DateTime CreatedAt { get; init; } = DateTime.Now;
+
+        [MaxLength(100)]
+        public string? Description { get; init; }
     }
 }
