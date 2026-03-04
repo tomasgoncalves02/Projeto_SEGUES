@@ -2,10 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Models.Admin;
 using Projeto_SEGUES.Models.Audit;
-using Projeto_SEGUES.Models.Bar;
 using Projeto_SEGUES.Models.Inventory;
+using Projeto_SEGUES.Models.Order;
 using Projeto_SEGUES.Models.Payment;
-using Projeto_SEGUES.Models.Purchase;
 using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.User;
 
@@ -47,19 +46,17 @@ namespace Projeto_SEGUES.Data
         public DbSet<ProductCategory> ProductCategories { get; set; }
         
         /* =========
+         * Order
+         * ========= */
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderLine> OrderLines { get; set; }
+        public DbSet<BalanceOrder> BalanceOrders { get; set; }
+        public DbSet<Discount> Discounts { get; set; }
+        
+        /* =========
          * Payment
          * ========= */
         public DbSet<Transaction> Transactions { get; set; }
-        
-        /* =========
-         * Purchase
-         * ========= */
-        public DbSet<BalanceCharge> BalanceCharges { get; set; }
-        public DbSet<Discount> Discounts { get; set; }
-        public DbSet<ProductPurchase> ProductPurchases { get; set; }
-        public DbSet<Purchase> Purchases { get; set; }
-        public DbSet<CartItem> CartItems { get; set; }
-
 
         /* =========
          * Tickets
@@ -68,10 +65,6 @@ namespace Projeto_SEGUES.Data
         public DbSet<TicketPrice> TicketPrices { get; set; }
         public DbSet<TicketPurchase> TicketPurchases { get; set; }
         public DbSet<TicketTransfer> TicketTransfers { get; set; }
-
-
-        /* BAR */
-        public DbSet<BarOrder> BarOrders { get; set; }
 
         /* ==========
          * Fluent API
@@ -91,25 +84,32 @@ namespace Projeto_SEGUES.Data
                 .WithOne(tp => tp.UserCategory)
                 .HasForeignKey(tp => tp.Id)
                 .OnDelete(DeleteBehavior.Cascade);
+            
+            modelBuilder.Entity<Order>()
+                .HasIndex(o => o.RedemptionCode)
+                .IsUnique();
 
-            // Composite Key for ProductPurchase
-            modelBuilder.Entity<ProductPurchase>()
-                .HasKey(pp => new { pp.ProductId, pp.PurchaseId });
+            // Composite Key for OrderLine
+            modelBuilder.Entity<OrderLine>()
+                .HasKey(ol => new { ol.ProductId, ol.OrderId });
 
-            modelBuilder.Entity<ProductPurchase>()
-                .HasOne(pp => pp.Product)
+            modelBuilder.Entity<OrderLine>()
+                .HasOne(ol => ol.Product)
                 .WithMany(p => p.ProductPurchases)
-                .HasForeignKey(pp => pp.ProductId);
+                .HasForeignKey(ol => ol.ProductId);
 
-            modelBuilder.Entity<ProductPurchase>()
-                .HasOne(pp => pp.Purchase)
-                .WithMany(p => p.ProductPurchases)
-                .HasForeignKey(pp => pp.PurchaseId);
+            modelBuilder.Entity<OrderLine>()
+                .HasOne(ol => ol.Order)
+                .WithMany(o => o.ProductPurchases)
+                .HasForeignKey(ol => ol.OrderId);
             
             modelBuilder.Entity<Ticket>()
                 .HasOne(t => t.Owner)
                 .WithMany()
                 .OnDelete(DeleteBehavior.Restrict); // Prevent multiple cascade
+            modelBuilder.Entity<Ticket>()
+                .HasIndex(t => t.ValidationCode)
+                .IsUnique();
             
             modelBuilder.Entity<TicketTransfer>()
                 .HasOne(tt => tt.Sender)

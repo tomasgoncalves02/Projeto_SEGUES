@@ -1,0 +1,58 @@
+﻿@using Projeto_SEGUES.Models.Enums
+@model Projeto_SEGUES.Models.Order.Order
+
+<div class="card shadow-sm border-0 card-ips animate__animated animate__fadeIn">
+
+    <div class="card-body p-4 text-start">
+        <div class="d-flex align-items-center mb-4">
+            <i class="bi bi-cart-check fs-2 text-color-ips me-3"></i>
+            <h3 class="fw-bold mb-0 text-color-ips">Pedido #@Model.Id - @((Model.Status == OrderStatus.Pending) ? "Pendente" : (Model.Status == OrderStatus.Preparing) ? "Em Preparação" : (Model.Status == OrderStatus.ReadyToDeliver) ? "Pronto" : "Entregue")</h3>
+        </div>
+
+        <h6 class="fw-bold border-bottom pb-2 mb-3 text-uppercase small">Informações</h6>
+        <div class="mb-4">
+            <p class="mb-1"><b>Valor Total:</b> <span class="text-color-ips fw-bold">@Model.TotalValue.ToString("N2")€</span></p>
+            <p class="mb-1"><b>Quantidade:</b> @ViewBag.TotalQuantity itens</p>
+            <p class="mb-1"><b>Comprador:</b> @Model.AppUser.FirstName @Model.AppUser.LastName</p>
+        </div>
+
+        <h6 class="fw-bold border-bottom pb-2 mb-3 text-uppercase small">Produtos no Pedido</h6>
+        <div class="mb-4" style="max-height: 250px; overflow-y: auto;">
+            @if (Model.ProductPurchases.Any())
+            {
+                foreach (var item in Model.ProductPurchases)
+                {
+                    <div class="d-flex justify-content-between border-bottom py-2 small">
+                        <span>@item.Product.Name <b class="text-color-ips">x @item.Quantity</b></span>
+                        <span class="fw-bold">@((item.ProductValue * item.Quantity).ToString("N2"))€</span>
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="text-muted small">Nenhum produto encontrado.</p>
+            }
+        </div>
+
+        @* Formulário de Alteração de Estado *@
+        <form id="updateOrderForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="orderId" name="id" value="@Model.Id" />
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-muted">Alterar Estado</label>
+                <select id="statusSelect" name="newStatus" class="form-select border-ips fw-bold">
+                    @foreach (OrderStatus status in Enum.GetValues(typeof(OrderStatus)))
+                    {
+                        if (status is OrderStatus.Cart or OrderStatus.Cancelled) continue;
+                        <option value="@((int)status)" selected="@Model.Status == @status">@status</option>
+                    }
+                </select>
+            </div>
+
+            <button type="button" onclick="handleUpdate()" class="btn btn-ips w-100 py-3 fw-bold text-uppercase shadow-sm">
+                <i class="bi bi-check-circle me-2"></i> Atualizar Pedido
+            </button>
+        </form>
+    </div>
+</div>

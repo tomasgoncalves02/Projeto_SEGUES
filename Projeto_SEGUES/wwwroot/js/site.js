@@ -574,6 +574,7 @@ function formatCurrency(value) {
 /**
  * Exibe Detalhes do Produto no Inventário (BarProductViewModel)
  */
+
 function showProductDetails(id, name, description, price, stock) {
     const nameElem = document.getElementById('view-name');
     const descElem = document.getElementById('view-description');
@@ -680,7 +681,7 @@ function verDetalhesProdutos(id) {
     Notifications.info(null, '<div id="detailsModal" class="p-5 text-center"><div class="spinner-border text-color-ips"></div></div>', true, 0);
     let detailsModal = document.getElementById('detailsModal');
 
-    fetch(`/Bar/UserOrders/GetOrderDetails/${id}`)
+    fetch(`/Report/ReportOrder/GetOrderDetails/${id}`)
         .then(res => res.json())
         .then(data => {
             // Validação de segurança: se não houver produtos, mostra mensagem amigável
@@ -744,7 +745,7 @@ function handleUpdate() {
             confirmButtonColor: 'var(--ips)',
             showLoaderOnConfirm: true,
             preConfirm: (code) => {
-                return fetch(`/Bar/OrderManagement/ValidateOrderCode?id=${orderId}&codeEntered=${code}`, {
+                return fetch(`/Order/OrderManagement/ValidateOrderCode?id=${orderId}&codeEntered=${code}`, {
                     method: 'POST',
                     headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value }
                 })
@@ -776,7 +777,7 @@ function handleUpdate() {
     // CASO 2: OUTROS ESTADOS (PENDENTE, PREPARAÇÃO, PRONTO) -> UPDATE DIRETO
     else {
         // Fazemos um fetch para a Action UpdateStatus que já tinhas
-        fetch(`/Bar/OrderManagement/UpdateStatus`, {
+        fetch(`/Order/OrderManagement/UpdateStatus`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -842,6 +843,7 @@ function confirmarEdição(type,form) {
             if (result.isConfirmed) form.submit();
         });
 }
+
 
 
 

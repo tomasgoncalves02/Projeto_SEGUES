@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Projeto_SEGUES.Models.Purchase;
+using Projeto_SEGUES.Models.Order;
 
 namespace Projeto_SEGUES.Models.Inventory
 {
@@ -12,29 +12,33 @@ namespace Projeto_SEGUES.Models.Inventory
         [Display(Name = "Nome")]
         public required string Name { get; set; }
         
-        //[Required]
+        [Required]
         [MaxLength(250)]
         [Display(Name = "Descrição")]
         public required string Description { get; set; }
         
-        //[Required]
-        /*[MaxLength(100)]
-        public required string ImageUrl { get; set; }*/
+        [Required]
+        [Display(Name = "Categoria")]
+        public required ProductCategory Category { get; set; } // FK
         
-        //[Required]
-        public ProductCategory? Category { get; set; } // FK
-        
+        [Required]
         [Range(0, double.MaxValue)]
         [Display(Name = "Preço")]
-        public decimal Price { get; set; }
+        public required decimal Price { get; set; }
         
+        [Required]
         [Range(0, int.MaxValue)]
         [Display(Name = "Stock")]
-        public int Stock { get; set; }
+        public required int Stock { get; set; }
+        
+        [Required]
+        [Range(0, int.MaxValue)]
+        [Display(Name = "Stock mínimo")]
+        public required int MinimumStock { get; set; }
         
         [Display(Name = "Ativo")]
         public bool IsActive { get; set; } = true;
 
-        public ICollection<ProductPurchase> ProductPurchases { get; set; } = new List<ProductPurchase>();
+        public ICollection<OrderLine> ProductPurchases { get; set; } = new List<OrderLine>();
     }
 }

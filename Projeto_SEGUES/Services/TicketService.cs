@@ -144,16 +144,22 @@ public class TicketService : ITicketService
             var validity = await _context.AppConfigs.Select(c => c.TicketValidityDays).FirstOrDefaultAsync();
             if (validity == 0) validity = 30; // Valor por defeito caso a config falhe
             var expiration = now.AddDays(validity);
+            string code;
 
             for (int i = 0; i < quantity; i++)
             {
+                do {
+                    code = Guid.NewGuid().ToString()[..8].ToUpper();
+                }
+                while(_context.Tickets.Any(t => t.ValidationCode == code));
+                
                 _context.Tickets.Add(new Ticket
                 {
                     Owner = dbUser,
                     ExpirationDate = expiration,
                     State = TicketState.Available,
                     TicketPurchase = purchase,
-                    ValidationCode = Guid.NewGuid().ToString()[..8].ToUpper()
+                    ValidationCode = code
                 });
             }
 

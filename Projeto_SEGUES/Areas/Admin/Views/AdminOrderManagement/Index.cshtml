@@ -1,0 +1,207 @@
+﻿@using Projeto_SEGUES.Models.Enums
+@model IEnumerable<Projeto_SEGUES.Models.Order.Order>
+@{
+    ViewData["Title"] = "Histórico Geral de Pedidos - SEGUES";
+}
+
+<div class="container-fluid mt-5 px-4">
+    @* Cabeçalho *@
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold title-underline mb-2">
+                <i class="bi bi-journal-text me-2 text-color-ips"></i>
+                Histórico Geral de Pedidos
+            </h2>
+            <p class="text-muted small mb-0">Controlo total de transações, horários de recolha e fluxo financeiro do Bar.</p>
+        </div>
+        <a asp-area="Admin" asp-controller="AdminBarManagement" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4">
+            <i class="bi bi-arrow-left me-2"></i>Voltar
+        </a>
+    </div>
+
+    @* Barra de Filtros *@
+    <div class="card shadow-sm border-0 mb-4 rounded-3">
+        <div class="card-body p-4">
+            <div class="row g-3 align-items-end text-start">
+                <div class="col-md-2">
+                    <label class="form-label fw-bold text-uppercase small text-muted mb-1">Estado</label>
+                    <select class="form-select shadow-none" id="statusFilter" onchange="filterTable()">
+                         <option value="">Todos</option>
+                         @foreach (OrderStatus status in Enum.GetValues(typeof(OrderStatus)))
+                         {
+                            if (status == OrderStatus.Cart) continue;
+                            <option value="@((int)status)">@status.ToDisplayName()</option>
+                         }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold text-uppercase small text-muted mb-1">No Dia</label>
+                    <input type="date" id="exactDateFilter" class="form-control shadow-none" onchange="filterTable()">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold text-uppercase small text-muted mb-1">Pesquisar Pedido</label>
+                    <input type="text" id="searchInput" class="form-control shadow-none" placeholder="Nome, Email, Nº ou Código..." onkeyup="filterTable()">
+                </div>
+                <div class="col-md-5 d-flex align-items-center gap-3 mt-2">
+                    <a href="javascript:void(0)" onclick="clearFilters()" class="text-muted small text-decoration-none d-flex align-items-center btn-reset-x">
+                        Limpar <i class="bi bi-x-circle ms-1"></i>
+                    </a>
+                    <button type="button" onclick="filterTable()" class="btn btn-ips px-4 py-2 fw-bold text-uppercase shadow-sm">
+                        <i class="bi bi-search me-2"></i> PESQUISAR
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Tabela *@
+    <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
+        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold text-color-ips">
+                <i class="bi bi-receipt-cutoff me-2"></i>Registo de Transações
+            </h5>
+            <span class="badge bg-light text-dark border fs-6">Total: @Model.Count() pedidos únicos</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 text-center" id="ordersTable" style="min-width: 1200px;">
+                <thead class="bg-color-ips text-white">
+                    <tr>
+                        <th class="ps-4 py-3 text-start">Utilizador</th>
+                        <th class="py-3">Nº Pedido</th> @* Coluna Adicionada *@
+                        <th class="py-3">Código Pedido</th>
+                        <th class="py-3">Data/Hora Compra</th>
+                        <th class="py-3">Agendado p/</th>
+                        <th class="py-3">Estado</th>
+                        <th class="py-3">Recolhido em</th>
+                        <th class="py-3">Valor Total</th>
+                        <th class="pe-4 py-3">Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="9" class="text-center py-5 text-muted">Nenhum pedido registado.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var order in Model)
+                        {
+                            bool eParaDepois = order.PickupTime != TimeSpan.Zero;
+
+                            <tr class="order-row" data-status="@order.Status" data-date="@order.OrderDate.ToString("yyyy-MM-dd")">
+                                <td class="ps-4 text-start">
+                                    <div class="d-flex flex-column">
+                                        <span class="fw-bold user-name">@order.AppUser?.FirstName @order.AppUser?.LastName</span>
+                                        <small class="text-muted user-email" style="font-size: 0.75rem;">@order.AppUser?.Email</small>
+                                    </div>
+                                </td>
+                                @* Nº Pedido Único *@
+                                <td class="fw-bold order-id text-muted">#@order.Id.ToString("D5")</td>
+
+                                <td>
+                                    <code class="fw-bold text-color-ips redemption-code">@order.RedemptionCode</code>
+                                </td>
+                                <td class="small">
+                                    @order.OrderDate.ToString("dd/MM/yy")<br />
+                                    <span class="text-muted">@order.OrderDate.ToString("HH:mm")</span>
+                                </td>
+                                <td>
+                                    @if (eParaDepois)
+                                    {
+                                        <span class="badge bg-light text-dark border fw-normal">
+                                            <i class="bi bi-clock me-1"></i>@order.DeliveryTime.ToString()
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <small class="text-muted">Imediato</small>
+                                    }
+                                </td>
+                                <td>
+                                    @switch (order.Status)
+                                    {
+                                        case OrderStatus.Pending:
+                                            <span class="badge bg-secondary px-3">Pendente</span>
+                                            break;
+                                        case OrderStatus.Preparing:
+
+                                            <span class="badge bg-info text-dark px-3">Em preparação</span>
+                                            break;
+                                        case OrderStatus.ReadyToDeliver:
+
+                                            <span class="badge bg-warning text-dark px-3">Entrega Pendente</span>
+                                            break;
+                                        case OrderStatus.Delivered:
+
+                                            <span class="badge bg-success px-3">Entregue</span>
+                                            break;
+                                        case OrderStatus.Cancelled:
+                                            <span class="badge bg-danger px-3">Cancelado</span>
+                                            break;
+                                    }
+                                </td>
+                                <td class="small">
+                                    @if (order.PickupTime != TimeSpan.Zero)
+                                    {
+                                        <span class="text-success fw-bold">@order.PickupTime.ToString()</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">---</span>
+                                    }
+                                </td>
+                                <td class="fw-bold text-color-ips">@order.TotalValue.ToString("N2")€</td>
+                                <td class="pe-4">
+                                    <button type="button" class="btn btn-sm btn-ips fw-bold px-3 shadow-sm" onclick="verDetalhesProdutos(@order.Id)">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function filterTable() {
+            let searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            let status = document.getElementById('statusFilter').value;
+            let exactDate = document.getElementById('exactDateFilter').value;
+            let rows = document.querySelectorAll('.order-row');
+
+            rows.forEach(row => {
+                let userName = row.querySelector('.user-name').textContent.toLowerCase();
+                let userEmail = row.querySelector('.user-email').textContent.toLowerCase();
+                let orderId = row.querySelector('.order-id').textContent.toLowerCase();
+                let code = row.querySelector('.redemption-code').textContent.toLowerCase();
+                let orderStatus = row.getAttribute('data-status');
+                let orderDate = row.getAttribute('data-date');
+
+                let matchesSearch = userName.includes(searchTerm) ||
+                                   userEmail.includes(searchTerm) ||
+                                   orderId.includes(searchTerm) ||
+                                   code.includes(searchTerm);
+
+                let matchesStatus = (status === "todos" || orderStatus === status);
+                let matchesDate = !exactDate || (orderDate === exactDate);
+
+                row.style.display = (matchesSearch && matchesStatus && matchesDate) ? "" : "none";
+            });
+        }
+
+        function clearFilters() {
+            document.getElementById('searchInput').value = "";
+            document.getElementById('statusFilter').value = "todos";
+            document.getElementById('exactDateFilter').value = "";
+            filterTable();
+        }
+        
+    </script>
+}

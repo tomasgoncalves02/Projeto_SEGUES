@@ -44,6 +44,18 @@
     <_ContentIncludedByDefault Remove="Views\Teacher\Index.cshtml" />
     <_ContentIncludedByDefault Remove="Views\Employee\Index.cshtml" />
     <_ContentIncludedByDefault Remove="Views\Student\Index.cshtml" />
+    <_ContentIncludedByDefault Remove="Areas\Bar\Views\OrderHistory\Index.cshtml" />
+    <_ContentIncludedByDefault Remove="Areas\Bar\Views\_ViewImports.cshtml" />
+    <_ContentIncludedByDefault Remove="Areas\Bar\Views\_ViewStart.cshtml" />
+    <_ContentIncludedByDefault Remove="Areas\Order\Views\PurchaseBar\Index.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="Areas\Admin\Views\AdminOrderManagement\Index.cshtml" />
+    <AdditionalFiles Include="Areas\Admin\Views\AdminOrderManagement\Index.cshtml" />
+    <AdditionalFiles Include="Areas\Order\Views\CreateOrder\Checkout.cshtml" />
+    <AdditionalFiles Include="Areas\Order\Views\CreateOrder\Index.cshtml" />
+    <AdditionalFiles Include="Areas\Report\Views\ReportOrder\Index.cshtml" />
   </ItemGroup>
 
 </Project>

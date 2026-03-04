@@ -1,0 +1,39 @@
+﻿@model IEnumerable<Projeto_SEGUES.Models.Order.Order>
+@{
+    ViewData["Title"] = "Os Meus Pedidos - SEGUES";
+}
+
+<div class="container mt-4 text-start">
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-7">
+            <h2 class="fw-bold title-underline mb-2">
+                <i class="bi bi- bag-check me-2 text-color-ips"></i>
+                Os Meus Pedidos
+            </h2>
+            <p class="text-muted small">Apresenta estes códigos no bar para levantares os teus produtos.</p>
+        </div>
+        <div class="col-md-5 text-end">
+            <a asp-area="Order" asp-controller="Order" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4">
+                <i class="bi bi-arrow-left me-2"></i>Voltar
+            </a>
+        </div>
+    </div>
+
+    @* Contentor HTMX: Verifica mudanças a cada 60 segundos *@
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4"
+         hx-get="/Order/ActiveOrder/GetUpdatedActiveOrders"
+         hx-trigger="every 60s"
+         hx-swap="innerHTML">
+
+        <partial name="_ActiveOrdersCards" model="@Model"/>
+    </div>
+</div>
+
+@* Modal de Detalhes *@
+<div class="modal fade" id="modalDetalhes" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+            <div id="modalContentBody"></div>
+        </div>
+    </div>
+</div>

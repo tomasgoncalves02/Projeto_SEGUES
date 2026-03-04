@@ -49,8 +49,8 @@ public class AdminCreateInternalAccountController : Controller
         }
         catch (Exception ex)
         {
-            ModelState.AddModelError("", "Erro ao enviar e-mail de ativaÁ„o. Verifique a sua conex„o ‡ internet.");
-            TempData.SetSwalError("Falha na conex„o: O e-mail n„o pÙde ser enviado, por isso a conta n„o foi criada.");
+            ModelState.AddModelError("", "Erro ao enviar e-mail de ativa√ß√£o. Verifique a sua conex√£o √† Internet.");
+            TempData.SetSwalError("Falha na conex√£o: O e-mail n√£o pode ser enviado, por isso a conta n√£o foi criada.");
         }
 
         ViewBag.Roles = await _adminService.GetNonClientRolesForDropdownAsync();

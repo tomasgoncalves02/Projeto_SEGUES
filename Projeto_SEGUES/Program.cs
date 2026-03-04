@@ -40,6 +40,20 @@ builder.Services.AddIdentity<AppUser, Role>(options => {
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
 
+builder.Services.Configure<SecurityStampValidatorOptions>(options => 
+    options.ValidationInterval = TimeSpan.FromMinutes(15)
+);
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(15);
+    options.SlidingExpiration = true; // Reset timer on request
+    // Redirect unauthenticated users (invalid token/cookie) to the Index page
+    options.LoginPath = "/"; 
+    // Redirect authenticated users who lack the required role to the Index page
+    options.AccessDeniedPath = "/";
+});
+
 // Microsoft Authentication
 // Use with azure keys
 /*
@@ -55,7 +69,9 @@ builder.Services.AddAuthentication()
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 builder.Services.AddScoped<ITicketService, TicketService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
-builder.Services.AddScoped<IBarService, BarService>();
+builder.Services.AddScoped<IInventoryService, InventoryService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 // MVC and Razor
 builder.Services.AddControllersWithViews();

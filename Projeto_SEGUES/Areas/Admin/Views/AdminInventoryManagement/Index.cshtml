@@ -1,0 +1,224 @@
+﻿@using Projeto_SEGUES.Models.Inventory
+@model Projeto_SEGUES.Models.Inventory.Product
+
+@{
+    ViewData["Title"] = "Gestão de Inventário - SEGUES";
+}
+
+<div class="container mt-5">
+    @* Cabeçalho principal *@
+    <div class="row mb-5 align-items-center">
+        <div class="col-md-6 text-start">
+            <h2 class="fw-bold title-underline mb-0">Gestão de Inventário</h2>
+            <p class="text-muted mt-2">Inventário de lanches e bebidas do Bar.</p>
+        </div>
+        <div class="col-md-6 text-end">
+            <a asp-area="Admin" asp-controller="AdminBarManagement" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4">
+                <i class="bi bi-arrow-left me-2"></i>Voltar
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4 text-start">
+        @* FORMULÁRIO DE CRIAÇÃO *@
+        <div class="col-lg-4">
+            <div class="card card-ips shadow-sm h-100">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="fw-bold mb-0 text-color-ips">
+                        <i class="bi bi-plus-circle me-2"></i>Novo Produto
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-area="Admin" asp-controller="AdminInventoryManagement" asp-action="Create" method="post">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Nome</label>
+                            <input asp-for="@Model.Name" class="form-control" placeholder="Ex: Sandes de Atum" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Categoria</label>
+                            <select asp-for="@Model.Category" class="form-select" required>
+                                <option value="">Selecione uma categoria</option>
+                                @foreach (SelectListItem item in ViewBag.Categories)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-bold small text-muted text-uppercase">Preço (€)</label>
+                                <input asp-for="@Model.Price" type="number" step="0.5" class="form-control fw-bold text-color-ips" value="0.00" />
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-bold small text-muted text-uppercase">Stock</label>
+                                <input asp-for="@Model.Stock" type="number" class="form-control fw-bold" value="0" />
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-bold small text-muted text-uppercase">Stock mínimo</label>
+                                <input asp-for="@Model.MinimumStock" type="number" class="form-control fw-bold" value="0" />
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Descrição</label>
+                            <textarea asp-for="@Model.Description" class="form-control" rows="4"
+                                      placeholder="Breve descrição..." maxlength="250"></textarea>
+                            <div class="form-text text-end small">Máximo 250 caracteres.</div>
+                        </div>
+                        <button type="submit" class="btn btn-ips w-100 py-3 fw-bold shadow-sm">
+                            <i class="bi bi-check-lg me-2"></i>CONFIRMAR REGISTO
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        @* FILTRO E TABELA *@
+        <div class="col-lg-8">
+            @* Barra de Filtros *@
+            <div class="card card-ips shadow-sm mb-4">
+                <div class="card-body p-4 filter-bar">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Categoria</label>
+                            <select class="form-select" id="statusFilter" onchange="filterTable()">
+                                <option value="">Categoria/Tipo</option>
+                                @foreach (SelectListItem item in ViewBag.Categories)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Pesquisar</label>
+                            <input type="text" id="searchInput" class="form-control" placeholder="Nome do produto..." onkeyup="filterTable()">
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-flex flex-column h-100">
+                                <a href="javascript:void(0)" onclick="clearFilters()" class="btn-reset-x mb-2 justify-content-end">
+                                    Limpar Filtros <i class="bi bi-x-circle"></i>
+                                </a>
+                                <button type="button" onclick="filterTable()" class="btn btn-ips fw-bold text-uppercase shadow-sm">
+                                    <i class="bi bi-search me-2"></i> PESQUISAR
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* Listagem *@
+            <div class="card card-ips shadow-sm overflow-hidden">
+                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-color-ips"><i class="bi bi-list-ul me-2"></i>Lista de Produtos</h5>
+                    <span class="badge bg-light text-dark border">@ViewBag.Products.Count registos</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 text-center" id="productsTable">
+                        <thead class="bg-color-ips text-white">
+                            <tr>
+                                <th class="py-3 text-start ps-4">Produto</th>
+                                <th class="py-3">Preço</th>
+                                <th class="py-3">Stock</th>
+                                <th class="py-3 text-center pe-4">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productListContainer">
+                        <div class="col-lg-8"
+                             hx-get="/Admin/AdminInventoryManagement/GetProducts"
+                             hx-trigger="every 60s"
+                             hx-swap="innerHTML">
+                            <partial name="_ProductListPartial" model="@ViewBag.Products" />
+                        </div>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* MODAL DE DETALHES *@
+<div class="modal fade" id="productModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-color-ips text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-info-circle me-2"></i>Detalhes do Produto</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 text-start">
+                <div class="mb-4">
+                    <label class="fw-bold text-muted small text-uppercase d-block mb-1">Nome</label>
+                    <span id="view-name" class="fs-5 fw-bold text-color-ips"></span>
+                </div>
+                <div class="mb-4">
+                   <label class="fw-bold text-muted small text-uppercase d-block mb-1">Descrição</label>                  
+                    <p id="view-description" class="text-muted bg-light p-3 rounded border-start border-4 border-color-ips mb-0 text-break"></p>
+                </div>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border rounded p-3 bg-light">
+                            <label class="fw-bold text-muted small text-uppercase d-block">Preço</label>
+                            <span id="view-price" class="fw-bold text-color-ips fs-4"></span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="border rounded p-3 bg-light">
+                            <label class="fw-bold text-muted small text-uppercase d-block">Stock</label>
+                            <span id="view-stock" class="fw-bold fs-4"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function filterTable() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const status = document.getElementById('statusFilter').value;
+            const rows = document.querySelectorAll('.product-row');
+
+            rows.forEach(row => {
+                const name = row.querySelector('.product-name').textContent.toLowerCase();
+                const stock = parseInt(row.getAttribute('data-stock'));
+
+                const matchesSearch = name.includes(searchTerm);
+                const matchesStatus = (status === "todos") ||
+                                    (status === "disponivel" && stock > 0) ||
+                                    (status === "baixo-stock" && stock > 0 && stock < 5) ||
+                                    (status === "esgotado" && stock <= 0);
+
+                row.style.display = (matchesSearch && matchesStatus) ? "" : "none";
+            });
+        }
+
+        function clearFilters() {
+            document.getElementById('searchInput').value = "";
+            document.getElementById('statusFilter').value = "todos";
+            filterTable();
+        }
+
+        function showProductDetails(id, name, description, price, stock) {
+            document.getElementById('view-name').innerText = name;
+            document.getElementById('view-description').innerText = description || "Sem descrição.";
+            document.getElementById('view-price').innerText = parseFloat(price.replace(',', '.')).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' });
+
+            const stockElem = document.getElementById('view-stock');
+            stockElem.innerText = stock;
+            stockElem.className = "fw-bold fs-4 " + (stock <= 0 ? "text-danger" : (stock < 5 ? "text-warning" : "text-success"));
+
+            new bootstrap.Modal(document.getElementById('productModal')).show();
+        }
+
+        function confirmDelete(id, name) {
+            Notifications.confirm(`Tem a certeza que deseja eliminar o produto "${name}"?`)
+            .then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('delete-form-' + id).submit();
+                }
+            });
+        }
+    </script>
+}

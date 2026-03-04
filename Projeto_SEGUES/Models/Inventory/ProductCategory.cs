@@ -11,8 +11,9 @@ namespace Projeto_SEGUES.Models.Inventory
         [Display(Name = "Nome")]
         public required string Name { get; set; }
         
+        [Required]
         [MaxLength(250)]
         [Display(Name = "Descrição")]
-        public string? Description { get; set; }
+        public required string Description { get; set; }
     }
 }

@@ -126,6 +126,7 @@ public class AdminUserManagementController : Controller
             await _userManager.AddToRoleAsync(user, model.Role);
 
             TempData.SetSwalSuccess("Utilizador atualizado.");
+            
             // If the user is currently logged in and their role was changed, sign them out to refresh their claims
             await _userManager.UpdateSecurityStampAsync(user);
             return RedirectToAction(nameof(Index));

@@ -1,0 +1,186 @@
+﻿@model IEnumerable<Projeto_SEGUES.Models.Inventory.Product>
+@{
+    ViewData["Title"] = "Efetuar Pedido - SEGUES";
+}
+
+<div class="container mt-4 text-start">
+    @* Top row *@
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-7">
+            <h2 class="fw-bold title-underline mb-2">
+                <i class="bi bi-cart-plus me-2 text-color-ips"></i>
+                Efetuar Pedido
+            </h2>
+            <p class="text-muted small">Seleciona os produtos e as quantidades que pretendes adquirir.</p>
+        </div>
+        <div class="col-md-5 text-end">
+            <a asp-area="Order" asp-controller="Order" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4 shadow-sm">
+                <i class="bi bi-arrow-left me-2"></i>Voltar
+            </a>
+        </div>
+    </div>
+
+    @* Barra de Filtros Estilizada *@
+    <div class="card card-ips shadow-sm mb-4 border-0 rounded-3">
+        <div class="card-body p-4 filter-bar">
+            <div class="row g-3 align-items-end">
+
+                @* Secção do Carrinho Clicável com Badge Ajustada *@
+                <div class="col-md-4 col-xl-2 border-end pe-4 d-flex align-items-center justify-content-center">
+                    <div class="text-center">
+                        <span class="fw-bold small d-block text-uppercase text-muted mb-1">Carrinho</span>
+                        <a asp-area="Order" asp-controller="CreateOrder" asp-action="Checkout" class="position-relative d-inline-block text-decoration-none">
+                            <i class="bi bi-cart-plus fs-2 text-color-ips"></i>
+
+                            @* Badge inicializada com o valor da BD *@
+                            <span id="cart-count"
+                                  class="position-absolute badge rounded-pill bg-danger"
+                                  style="display: @(ViewBag.TotalValue > 0 ? "block" : "none"); font-size: 0.65rem; top: -2px; right: -5px; padding: 0.35em 0.5em; border: 2px solid white;">
+                                @ViewBag.CartTotal.TotalQuantity
+                            </span>
+                        </a>
+                    </div>
+                </div>
+
+                @* Filtro de Tipo *@
+                <div class="col-md-4 col-xl-2">
+                    <label for="typeFilter" class="form-label small fw-bold text-muted text-uppercase mb-1">Tipo</label>
+                    <select id="typeFilter" class="form-select form-select-sm border-secondary-subtle">
+                        <option value="todos">Bebidas/Comidas</option>
+                    </select>
+                </div>
+
+                @* Campo de Pesquisa *@
+                <div class="col-md-6 col-xl">
+                    <label for="orderSearch" class="form-label small fw-bold text-muted text-uppercase mb-1">Pesquisar</label>
+                    <input id="orderSearch" type="text" class="form-control form-control-sm border-secondary-subtle"
+                           placeholder="Nome do produto..." onkeyup="filterOrderTable()">
+                </div>
+
+                @* Botão PESQUISAR e Limpar *@
+                <div class="col-md-4 col-xl-auto text-end text-xl-start" style="width: fit-content">
+                    <div class="d-flex align-items-center justify-content-end justify-content-xl-start gap-3">
+                        <a href="javascript:void(0)" onclick="clearOrderFilters()"
+                           class="text-muted small text-decoration-none d-flex align-items-center text-nowrap btn-reset-x">
+                            Limpar filtros <i class="bi bi-x-circle ms-1"></i>
+                        </a>
+                        <button type="button" onclick="filterOrderTable()" class="btn btn-ips fw-bold px-3 py-2 shadow-sm d-flex align-items-center text-uppercase" style="height: 38px;">
+                            <i class="bi bi-search me-2"></i> PESQUISAR
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Tabela de Produtos *@
+    <div class="card card-ips shadow-sm border-0 rounded-3 overflow-hidden">
+        <div class="table-responsive" style="max-height: 550px; overflow-y: auto;">
+            <table class="table table-hover align-middle mb-0 text-center" id="orderTable">
+                <thead class="bg-color-ips text-white" style="position: sticky; top: 0; z-index: 2;">
+                    <tr>
+                        <th class="ps-4 py-3 text-start">Nome</th>
+                        <th class="py-3">Informações</th>
+                        <th class="py-3">Preço</th>
+                        <th class="py-3">Quantidade</th>
+                        <th class="pe-4 py-3">Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model == null || !Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="bi bi-box-seam display-4 d-block mb-3 opacity-25"></i>
+                                <span class="fw-bold">Não existem produtos disponíveis no momento.</span>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var p in Model)
+                        {
+                            <tr class="order-row">
+                                <td class="ps-4 text-start fw-bold product-name">@p.Name</td>
+                                <td>
+                                    <button class="btn btn-sm btn-ips shadow-sm" onclick="showProductDetails('@p.Name', '@Html.Raw(p.Description?.Replace("'", "\\'"))', '@p.Price.ToString("0.00") €')">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </td>
+                                <td class="text-color-ips fw-bold">@p.Price.ToString("C")</td>
+                                <td>
+                                    <select class="form-select form-select-sm d-inline-block w-auto border-secondary-subtle" id="qty-@p.Id">
+                                        @for (int i = 1; i <= Math.Min(p.Stock, 10); i++)
+                                        {
+                                            <option value="@i">@i</option>
+                                        }
+                                    </select>
+                                </td>
+                                <td class="pe-4">
+                                    <button class="btn btn-ips btn-sm px-4 fw-bold shadow-sm text-uppercase" onclick="processAddToCart(@p.Id, '@p.Name')">
+                                        <i class="bi bi-plus-lg me-1"></i> Adicionar
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function filterOrderTable() {
+            const input = document.getElementById('orderSearch').value.toLowerCase();
+            const rows = document.querySelectorAll('.order-row');
+            rows.forEach(row => {
+                const name = row.querySelector('.product-name').textContent.toLowerCase();
+                row.style.display = name.includes(input) ? "" : "none";
+            });
+        }
+
+        function clearOrderFilters() {
+            document.getElementById('orderSearch').value = "";
+            filterOrderTable();
+        }
+
+        /**
+         * Adiciona ao carrinho salvando na Base de Dados (via Controller)
+         */
+        function processAddToCart(id, name) {
+            const qty = document.getElementById('qty-' + id).value;
+            const url = '@Url.Action("AddToCart", "CreateOrder", new { area = "Order" })';
+
+            fetch(`${url}?id=${id}&qty=${qty}`, {
+                method: 'POST',
+                headers: {
+                    // Importante para requisições POST em ASP.NET Core
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Atualiza a badge com o total real retornado pela BD (data.count)
+                    const badge = document.getElementById('cart-count');
+                    if (badge) {
+                        badge.innerText = data.count;
+                        badge.style.display = "block";
+                    }
+
+                    // Notificação do seu site.js
+                    Notifications.success(`${qty}x ${name} adicionado ao carrinho!`);
+                } else {
+                    Notifications.error(data.message || "Erro ao adicionar ao carrinho.");
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                Notifications.error("Ocorreu um erro na comunicação com o servidor.");
+            });
+        }
+  
+    </script>
+}

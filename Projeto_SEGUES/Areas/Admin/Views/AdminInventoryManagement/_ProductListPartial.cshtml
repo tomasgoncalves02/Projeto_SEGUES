@@ -1,0 +1,40 @@
+@model IEnumerable<Projeto_SEGUES.Models.Inventory.Product>
+
+@if (Model == null || !Model.Any())
+{
+    <tr>
+        <td colspan="4" class="text-center py-5 text-muted">
+            <i class="bi bi-inbox display-4 d-block mb-3 opacity-25"></i>
+            Nenhum produto encontrado.
+        </td>
+    </tr>
+}
+else
+{
+    @foreach (var p in Model)
+    {
+        <tr class="product-row" data-stock="@p.Stock" data-category-id="@p.Category?.Id">
+            <td class="fw-bold product-name text-start ps-4">@p.Name</td>
+            <td class="text-color-ips fw-bold">@p.Price.ToString("C")</td>
+            <td>
+                <span class="badge @(p.Stock <= 0 ? "bg-danger" : (p.Stock < 5 ? "bg-warning text-dark" : "bg-success"))">@p.Stock</span>
+            </td>
+            <td class="text-center pe-4">
+                <div class="btn-group shadow-sm">
+                    <button type="button" class="btn btn-sm btn-ips" title="Detalhes"
+                            onclick="showProductDetails(@p.Id, '@p.Name', '@p.Description', '@p.Price', @p.Stock)">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                    <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-sm btn-ips-outline-secondary" title="Editar">
+                        <i class="bi bi-pencil-square"></i>
+                    </a>
+                    <form asp-action="Delete" asp-route-id="@p.Id" method="post" id="delete-form-@p.Id" class="d-inline">
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmDelete('@p.Id', '@p.Name')" title="Eliminar">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+    }
+}

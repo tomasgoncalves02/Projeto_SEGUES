@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models;
 using Projeto_SEGUES.Models.Audit.ViewModels;
 using Projeto_SEGUES.Models.User;
@@ -25,6 +26,7 @@ namespace Projeto_SEGUES.Controllers
             if (User.Identity is not { IsAuthenticated: true })
             {
                 _logger.LogInformation("User not authenticated.");
+                TempData.SetSwalWarning("Faça login novamente. Desconectado por inatividade ou alteração dos dados.");
                 return RedirectToPage("/Account/Login", new { area = "Identity" });
             }
 

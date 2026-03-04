@@ -1,0 +1,34 @@
+﻿@model IEnumerable<Projeto_SEGUES.Models.Order.Order>
+
+<div class="container">
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-7 text-start">
+            <h2 class="fw-bold title-underline mb-0">Gerir Pedidos</h2>
+        </div>
+        <div class="col-md-5 text-end">
+            <a asp-area="Admin" asp-controller="Employee" asp-action="Index" class="btn btn-ips-outline-secondary px-4 shadow-sm">
+                Voltar
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        @* PAINEL ESQUERDO: Alvo do HTMX *@
+        <div class="col-lg-4">
+            <div id="side-panel-target">
+                <div class="card shadow-sm border-0 p-5 text-center text-muted card-ips">
+                    <i class="bi bi-info-circle fs-1 mb-3 opacity-50 text-color-ips"></i>
+                    <p class="small fw-bold">Selecione um pedido na tabela para ver os detalhes e gerir o estado.</p>
+                </div>
+            </div>
+        </div>
+
+        @* PAINEL DIREITO: Tabela de Monitorização *@
+        <div class="col-lg-8"
+             hx-get="/Order/OrderManagement/GetOrdersTable"
+             hx-trigger="every 30s"
+             hx-swap="innerHTML">
+            <partial name="_ManageOrdersTable" model="Model" />
+        </div>
+    </div>
+</div>

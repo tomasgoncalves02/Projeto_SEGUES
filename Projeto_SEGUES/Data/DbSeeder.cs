@@ -111,41 +111,75 @@ namespace Projeto_SEGUES.Data
                     await userManager.AddToRoleAsync(newAdmin, "Admin");
                 }
             }
-
-            if (!await context.Products.AnyAsync())
+            await context.SaveChangesAsync();
+            
+            // ProductCategory
+            var defaultProductsCategories = new List<ProductCategory>
             {
-                var defaultProducts = new List<Product>
-                {
-                    new Product
-                    {
-                        Name = "folhado misto",
-                        Description = "Folhado quente após sair do forno",
-                        Price = 1.80m,
-                        Stock = 20,
-                        IsActive = true
-                    },
-                    new Product
-                    {
-                        Name = "Café Expresso",
-                        Description = "Café simples de máquina",
-                        Price = 0.70m,
-                        Stock = 100,
-                        IsActive = true
-                    },
-                    new Product
-                    {
-                        Name = "Água Mineral 0.5L",
-                        Description = "Água mineral sem gás",
-                        Price = 1.00m,
-                        Stock = 50,
-                        IsActive = true
-                    }
-                };
-
-                await context.Products.AddRangeAsync(defaultProducts);
-                await context.SaveChangesAsync();
+                new ProductCategory { Name = "Bebidas", Description = "Café, refrigerantes e outras bebidas." },
+                new ProductCategory { Name = "Refeições", Description = "Sanduíches, saladas e refeições rápidas." },
+                new ProductCategory { Name = "Doces", Description = "Bolos, tortas e outras sobremesas." },
+                new ProductCategory { Name = "Salgados", Description = "Empadas, croissants e outros salgados." }
+            };
+            foreach (var category in defaultProductsCategories)
+            {
+                if (!await context.ProductCategories.AnyAsync(c => c.Name == category.Name))
+                    await context.ProductCategories.AddAsync(category);
             }
+            await context.SaveChangesAsync();
+            
+            // Products
+            var dbProductCategories = await context.ProductCategories.ToListAsync();
+            var defaultProducts = new List<Product>
+            {
+                new Product
+                {
+                    Name = "Folhado Misto",
+                    Description = "Folhado com fiambre e queijo. Contém glúten e lactose.",
+                    Category = dbProductCategories.FirstOrDefault(c => c.Name == "Salgados")!,
+                    Price = 1.80m,
+                    Stock = 20,
+                    MinimumStock = 5,
+                    IsActive = true
+                },
+                new Product
+                {
+                    Name = "Café Expresso",
+                    Description = "Café simples de máquina",
+                    Category = dbProductCategories.FirstOrDefault(c => c.Name == "Bebidas")!,
+                    Price = 0.70m,
+                    Stock = 100,
+                    MinimumStock = 10,
+                    IsActive = true
+                },
+                new Product
+                {
+                    Name = "Água Mineral 0.5L",
+                    Description = "Água mineral sem gás",
+                    Category = dbProductCategories.FirstOrDefault(c => c.Name == "Bebidas")!,
+                    Price = 1.00m,
+                    Stock = 50,
+                    MinimumStock = 10,
+                    IsActive = true
+                },
+                new Product
+                {
+                    Name = "Tosta Mista",
+                    Description = "Tosta com fiambre e queijo. Contém glúten e lactose.",
+                    Category = dbProductCategories.FirstOrDefault(c => c.Name == "Refeições")!,
+                    Price = 2.50m,
+                    Stock = 30,
+                    MinimumStock = 5,
+                    IsActive = true
+                }
+            };
 
+            foreach (var product in defaultProducts)
+            {
+                if (!await context.Products.AnyAsync(p => p.Name == product.Name))
+                    await context.Products.AddAsync(product);
+            }
+            await context.SaveChangesAsync();
         }
     }
 }
