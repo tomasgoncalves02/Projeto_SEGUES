@@ -49,8 +49,8 @@ public class OrderManagementController : Controller
     public async Task<IActionResult> ValidateOrderCode(int id, string codeEntered)
     {
         var result = await _orderService.ValidateOrderCodeAsync(id, codeEntered);
-        if (!result.Success) return BadRequest(result.Message);
+        if (!result.Success) return BadRequest(result);
         Response.Headers.Add("HX-Trigger", "orderUpdated");
-        return Ok(new { success = true });
+        return Ok(new { success = true, message = result.Message });
     }
 }

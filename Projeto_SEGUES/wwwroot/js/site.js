@@ -626,25 +626,27 @@ function processAddToCart(id, name) {
         });
 }
 
-// REMOVER DO CARRINHO (Corrigido para UserOrders)
+// REMOVER DO CARRINHO (Ajustado para CreateOrderController)
 function removeFromCart(id, name) {
-    Notifications.confirm(`Desejas remover ${name}?`).then(res => {
+    Notifications.confirm(`Desejas remover ${name} do carrinho?`).then(res => {
         if (res.isConfirmed) {
-            // Alterado para UserOrders e corrigido o formato do ID no URL
-            fetch(`/Bar/UserOrders/RemoveFromCart/${id}`, {
+            fetch(`/Order/CreateOrder/RemoveFromCart?id=${id}`, {
                 method: 'POST',
                 headers: {
-                    // Importante para não dar erro 400 Bad Request
                     'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
                 }
             })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        location.reload(); // Refresh para atualizar os totais no Checkout
+                        location.reload();
                     } else {
-                        Notifications.error("Não foi possível remover o item.");
+                        Notifications.error(data.message || "Não foi possível remover o item.");
                     }
+                })
+                .catch(err => {
+                    console.error("Erro na remoção:", err);
+                    Notifications.error("Erro de comunicação com o servidor.");
                 });
         }
     });

@@ -26,6 +26,7 @@ public interface IAdminService
 
     Task<TimeSpan> GetOpenBarTimeAsync();
     Task<TimeSpan> GetCloseBarTimesAsync();
+    Task<bool> IsBarOpenAsync(TimeSpan? requestedTime = null);
 
     Task UpdateBarScheduleAsync(string openBarTime, string closeBarTime);
 

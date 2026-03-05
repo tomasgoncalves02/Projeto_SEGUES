@@ -11,9 +11,14 @@ namespace Projeto_SEGUES.Services;
 public class OrderService : IOrderService
 {
     private readonly AppDbContext _context;
+    private readonly IAdminService _adminService;
     private static readonly OrderStatus[] _activeStatus = Enum.GetValues<OrderStatus>().Where(s => s.IsActive()).ToArray();
-    
-    public OrderService(AppDbContext context) => _context = context;
+
+    public OrderService(AppDbContext context, IAdminService adminService)
+    {
+        _context = context;
+        _adminService = adminService;
+    }
 
     public async Task<Order> GetCartAsync(string userId)
     {
@@ -90,22 +95,53 @@ public class OrderService : IOrderService
     public async Task<ServiceResult> RemoveFromCartAsync(string userId, int productId)
     {
         var cart = await GetCartAsync(userId);
-        var line = await _context.OrderLines.FirstOrDefaultAsync(ol => ol.Order.Id == cart.Id && ol.ProductId == productId);
-        if (line == null) return ServiceResult.Fail("Produto não encontrado no carrinho.");
-        
+        var line = await _context.OrderLines
+            .FirstOrDefaultAsync(ol => ol.Order.Id == cart.Id && ol.ProductId == productId);
+
+        if (line == null) return ServiceResult.Fail("Produto não encontrado no carrinho.");       
+        cart.TotalValue -= (line.Quantity * line.ProductValue);
+        if (cart.TotalValue < 0) cart.TotalValue = 0;
+
         _context.OrderLines.Remove(line);
+       
         await _context.SaveChangesAsync();
+
         return ServiceResult.Ok("Produto removido do carrinho.", GetOrderTotal(cart));
     }
-    
+
     public async Task<ServiceResult> SubmitOrderAsync(AppUser user, bool receiveNow, string? pickupTime)
     {
         var cart = await GetCartAsync(user.Id);
         if (cart.ProductPurchases.Count == 0) return ServiceResult.Fail("O carrinho está vazio.");
-        
+
+        // 1. Determinar a hora a validar
+        TimeSpan timeToValidate = receiveNow ? DateTime.Now.TimeOfDay : TimeSpan.Zero;
+        TimeSpan? deliveryTime = null;
+
+        if (!receiveNow && TimeSpan.TryParse(pickupTime, out var parsedTime))
+        {
+            if (DateTime.Today.Add(parsedTime) < DateTime.Now)
+                return ServiceResult.Fail("Não é possível agendar para o passado.");
+
+            deliveryTime = parsedTime;
+            timeToValidate = parsedTime;
+        }
+        else if (receiveNow)
+        {
+            timeToValidate = DateTime.Now.TimeOfDay;
+        }
+
+        // 2. Validar se o Bar está aberto (Injetar IAdminService no construtor)
+        if (!await _adminService.IsBarOpenAsync(timeToValidate))
+        {
+            var open = await _adminService.GetOpenBarTimeAsync();
+            var close = await _adminService.GetCloseBarTimesAsync();
+            return ServiceResult.Fail($"O Bar encontra-se encerrado. Horário: {open:hh\\:mm} às {close:hh\\:mm}.");
+        }
+
         decimal total = ApplyDiscount(cart.TotalValue, cart.Discount);
         if (user.Balance < total) return ServiceResult.Fail("Saldo insuficiente.");
-        
+
         // Validate stock
         foreach (var item in cart.ProductPurchases)
         {
@@ -113,21 +149,12 @@ public class OrderService : IOrderService
                 return ServiceResult.Fail($"Stock insuficiente para o produto: {item.Product.Name}");
         }
 
-        // Handle Delivery Time
-        TimeSpan? deliveryTime = null;
-        if (!receiveNow && TimeSpan.TryParse(pickupTime, out var parsedTime))
-        {
-            if (DateTime.Today.Add(parsedTime) < DateTime.Now)
-                return ServiceResult.Fail("Não é possível agendar para o passado.");
-            deliveryTime = parsedTime;
-        }
-        
         // Recreate RedemptionCode
         while (_context.Orders.Any(o => o.RedemptionCode == cart.RedemptionCode))
         {
             cart.RedemptionCode = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
         }
-        
+
         using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
@@ -139,12 +166,11 @@ public class OrderService : IOrderService
             foreach (var item in cart.ProductPurchases)
             {
                 item.Product.Stock -= item.Quantity;
-                item.ProductValue = ApplyDiscount(item.Product.Price, item.Discount); // Ensure latest
+                item.ProductValue = ApplyDiscount(item.Product.Price, item.Discount);
             }
 
-            // Update User Balance
             user.Balance -= total;
-            
+
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
@@ -261,9 +287,15 @@ public class OrderService : IOrderService
 
     public async Task<ServiceResult> ValidateOrderCodeAsync(int id, string codeEntered)
     {
+        if (string.IsNullOrWhiteSpace(codeEntered))
+            return ServiceResult.Fail("Por favor, insira o código de levantamento.");
+
         var order = await GetOrderByIdAsync(id);
         if (order == null) return ServiceResult.Fail("Pedido não encontrado.");
-        
+
+        var storedCode = order.RedemptionCode?.Trim();
+        var enteredCode = codeEntered.Trim();
+
         if (!string.Equals(order.RedemptionCode.Trim(), codeEntered.Trim(), StringComparison.CurrentCultureIgnoreCase))
             return ServiceResult.Fail("Código inválido!");
         

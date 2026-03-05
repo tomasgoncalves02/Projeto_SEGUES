@@ -252,10 +252,27 @@ public class AdminService : IAdminService
 
     public async Task UpdateBarScheduleAsync(string openBarTime, string closeBarTime)
     {
-        var config = await _context.AppConfigs.FirstAsync(); 
-        config.OpenBarTime = TimeSpan.Parse(openBarTime);
-        config.CloseBarTime = TimeSpan.Parse(closeBarTime);
+        if (!TimeSpan.TryParse(openBarTime, out var open) || !TimeSpan.TryParse(closeBarTime, out var close))
+        {
+            throw new ArgumentException("Formato de hora inválido.");
+        }
+        var config = await _context.AppConfigs.FirstAsync();
+        config.OpenBarTime = open;
+        config.CloseBarTime = close;
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<bool> IsBarOpenAsync(TimeSpan? requestedTime = null)
+    {
+        var config = await _context.AppConfigs.FirstAsync();
+        var timeToCheck = requestedTime ?? DateTime.Now.TimeOfDay;
+    
+        if (config.OpenBarTime <= config.CloseBarTime)
+        {
+            return timeToCheck >= config.OpenBarTime && timeToCheck <= config.CloseBarTime;
+        }
+
+        return timeToCheck >= config.OpenBarTime || timeToCheck <= config.CloseBarTime;
     }
 
 
