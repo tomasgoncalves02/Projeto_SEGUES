@@ -47,17 +47,7 @@
                     @foreach (OrderStatus status in Enum.GetValues(typeof(OrderStatus)))
                     {
                         if (status is OrderStatus.Cart or OrderStatus.Cancelled) continue;
-
-                        string labelPt = status switch
-                        {
-                            OrderStatus.Pending => "Pendente",
-                            OrderStatus.Preparing => "Em Preparação",
-                            OrderStatus.ReadyToDeliver => "Pronto para Entrega",
-                            OrderStatus.Delivered => "Entregue",
-                            _ => status.ToString()
-                        };
-
-                        <option value="@((int)status)" selected="@(Model.Status == status)">@labelPt</option>
+                        <option value="@((int)status)" selected="@(Model.Status == status)">@status.ToDisplayName()</option>
                     }
                 </select>
             </div>

@@ -235,10 +235,9 @@ public class OrderService : IOrderService
     public async Task<ServiceResult> UpdateOrderStatusAsync(int id, int newStatusId)
     {
         var order = await GetOrderByIdAsync(id);
-   
-        if (order == null) return ServiceResult.Fail("Pedido não encontrado.");
+        if (order == null || !_activeStatus.Contains(order.Status)) return ServiceResult.Fail("Pedido não encontrado.");
 
-        OrderStatus newStatus = (OrderStatus)newStatusId;
+        OrderStatus newStatus = (OrderStatus) newStatusId;
 
         if (!Enum.IsDefined(typeof(OrderStatus), newStatus) || newStatus == OrderStatus.Cart)
             return ServiceResult.Fail("Status inválido.");
@@ -247,6 +246,9 @@ public class OrderService : IOrderService
         {
             return ServiceResult.Fail("Não é possível mudar para este estado.");
         }
+        
+        if (newStatus != order.Status + 1)
+            return ServiceResult.Fail("Transição de status inválida.");
      
         if (newStatus == OrderStatus.Cancelled)
             return ServiceResult.Fail("Use a função específica para cancelar pedidos.");
