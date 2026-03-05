@@ -4,127 +4,137 @@
 }
 
 <div class="container mt-4">
-@* Title row *@
+    @* Title row *@
     <div class="row mb-4 align-items-center">
         <div class="col-md-5">
-            <h2 class="fw-bold title-underline mb-2">
+            <h2 class="fw-bold title-underline mb-2 text-start">
                 <i class="bi bi-ticket-detailed-fill me-2 text-color-ips"></i>
-                Pedido: @Model.Id
+                Pedido: #@Model.Id
             </h2>
         </div>
         @* Back buttons *@
-        <div class="col-md-7 text-center d-flex justify-content-end align-items-center gap-3">
+        <div class="col-md-7 text-end">
             <a asp-area="Order" asp-controller="ActiveOrder" asp-action="Index"
                class="btn btn-ips-outline-secondary fw-bold px-4 shadow-sm">
                 <i class="bi bi-arrow-left me-2"></i> Voltar
             </a>
         </div>
     </div>
-@* Main row with purchase form and tickets table *@
+
+    @* Main row *@
     <div class="row g-4">
-@* Info form *@
+        @* Info Sidebar *@
         <div class="col-lg-4">
-            <div class="card shadow-sm card-ips mb-4">
-                <div class="card-header bg-white py-3 text-color-ips">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-cart-plus me-2"></i>Total</h5>
-                </div>
-                <div class="card-body">
-                  
-                    <div class="p-4 border-bottom">
-                        <p class="mb-1 text-dark small fw-bold text-uppercase">Hora da Compra: @Model.OrderDate.ToString("HH:mm")</p>
-                        <p class="mb-1 text-dark small fw-bold text-uppercase">Valor: @Model.TotalValue.ToString("N2")€</p>
-                        <p class="mb-1 text-dark small fw-bold text-uppercase">Quantidade de Itens comprados: @ViewBag.TotalQuantity</p>
-                        
-                    </div>
+            <div class="card shadow-sm card-ips border-0 mb-4">
+                <div class="card-header bg-white py-3 text-color-ips border-bottom">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-cart-plus me-2"></i>Resumo</h5>
                 </div>
 
-                <div class="card-body">
-
-                    <div class="p-4 border-bottom">
-                        <p class="mb-1 text-muted small fw-bold text-uppercase">
-                            Estado: <span class="alert alert-light border-0 small mb-4" style="background-color: var(--ips-shadow-soft);">
-                               <strong class="text-color-ips fs-5">@Model.Status</strong>
-                            </span>
+                <div class="card-body p-4">
+                    @* Detalhes de Valor *@
+                    <div class="mb-4 pb-3 border-bottom">
+                        <p class="mb-2 text-dark small fw-bold text-uppercase d-flex justify-content-between">
+                            <span>Hora da Compra:</span> <span class="text-muted">@Model.OrderDate.ToString("HH:mm")</span>
                         </p>
-                        <p class="mb-1 text-muted small fw-bold text-uppercase">
-                            Recolha <span class="alert alert-light border-0 small mb-4" style="background-color: var(--ips-shadow-soft);">
-                                <strong class="text-color-ips fs-5">
-                                    @(Model.PickupTime == TimeSpan.Zero
-                                                                        ? Model.OrderDate.TimeOfDay.ToString(@"hh\:mm")
-                                                                        : Model.PickupTime.ToString())
-                                </strong>
-                            </span>
+                        <p class="mb-2 text-dark small fw-bold text-uppercase d-flex justify-content-between">
+                            <span>Valor Total:</span> <span class="text-color-ips">@Model.TotalValue.ToString("N2")€</span>
+                        </p>
+                        <p class="mb-0 text-dark small fw-bold text-uppercase d-flex justify-content-between">
+                            <span>Itens:</span> <span class="text-muted">@ViewBag.TotalQuantity</span>
                         </p>
                     </div>
-                </div>
 
-                <div class="card-body">
-                    <div class="d-flex flex-column gap-2">
-                        <button onclick="showCode('@Model.RedemptionCode')" class="btn btn-ips w-100 py-2 fw-bold text-uppercase">
-                            CÓDIGO
+                    @* Campo Estado *@
+                    <div class="row align-items-center mb-3">
+                        <div class="col-4">
+                            <p class="mb-0 text-dark small fw-bold text-uppercase">Estado</p>
+                        </div>
+                        <div class="col-8">
+                            <div class="alert alert-light border-0 mb-0 py-2 px-3 d-flex justify-content-center align-items-center shadow-sm"
+                                 style="background-color: var(--ips-shadow-soft); border-radius: 8px; min-height: 45px;">
+                                <strong class="text-dark">@Model.Status.ToDisplayName()</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Campo Recolha *@
+                    <div class="row align-items-center mb-4">
+                        <div class="col-4">
+                            <p class="mb-0 text-dark small fw-bold text-uppercase">Recolha</p>
+                        </div>
+                        <div class="col-8">
+                            @{
+                                bool isAgora = Model.PickupTime == null || Model.PickupTime == TimeSpan.Zero;
+                            }
+                            <div class="alert alert-light border-0 mb-0 py-2 px-3 d-flex @(isAgora ? "justify-content-center" : "justify-content-between") align-items-center shadow-sm"
+                                 style="background-color: var(--ips-shadow-soft); border-radius: 8px; min-height: 45px;">
+                                @if (isAgora)
+                                {
+                                    <strong class="text-dark">Agora</strong>
+                                }
+                                else
+                                {
+                                    <span class="text-dark fw-bold small me-2">A partir das</span>
+                                    <strong class="text-dark">@Model.PickupTime.Value.ToString(@"hh\:mm")</strong>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Ações *@
+                    <div class="d-flex flex-column gap-2 mt-2">
+                        <button onclick="showCode('@Model.RedemptionCode')" class="btn btn-ips w-100 py-2 fw-bold text-uppercase shadow-sm">
+                            <i class="bi bi-qr-code me-2"></i> Ver Código
                         </button>
-                        <form asp-area="Order" asp-controller="ActiveOrder" asp-action="CancelOrder" asp-route-id="@Model.Id" method="post">
+
+                        <form asp-area="Order" asp-controller="ActiveOrder" asp-action="CancelOrder" asp-route-id="@Model.Id" method="post" class="w-100">
                             @Html.AntiForgeryToken()
                             <button type="button" onclick="confirmarCancelamento(this.form)"
-                                    class="btn btn-secondary w-100 py-2 fw-bold text-uppercase">
-                                CANCELAR
+                                    class="btn btn-outline-danger w-100 py-2 fw-bold text-uppercase">
+                                <i class="bi bi-x-circle me-2"></i> Cancelar Pedido
                             </button>
                         </form>
                     </div>
                 </div>
-
             </div>
+        </div>
 
-</div>
+        @* Table with products *@
+        <div class="col-lg-8">
+            <div class="card shadow-sm card-ips border-0 h-100">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+                    <h5 class="mb-0 fw-bold text-color-ips"><i class="bi bi-list-check me-2"></i>Produtos no Pedido</h5>
+                </div>
 
-
-
-
-    
-@* Table with ticket history *@
-    <div class="col-lg-8">
-        <div class="card shadow-sm card-ips h-100">
-            @* h-100 opcional para alinhar alturas *@
-            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
-                <h5 class="mb-0 fw-bold text-color-ips"><i class="bi bi-list-check me-2"></i>Produtos</h5>
-            </div>
-
-            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                <table class="table table-hover align-middle mb-0 text-center">
-                    <thead class="text-white bg-color-ips" style="position: sticky; top: 0; z-index: 1;">
-                        <tr>
-                            <th>Nome</th>
-                            <th>Informações</th>
-                            <th>Preço</th>
-                            <th>Quantidade</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var product in Model.ProductPurchases)
-                        {
+                <div class="table-responsive" style="max-height: 550px; overflow-y: auto;">
+                    <table class="table table-hover align-middle mb-0 text-center">
+                        <thead class="text-white bg-color-ips" style="position: sticky; top: 0; z-index: 1;">
                             <tr>
+                                <th class="text-start ps-4">Produto</th>
+                                <th>Informações</th>
+                                <th>Preço</th>
+                                <th class="pe-4">Quantidade</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var product in Model.ProductPurchases)
+                            {
+                                <tr>
                                     <td class="ps-4 text-start fw-bold">@product.Product.Name</td>
-                                <td>
-                                        <button class="btn btn-sm btn-ips shadow-sm" onclick="showProductDetails('@product.Product.Name', '@Html.Raw(product.Product.Description?.Replace("'", "\\'"))', '@product.Product.Price.ToString("0.00") €')">
+                                    <td>
+                                        <button class="btn btn-sm btn-ips shadow-sm"
+                                                onclick="showProductDetails('@product.Product.Name', '@Html.Raw(product.Product.Description?.Replace("'", "\\'"))', '@product.Product.Price.ToString("N2") €')">
                                             <i class="bi bi-eye"></i>
                                         </button>
-                                </td>
+                                    </td>
                                     <td class="text-color-ips fw-bold">@product.Product.Price.ToString("N2")€</td>
-                                    <td class="pe-4">@product.Quantity</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                                    <td class="pe-4 fw-bold">@product.Quantity</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 </div>
-</div>
-
-
-
-
-
-
-
-

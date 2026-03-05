@@ -55,8 +55,9 @@ public class ActiveOrderController : Controller
         var result = await _orderService.CancelOrderAsync(id);
         if (!result.Success)
         {
-            TempData.SetSwalError(result.Message);
-        }
+            TempData.SetSwalError(result.Message); 
+            return RedirectToAction(nameof(Index)); 
+        }       
         TempData.SetSwalSuccess(result.Message);
         return RedirectToAction(nameof(Index));
     }

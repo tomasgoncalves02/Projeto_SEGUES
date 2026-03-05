@@ -32,11 +32,11 @@ else
                         </span>
 
                         @* Lógica da Hora: Se for agendado mostra a hora do agendamento, se não mostra a hora do pedido *@
-                        <small class="text-muted">
-                            <i class="bi bi-clock me-1"></i>
-                            @if (eAgendado)
+                        <small class="text-muted fw-bold">
+                            <i class="bi bi-clock-history me-1 text-color-ips"></i>
+                            @if (item.PickupTime.HasValue && item.PickupTime.Value != TimeSpan.Zero)
                             {
-                                <span class="fw-bold text-dark">@item.PickupTime.ToString()</span>
+                                <span>@item.PickupTime.Value.ToString(@"hh\:mm")</span>
                             }
                             else
                             {
