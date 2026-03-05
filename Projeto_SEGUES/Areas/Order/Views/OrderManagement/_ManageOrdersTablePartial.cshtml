@@ -34,7 +34,23 @@
                     @* Order date *@
                     <td>@order.OrderDate.ToString("HH:mm")</td>
                     @* Pickup time *@
-                    <td>@(order.PickupTime == TimeSpan.Zero ? "-" : order.PickupTime.ToString())</td>
+                        <td class="align-middle">
+                            @if (!order.DeliveryTime.HasValue)
+                            {
+                                @* Se DeliveryTime for null, o pedido é para entrega imediata *@
+                                <span class="badge rounded-pill fw-bold px-3 py-2"
+                                      style="background-color: var(--ips); color: white; border: none; min-width: 80px;">
+                                    AGORA
+                                </span>
+                            }
+                            else
+                            {
+                                @* Formata o TimeSpan para mostrar apenas HH:mm (ex: 18:30) *@
+                                <span class="fw-bold">
+                                    @string.Format("{0:hh\\:mm}", order.DeliveryTime.Value)
+                                </span>
+                            }
+                        </td>
                     @* Status *@
                     <td>
                         <span class="badge @order.Status.ToString().ToBadgeClass()" style="min-width: 90px; padding: 7px;">
