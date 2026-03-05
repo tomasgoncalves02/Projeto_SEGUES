@@ -136,8 +136,14 @@ namespace Projeto_SEGUES.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<TimeSpan>("CloseBarTime")
+                        .HasColumnType("time");
+
                     b.Property<int>("MaxTicketsPerUser")
                         .HasColumnType("int");
+
+                    b.Property<TimeSpan>("OpenBarTime")
+                        .HasColumnType("time");
 
                     b.Property<int>("TicketValidityDays")
                         .HasColumnType("int");

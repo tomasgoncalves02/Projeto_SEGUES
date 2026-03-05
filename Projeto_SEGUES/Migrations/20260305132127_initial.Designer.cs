@@ -12,7 +12,7 @@ using Projeto_SEGUES.Data;
 namespace Projeto_SEGUES.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260305090325_initial")]
+    [Migration("20260305132127_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -139,8 +139,14 @@ namespace Projeto_SEGUES.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<TimeSpan>("CloseBarTime")
+                        .HasColumnType("time");
+
                     b.Property<int>("MaxTicketsPerUser")
                         .HasColumnType("int");
+
+                    b.Property<TimeSpan>("OpenBarTime")
+                        .HasColumnType("time");
 
                     b.Property<int>("TicketValidityDays")
                         .HasColumnType("int");

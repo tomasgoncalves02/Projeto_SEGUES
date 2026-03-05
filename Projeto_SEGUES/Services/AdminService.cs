@@ -235,4 +235,30 @@ public class AdminService : IAdminService
         config.TicketValidityDays = days;
         await _context.SaveChangesAsync();
     }
+
+
+
+    public async Task<TimeSpan> GetOpenBarTimeAsync()
+    {
+        TimeSpan time = (await _context.AppConfigs.FirstAsync()).OpenBarTime;
+        return time;
+    }
+
+    public async Task<TimeSpan> GetCloseBarTimesAsync()
+    {
+        TimeSpan time = (await _context.AppConfigs.FirstAsync()).CloseBarTime;
+        return time;
+    }
+
+    public async Task UpdateBarScheduleAsync(string openBarTime, string closeBarTime)
+    {
+        var config = await _context.AppConfigs.FirstAsync(); 
+        config.OpenBarTime = TimeSpan.Parse(openBarTime);
+        config.CloseBarTime = TimeSpan.Parse(closeBarTime);
+        await _context.SaveChangesAsync();
+    }
+
+
+
+
 }

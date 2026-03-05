@@ -2,7 +2,10 @@
 @model IEnumerable<Projeto_SEGUES.Models.Order.Order>
 @{
     ViewData["Title"] = "Histórico Geral de Pedidos - SEGUES";
+    TimeSpan OpenTime = ViewBag.OpenBarTime != null ? (TimeSpan)ViewBag.OpenBarTime : TimeSpan.Zero;
+    TimeSpan CloseTime = ViewBag.CloseBarTime != null ? (TimeSpan)ViewBag.CloseBarTime : TimeSpan.Zero;
 }
+
 
 <div class="container-fluid mt-5 px-4">
     @* Cabeçalho *@
@@ -19,19 +22,60 @@
         </a>
     </div>
 
+    @* Definição do Hórario de Funcionamento*@
+    <div class="card card-ips shadow-sm mb-4 border-0 rounded-3" style="max-width: 580px;">
+        <div class="card-body p-4">
+            <h6 class="fw-bold mb-3" style="color: darkcyan;">
+                Definição do Horário de Funcionamento
+            </h6>
+
+            <form asp-area="Admin" asp-controller="AdminOrderManagement" asp-action="UpdateOpenAndCloseTime" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="row g-3 align-items-end">
+                    <div class="col-auto">
+                        <label class="form-label fw-semibold small mb-1">Hora de Início</label>
+                        <input type="time"
+                               name="openTime"
+                               class="form-control shadow-none"
+                               value="@OpenTime.ToString(@"hh\:mm")"
+                               style="width: 140px;" />
+                    </div>
+
+                    <div class="col-auto">
+                        <label class="form-label fw-semibold small mb-1">Hora de Fecho</label>
+                        <input type="time"
+                               name="closeTime"
+                               class="form-control shadow-none"
+                               value="@CloseTime.ToString(@"hh\:mm")"
+                               style="width: 140px;" />
+                    </div>
+
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-ips fw-bold px-4 shadow-sm">
+                            Atualizar
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
     @* Barra de Filtros *@
-    <div class="card shadow-sm border-0 mb-4 rounded-3">
+    <div class="card card-ips shadow-sm mb-4 border-0 rounded-3">
         <div class="card-body p-4">
             <div class="row g-3 align-items-end text-start">
                 <div class="col-md-2">
                     <label class="form-label fw-bold text-uppercase small text-muted mb-1">Estado</label>
                     <select class="form-select shadow-none" id="statusFilter" onchange="filterTable()">
-                         <option value="">Todos</option>
-                         @foreach (OrderStatus status in Enum.GetValues(typeof(OrderStatus)))
-                         {
+                        <option value="">Todos</option>
+                        @foreach (OrderStatus status in Enum.GetValues(typeof(OrderStatus)))
+                        {
                             if (status == OrderStatus.Cart) continue;
                             <option value="@((int)status)">@status.ToDisplayName()</option>
-                         }
+                        }
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -198,7 +242,7 @@
 
         function clearFilters() {
             document.getElementById('searchInput').value = "";
-            document.getElementById('statusFilter').value = "todos";
+            document.getElementById('statusFilter').value = "";
             document.getElementById('exactDateFilter').value = "";
             filterTable();
         }

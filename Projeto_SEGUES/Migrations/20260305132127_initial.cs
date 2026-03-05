@@ -18,7 +18,9 @@ namespace Projeto_SEGUES.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     MaxTicketsPerUser = table.Column<int>(type: "int", nullable: false),
-                    TicketValidityDays = table.Column<int>(type: "int", nullable: false)
+                    TicketValidityDays = table.Column<int>(type: "int", nullable: false),
+                    OpenBarTime = table.Column<TimeSpan>(type: "time", nullable: false),
+                    CloseBarTime = table.Column<TimeSpan>(type: "time", nullable: false)
                 },
                 constraints: table =>
                 {

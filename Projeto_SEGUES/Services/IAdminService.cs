@@ -23,4 +23,12 @@ public interface IAdminService
     Task UpdateTicketPricesAsync(List<TicketPrice> prices);
     Task<int> GetTicketValidityDaysAsync();
     Task UpdateTicketValidityDaysAsync(int days);
+
+    Task<TimeSpan> GetOpenBarTimeAsync();
+    Task<TimeSpan> GetCloseBarTimesAsync();
+
+    Task UpdateBarScheduleAsync(string openBarTime, string closeBarTime);
+
+
+
 }

@@ -15,16 +15,19 @@ public class CreateOrderController : Controller
     private readonly IInventoryService _inventoryService;
     private readonly IOrderService _orderService;
     private readonly UserManager<AppUser> _userManager;
-    
+    private readonly IAdminService _adminService;
+
     public CreateOrderController(
         IInventoryService inventoryService,
         IOrderService orderService,
-        UserManager<AppUser> userManager
+        UserManager<AppUser> userManager,
+        IAdminService adminService
     )
     {
         _inventoryService = inventoryService;
         _orderService = orderService;
         _userManager = userManager;
+        _adminService = adminService;
     }
 
     public async Task<IActionResult> Index()
@@ -67,8 +70,22 @@ public class CreateOrderController : Controller
     [ValidateAntiForgeryToken] 
     public async Task<IActionResult> SubmitOrder(bool receiveNow, string? pickupTime) 
     { 
+        
+
+        var openTime = await _adminService.GetOpenBarTimeAsync();
+        var closeTime = await _adminService.GetCloseBarTimesAsync();
+        var now = DateTime.Now.TimeOfDay;
+
+        if (now < openTime || now > closeTime)
+        {
+            TempData.SetSwalError($"O bar está encerrado. Horário de funcionamento: {openTime:hh\\:mm} - {closeTime:hh\\:mm}");
+            return RedirectToAction(nameof(Checkout));
+        }
+
         var user = await _userManager.GetUserAsync(User);
         var result = await _orderService.SubmitOrderAsync(user!, receiveNow, pickupTime);
+
+
         if (result.Success)
         {
             TempData.SetSwalSuccess(result.Message);
