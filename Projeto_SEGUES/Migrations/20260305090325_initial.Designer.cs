@@ -12,8 +12,8 @@ using Projeto_SEGUES.Data;
 namespace Projeto_SEGUES.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260304023736_Initial")]
-    partial class Initial
+    [Migration("20260305090325_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

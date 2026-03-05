@@ -35,7 +35,7 @@ public class OrderManagementController : Controller
         ViewBag.TotalQuantity = _orderService.GetOrderTotal(order).TotalQuantity;
         return PartialView("_OrderDetailsSideCard", order);
     }
-    
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateStatus(int id, int newStatus)
@@ -44,7 +44,7 @@ public class OrderManagementController : Controller
         if (!result.Success) return BadRequest(result.Message);
         return Ok(); // Retorna OK para o JavaScript saber que deu certo
     }
-    
+
     [HttpPost]
     public async Task<IActionResult> ValidateOrderCode(int id, string codeEntered)
     {
