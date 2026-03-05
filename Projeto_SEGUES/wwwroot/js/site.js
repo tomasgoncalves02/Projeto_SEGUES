@@ -733,8 +733,8 @@ function handleUpdate() {
     const status = statusSelect.value;
     const orderId = orderIdInput.value;
 
-    // CASO 1: SE FOR ENTREGUE (STATUS 3) -> ABRE POPUP
-    if (status === "3") {
+    // CASO 1: SE FOR ENTREGUE (STATUS 4) -> ABRE POPUP
+    if (status === "4") {
         Swal.fire({
             title: 'Validar Entrega',
             text: 'Introduza o código do cliente:',
