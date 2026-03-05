@@ -104,7 +104,12 @@
             <h5 class="mb-0 fw-bold text-color-ips">
                 <i class="bi bi-receipt-cutoff me-2"></i>Registo de Transações
             </h5>
-            <span class="badge bg-light text-dark border fs-6">Total: @Model.Count() pedidos únicos</span>
+            <div class="d-flex align-items-center gap-3">
+                <button type="button" onclick="exportarPDFComFiltros()" class="btn btn-ips fw-bold shadow-sm px-4 py-2">
+                    <i class="bi bi-file-earmark-pdf me-2"></i>Exportar PDF
+                </button>
+                <span class="badge bg-light text-dark border fs-6">Total: @Model.Count() pedidos únicos</span>
+            </div>
         </div>
 
         <div class="table-responsive">
@@ -245,6 +250,20 @@
             document.getElementById('statusFilter').value = "";
             document.getElementById('exactDateFilter').value = "";
             filterTable();
+        }
+
+            function exportarPDFComFiltros() {
+            // Captura os valores atuais dos filtros
+            const status = document.getElementById('statusFilter').value;
+            const date = document.getElementById('exactDateFilter').value;
+            const search = document.getElementById('searchInput').value;
+
+            // Constrói a URL para o controlador passando os parâmetros de filtro
+            // Nota: O encodeURIComponent é essencial para nomes com espaços ou acentos
+            const url = `/Admin/AdminOrderManagement/ExportOrdersPDF?status=${status}&date=${date}&search=${encodeURIComponent(search)}`;
+
+            // Abre o PDF numa nova aba para não interromper a navegação atual
+            window.open(url, '_blank');
         }
         
     </script>
