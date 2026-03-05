@@ -30,6 +30,13 @@ public static class StringExtensions
             "Used" => "bg-secondary",
             "Expired" => "bg-danger",
             
+            // Order Status
+            "Pending" => "bg-secondary",
+            "Preparing" => "bg-info",
+            "ReadyToDeliver" => "bg-warning",
+            "Delivered" => "bg-success",
+            "Canceled" => "bg-danger",
+            
             // Default
             _ => "bg-secondary"
         };

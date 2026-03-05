@@ -47,6 +47,24 @@ a:hover {
     box-shadow: 0 0 0 0.25rem var(--ips-shadow-soft);
 }
 
+/* ==========
+   Scrollbar
+   ========== */
+::-webkit-scrollbar {
+    width: 0.7em;
+}
+::-webkit-scrollbar-track {
+    background-color: var(--ips-bg-light);
+}
+::-webkit-scrollbar-thumb {
+    background-color: var(--ips);
+    border-radius: 5px;
+}
+html {
+    scrollbar-width: auto;
+    scrollbar-color: var(--ips) var(--ips-bg-light);
+}
+
 /* =========
    Header
    ========= */
@@ -196,17 +214,6 @@ a:hover {
     color: var(--ips);
 }
 
-/* ==========
-   Scrollbar
-   ========== */
-::-webkit-scrollbar {
-    width: 0.7em;
-    background-color: var(--ips-bg-light);
-}
-::-webkit-scrollbar-thumb {
-    background-color: var(--ips);
-    border-radius: 5px;
-}
 /* ========== 
    Login & Responsividade 
    ========== */
@@ -238,20 +245,20 @@ a:hover {
     }
 }
 
-/* Utilit·rio para forÁar quebra de texto (evita que o texto saia dos modais/cards) */
+/* Utilit√°rio para for√ßar quebra de texto (evita que o texto saia dos modais/cards) */
 .text-break-all {
     word-break: break-all !important;
     overflow-wrap: break-word !important;
 }
 
-/* CorreÁ„o para o grupo de input (Email/Password) n„o quebrar em ecr„s pequenos */
+/* Corre√ß√£o para o grupo de input (Email/Password) n√£o quebrar em ecr√£s pequenos */
 .input-group {
     flex-wrap: nowrap !important;
 }
 
     .input-group .form-floating {
         flex: 1 1 auto;
-        width: 1%; /* ForÁa o bot„o a manter o tamanho original e o input a ocupar o resto */
+        width: 1%; /* For√ßa o bot√£o a manter o tamanho original e o input a ocupar o resto */
     }
 
 /* No teu site.css, atualiza estas linhas */

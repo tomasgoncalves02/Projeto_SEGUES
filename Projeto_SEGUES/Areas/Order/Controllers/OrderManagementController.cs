@@ -24,7 +24,7 @@ public class OrderManagementController : Controller
     [HttpGet]
     public async Task<IActionResult> GetOrdersTable()
     {
-        return PartialView("_ManageOrdersTable", await _orderService.GetUndeliveredOrdersAsync());
+        return PartialView("_ManageOrdersTablePartial", await _orderService.GetUndeliveredOrdersAsync());
     }
     
     [HttpGet]
@@ -33,7 +33,7 @@ public class OrderManagementController : Controller
         var order = await _orderService.GetOrderByIdAsync(id);
         if (order == null) return NotFound();
         ViewBag.TotalQuantity = _orderService.GetOrderTotal(order).TotalQuantity;
-        return PartialView("_OrderDetailsSideCard", order);
+        return PartialView("_ManageOrderDetailsSideCardPartial", order);
     }
 
     [HttpPost]

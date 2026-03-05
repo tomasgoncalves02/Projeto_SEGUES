@@ -1,0 +1,49 @@
+﻿@model IEnumerable<Projeto_SEGUES.Models.Order.Order>
+
+<div class="card shadow-sm border-0">
+    <div class="table-responsive rounded-3">
+        <table class="table table-hover align-middle mb-0 text-center">
+            <thead class="bg-color-ips text-white">
+            <tr>
+                <th class="ps-4 py-3">Selecionar</th>
+                <th class="py-3">Utilizador</th>
+                <th class="py-3">Pedido efetuado</th>
+                <th class="py-3">Hora de entregar</th>
+                <th class="pe-4 py-3">Estado</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var order in Model)
+            {
+                <tr data-order-id="@order.Id">
+                    @* Select *@
+                    <td>
+                        <button class="btn btn-sm btn-ips shadow-sm"
+                                hx-get="/Order/OrderManagement/GetOrderDetailsSide/@order.Id"
+                                hx-target="#side-panel-target">
+                            <i class="bi bi-eye text-white"></i>
+                        </button>
+                    </td>
+                    @* User *@
+                    <td class="ps-4">
+                        <div class="d-flex align-items-center flex-column">
+                            <div class="fw-bold text-dark">@order.AppUser.FirstName @order.AppUser.LastName</div>
+                            <div class="text-muted">@order.AppUser.UserName</div>
+                        </div>
+                    </td>
+                    @* Order date *@
+                    <td>@order.OrderDate.ToString("HH:mm")</td>
+                    @* Pickup time *@
+                    <td>@(order.PickupTime == TimeSpan.Zero ? "-" : order.PickupTime.ToString())</td>
+                    @* Status *@
+                    <td>
+                        <span class="badge @order.Status.ToString().ToBadgeClass()" style="min-width: 90px; padding: 7px;">
+                            @order.Status.ToDisplayName().ToUpper()
+                        </span>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
