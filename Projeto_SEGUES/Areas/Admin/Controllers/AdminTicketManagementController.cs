@@ -82,13 +82,26 @@ public class AdminTicketManagementController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetUpdatedAuditTable()
+    public async Task<IActionResult> GetUpdatedAuditTable(string searchString, Projeto_SEGUES.Models.Enums.TicketState? stateFilter, DateTime? dateFilter)
     {
-        // Vai buscar os mesmos dados que a Index, mas retorna apenas a Partial
         var history = await _ticketService.GetAllTicketsAsync();
 
-        // Importante: O nome deve coincidir com o ficheiro .cshtml que criaste
-        return PartialView("_AuditTableRows", history);
+        var query = history.AsQueryable();
+
+        if (stateFilter.HasValue)
+            query = query.Where(t => t.State == stateFilter.Value);
+
+        if (dateFilter.HasValue)
+            query = query.Where(t => t.TicketPurchase.TransactionDate.Date >= dateFilter.Value.Date);
+
+        if (!string.IsNullOrEmpty(searchString))
+        {
+            query = query.Where(t => t.Owner.FirstName.Contains(searchString, StringComparison.OrdinalIgnoreCase) ||
+                                     t.Owner.LastName.Contains(searchString, StringComparison.OrdinalIgnoreCase) ||
+                                     t.ValidationCode.Contains(searchString.ToUpper()));
+        }
+
+        return PartialView("_AuditTableRows", query.OrderByDescending(t => t.TicketPurchase.TransactionDate).ToList());
     }
 
     [HttpGet]

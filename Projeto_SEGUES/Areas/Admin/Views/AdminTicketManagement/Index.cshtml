@@ -9,7 +9,7 @@
 }
 
 <div class="container mt-5">
-    @* Top row *@
+    @* Cabeçalho Principal *@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="fw-bold title-underline mb-2">
@@ -17,16 +17,17 @@
                 Painel de Gestão e Auditoria
             </h2>
             <p class="text-muted small mb-0">Administração de Preçários e Registo Global de Senhas</p>
-        </div>      
+        </div>
         <a asp-area="Admin" asp-controller="Admin" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4">
             <i class="bi bi-arrow-left me-2"></i>Voltar ao Painel
         </a>
     </div>
 
-    @* Price management (Admin only) *@
+    @* Gestão de Preçários e Validade (Admin Only) *@
     @if (isAdmin && prices != null && prices.Any())
     {
         <div class="row g-4 mb-5">
+            @* Tabela de Preços *@
             <div class="col-lg-8">
                 <div class="card shadow-sm card-ips h-100">
                     <div class="card-header bg-white py-3 border-bottom-0">
@@ -63,6 +64,7 @@
                 </div>
             </div>
 
+            @* Validade Global *@
             <div class="col-lg-4">
                 <div class="card shadow-sm card-ips h-100">
                     <div class="card-header bg-white py-3 border-bottom-0">
@@ -80,7 +82,7 @@
                                         <span class="input-group-text bg-white text-muted small fw-bold">Dias</span>
                                     </div>
                                 </div>
-                                <div class="col-auto align-items-end">
+                                <div class="col-auto">
                                     <button type="submit" class="btn btn-ips fw-bold shadow-sm">
                                         <i class="bi bi-check-lg"></i>
                                     </button>
@@ -93,7 +95,61 @@
         </div>
     }
 
-    @* Global Audit Table *@
+    @* --- SECÇÃO DE FILTROS DE AUDITORIA --- *@
+    <div class="card card-ips shadow-sm mb-4 border-0 rounded-3">
+        <div class="card-body p-4">
+            <form id="filterForm"
+                  hx-get="/Admin/AdminTicketManagement/GetUpdatedAuditTable"
+                  hx-trigger="change, keyup delay:300ms from:#searchFilter"
+                  hx-target="#auditTableBody"
+                  hx-indicator=".loader-spinner"
+                  class="row g-3 align-items-end">
+
+                <div class="col-md-4 col-xl-2">
+                    <label class="form-label small fw-bold">Estado</label>
+                    <select name="stateFilter" class="form-select form-select-sm">
+                        <option value="">Todos</option>
+                        <option value="Available">Disponível</option>
+                        <option value="Used">Utilizada</option>
+                        <option value="Expired">Expirada</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4 col-xl-2">
+                    <label class="form-label small fw-bold">A partir de</label>
+                    <input type="date" name="dateFilter" class="form-control form-control-sm">
+                </div>
+
+                <div class="col-md-4 col-xl-2">
+                    <label class="form-label small fw-bold">Fluxo</label>
+                    <select name="flowFilter" class="form-select form-select-sm">
+                        <option value="">Todas</option>
+                        <option value="Compradas">Compradas</option>
+                        <option value="Enviadas">Enviadas</option>
+                        <option value="Recebidas">Recebidas</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6 col-xl">
+                    <label class="form-label small fw-bold">Pesquisar</label>
+                    <input id="searchFilter" type="text" name="searchString" class="form-control form-control-sm"
+                           placeholder="Código, Nome ou Email do utilizador...">
+                </div>
+
+                <div class="col-md-4 col-xl-auto">
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary px-3" onclick="resetFilters()">Limpar</button>
+                        <div class="spinner-border spinner-border-sm text-primary htmx-indicator loader-spinner" role="status"></div>
+                        <button type="submit" class="btn btn-ips fw-bold px-3 py-2 shadow-sm d-flex align-items-center">
+                            <i class="bi bi-search me-2"></i> PESQUISAR
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @* Tabela de Auditoria *@
     <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
         <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
             <h5 class="mb-0 fw-bold text-color-ips">
@@ -101,10 +157,9 @@
             </h5>
 
             <div class="d-flex align-items-center gap-3">
-                <a asp-area="Admin" asp-controller="AdminTicketManagement" asp-action="ExportTicketsPDF"
-                   class="btn btn-ips fw-bold shadow-sm px-4 py-2">
+                <button onclick="exportPdfWithFilters()" class="btn btn-ips fw-bold shadow-sm px-4 py-2">
                     <i class="bi bi-file-earmark-pdf me-2"></i>Exportar PDF
-                </a>
+                </button>
                 <span class="badge bg-light text-dark border fs-6 py-2 px-3">Total: @Model.Count() registos</span>
             </div>
         </div>
@@ -124,10 +179,10 @@
                         <th class="py-3 pe-4">Expiração</th>
                     </tr>
                 </thead>
-                @* AQUI ENTRA O HTMX *@
                 <tbody id="auditTableBody"
                        hx-get="/Admin/AdminTicketManagement/GetUpdatedAuditTable"
-                       hx-trigger="every 5s"
+                       hx-trigger="every 10s"
+                       hx-include="#filterForm"
                        hx-swap="innerHTML">
                     <partial name="_AuditTableRows" model="Model" />
                 </tbody>
@@ -138,15 +193,26 @@
 
 @section Scripts {
     <script>
+        // Reset de filtros HTMX
+        function resetFilters() {
+            const form = document.getElementById('filterForm');
+            form.reset();
+            htmx.trigger(form, 'change');
+        }
+
+        // Exportação de PDF com filtros da URL
+        function exportPdfWithFilters() {
+            const form = document.getElementById('filterForm');
+            const formData = new FormData(form);
+            const params = new URLSearchParams(formData).toString();
+            window.location.href = `/Admin/AdminTicketManagement/ExportTicketsPDF?${params}`;
+        }
+
+        // Formatação decimal para preçário
         document.querySelector('form')?.addEventListener('submit', function (e) {
             document.querySelectorAll('.decimal-input').forEach(function (input) {
                 input.value = input.value.replace(',', '.');
             });
-        });
-
-        // Log opcional para debug
-        document.addEventListener('htmx:afterProcess', function() {
-            console.log("Auditoria atualizada.");
         });
     </script>
 }
