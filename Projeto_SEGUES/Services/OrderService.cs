@@ -114,7 +114,6 @@ public class OrderService : IOrderService
         var cart = await GetCartAsync(user.Id);
         if (cart.ProductPurchases.Count == 0) return ServiceResult.Fail("O carrinho está vazio.");
 
-        // 1. Determinar a hora a validar
         TimeSpan timeToValidate = receiveNow ? DateTime.Now.TimeOfDay : TimeSpan.Zero;
         TimeSpan? deliveryTime = null;
 
@@ -131,7 +130,7 @@ public class OrderService : IOrderService
             timeToValidate = DateTime.Now.TimeOfDay;
         }
 
-        // 2. Validar se o Bar está aberto (Injetar IAdminService no construtor)
+        // 2. Validar se o Bar está aberto
         if (!await _adminService.IsBarOpenAsync(timeToValidate))
         {
             var open = await _adminService.GetOpenBarTimeAsync();
@@ -142,25 +141,25 @@ public class OrderService : IOrderService
         decimal total = ApplyDiscount(cart.TotalValue, cart.Discount);
         if (user.Balance < total) return ServiceResult.Fail("Saldo insuficiente.");
 
-        // Validate stock
         foreach (var item in cart.ProductPurchases)
         {
             if (item.Product.Stock < item.Quantity)
                 return ServiceResult.Fail($"Stock insuficiente para o produto: {item.Product.Name}");
         }
 
-        // Recreate RedemptionCode
         while (_context.Orders.Any(o => o.RedemptionCode == cart.RedemptionCode))
         {
             cart.RedemptionCode = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
         }
 
-        using var transaction = await _context.Database.BeginTransactionAsync();
+        using var dbTransaction = await _context.Database.BeginTransactionAsync();
         try
         {
+            var now = DateTime.Now;
+
             cart.Status = OrderStatus.Pending;
             cart.TotalValue = total;
-            cart.OrderDate = DateTime.Now;
+            cart.OrderDate = now;
             cart.DeliveryTime = deliveryTime;
 
             foreach (var item in cart.ProductPurchases)
@@ -170,15 +169,27 @@ public class OrderService : IOrderService
             }
 
             user.Balance -= total;
+            
+            var barTransaction = new Projeto_SEGUES.Models.Payment.Transaction
+            {
+                User = user,
+                Amount = -total, 
+                Description = $"Consumo Bar - Pedido #{cart.RedemptionCode}",
+                Reference = "CONSUMO BAR",
+                IsPaid = true,
+                CreatedAt = now,
+                PhoneNumber = user.PhoneNumber ?? "N/A"
+            };
+            _context.Transactions.Add(barTransaction);
 
             await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
+            await dbTransaction.CommitAsync();
 
             return ServiceResult.Ok("Encomenda realizada com sucesso!");
         }
         catch (Exception)
         {
-            await transaction.RollbackAsync();
+            await dbTransaction.RollbackAsync();
             return ServiceResult.Fail("Ocorreu um erro ao processar a encomenda.");
         }
     }
@@ -187,22 +198,41 @@ public class OrderService : IOrderService
     {
         var order = await GetOrderByIdAsync(id);
         if (order == null) return ServiceResult.Fail("Pedido não encontrado.");
-        if (order.Status != OrderStatus.Pending) return ServiceResult.Fail("Pedido não pode ser cancelado.");
-        
+
+        if (order.Status != OrderStatus.Pending)
+            return ServiceResult.Fail("O pedido já está em processamento ou finalizado e não pode ser cancelado.");
+
         using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
+            var now = DateTime.Now;
+
             order.Status = OrderStatus.Cancelled;
+
             foreach (var item in order.ProductPurchases)
             {
-                item.Product.Stock += item.Quantity; // Readd stock
+                item.Product.Stock += item.Quantity;
             }
-            order.AppUser.Balance += order.TotalValue; // Refund user
+
             
+            order.AppUser.Balance += order.TotalValue;
+           
+            var refundTransaction = new Projeto_SEGUES.Models.Payment.Transaction
+            {
+                User = order.AppUser,
+                Amount = order.TotalValue, 
+                Description = $"Reembolso Bar - Cancelamento Pedido #{order.RedemptionCode}",
+                Reference = "REEMBOLSO BAR",
+                IsPaid = true,
+                CreatedAt = now,
+                PhoneNumber = order.AppUser.PhoneNumber ?? "N/A"
+            };
+            _context.Transactions.Add(refundTransaction);
+
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
-            
-            return ServiceResult.Ok("Pedido cancelado com sucesso e reembolso efetuado.");
+
+            return ServiceResult.Ok("Pedido cancelado com sucesso e saldo reembolsado.");
         }
         catch (Exception)
         {
@@ -210,7 +240,7 @@ public class OrderService : IOrderService
             return ServiceResult.Fail("Ocorreu um erro ao cancelar o pedido.");
         }
     }
-    
+
     public async Task<List<Order>> GetActiveOrdersAsync(string userId)
     {
         return await _context.Orders
