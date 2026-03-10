@@ -41,7 +41,7 @@ public class ReportTicketsController : Controller
     [HttpGet]
     public async Task<IActionResult> GetFilteredHistory(string stateFilter, DateTime? dateFilter, string flowFilter, string searchString)
     {
-        var userId = _userManager.GetUserId(User);
+        var userId = _userManager.GetUserId(User)!;
         ViewBag.CurrentUserId = userId;
 
         // Converte a string do filtro para o Enum TicketState (se não for nula)

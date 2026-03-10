@@ -8,7 +8,6 @@
     <div class="row mb-4 align-items-center">
         <div class="col-md-7">
             <h2 class="fw-bold title-underline mb-2">
-                <i class="bi bi-cart-plus me-2 text-color-ips"></i>
                 Efetuar Pedido
             </h2>
             <p class="text-muted small">Seleciona os produtos e as quantidades que pretendes adquirir.</p>
@@ -30,7 +29,7 @@
                     <div class="text-center">
                         <span class="fw-bold small d-block text-uppercase text-muted mb-1">Carrinho</span>
                         <a asp-area="Order" asp-controller="CreateOrder" asp-action="Checkout" class="position-relative d-inline-block text-decoration-none">
-                            <i class="bi bi-cart-plus fs-2 text-color-ips"></i>
+                            <i class="bi bi-cart-check fs-2 text-color-ips"></i>
 
                             @* Badge inicializada com o valor da BD *@
                             <span id="cart-count"
@@ -47,6 +46,10 @@
                     <label for="typeFilter" class="form-label small fw-bold text-muted text-uppercase mb-1">Tipo</label>
                     <select id="typeFilter" class="form-select form-select-sm border-secondary-subtle">
                         <option value="todos">Bebidas/Comidas</option>
+                        @foreach (var cat in ViewBag.Categories)
+                        {
+                            <option value="@cat.ToString">@cat.ToString()</option>
+                        }
                     </select>
                 </div>
 

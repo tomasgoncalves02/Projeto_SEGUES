@@ -167,7 +167,7 @@ namespace SeguesTests.Admin
             var history = new List<Ticket>();
             _mockTicketService.Setup(s => s.GetAllTicketsAsync()).ReturnsAsync(history);
 
-            var result = await _controller.GetUpdatedAuditTable();
+            var result = await _controller.GetUpdatedAuditTable("", null, null);
 
             var partialViewResult = Assert.IsType<PartialViewResult>(result);
             Assert.Equal("_AuditTableRows", partialViewResult.ViewName);

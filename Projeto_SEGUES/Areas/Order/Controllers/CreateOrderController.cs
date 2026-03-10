@@ -35,6 +35,7 @@ public class CreateOrderController : Controller
         var userId = _userManager.GetUserId(User)!;
         var cart = await _orderService.GetCartAsync(userId);
         ViewBag.CartTotal = _orderService.GetOrderTotal(cart);
+        ViewBag.Categories = _inventoryService.GetAllCategoriesForDropdownAsync();
         return View(await _inventoryService.GetAvailableProductsAsync());
     }
     
@@ -78,7 +79,7 @@ public class CreateOrderController : Controller
 
         if (now < openTime || now > closeTime)
         {
-            TempData.SetSwalError($"O bar est· encerrado. Hor·rio de funcionamento: {openTime:hh\\:mm} - {closeTime:hh\\:mm}");
+            TempData.SetSwalError($"O bar est√° encerrado. Hor√°rio de funcionamento: {openTime:hh\\:mm} - {closeTime:hh\\:mm}");
             return RedirectToAction(nameof(Checkout));
         }
 

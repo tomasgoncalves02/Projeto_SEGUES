@@ -47,6 +47,14 @@ a:hover {
     box-shadow: 0 0 0 0.25rem var(--ips-shadow-soft);
 }
 
+.input-group {
+    flex-wrap: nowrap !important;
+}
+
+.input-group .form-floating {
+    flex: 1 1 auto; /* Fill available space */
+}
+
 /* ==========
    Scrollbar
    ========== */
@@ -100,6 +108,10 @@ html {
     background-color: var(--ips) !important;
 }
 
+.bg-color-ips-light {
+    background-color: var(--ips-shadow-soft);
+}
+
 /* Cards */
 .card-ips {
     border: none !important;
@@ -136,8 +148,6 @@ html {
 .hover-translate:hover {
     transform: translateY(-5px);
 }
-
-
 
 .card-admin {
     background-color: var(--ips-dark);
@@ -214,57 +224,26 @@ html {
     color: var(--ips);
 }
 
+.table-row-ips-hover:hover {
+    background-color: var(--ips-shadow-soft);
+}
+
 /* ========== 
-   Login & Responsividade 
+   Responsive Design
    ========== */
-
-.login-wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    /* Ajusta a altura para evitar scroll no PC, descontando header/footer */
-    min-height: calc(100vh - 160px);
-    padding: 20px 0;
+.mx-lg-6 {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
 }
-
-.login-card-container {
-    width: 100%;
-    max-width: 92%; /* Mobile first */
-}
-
-/* Media Queries - No .css usa-se apenas um '@' */
-@media (min-width: 576px) {
-    .login-card-container {
-        max-width: 450px;
-    }
-}
-
 @media (min-width: 992px) {
-    .login-card-container {
-        max-width: 500px; /* Tamanho maior para PC */
+    .mx-lg-6 {
+        margin-left: 6rem !important;
+        margin-right: 6rem !important;
     }
 }
-
-/* Utilitário para forçar quebra de texto (evita que o texto saia dos modais/cards) */
-.text-break-all {
-    word-break: break-all !important;
-    overflow-wrap: break-word !important;
-}
-
-/* Correção para o grupo de input (Email/Password) não quebrar em ecrãs pequenos */
-.input-group {
-    flex-wrap: nowrap !important;
-}
-
-    .input-group .form-floating {
-        flex: 1 1 auto;
-        width: 1%; /* Força o botão a manter o tamanho original e o input a ocupar o resto */
-    }
-
-/* No teu site.css, atualiza estas linhas */
-
-@media (min-width: 992px) {
-    .login-card-container {
-        max-width: 600px; /* Aumentado de 500px para 600px para o Registo respirar melhor */
+@media (min-width: 1200px) {
+    .mx-lg-6 {
+        margin-left: 12rem !important;
+        margin-right: 12rem !important;
     }
 }

@@ -47,7 +47,7 @@ public class AdminCreateInternalAccountController : Controller
             foreach (var error in result.Errors)
                 ModelState.AddModelError("", error.Description);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             ModelState.AddModelError("", "Erro ao enviar e-mail de ativação. Verifique a sua conexão à Internet.");
             TempData.SetSwalError("Falha na conexão: O e-mail não pode ser enviado, por isso a conta não foi criada.");

@@ -35,7 +35,8 @@
             <div
                 hx-get="/Order/OrderManagement/GetOrdersTable"
                 hx-trigger="every 30s"
-                hx-swap="innerHTML">
+                hx-swap="innerHTML"
+                hx-boost="true">
                 <partial name="_ManageOrdersTablePartial" model="Model"/>
             </div>
         </div>

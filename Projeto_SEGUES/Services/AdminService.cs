@@ -145,7 +145,7 @@ public class AdminService : IAdminService
                 await _emailSender.SendEmailAsync(email, "SEGUES - Bem-vindo", emailBody);
                 return;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Console.WriteLine($"Failed to send welcome email to: {email}. Retrying in 2 minutes...");
                 await Task.Delay(120000);

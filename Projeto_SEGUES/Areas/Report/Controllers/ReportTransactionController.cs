@@ -50,7 +50,7 @@ public class ReportTransactionController : Controller
         if (!string.IsNullOrEmpty(searchString))
         {
             var search = searchString.ToLower();
-            query = query.Where(t => t.Description.ToLower().Contains(search) ||
+            query = query.Where(t => t.Description!.ToLower().Contains(search) ||
                                      t.Reference.ToLower().Contains(search));
         }
 

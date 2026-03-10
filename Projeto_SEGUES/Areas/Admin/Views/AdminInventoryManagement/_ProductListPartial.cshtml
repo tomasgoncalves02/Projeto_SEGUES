@@ -13,7 +13,7 @@ else
 {
     @foreach (var p in Model)
     {
-        <tr class="product-row" data-stock="@p.Stock" data-category-id="@p.Category?.Id">
+        <tr class="table-row-ips-hover" data-stock="@p.Stock" data-category-id="@p.Category?.Id">
             <td class="fw-bold product-name text-start ps-4">@p.Name</td>
             <td class="text-color-ips fw-bold">@p.Price.ToString("C")</td>
             <td>

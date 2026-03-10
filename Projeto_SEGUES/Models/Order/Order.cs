@@ -14,17 +14,17 @@ namespace Projeto_SEGUES.Models.Order
         public decimal TotalValue { get; set; }
         
         [DataType(DataType.Date)]
-        [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy HH:mm}", ApplyFormatInEditMode = true)]
         [Display(Name = "Data do Pedido")]
         public DateTime OrderDate { get; set; } = DateTime.Now;
         
         [DataType(DataType.Duration)]
-        [DisplayFormat(DataFormatString = "{0:c}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(DataFormatString = @"{0:HH\:mm}", ApplyFormatInEditMode = true)]
         [Display(Name = "Data de Entrega")]
         public TimeSpan? DeliveryTime { get; set; }
         
         [DataType(DataType.Duration)]
-        [DisplayFormat(DataFormatString = "{0:c}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(DataFormatString = @"{0:HH\:mm}", ApplyFormatInEditMode = true)]
         [Display(Name = "Data de Recolha")]
         public TimeSpan? PickupTime { get; set; }
         

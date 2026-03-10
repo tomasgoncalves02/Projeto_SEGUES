@@ -1,48 +1,53 @@
 ﻿@using Projeto_SEGUES.Models.Enums
 @model Projeto_SEGUES.Models.Order.Order
 
-<div class="card shadow-sm border-0 card-ips animate__animated animate__fadeIn">
-    <div class="card-body p-4 text-start">
-        @* Cabeçalho *@
-        <div class="d-flex align-items-center mb-4">
-            <i class="bi bi-cart-check fs-2 text-color-ips me-3"></i>
-            <h3 class="fw-bold mb-0 text-color-ips">Pedido #@Model.Id - @ViewBag.StatusPt</h3>
+<div class="card shadow-sm border-0 card-ips hover-translate d-flex flex-column">
+    <div class="card-body d-flex flex-column text-start align-items-start p-0">
+        @* Header *@
+        <div class="d-flex align-items-center w-100 p-3">
+            <i class="bi bi-cart fs-2 text-color-ips me-3"></i>
+            <h3 class="fw-bold mb-0 text-color-ips">Pedido</h3>
         </div>
-
-        @* Informações Gerais *@
-        <h6 class="fw-bold border-bottom pb-2 mb-3 text-uppercase small text-muted">Informações</h6>
-        <div class="mb-4">
-            <p class="mb-1"><b>Valor Total:</b> <span class="text-color-ips fw-bold">@Model.TotalValue.ToString("N2")€</span></p>
-            <p class="mb-1"><b>Quantidade:</b> @ViewBag.TotalQuantity itens</p>
+        <hr class="border-ips w-100 m-0" />
+        @* General information *@
+        <div class="d-flex flex-column align-items-start w-100 p-3">
+            <h6 class="fw-bold mb-2 text-color-ips">Informações</h6>
+            <p class="mb-1"><b>Valor:</b> @Model.TotalValue €</p>
+            <p class="mb-1"><b>Quantidade de itens:</b> @ViewBag.TotalQuantity itens</p>
             <p class="mb-1"><b>Comprador:</b> @Model.AppUser.FirstName @Model.AppUser.LastName</p>
         </div>
-
-        @* Lista de Produtos (Restaurada) *@
-        <h6 class="fw-bold border-bottom pb-2 mb-3 text-uppercase small text-muted">Produtos no Pedido</h6>
-        <div class="mb-4" style="max-height: 250px; overflow-y: auto;">
-            @if (Model.ProductPurchases != null && Model.ProductPurchases.Any())
-            {
-                foreach (var item in Model.ProductPurchases)
+        <hr class="border-ips w-100 m-0" />
+        @* Product List *@
+        <div class="d-flex flex-column align-items-start w-100 p-3">
+            <h6 class="fw-bold mb-2 text-color-ips">Produtos</h6>
+            <div class="w-100" style="max-height: 250px; overflow-y: auto;">
+                @if (Model.ProductPurchases.Any())
                 {
-                    <div class="d-flex justify-content-between border-bottom py-2 small">
-                        <span>@item.Product.Name <b class="text-color-ips">x @item.Quantity</b></span>
-                        <span class="fw-bold">@((item.ProductValue * item.Quantity).ToString("N2"))€</span>
-                    </div>
+                    foreach (var item in Model.ProductPurchases)
+                    {
+                        <div class="d-flex justify-content-between p-2 mb-2 small fw-bold bg-color-ips-light rounded">
+                            <span>@item.Quantity x @item.Product.Name : @((item.ProductValue * item.Quantity).ToString("N2"))€</span>
+                            <button class="btn btn-sm btn-ips shadow-sm ms-3" title="Detalhes" 
+                                    onclick="showProductDetails(@item.Product.Id, '@item.Product.Name', '@item.Product.Description', '@item.Product.Price', @item.Product.Stock)">
+                                <i class="bi bi-eye text-white"></i>
+                            </button>
+                        </div>
+                    }
                 }
-            }
-            else
-            {
-                <p class="text-muted small italic text-center">Nenhum produto encontrado.</p>
-            }
+                else
+                {
+                    <p class="text-muted small italic text-center">Nenhum produto encontrado.</p>
+                }
+            </div>
         </div>
-
-        @* Formulário de Gestão *@
-        <form id="updateOrderForm">
+        <hr class="border-ips w-100 m-0" />
+        @* Order State Management Form *@
+        <form id="updateOrderForm" class="p-3">
             @Html.AntiForgeryToken()
-            <input type="hidden" id="orderId" name="id" value="@Model.Id" />
+            <input type="hidden" id="orderId" name="id" value="@Model.Id"/>
 
             <div class="mb-3">
-                <label class="form-label small fw-bold text-muted">Alterar Estado</label>
+                <label class="form-label fw-bold text-color-ips mb-2">Alterar Estado</label>
                 <select id="statusSelect" name="newStatus" class="form-select border-ips fw-bold" onchange="toggleCodeInput()">
                     @foreach (OrderStatus status in Enum.GetValues(typeof(OrderStatus)))
                     {
@@ -50,19 +55,27 @@
                         <option value="@((int)status)" selected="@(Model.Status == status)">@status.ToDisplayName()</option>
                     }
                 </select>
+                @*
+                <button class="btn btn-sm btn-ips shadow-sm ms-3" title="Previous state" onclick="">
+                    <i class="bi bi-arrow-left"></i>
+                </button>
+                <span>@Model.Status</span>
+                <button class="btn btn-sm btn-ips shadow-sm ms-3" title="Previous state" onclick="">
+                    <i class="bi bi-arrow-right"></i>
+                </button>
+                *@
             </div>
-
-            @* Área de Validação (Apenas visível se for "Entregue") *@
+            @* Validate delivery (only show if state is "Entregue") *@
             <div id="codeValidationArea" class="mb-3 shadow-sm p-3 border rounded bg-light" style="display: none;">
                 <label class="form-label small fw-bold text-danger">
-                    <i class="bi bi-shield-lock-fill me-1"></i>Código de Validação
+                    <i class="bi bi-shield-lock-fill me-1"></i>
+                    Código de Validação
                 </label>
-                <input type="text" id="deliveryCode" name="codeEntered"
+                <input type="text" id="deliveryCode" name="codeEntered" 
                        class="form-control form-control-lg text-center fw-bold border-danger"
-                       placeholder="0000" maxlength="6">
+                       placeholder="0000" maxlength="6" />
                 <div class="form-text text-muted">O código foi enviado para o email do cliente.</div>
             </div>
-
             <button type="button" onclick="handleUpdate()" class="btn btn-ips w-100 py-3 fw-bold text-uppercase shadow-sm mt-2">
                 <i class="bi bi-check-circle me-2"></i> Atualizar Pedido
             </button>

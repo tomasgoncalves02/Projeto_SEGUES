@@ -1,9 +1,7 @@
 using System.Diagnostics;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Projeto_SEGUES.Extensions;
-using Projeto_SEGUES.Models;
 using Projeto_SEGUES.Models.Audit.ViewModels;
 using Projeto_SEGUES.Models.User;
 

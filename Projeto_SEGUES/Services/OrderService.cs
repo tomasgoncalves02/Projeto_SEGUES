@@ -326,7 +326,7 @@ public class OrderService : IOrderService
         var storedCode = order.RedemptionCode?.Trim();
         var enteredCode = codeEntered.Trim();
 
-        if (!string.Equals(order.RedemptionCode.Trim(), codeEntered.Trim(), StringComparison.CurrentCultureIgnoreCase))
+        if (!string.Equals(order.RedemptionCode!.Trim(), codeEntered.Trim(), StringComparison.CurrentCultureIgnoreCase))
             return ServiceResult.Fail("Código inválido!");
         
         order.Status = OrderStatus.Delivered;
