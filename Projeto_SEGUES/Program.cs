@@ -34,10 +34,20 @@ else
 }
 string? connectionString = builder.Configuration.GetConnectionString(connectionName);
 
-var connectionStringBuilder = new SqlConnectionStringBuilder(connectionString)
+var connectionStringBuilder = new SqlConnectionStringBuilder(connectionString);
+if (!string.IsNullOrWhiteSpace(password))
 {
-    Password = password
-};
+    connectionStringBuilder.Password = password;
+}
+else
+{
+    // Use Windows Integrated Security for local SQL Server (no password)
+    connectionStringBuilder.IntegratedSecurity = true;
+    if (connectionStringBuilder.ContainsKey("User ID"))
+        connectionStringBuilder.Remove("User ID");
+    if (connectionStringBuilder.ContainsKey("Password"))
+        connectionStringBuilder.Remove("Password");
+}
 connectionString = connectionStringBuilder.ConnectionString;
 
 // Database
