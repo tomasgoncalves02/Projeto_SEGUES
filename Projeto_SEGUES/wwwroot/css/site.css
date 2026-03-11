@@ -235,15 +235,21 @@ html {
     margin-left: 0 !important;
     margin-right: 0 !important;
 }
+@media (min-width: 768px) {
+    .mx-lg-6 {
+        margin-left: 4rem !important;
+        margin-right: 4rem !important;
+    }
+}
 @media (min-width: 992px) {
     .mx-lg-6 {
-        margin-left: 6rem !important;
-        margin-right: 6rem !important;
+        margin-left: 8rem !important;
+        margin-right: 8rem !important;
     }
 }
 @media (min-width: 1200px) {
     .mx-lg-6 {
-        margin-left: 12rem !important;
-        margin-right: 12rem !important;
+        margin-left: 16rem !important;
+        margin-right: 16rem !important;
     }
 }
