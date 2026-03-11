@@ -74,7 +74,7 @@ public class AdminOrderManagementController : Controller
     [HttpGet]
     public async Task<IActionResult> ExportOrdersPDF(string status, DateTime? date, string search)
     {
-        var query = _context.Orders
+        var query = _context.Order
             .Include(o => o.AppUser)
             .Include(o => o.ProductPurchases)
                 .ThenInclude(p => p.Product)

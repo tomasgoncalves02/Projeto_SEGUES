@@ -3,7 +3,7 @@ using Projeto_SEGUES.Models.Enums;
 
 namespace Projeto_SEGUES.Models.Audit
 {
-    public class AlertSignalLog
+    public class AlertLog
     {
         public int Id { get; set; }
         

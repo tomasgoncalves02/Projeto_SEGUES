@@ -18,7 +18,7 @@ namespace Projeto_SEGUES.Services
             var mailServer = _config["EmailSettings:SmtpServer"];
             var port = int.Parse(_config["EmailSettings:SmtpPort"]!);
             var myEmail = _config["EmailSettings:SenderEmail"]!;
-            var myPassword = _config["EmailSettings:SenderPassword"];
+            var myPassword = _config["Secrets:SenderPassword"];
             
             var client = new SmtpClient(mailServer, port)
             {

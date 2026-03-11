@@ -22,7 +22,7 @@ public class OrderService : IOrderService
 
     public async Task<Order> GetCartAsync(string userId)
     {
-        var cart = await _context.Orders
+        var cart = await _context.Order
             .Include(o => o.ProductPurchases)
             .ThenInclude(ol => ol.Product)
             .FirstOrDefaultAsync(o => o.AppUser.Id == userId && o.Status == OrderStatus.Cart);
@@ -33,7 +33,7 @@ public class OrderService : IOrderService
         {
             AppUser = user!
         };
-        _context.Orders.Add(cart);
+        _context.Order.Add(cart);
         await _context.SaveChangesAsync();
         return cart;
     }
@@ -60,10 +60,10 @@ public class OrderService : IOrderService
     public async Task<ServiceResult> AddToCartAsync(string userId, int productId, int quantity)
     {
         var cart = await GetCartAsync(userId);
-        var product = await _context.Products.FindAsync(productId);
+        var product = await _context.Product.FindAsync(productId);
         if (product == null) return ServiceResult.Fail("Produto não encontrado.", GetOrderTotal(cart));
         
-        var line = await _context.OrderLines.FirstOrDefaultAsync(ol => ol.Order.Id == cart.Id && ol.ProductId == productId);
+        var line = await _context.OrderLine.FirstOrDefaultAsync(ol => ol.Order.Id == cart.Id && ol.ProductId == productId);
         if (line != null)
         {
             line.Quantity += quantity;
@@ -71,11 +71,11 @@ public class OrderService : IOrderService
         }
         else
         {
-            var discount = await _context.Discounts
+            var discount = await _context.Discount
                 .Where(d => d.IsActive && !d.IsGlobal && d.StartDate <= DateTime.Now && d.EndDate > DateTime.Now)
                 .FirstOrDefaultAsync(d => d.Products.Any(p => p.Id == productId));
             var productValue = ApplyDiscount(product.Price, discount);
-            _context.OrderLines.Add(
+            _context.OrderLine.Add(
                 new OrderLine {
                     OrderId = cart.Id,
                     Order = cart,
@@ -95,14 +95,14 @@ public class OrderService : IOrderService
     public async Task<ServiceResult> RemoveFromCartAsync(string userId, int productId)
     {
         var cart = await GetCartAsync(userId);
-        var line = await _context.OrderLines
+        var line = await _context.OrderLine
             .FirstOrDefaultAsync(ol => ol.Order.Id == cart.Id && ol.ProductId == productId);
 
         if (line == null) return ServiceResult.Fail("Produto não encontrado no carrinho.");       
         cart.TotalValue -= (line.Quantity * line.ProductValue);
         if (cart.TotalValue < 0) cart.TotalValue = 0;
 
-        _context.OrderLines.Remove(line);
+        _context.OrderLine.Remove(line);
        
         await _context.SaveChangesAsync();
 
@@ -147,7 +147,7 @@ public class OrderService : IOrderService
                 return ServiceResult.Fail($"Stock insuficiente para o produto: {item.Product.Name}");
         }
 
-        while (_context.Orders.Any(o => o.RedemptionCode == cart.RedemptionCode))
+        while (_context.Order.Any(o => o.RedemptionCode == cart.RedemptionCode))
         {
             cart.RedemptionCode = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
         }
@@ -180,7 +180,7 @@ public class OrderService : IOrderService
                 CreatedAt = now,
                 PhoneNumber = user.PhoneNumber ?? "N/A"
             };
-            _context.Transactions.Add(barTransaction);
+            _context.Transaction.Add(barTransaction);
 
             await _context.SaveChangesAsync();
             await dbTransaction.CommitAsync();
@@ -227,7 +227,7 @@ public class OrderService : IOrderService
                 CreatedAt = now,
                 PhoneNumber = order.AppUser.PhoneNumber ?? "N/A"
             };
-            _context.Transactions.Add(refundTransaction);
+            _context.Transaction.Add(refundTransaction);
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
@@ -243,7 +243,7 @@ public class OrderService : IOrderService
 
     public async Task<List<Order>> GetActiveOrdersAsync(string userId)
     {
-        return await _context.Orders
+        return await _context.Order
             .Where(o => o.AppUser.Id == userId && _activeStatus.Contains(o.Status))
             .OrderByDescending(o => o.OrderDate)
             .ToListAsync();
@@ -252,7 +252,7 @@ public class OrderService : IOrderService
     public async Task<Order?> GetOrderByIdAsync(int id)
     {
         // Includes products info and user
-        return await _context.Orders
+        return await _context.Order
             .Include(o => o.ProductPurchases)
             .ThenInclude(ol => ol.Product)
             .Include(o => o.AppUser)
@@ -262,7 +262,7 @@ public class OrderService : IOrderService
     public async Task<List<Order>> GetOrderHistoryAsync(string userId)
     {
         // Doesn't include products info
-        return await _context.Orders
+        return await _context.Order
             .Where(o => o.AppUser.Id == userId && o.Status != OrderStatus.Cart)
             .OrderByDescending(o => o.OrderDate)
             .ToListAsync();
@@ -271,7 +271,7 @@ public class OrderService : IOrderService
     public async Task<List<Order>> GetUndeliveredOrdersAsync()
     {
         // Doesn't include products info, includes User, active orders
-        return await _context.Orders
+        return await _context.Order
             .Include(o => o.AppUser)
             .Where(o => _activeStatus.Contains(o.Status))
             .OrderBy(o => o.PickupTime == TimeSpan.Zero ? o.OrderDate.TimeOfDay : o.PickupTime)
@@ -281,7 +281,7 @@ public class OrderService : IOrderService
     public async Task<List<Order>> GetAdminOrderHistoryAsync(string userId)
     {
         // Doesn't include products info, includes User
-        return await _context.Orders
+        return await _context.Order
             .Where(o => o.AppUser.Id == userId && o.Status != OrderStatus.Cart)
             .Include(o => o.AppUser)
             .OrderByDescending(o => o.OrderDate)

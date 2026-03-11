@@ -13,12 +13,12 @@ public class InventoryService : IInventoryService
 
     public async Task<Product?> GetProductByIdAsync(int id)
     {
-        return await _context.Products.FindAsync(id);
+        return await _context.Product.FindAsync(id);
     }
     
     public async Task<List<Product>> GetAvailableProductsAsync()
     {
-        return await _context.Products
+        return await _context.Product
             .Include(p => p.Category)
             .Where(p => p.IsActive && p.Stock > 0)
             .ToListAsync();
@@ -26,26 +26,26 @@ public class InventoryService : IInventoryService
 
     public async Task<List<Product>> GetAllProductsAsync()
     {
-        return await _context.Products
+        return await _context.Product
             .Include(p => p.Category)
             .ToListAsync();
     }
 
     public async Task<List<SelectListItem>> GetAllCategoriesForDropdownAsync()
     {
-        var categories = await _context.ProductCategories.ToListAsync();
+        var categories = await _context.ProductCategory.ToListAsync();
         return categories.Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name }).ToList();
     }
 
     public async Task<ServiceResult> CreateProductAsync(Product product)
     {
-        if (await _context.Products.AnyAsync(p => p.Name == product.Name))
+        if (await _context.Product.AnyAsync(p => p.Name == product.Name))
         {
             return ServiceResult.Fail("Já existe um produto com esse nome.");
         }
         try
         {
-            await _context.Products.AddAsync(product);
+            await _context.Product.AddAsync(product);
             await _context.SaveChangesAsync();
             return ServiceResult.Ok("Produto criado com sucesso!");
         }
@@ -57,10 +57,10 @@ public class InventoryService : IInventoryService
 
     public async Task<ServiceResult> EditProductAsync(Product product)
     {
-        var existingProduct = await _context.Products.FindAsync(product.Id);
+        var existingProduct = await _context.Product.FindAsync(product.Id);
         if (existingProduct == null) return ServiceResult.Fail("Produto não encontrado.");
         
-        if (await _context.Products.AnyAsync(p => p.Name == product.Name && p.Id != product.Id))
+        if (await _context.Product.AnyAsync(p => p.Name == product.Name && p.Id != product.Id))
         {
             return ServiceResult.Fail("Já existe um produto com esse nome.");
         }
@@ -85,7 +85,7 @@ public class InventoryService : IInventoryService
 
     public async Task<ServiceResult> DeleteProductAsync(int id)
     {
-        var product = await _context.Products.FindAsync(id);
+        var product = await _context.Product.FindAsync(id);
         if (product == null) return ServiceResult.Fail("Produto não encontrado.");
         try
         {

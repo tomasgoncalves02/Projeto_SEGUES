@@ -21,7 +21,7 @@ public class TicketService : ITicketService
     {
         var now = DateTime.Now;
         // Executes directly in the database without loading entities into memory
-        await _context.Tickets
+        await _context.Ticket
             .Where(t => t.Owner.Id == userId 
                         && t.State == TicketState.Available 
                         && t.ExpirationDate < now)
@@ -32,7 +32,7 @@ public class TicketService : ITicketService
     {
         var now = DateTime.Now;
         // Updates ALL expired tickets in the system in one go
-        await _context.Tickets
+        await _context.Ticket
             .Where(t => t.State == TicketState.Available 
                         && t.ExpirationDate < now)
             .ExecuteUpdateAsync(s => s.SetProperty(t => t.State, TicketState.Expired));
@@ -43,7 +43,7 @@ public class TicketService : ITicketService
     {
         // Ensure we update expired tickets before fetching
         await ExpireUserTicketsAsync(userId);
-        return await _context.Tickets
+        return await _context.Ticket
             .Include(t => t.Owner)
             .Include(t => t.TicketPurchase)
             .Where(t => t.Owner.Id == userId)
@@ -57,7 +57,7 @@ public class TicketService : ITicketService
         // Ensure we update expired tickets before fetching
         await ExpireUserTicketsAsync(userId);
         var now = DateTime.Now;
-        return await _context.Tickets
+        return await _context.Ticket
             .Include(t => t.TicketPurchase)
             .Where(t => t.Owner.Id == userId && t.State == TicketState.Available && t.ExpirationDate >= now)
             .OrderBy(t => t.ExpirationDate)
@@ -68,7 +68,7 @@ public class TicketService : ITicketService
     [Authorize(Roles = "Admin, Employee")]
     public async Task<List<Ticket>> GetRecentUsedTicketsAsync(int take = 10)
     {
-        return await _context.Tickets
+        return await _context.Ticket
             .Include(t => t.Owner)
             .Where(t => t.State == TicketState.Used)
             .OrderByDescending(t => t.UsedDate)
@@ -85,7 +85,7 @@ public class TicketService : ITicketService
         if (userCategoryId == null) return 0m;
         
         var now = DateTime.Now;
-        var price = await _context.TicketPrices
+        var price = await _context.TicketPrice
             .Where(p => p.UserCategory.Id == userCategoryId
                         && now >= p.InitialDatePrice 
                         && now <= p.EndDatePrice)
@@ -124,7 +124,7 @@ public class TicketService : ITicketService
                 TransactionDate = now,
                 Value = totalCost
             };
-            _context.TicketPurchases.Add(purchase);
+            _context.TicketPurchase.Add(purchase);
 
             // 2. NOVO: Criar o Registo no Histórico de Saldo (Tabela Transactions)
             // É este registo que fará aparecer a linha no teu histórico de movimentos
@@ -138,10 +138,10 @@ public class TicketService : ITicketService
                 CreatedAt = now,
                 PhoneNumber = dbUser.PhoneNumber ?? "N/A"
             };
-            _context.Transactions.Add(saldoMovimento);
+            _context.Transaction.Add(saldoMovimento);
 
             // 3. Obter validade e gerar as senhas
-            var validity = await _context.AppConfigs.Select(c => c.TicketValidityDays).FirstOrDefaultAsync();
+            var validity = await _context.AppConfig.Select(c => c.TicketValidityDays).FirstOrDefaultAsync();
             if (validity == 0) validity = 30; // Valor por defeito caso a config falhe
             var expiration = now.AddDays(validity);
             string code;
@@ -151,9 +151,9 @@ public class TicketService : ITicketService
                 do {
                     code = Guid.NewGuid().ToString()[..8].ToUpper();
                 }
-                while(_context.Tickets.Any(t => t.ValidationCode == code));
+                while(_context.Ticket.Any(t => t.ValidationCode == code));
                 
-                _context.Tickets.Add(new Ticket
+                _context.Ticket.Add(new Ticket
                 {
                     Owner = dbUser,
                     ExpirationDate = expiration,
@@ -183,7 +183,7 @@ public class TicketService : ITicketService
     {
         if (string.IsNullOrWhiteSpace(code)) return ServiceResult.Fail("Código inválido.");
 
-        var ticket = await _context.Tickets
+        var ticket = await _context.Ticket
             .Include(t => t.Owner)
             .FirstOrDefaultAsync(t => t.ValidationCode == code.ToUpper());
 
@@ -223,7 +223,7 @@ public class TicketService : ITicketService
         await ExpireUserTicketsAsync(userId);
 
         // Get tickets owned by the user or transferred to/from the user
-        var query = _context.Tickets
+        var query = _context.Ticket
             .Include(t => t.Owner)
             .Include(t => t.TicketPurchase)
             .Include(t => t.Transfers).ThenInclude(tr => tr.Sender)
@@ -285,7 +285,7 @@ public class TicketService : ITicketService
     {
         await ExpireTicketsGlobalAsync();
 
-        return await _context.Tickets
+        return await _context.Ticket
             .Include(t => t.Owner)                      
             .Include(t => t.TicketPurchase)             
             .Include(t => t.Transfers)                  
@@ -324,7 +324,7 @@ public class TicketService : ITicketService
         }
 
         // 3. Procurar os tickets
-        var ticketsToTransfer = await _context.Tickets
+        var ticketsToTransfer = await _context.Ticket
             .Include(t => t.Owner)
             .Where(t => t.Owner.Id == sender.Id
                      && selectedTickets.Contains(t.ValidationCode)
@@ -349,7 +349,7 @@ public class TicketService : ITicketService
                     Sender = sender,
                     Receiver = receiver
                 };
-                _context.TicketTransfers.Add(transferRecord);
+                _context.TicketTransfer.Add(transferRecord);
             }
 
             await _context.SaveChangesAsync();

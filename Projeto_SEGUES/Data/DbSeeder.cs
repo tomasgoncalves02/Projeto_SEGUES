@@ -17,10 +17,10 @@ namespace Projeto_SEGUES.Data
             var context = serviceProvider.GetRequiredService<AppDbContext>();
             
             // AppConfig
-            if (!await context.AppConfigs.AnyAsync())
+            if (!await context.AppConfig.AnyAsync())
             {
                 var appConfig = new AppConfig();
-                await context.AppConfigs.AddAsync(appConfig);
+                await context.AppConfig.AddAsync(appConfig);
             }
             
             // Roles
@@ -49,8 +49,8 @@ namespace Projeto_SEGUES.Data
 
             foreach (var category in categories)
             {
-                if (!await context.UserCategories.AnyAsync(c => c.Name == category.Name))
-                    await context.UserCategories.AddAsync(category);
+                if (!await context.UserCategory.AnyAsync(c => c.Name == category.Name))
+                    await context.UserCategory.AddAsync(category);
             }
             await context.SaveChangesAsync();
             
@@ -65,14 +65,14 @@ namespace Projeto_SEGUES.Data
             foreach (var (category, price) in defaultPrices)
             {
                 // Get cat for FK
-                var catDb = await context.UserCategories
+                var catDb = await context.UserCategory
                     .FirstOrDefaultAsync(c => c.Name == category);
                 if (catDb == null) continue;
                 
-                if (await context.TicketPrices.AnyAsync(tp => tp.UserCategory.Id == catDb.Id && tp.EndDatePrice > DateTime.Now))
+                if (await context.TicketPrice.AnyAsync(tp => tp.UserCategory.Id == catDb.Id && tp.EndDatePrice > DateTime.Now))
                     continue;
                 
-                context.TicketPrices.Add(new TicketPrice
+                context.TicketPrice.Add(new TicketPrice
                 {
                     UserCategory = catDb,
                     Price = price,
@@ -85,7 +85,7 @@ namespace Projeto_SEGUES.Data
             // Create Admin
             var adminEmail = "admin@admin.com";
             var adminUser = await userManager.FindByEmailAsync(adminEmail);
-            var adminCategory = await context.UserCategories.FirstOrDefaultAsync(uc => uc.Name == "Externo");
+            var adminCategory = await context.UserCategory.FirstOrDefaultAsync(uc => uc.Name == "Externo");
 
             if (adminUser == null)
             {
@@ -123,13 +123,13 @@ namespace Projeto_SEGUES.Data
             };
             foreach (var category in defaultProductsCategories)
             {
-                if (!await context.ProductCategories.AnyAsync(c => c.Name == category.Name))
-                    await context.ProductCategories.AddAsync(category);
+                if (!await context.ProductCategory.AnyAsync(c => c.Name == category.Name))
+                    await context.ProductCategory.AddAsync(category);
             }
             await context.SaveChangesAsync();
             
             // Products
-            var dbProductCategories = await context.ProductCategories.ToListAsync();
+            var dbProductCategories = await context.ProductCategory.ToListAsync();
             var defaultProducts = new List<Product>
             {
                 new Product
@@ -176,8 +176,8 @@ namespace Projeto_SEGUES.Data
 
             foreach (var product in defaultProducts)
             {
-                if (!await context.Products.AnyAsync(p => p.Name == product.Name))
-                    await context.Products.AddAsync(product);
+                if (!await context.Product.AnyAsync(p => p.Name == product.Name))
+                    await context.Product.AddAsync(product);
             }
             await context.SaveChangesAsync();
         }

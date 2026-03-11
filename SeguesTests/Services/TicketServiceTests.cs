@@ -35,9 +35,9 @@ namespace SeguesTests.Services
             var user = new AppUser { Id = "u1", FirstName = "A", LastName = "B", UserCategory = cat, BirthDate = new DateTime(2000, 1, 1), Gender = Gender.Other };
             var price = new TicketPrice { Price = 2.5m, UserCategory = cat, InitialDatePrice = DateTime.Now.AddDays(-1), EndDatePrice = DateTime.Now.AddDays(1) };
 
-            context.UserCategories.Add(cat);
+            context.UserCategory.Add(cat);
             context.Users.Add(user);
-            context.TicketPrices.Add(price);
+            context.TicketPrice.Add(price);
             await context.SaveChangesAsync();
 
             var result = await service.GetCurrentPriceForUserAsync(user);
@@ -56,17 +56,17 @@ namespace SeguesTests.Services
             var price = new TicketPrice { Price = 2m, UserCategory = cat, InitialDatePrice = DateTime.Now.AddDays(-1), EndDatePrice = DateTime.Now.AddDays(1) };
             var config = new AppConfig { Id = 1, TicketValidityDays = 30 };
 
-            context.UserCategories.Add(cat);
+            context.UserCategory.Add(cat);
             context.Users.Add(user);
-            context.TicketPrices.Add(price);
-            context.AppConfigs.Add(config);
+            context.TicketPrice.Add(price);
+            context.AppConfig.Add(config);
             await context.SaveChangesAsync();
 
             var result = await service.BuyTicketsAsync("u1", 2);
 
             Assert.True(result.Success);
             Assert.Equal(6m, user.Balance);
-            Assert.Equal(2, await context.Tickets.CountAsync());
+            Assert.Equal(2, await context.Ticket.CountAsync());
         }
 
         [Fact]
@@ -83,8 +83,8 @@ namespace SeguesTests.Services
             var ticket = new Ticket { ValidationCode = "VALID123", State = TicketState.Available, ExpirationDate = DateTime.Now.AddDays(1), Owner = owner, TicketPurchase = purchase };
 
             context.Users.AddRange(owner, validator);
-            context.TicketPurchases.Add(purchase);
-            context.Tickets.Add(ticket);
+            context.TicketPurchase.Add(purchase);
+            context.Ticket.Add(ticket);
             await context.SaveChangesAsync();
 
             var result = await service.ValidateTicketAsync("VALID123", validator);
@@ -109,16 +109,16 @@ namespace SeguesTests.Services
             var ticket = new Ticket { ValidationCode = "TICKET1", State = TicketState.Available, Owner = sender, ExpirationDate = DateTime.Now.AddDays(1), TicketPurchase = purchase };
 
             context.Users.AddRange(sender, receiver);
-            context.UserCategories.Add(cat);
-            context.TicketPurchases.Add(purchase);
-            context.Tickets.Add(ticket);
+            context.UserCategory.Add(cat);
+            context.TicketPurchase.Add(purchase);
+            context.Ticket.Add(ticket);
             await context.SaveChangesAsync();
 
             var result = await service.TransferTicketsAsync("s1", "receiver@pt.pt", new List<string> { "TICKET1" });
 
             Assert.True(result.Success);
             Assert.Equal("r1", ticket.Owner.Id);
-            Assert.Equal(1, await context.TicketTransfers.CountAsync());
+            Assert.Equal(1, await context.TicketTransfer.CountAsync());
         }
 
         [Fact]
@@ -133,7 +133,7 @@ namespace SeguesTests.Services
             var sender = new AppUser { Id = "s1", Email = "s@pt.pt", FirstName = "S", LastName = "S", UserCategory = cat1, BirthDate = new DateTime(2000, 1, 1), Gender = Gender.Other };
             var receiver = new AppUser { Id = "r1", Email = "r@pt.pt", FirstName = "R", LastName = "R", UserCategory = cat2, BirthDate = new DateTime(2000, 1, 1), Gender = Gender.Other };
 
-            context.UserCategories.AddRange(cat1, cat2);
+            context.UserCategory.AddRange(cat1, cat2);
             context.Users.AddRange(sender, receiver);
             await context.SaveChangesAsync();
 

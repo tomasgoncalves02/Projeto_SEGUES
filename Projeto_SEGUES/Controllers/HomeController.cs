@@ -23,6 +23,16 @@ namespace Projeto_SEGUES.Controllers
             // If not logged, redirect to login
             if (User.Identity is not { IsAuthenticated: true })
             {
+                // If already in login page, do not show the message
+                if (Uri.TryCreate(Request.Headers.Referer, UriKind.Absolute, out var refererUri) &&
+                 string.Equals(refererUri.AbsolutePath, "/Identity/Account/Login", StringComparison.OrdinalIgnoreCase))
+                {
+                 return RedirectToPage("/Account/Login", new { area = "Identity" });
+                }
+                if (Request.Headers.Referer.Equals("/Identity/Account/Login"))
+                {
+                    return RedirectToPage("/Account/Login", new { area = "Identity" });
+                }
                 _logger.LogInformation("User not authenticated.");
                 TempData.SetSwalWarning("Faça login novamente. Desconectado por inatividade ou alteração dos dados.");
                 return RedirectToPage("/Account/Login", new { area = "Identity" });
@@ -33,6 +43,7 @@ namespace Projeto_SEGUES.Controllers
             if (user == null)
             {
                 _logger.LogInformation("User not found.");
+                TempData.SetSwalError("Erro ao carregar dados do utilizador.");
                 return RedirectToPage("/Account/Login", new { area = "Identity" });
             }
             

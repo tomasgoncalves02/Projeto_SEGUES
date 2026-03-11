@@ -2,6 +2,10 @@
 # Nunca enviar estes. São gerados pelo computador de cada um.
 bin/
 obj/
+Migrations/
+
+## --- Secrets ---
+appsettings.secrets.json
 
 ## --- Visual Studio ---
 # Configurações pessoais e temporárias do VS

@@ -1,28 +1,107 @@
+using System.Collections.ObjectModel;
+using System.Data;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.Data.SqlClient;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Services;
 using Projeto_SEGUES.Models.User;
 using QuestPDF.Infrastructure;
+using Stripe;
+using Serilog;
+using Serilog.Context;
+using Serilog.Sinks.MSSqlServer;
+using Serilog.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
+var config = builder.Configuration;
+config.AddJsonFile("appsettings.secrets.json", optional: true, reloadOnChange: true);
+
+string connectionName;
+string? password;
+if (builder.Environment.IsDevelopment())
+{
+    bool isWindows = OperatingSystem.IsWindows();
+    connectionName = isWindows ? "LocalSQLServer" : "DockerSQLServer";
+    password = isWindows ? null : config["Secrets:DockerSQLServerPassword"];
+}
+else
+{
+    connectionName = "AzureSQL";
+    password = config["Secrets:AzureSQLPassword"];
+}
+string? connectionString = builder.Configuration.GetConnectionString(connectionName);
+
+var connectionStringBuilder = new SqlConnectionStringBuilder(connectionString)
+{
+    Password = password
+};
+connectionString = connectionStringBuilder.ConnectionString;
 
 // Database
-builder.Services.AddDbContext<AppDbContext>(options =>
+builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
+
+var columnOptions = new ColumnOptions
 {
-    if (builder.Environment.IsDevelopment())
+    AdditionalColumns = new Collection<SqlColumn>
     {
-        if (OperatingSystem.IsWindows())
-            options.UseSqlServer(builder.Configuration.GetConnectionString("LocalSQLServer"));
-        else
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DockerSQLServer"));
+        new() { ColumnName = "UserId", DataType = SqlDbType.NVarChar, DataLength = 100, AllowNull = true },
+        new() { ColumnName = "RequestPath", DataType = SqlDbType.NVarChar, DataLength = 255, AllowNull = true },
+        // Columns for ErrorLog/UserLog/AlertLog compatibility
+        new() { ColumnName = "Table", DataType = SqlDbType.NVarChar, DataLength = 100, AllowNull = true },
+        new() { ColumnName = "Operation", DataType = SqlDbType.NVarChar, DataLength = 100, AllowNull = true },
+        new() { ColumnName = "UserAction", DataType = SqlDbType.NVarChar, DataLength = 100, AllowNull = true },
+        new() { ColumnName = "AlertType", DataType = SqlDbType.Int, AllowNull = true }
     }
-    else
-    {
-        options.UseSqlServer(builder.Configuration.GetConnectionString("AzureSQL"));
-    }
-});
+};
+builder.Host.UseSerilog((ctx, configuration) => 
+    configuration.ReadFrom.Configuration(ctx.Configuration)
+        .Enrich.FromLogContext()
+        .WriteTo.Console()
+        // UserLog: Log user actions
+        .WriteTo.Logger(lc => lc
+            .Filter.ByIncludingOnly(Matching.WithProperty("LogType", "UserAction"))
+            .WriteTo.MSSqlServer(
+                connectionString: connectionString,
+                sinkOptions: new MSSqlServerSinkOptions { TableName = "UserLog", AutoCreateSqlTable = false },
+                columnOptions: columnOptions
+            ))
+        // ErrorLog: Capture exceptions and database errors
+        .WriteTo.Logger(lc => lc
+            .Filter.ByIncludingOnly(Matching.WithProperty("LogType", "Error"))
+            .WriteTo.MSSqlServer(
+                connectionString: connectionString,
+                sinkOptions: new MSSqlServerSinkOptions { TableName = "ErrorLog", AutoCreateSqlTable = false },
+                columnOptions: columnOptions
+            ))
+
+        // AlertLog: System alerts and security notifications
+        .WriteTo.Logger(lc => lc
+            .Filter.ByIncludingOnly(Matching.WithProperty("LogType", "Alert"))
+            .WriteTo.MSSqlServer(
+                connectionString: connectionString,
+                sinkOptions: new MSSqlServerSinkOptions { TableName = "AlertLog", AutoCreateSqlTable = false },
+                columnOptions: columnOptions
+            ))
+        // DbStats: Logging performance and storage metrics
+        .WriteTo.Logger(lc => lc
+            .Filter.ByIncludingOnly(Matching.WithProperty("LogType", "DbStats"))
+            .WriteTo.MSSqlServer(
+                connectionString: connectionString,
+                sinkOptions: new MSSqlServerSinkOptions { TableName = "DbStats", AutoCreateSqlTable = false },
+                columnOptions: columnOptions
+            ))
+        // Default System Logs
+        .WriteTo.Logger(lc => lc
+            .Filter.ByExcluding(Matching.WithProperty("LogType"))
+            .WriteTo.MSSqlServer(
+                connectionString: connectionString,
+                sinkOptions: new MSSqlServerSinkOptions { TableName = "ErrorLog", AutoCreateSqlTable = false },
+                columnOptions: columnOptions 
+            ))
+);
 
 // Identity
 builder.Services.AddIdentity<AppUser, Role>(options => {
@@ -61,11 +140,12 @@ builder.Services.AddAuthentication()
     .AddMicrosoftAccount(options =>
     {
         options.ClientId = builder.Configuration["Authentication:Microsoft:ClientId"];
-        options.ClientSecret = builder.Configuration["Authentication:Microsoft:ClientSecret"];
+        options.ClientSecret = password;
     });
 */
 
 // Other services
+builder.Services.AddHttpClient();
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 builder.Services.AddScoped<ITicketService, TicketService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
@@ -77,11 +157,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
-// Adiciona isto antes do var app = builder.Build();
-builder.Services.AddHttpClient("MbWayClient", client =>
-{
-    client.BaseAddress = new Uri("https://sandbox.ifthenpay.com/"); // Exemplo
-});
+StripeConfiguration.ApiKey = builder.Configuration["Secrets:StripeApiKey"];
 QuestPDF.Settings.License = LicenseType.Community;
 var app = builder.Build();
 
@@ -102,6 +178,21 @@ localizationOptions.RequestCultureProviders.Clear();
 app.UseRequestLocalization(localizationOptions);
 // Rest of pipeline after localization!
 
+app.UseSerilogRequestLogging();
+app.Use(async (context, next) =>
+{
+    // Grab the user identity (or set to Anonymous if not logged in)
+    string userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "Anonymous";
+    string requestPath = context.Request.Path;
+
+    // Push these properties to Serilog's context for the duration of the request
+    using (LogContext.PushProperty("UserId", userId))
+    using (LogContext.PushProperty("RequestPath", requestPath))
+    {
+        await next();
+    }
+});
+
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -111,12 +202,11 @@ using (var scope = app.Services.CreateScope())
         // Create the database if it doesn't exist and migrate
         await context.Database.MigrateAsync();
         // Seed initial data
-        await Projeto_SEGUES.Data.DbSeeder.SeedRolesAndAdminAsync(services);
+        await DbSeeder.SeedRolesAndAdminAsync(services);
     }
     catch (Exception ex)
     {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Ocorreu um erro ao criar a base de dados ou ao semear os dados iniciais.");
+        app.Logger.LogError(ex, "{LogType} Error occurred affecting {Table} tables during {Operation}", "Error", "All", "Database Initialization");
     }
 }
 

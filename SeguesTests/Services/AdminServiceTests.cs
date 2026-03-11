@@ -67,7 +67,7 @@ namespace SeguesTests.Services
 
             var catDocente = new UserCategory { Name = "Docente" };
             var catEstudante = new UserCategory { Name = "Estudante" };
-            context.UserCategories.AddRange(catDocente, catEstudante);
+            context.UserCategory.AddRange(catDocente, catEstudante);
 
             context.Users.Add(new AppUser { Id = "u1", FirstName = "A", LastName = "B", Email = "a@a.pt", UserCategory = catDocente, BirthDate = new DateTime(2000, 1, 1), Gender = Gender.Other });
             context.Users.Add(new AppUser { Id = "u2", FirstName = "C", LastName = "D", Email = "c@c.pt", UserCategory = catEstudante, BirthDate = new DateTime(2000, 1, 1), Gender = Gender.Other });
@@ -86,7 +86,7 @@ namespace SeguesTests.Services
             var service = new AdminService(context, GetMockUserManager(context).Object, GetMockRoleManager(context).Object, new Mock<IEmailSender>().Object);
 
             var cat = new UserCategory { Name = "Cliente" };
-            context.UserCategories.Add(cat);
+            context.UserCategory.Add(cat);
 
             context.Users.Add(new AppUser { Id = "u1", FirstName = "Diogo", LastName = "Silva", Email = "diogo@pt.pt", UserCategory = cat, BirthDate = new DateTime(1995, 1, 1), Gender = Gender.Male });
             context.Users.Add(new AppUser { Id = "u2", FirstName = "Joao", LastName = "Costa", Email = "joao@pt.pt", UserCategory = cat, BirthDate = new DateTime(1995, 1, 1), Gender = Gender.Male });
@@ -105,7 +105,7 @@ namespace SeguesTests.Services
             var service = new AdminService(context, GetMockUserManager(context).Object, GetMockRoleManager(context).Object, new Mock<IEmailSender>().Object);
 
             var cat = new UserCategory { Name = "Externo" };
-            context.UserCategories.Add(cat);
+            context.UserCategory.Add(cat);
             await context.SaveChangesAsync();
 
             var result = await service.GetCategoryByNameAsync("Externo");
@@ -122,8 +122,8 @@ namespace SeguesTests.Services
 
             var cat = new UserCategory { Name = "Estudante" };
             var price = new TicketPrice { Id = 1, Price = 2.0m, UserCategory = cat, InitialDatePrice = DateTime.Now.AddDays(-5), EndDatePrice = DateTime.Now.AddDays(10) };
-            context.UserCategories.Add(cat);
-            context.TicketPrices.Add(price);
+            context.UserCategory.Add(cat);
+            context.TicketPrice.Add(price);
             await context.SaveChangesAsync();
 
             var newPrices = new List<TicketPrice>
@@ -133,7 +133,7 @@ namespace SeguesTests.Services
 
             await service.UpdateTicketPricesAsync(newPrices);
 
-            var updated = await context.TicketPrices.FindAsync(1);
+            var updated = await context.TicketPrice.FindAsync(1);
             Assert.NotNull(updated);
             Assert.Equal(3.5m, updated.Price);
             Assert.Equal(DateTime.Today.AddDays(1).AddTicks(-1).Date, updated.EndDatePrice.Date);

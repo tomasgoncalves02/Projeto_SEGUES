@@ -25,7 +25,7 @@ public class ReportTransactionController : Controller
     {
         var user = await _userManager.GetUserAsync(User);
         if (user == null) return Challenge();    
-        var transactions = await _context.Transactions
+        var transactions = await _context.Transaction
             .Include(t => t.User)
             .Where(t => t.User.Id == user.Id)
             .OrderByDescending(t => t.CreatedAt)
@@ -41,7 +41,7 @@ public class ReportTransactionController : Controller
         if (user == null) return Unauthorized();
 
         // 1. Começamos a query incluindo o User
-        var query = _context.Transactions
+        var query = _context.Transaction
             .Include(t => t.User)
             .Where(t => t.User.Id == user.Id)
             .AsQueryable();

@@ -74,7 +74,7 @@ namespace Projeto_SEGUES.Areas.Payment
         public async Task<IActionResult> Callback(string reference, string status)
         {
             // Get transaction by reference
-            var transaction = await _context.Transactions
+            var transaction = await _context.Transaction
                 .Include(t => t.User) // Include user
                 .FirstOrDefaultAsync(t => t.Reference == reference && !t.IsPaid);
 

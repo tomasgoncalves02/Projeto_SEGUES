@@ -59,7 +59,7 @@ namespace SeguesTests.Tickets
                 Gender = Projeto_SEGUES.Models.Enums.Gender.Male
             };
 
-            context.UserCategories.AddRange(catEstudante, catProfessor);
+            context.UserCategory.AddRange(catEstudante, catProfessor);
             context.Users.AddRange(currentUser, recipientUser);
             await context.SaveChangesAsync();
 

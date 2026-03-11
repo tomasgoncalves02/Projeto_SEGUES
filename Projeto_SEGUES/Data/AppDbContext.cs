@@ -19,7 +19,7 @@ namespace Projeto_SEGUES.Data
         /* =========
          * Audit
          * ========= */
-        public DbSet<AlertSignalLog> AlertSignalLogs { get; set; }
+        public DbSet<AlertLog> AlertLog { get; set; }
         public DbSet<DbStats> DbStats { get; set; }
         public DbSet<UserLog> UserLog { get; set; }
         public DbSet<ErrorLog> ErrorLog { get; set; }
@@ -27,44 +27,44 @@ namespace Projeto_SEGUES.Data
         /* =========
          * Admin
          * ========= */
-        public DbSet<AppConfig> AppConfigs { get; set; }
+        public DbSet<AppConfig> AppConfig { get; set; }
         
         /* =========
          * User
          * ========= */
         // Users and Roles provided by Identity
-        public DbSet<Employee> Employees { get; set; }
-        public DbSet<PostalCode> PostalCodes { get; set; }
-        public DbSet<School> Schools { get; set; }
-        public DbSet<Student> Students { get; set; }
-        public DbSet<UserCategory> UserCategories { get; set; }
+        public DbSet<Employee> Employee { get; set; }
+        public DbSet<PostalCode> PostalCode { get; set; }
+        public DbSet<School> School { get; set; }
+        public DbSet<Student> Student { get; set; }
+        public DbSet<UserCategory> UserCategory { get; set; }
         
         /* =========
          * Inventory
          * ========= */
-        public DbSet<Product> Products { get; set; }
-        public DbSet<ProductCategory> ProductCategories { get; set; }
+        public DbSet<Product> Product { get; set; }
+        public DbSet<ProductCategory> ProductCategory { get; set; }
         
         /* =========
          * Order
          * ========= */
-        public DbSet<Order> Orders { get; set; }
-        public DbSet<OrderLine> OrderLines { get; set; }
-        public DbSet<BalanceOrder> BalanceOrders { get; set; }
-        public DbSet<Discount> Discounts { get; set; }
+        public DbSet<Order> Order { get; set; }
+        public DbSet<OrderLine> OrderLine { get; set; }
+        public DbSet<BalanceOrder> BalanceOrder { get; set; }
+        public DbSet<Discount> Discount { get; set; }
         
         /* =========
          * Payment
          * ========= */
-        public DbSet<Transaction> Transactions { get; set; }
+        public DbSet<Transaction> Transaction { get; set; }
 
         /* =========
          * Tickets
          * ========= */
-        public DbSet<Ticket> Tickets { get; set; }
-        public DbSet<TicketPrice> TicketPrices { get; set; }
-        public DbSet<TicketPurchase> TicketPurchases { get; set; }
-        public DbSet<TicketTransfer> TicketTransfers { get; set; }
+        public DbSet<Ticket> Ticket { get; set; }
+        public DbSet<TicketPrice> TicketPrice { get; set; }
+        public DbSet<TicketPurchase> TicketPurchase { get; set; }
+        public DbSet<TicketTransfer> TicketTransfer { get; set; }
 
         /* ==========
          * Fluent API

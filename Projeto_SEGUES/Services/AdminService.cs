@@ -41,7 +41,7 @@ public class AdminService : IAdminService
             return IdentityResult.Failed(new IdentityError { Description = "Dados inválidos, tente novamente." });
         }
 
-        var category = await _context.UserCategories.FirstAsync(c => c.Name == "Externo");
+        var category = await _context.UserCategory.FirstAsync(c => c.Name == "Externo");
         var user = new AppUser
         {
             UserName = model.Email,
@@ -119,7 +119,7 @@ public class AdminService : IAdminService
     
     public async Task<List<SelectListItem>> GetAllCategoriesForDropdownAsync()
     {
-        var categories = await _context.UserCategories.ToListAsync();
+        var categories = await _context.UserCategory.ToListAsync();
         return categories.Select(c => new SelectListItem { Value = c.Name, Text = c.Name}).ToList();
     }
     
@@ -195,7 +195,7 @@ public class AdminService : IAdminService
 
     public Task<UserCategory> GetCategoryByNameAsync(string modelCategory)
     { 
-        return _context.UserCategories.FirstAsync(c => c.Name == modelCategory);
+        return _context.UserCategory.FirstAsync(c => c.Name == modelCategory);
     }
 
     /*
@@ -203,14 +203,14 @@ public class AdminService : IAdminService
      */
     public async Task<List<TicketPrice>> GetTicketPricesAsync()
     {
-        return await _context.TicketPrices.Include(tp => tp.UserCategory).ToListAsync();
+        return await _context.TicketPrice.Include(tp => tp.UserCategory).ToListAsync();
     }
 
     public async Task UpdateTicketPricesAsync(List<TicketPrice> prices)
     {
         foreach (var p in prices)
         {
-            var dbPrice = await _context.TicketPrices.FindAsync(p.Id);
+            var dbPrice = await _context.TicketPrice.FindAsync(p.Id);
             if (dbPrice != null)
             {
                 if (p.Price > 0)
@@ -225,13 +225,13 @@ public class AdminService : IAdminService
 
     public async Task<int> GetTicketValidityDaysAsync()
     {
-        int days = (await _context.AppConfigs.FirstAsync()).TicketValidityDays;
+        int days = (await _context.AppConfig.FirstAsync()).TicketValidityDays;
         return days > 0 ? days : 365;
     }
     
     public async Task UpdateTicketValidityDaysAsync(int days)
     {
-        var config = await _context.AppConfigs.FirstAsync();
+        var config = await _context.AppConfig.FirstAsync();
         config.TicketValidityDays = days;
         await _context.SaveChangesAsync();
     }
@@ -240,13 +240,13 @@ public class AdminService : IAdminService
 
     public async Task<TimeSpan> GetOpenBarTimeAsync()
     {
-        TimeSpan time = (await _context.AppConfigs.FirstAsync()).OpenBarTime;
+        TimeSpan time = (await _context.AppConfig.FirstAsync()).OpenBarTime;
         return time;
     }
 
     public async Task<TimeSpan> GetCloseBarTimesAsync()
     {
-        TimeSpan time = (await _context.AppConfigs.FirstAsync()).CloseBarTime;
+        TimeSpan time = (await _context.AppConfig.FirstAsync()).CloseBarTime;
         return time;
     }
 
@@ -256,7 +256,7 @@ public class AdminService : IAdminService
         {
             throw new ArgumentException("Formato de hora inválido.");
         }
-        var config = await _context.AppConfigs.FirstAsync();
+        var config = await _context.AppConfig.FirstAsync();
         config.OpenBarTime = open;
         config.CloseBarTime = close;
         await _context.SaveChangesAsync();
@@ -264,7 +264,7 @@ public class AdminService : IAdminService
 
     public async Task<bool> IsBarOpenAsync(TimeSpan? requestedTime = null)
     {
-        var config = await _context.AppConfigs.FirstAsync();
+        var config = await _context.AppConfig.FirstAsync();
         var timeToCheck = requestedTime ?? DateTime.Now.TimeOfDay;
     
         if (config.OpenBarTime <= config.CloseBarTime)

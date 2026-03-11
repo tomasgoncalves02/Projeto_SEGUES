@@ -13,8 +13,8 @@ public class AppConfig
     public int TicketValidityDays { get; set; } = 365; // Default: 1 year
 
     [Required]
-    public TimeSpan OpenBarTime { get; set; } = new TimeSpan(8, 30, 0);
+    public TimeSpan OpenBarTime { get; set; } = new(8, 30, 0);
 
     [Required]
-    public TimeSpan CloseBarTime { get; set; } = new TimeSpan(23, 50, 0);
+    public TimeSpan CloseBarTime { get; set; } = new(23, 50, 0);
 }

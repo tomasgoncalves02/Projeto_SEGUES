@@ -89,7 +89,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                 categoryName = "Trabalhador IPS";
             }
             
-            var category = await _context.UserCategories.FirstOrDefaultAsync(c => c.Name == categoryName);
+            var category = await _context.UserCategory.FirstOrDefaultAsync(c => c.Name == categoryName);
             var user = new AppUser
             {
                 UserName = data.Email,
