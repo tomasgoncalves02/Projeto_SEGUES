@@ -12,7 +12,7 @@ using Projeto_SEGUES.Data;
 namespace Projeto_SEGUES.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260309084519_initial")]
+    [Migration("20260310235102_initial")]
     partial class initial
     {
         /// <inheritdoc />

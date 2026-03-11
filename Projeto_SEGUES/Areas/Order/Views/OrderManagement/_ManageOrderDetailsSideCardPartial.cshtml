@@ -27,8 +27,8 @@
                     {
                         <div class="d-flex justify-content-between p-2 mb-2 small fw-bold bg-color-ips-light rounded">
                             <span>@item.Quantity x @item.Product.Name : @((item.ProductValue * item.Quantity).ToString("N2"))€</span>
-                            <button class="btn btn-sm btn-ips shadow-sm ms-3" title="Detalhes" 
-                                    onclick="showProductDetails(@item.Product.Id, '@item.Product.Name', '@item.Product.Description', '@item.Product.Price', @item.Product.Stock)">
+                            <button class="btn btn-sm btn-ips shadow-sm ms-3" title="Detalhes"
+                                    onclick="showProductDetails('@item.Product.Name', '@item.Product.Description', '@item.Product.Price', @item.Product.Stock)">
                                 <i class="bi bi-eye text-white"></i>
                             </button>
                         </div>

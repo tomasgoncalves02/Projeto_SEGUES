@@ -79,7 +79,7 @@
                 {
                     @foreach (var item in Model)
                     {
-                        bool eParaDepois = item.DeliveryTime != TimeSpan.Zero;
+                            bool eParaDepois = item.PickupTime.HasValue && item.PickupTime.Value != TimeSpan.Zero;
 
                         <tr class="history-row" data-estado="@item.Status" data-data="@item.OrderDate.ToString("yyyy-MM-dd")">
                             <td class="fw-bold text-color-ips ps-4 text-start">
@@ -93,18 +93,18 @@
                                 <span class="text-muted">@item.OrderDate.ToString("HH:mm")</span>
                             </td>
 
-                            <td class="fw-bold">
-                                @if (eParaDepois)
-                                {
-                                    <span class="badge bg-light text-dark border fw-normal">
-                                        <i class="bi bi-clock me-1"></i>@item.DeliveryTime.ToString()
-                                    </span>
-                                }
-                                else
-                                {
-                                    <small class="text-muted">Imediato</small>
-                                }
-                            </td>
+                                <td>
+                                    @if (eParaDepois && item.DeliveryTime.HasValue)
+                                    {
+                                        <span class="badge bg-light text-dark border fw-normal">
+                                            <i class="bi bi-clock me-1"></i>@item.DeliveryTime.Value.ToString(@"hh\:mm")
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <small class="text-muted">Agora</small>
+                                    }
+                                </td>
 
                             <td>
                                 @switch (item.Status)
@@ -136,7 +136,7 @@
                             <td class="small">
                                 @if (item.Status == OrderStatus.Delivered && item.PickupTime != null)
                                 {
-                                    <span class="text-success fw-bold">@item.PickupTime.ToString()</span>
+                                        <span class="text-success fw-bold">@item.PickupTime.Value.ToString(@"hh\:mm")</span>
                                 }
                                 else
                                 {

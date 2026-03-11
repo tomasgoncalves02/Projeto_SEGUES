@@ -138,7 +138,7 @@
                     {
                         @foreach (var order in Model)
                         {
-                            bool eParaDepois = order.PickupTime != TimeSpan.Zero;
+                            bool eParaDepois = order.PickupTime.HasValue && order.PickupTime.Value != TimeSpan.Zero;
 
                             <tr class="order-row" data-status="@order.Status" data-date="@order.OrderDate.ToString("yyyy-MM-dd")">
                                 <td class="ps-4 text-start">
@@ -158,15 +158,15 @@
                                     <span class="text-muted">@order.OrderDate.ToString("HH:mm")</span>
                                 </td>
                                 <td>
-                                    @if (eParaDepois)
+                                    @if (eParaDepois && order.DeliveryTime.HasValue)
                                     {
                                         <span class="badge bg-light text-dark border fw-normal">
-                                            <i class="bi bi-clock me-1"></i>@order.DeliveryTime.ToString()
+                                            <i class="bi bi-clock me-1"></i>@order.DeliveryTime.Value.ToString(@"hh\:mm")
                                         </span>
                                     }
                                     else
                                     {
-                                        <small class="text-muted">Imediato</small>
+                                        <small class="text-muted">Agora</small>
                                     }
                                 </td>
                                 <td>
@@ -195,7 +195,7 @@
                                 <td class="small">
                                     @if (order.PickupTime != TimeSpan.Zero)
                                     {
-                                        <span class="text-success fw-bold">@order.PickupTime.ToString()</span>
+                                        <span class="text-success fw-bold">@order.PickupTime.Value.ToString(@"hh\:mm")</span>
                                     }
                                     else
                                     {

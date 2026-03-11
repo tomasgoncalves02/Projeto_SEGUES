@@ -38,12 +38,14 @@
                     <td class="align-middle">
                         @if (order.DeliveryTime.HasValue)
                         {
-                            <span class="fw-bold">@order.DeliveryTime.Value.Hours : @order.DeliveryTime.Value.Minutes</span>
+                                <span class="fw-bold">
+                                    @string.Format("{0:hh\\:mm}", order.DeliveryTime.Value)
+                                </span>
                         }
                         else
                         {
                             /* If DeliveryTime is null, the order is for immediate delivery */
-                            <span class="badge rounded-pill fw-bold px-3 py-2 bg-color-ips text-white border-0" style="min-width: 80px;">
+                                <span class="rounded-pill fw-bold px-3 py-2 bg-color-ips text-white d-inline-block" style="font-size: 0.75em;">
                                 AGORA
                             </span>
                         }
