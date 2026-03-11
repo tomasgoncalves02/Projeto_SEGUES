@@ -1,10 +1,14 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Payment;
 using Projeto_SEGUES.Models.User;
+using Stripe;
+using Stripe.Checkout;
+
 
 namespace Projeto_SEGUES.Areas.Payment
 {
@@ -14,88 +18,116 @@ namespace Projeto_SEGUES.Areas.Payment
         private readonly AppDbContext _context;
         private readonly IHttpClientFactory _clientFactory;
         private readonly UserManager<AppUser> _userManager;
-
-        public PaymentController(AppDbContext context, IHttpClientFactory clientFactory, UserManager<AppUser> userManager)
-        {
-            _context = context;
-            _clientFactory = clientFactory;
-            _userManager = userManager;
-        }
+        private readonly StripeSettings _stripeSettings;
 
         [HttpGet]
         public IActionResult Deposit() => View();
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> InitiateMbWay(decimal amount, string phoneNumber)
+        public PaymentController(AppDbContext context, IHttpClientFactory clientFactory, UserManager<AppUser> userManager, IOptions<StripeSettings> stripeSettings)
         {
-            if (amount <= 0 || string.IsNullOrEmpty(phoneNumber))
-                return BadRequest("Dados inválidos.");
-            
-            // Get user
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-                return Challenge(); // Return to login if user is not authenticated
+            _context = context;
+            _clientFactory = clientFactory;
+            _userManager = userManager;
+            _stripeSettings = stripeSettings.Value;
+        }
 
-            // Create and save the transaction
+
+        [HttpPost]
+        public async Task<IActionResult> CreateCheckoutSession(string amount)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
             var transaction = new Transaction
             {
                 User = user,
-                Amount = amount,
-                PhoneNumber = phoneNumber,
-                Reference = Guid.NewGuid().ToString().Substring(0, 8).ToUpper()
+                Amount = Convert.ToDecimal(amount),
+                Reference = Guid.NewGuid().ToString().Substring(0, 8).ToUpper(),
+                IsPaid = false 
             };
 
             _context.Set<Transaction>().Add(transaction);
             await _context.SaveChangesAsync();
 
-            // Call to Sandbox MBWay API. Requires HttpClient in Program.cs.
-            try
-            {
-                var client = _clientFactory.CreateClient("MbWayClient");
-                var response = await client.PostAsJsonAsync("api/mbway/pay", new
-                {
-                    amount = transaction.Amount,
-                    phone = transaction.PhoneNumber,
-                    reference = transaction.Reference,
-                    sandbox = true
-                });
-            }
-            catch (Exception)
-            {
-                // In test mode, ignore errors
-            }
 
-            return View("Waiting", transaction);
+
+            var currency = "eur";
+            var successUrl = $"https://localhost:7223/Payment/Payment/SuccessPayment?reference={transaction.Reference}";
+            var cancelUrl = $"https://localhost:7223/Payment/Payment/CancelPayment";
+            StripeConfiguration.ApiKey = _stripeSettings.SecretKey;
+
+
+
+            
+
+            var options = new SessionCreateOptions
+            {
+                PaymentMethodTypes = new List<string>
+        {
+            "card"
+        },
+                LineItems = new List<SessionLineItemOptions>
+        {
+            new SessionLineItemOptions
+            {
+                PriceData = new SessionLineItemPriceDataOptions
+                {
+                    Currency = currency,
+                    UnitAmount = (long)(Convert.ToDecimal(amount) * 100),
+                    ProductData = new SessionLineItemPriceDataProductDataOptions
+                    {
+                        Name = "Carregar Saldo",
+                        Description = "Carregar saldo com" + amount
+                    }
+                },
+                Quantity = 1
+            }
+        },
+                Mode = "payment",
+                SuccessUrl = successUrl,
+                CancelUrl = cancelUrl
+            };
+
+            var service = new SessionService();
+            var session = service.Create(options);
+
+            return Redirect(session.Url);
         }
 
         [HttpGet]
-        [Route("api/payment/callback")]
-        public async Task<IActionResult> Callback(string reference, string status)
+        public async Task<IActionResult> SuccessPayment(string reference)
         {
-            // Get transaction by reference
             var transaction = await _context.Transaction
-                .Include(t => t.User) // Include user
+                .Include(t => t.User)
                 .FirstOrDefaultAsync(t => t.Reference == reference && !t.IsPaid);
 
-            if (transaction != null && status == "success")
+            if (transaction != null)
             {
-                // Update user balance
                 var user = transaction.User;
                 user.Balance += transaction.Amount;
                 transaction.IsPaid = true;
 
-                // Update user and save
                 _context.Users.Update(user);
                 await _context.SaveChangesAsync();
 
-                // Set swal
-                TempData.SetSwalSuccess($"Foram carregados {transaction.Amount:C2} na sua conta.");
-                return RedirectToAction("Index", "Home", new { area = "" });
+                TempData.SetSwalSuccess($"Foram carregados {transaction.Amount:C2} com sucesso!");
+
+                
+                return View();
             }
-            // If fail
-            TempData.SetSwalError("Não foi possível processar o pagamento. Por favor, tente novamente.");
+
+            TempData.SetSwalError("Pagamento não encontrado ou já processado.");
             return RedirectToAction("Index", "Home", new { area = "" });
         }
+
+        [HttpGet]
+        public IActionResult CancelPayment()
+        {
+           
+            return View();
+        }
+
+
+
+
     }
 }

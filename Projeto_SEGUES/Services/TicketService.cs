@@ -135,8 +135,7 @@ public class TicketService : ITicketService
                 Description = $"Compra de {quantity} senha(s) de refeição",
                 Reference = "COMPRA INTERNA",
                 IsPaid = true,
-                CreatedAt = now,
-                PhoneNumber = dbUser.PhoneNumber ?? "N/A"
+                CreatedAt = now
             };
             _context.Transaction.Add(saldoMovimento);
 

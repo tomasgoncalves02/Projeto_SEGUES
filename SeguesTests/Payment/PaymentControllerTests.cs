@@ -56,79 +56,10 @@ namespace SeguesTests.Payment
             return (user, mockFactory);
         }
 
-        [Fact]
-        public async Task InitiateMbWay_CriaTransacaoERetornaWaiting()
-        {
-            using var context = GetDatabaseContext();
-            var mockUserMgr = GetMockUserManager();
-            var userId = "u-mbway";
 
-            var mockFactoryBase = new Mock<IHttpClientFactory>();
-            var controller = new PaymentController(context, mockFactoryBase.Object, mockUserMgr.Object);
 
-            var (user, mockFactory) = await SetupEnv(context, controller, userId);
-            var finalController = new PaymentController(context, mockFactory.Object, mockUserMgr.Object)
-            {
-                ControllerContext = controller.ControllerContext,
-                TempData = controller.TempData
-            };
 
-            mockUserMgr.Setup(m => m.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(user);
 
-            var result = await finalController.InitiateMbWay(20.00m, "912345678");
-
-            var viewResult = Assert.IsType<ViewResult>(result);
-            Assert.Equal("Waiting", viewResult.ViewName);
-            var transaction = await context.Set<Transaction>().FirstOrDefaultAsync(t => t.PhoneNumber == "912345678");
-            Assert.NotNull(transaction);
-            Assert.Equal(20.00m, transaction.Amount);
-        }
-
-        [Fact]
-        public async Task Callback_Sucesso_AtualizaSaldoEStatus()
-        {
-            using var context = GetDatabaseContext();
-            var userId = "u-callback";
-            var controller = new PaymentController(context, new Mock<IHttpClientFactory>().Object, GetMockUserManager().Object);
-            var (user, _) = await SetupEnv(context, controller, userId);
-
-            var trans = new Transaction
-            {
-                Reference = "REF123",
-                Amount = 50.00m,
-                User = user,
-                PhoneNumber = "91",
-                IsPaid = false
-            };
-            context.Set<Transaction>().Add(trans);
-            await context.SaveChangesAsync();
-
-            var result = await controller.Callback("REF123", "success");
-
-            var redirect = Assert.IsType<RedirectToActionResult>(result);
-            Assert.Equal("Index", redirect.ActionName);
-            Assert.Equal("Home", redirect.ControllerName);
-
-            Assert.Equal(60.00m, user.Balance); 
-            Assert.True(trans.IsPaid);
-        }
-
-        [Fact]
-        public async Task Callback_Falha_NaoAlteraSaldo()
-        {
-            using var context = GetDatabaseContext();
-            var userId = "u-fail";
-            var controller = new PaymentController(context, new Mock<IHttpClientFactory>().Object, GetMockUserManager().Object);
-            var (user, _) = await SetupEnv(context, controller, userId);
-
-            var trans = new Transaction { Reference = "REF_FAIL", Amount = 50.00m, User = user, PhoneNumber = "912345678", IsPaid = false };
-            context.Set<Transaction>().Add(trans);
-            await context.SaveChangesAsync();
-
-            await controller.Callback("REF_FAIL", "fail");
-
-            Assert.Equal(10.00m, user.Balance); 
-            Assert.False(trans.IsPaid);
-        }
+        
     }
 }

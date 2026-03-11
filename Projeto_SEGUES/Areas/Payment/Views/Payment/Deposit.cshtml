@@ -1,7 +1,7 @@
 ﻿@model Transaction
 
 @{
-    ViewData["Title"] = "Deposit Balance";
+    ViewData["Title"] = "Carregar Saldo";
 }
 
 <div class="container mt-5">
@@ -11,7 +11,7 @@
                 <div class="card-body p-5">
                     <h3 class="text-center mb-4">Carregar Saldo</h3>
 
-                    <form asp-area="Payment" asp-controller="Payment" asp-action="InitiateMbWay" method="post">
+                    <form asp-area="Payment" asp-controller="Payment" asp-action="CreateCheckoutSession" method="post">
                         @Html.AntiForgeryToken()
 
                         @* Amount *@
@@ -23,14 +23,10 @@
                             </div>
                         </div>
 
-                        <div class="mb-4">
-                            <label class="form-label">Número MB WAY</label>
-                            <input name="phoneNumber" type="text" class="form-control" placeholder="000000000" required
-                                   pattern="[0-9]{9}" title="Introduza um número de telemóvel válido (9 dígitos)" />
-                        </div>
+                       
 
                         <button type="submit" class="btn btn-ips w-100 fw-bold py-2 mb-3">
-                            PAGAR COM MB WAY
+                            PAGAR COM CARTÃO
                         </button>
                     </form>
 
@@ -42,7 +38,7 @@
                     </div>
 
                     <div class="mt-4 text-center border-top pt-3">
-                        <small class="text-muted">Processamento seguro via MB WAY Gateway</small>
+                        <small class="text-muted">Processamento seguro e encriptado via <strong>Stripe</strong></small>
                     </div>
                 </div>
             </div>

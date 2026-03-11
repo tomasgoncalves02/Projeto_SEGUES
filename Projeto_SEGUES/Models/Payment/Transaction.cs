@@ -17,11 +17,7 @@ namespace Projeto_SEGUES.Models.Payment
         [DisplayFormat(DataFormatString = "{0:C}", ApplyFormatInEditMode = true)]
         public decimal Amount { get; init; }
         
-        [Required]
-        [MaxLength(15)]
-        [Display(Name = "Número de Telemóvel")]
-        [DataType(DataType.PhoneNumber)]
-        public required string PhoneNumber { get; init; }
+
         
         [Required]
         [MaxLength(100)]

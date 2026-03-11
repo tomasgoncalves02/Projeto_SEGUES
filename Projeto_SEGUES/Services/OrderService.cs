@@ -177,8 +177,8 @@ public class OrderService : IOrderService
                 Description = $"Consumo Bar - Pedido #{cart.RedemptionCode}",
                 Reference = "CONSUMO BAR",
                 IsPaid = true,
-                CreatedAt = now,
-                PhoneNumber = user.PhoneNumber ?? "N/A"
+                CreatedAt = now
+                
             };
             _context.Transaction.Add(barTransaction);
 
@@ -224,8 +224,8 @@ public class OrderService : IOrderService
                 Description = $"Reembolso Bar - Cancelamento Pedido #{order.RedemptionCode}",
                 Reference = "REEMBOLSO BAR",
                 IsPaid = true,
-                CreatedAt = now,
-                PhoneNumber = order.AppUser.PhoneNumber ?? "N/A"
+                CreatedAt = now
+               
             };
             _context.Transaction.Add(refundTransaction);
 
