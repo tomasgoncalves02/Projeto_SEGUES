@@ -193,7 +193,7 @@
                                     }
                                 </td>
                                 <td class="small">
-                                    @if (order.PickupTime != TimeSpan.Zero)
+                                    @if (order.PickupTime.HasValue && order.PickupTime.Value != TimeSpan.Zero)
                                     {
                                         <span class="text-success fw-bold">@order.PickupTime.Value.ToString(@"hh\:mm")</span>
                                     }
