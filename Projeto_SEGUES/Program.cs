@@ -165,7 +165,7 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IUserService, UserService>();
 
 //Stripe
-StripeConfiguration.ApiKey = builder.Configuration["Secrets:StripeSecretKey"];
+StripeConfiguration.ApiKey = builder.Configuration["Secrets:StripeApiKey"];
 
 // MVC and Razor
 builder.Services.AddControllersWithViews();
