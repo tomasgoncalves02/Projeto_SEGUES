@@ -162,7 +162,7 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IUserService, UserService>();
 
 //Stripe
-StripeConfiguration.ApiKey = builder.Configuration["Secrets:StripeApiKey"];
+StripeConfiguration.ApiKey = builder.Configuration["Secrets:StripeSecretKey"];
 
 // MVC and Razor
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");

@@ -83,6 +83,20 @@ public class CreateOrderController : Controller
             return RedirectToAction(nameof(Checkout));
         }
 
+        if (TimeSpan.TryParse(pickupTime, out TimeSpan pickupTimeSpan))
+        {
+            if (pickupTimeSpan < openTime || pickupTimeSpan > closeTime)
+            {
+                TempData.SetSwalError($"Não pode fazer pedido para esse horario de recolha. Horário de funcionamento: {openTime:hh\\:mm} - {closeTime:hh\\:mm}");
+                return RedirectToAction(nameof(Checkout));
+            } 
+        }
+        else
+        {
+            TempData.SetSwalError("Horário de pickup inválido.");
+            return RedirectToAction(nameof(Checkout));
+        }
+
         var user = await _userManager.GetUserAsync(User);
         var result = await _orderService.SubmitOrderAsync(user!, receiveNow, pickupTime);
 
