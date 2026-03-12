@@ -15,6 +15,24 @@
     <EmbeddedResource Remove="NovaPasta\**" />
     <None Remove="NovaPasta1\**" />
     <None Remove="NovaPasta\**" />
+    <EmbeddedResource Update="Resources\Errors.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Errors.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <Compile Update="Resources\Errors.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Errors.resx</DependentUpon>
+    </Compile>
+    <EmbeddedResource Update="Resources\Errors.pt.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Errors.pt.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <Compile Update="Resources\Errors.pt.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Errors.pt.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

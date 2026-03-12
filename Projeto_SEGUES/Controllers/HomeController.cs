@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Audit.ViewModels;
+using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
 
 namespace Projeto_SEGUES.Controllers
@@ -33,7 +34,7 @@ namespace Projeto_SEGUES.Controllers
                 {
                     return RedirectToPage("/Account/Login", new { area = "Identity" });
                 }
-                _logger.LogInformation("User not authenticated.");
+                _logger.LogWarning("{LogType} Alert: {AlertType} User {UserId} not authenticated.", "Alert", "Warning", "");
                 TempData.SetSwalWarning("Faça login novamente. Desconectado por inatividade ou alteração dos dados.");
                 return RedirectToPage("/Account/Login", new { area = "Identity" });
             }

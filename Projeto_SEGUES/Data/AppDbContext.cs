@@ -19,7 +19,6 @@ namespace Projeto_SEGUES.Data
         /* =========
          * Audit
          * ========= */
-        public DbSet<AlertLog> AlertLog { get; set; }
         public DbSet<DbStats> DbStats { get; set; }
         public DbSet<UserLog> UserLog { get; set; }
         public DbSet<ErrorLog> ErrorLog { get; set; }

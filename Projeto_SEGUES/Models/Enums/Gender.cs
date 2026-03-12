@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Projeto_SEGUES.Models.Enums;
 
-public enum Gender
+public enum Gender : byte
 {
     [Display(Name = "Masculino")]
     Male,

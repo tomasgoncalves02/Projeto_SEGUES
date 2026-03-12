@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Projeto_SEGUES.Models.Enums;
+using Projeto_SEGUES.Models.User;
 
 namespace Projeto_SEGUES.Models.Audit
 {
@@ -6,16 +8,24 @@ namespace Projeto_SEGUES.Models.Audit
     {
         public int Id { get; init; }
         
-        [MaxLength(100)]
         [Required]
         [Display(Name = "Acção")]
-        public required string UserAction { get; set; }
+        public required UserAction UserAction { get; set; }
+        
+        [Required]
+        [MaxLength(250)]
+        [Display(Name = "Mensagem")]
+        public required string Message { get; set; }
+        
+        [MaxLength(250)]
+        [Display(Name = "Origem do pedido")]
+        public string? RequestPath { get; set; }
         
         [DataType(DataType.DateTime)]
         [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
         [Display(Name = "Data")]
-        public DateTime Date { get; set; }
+        public DateTime TimeStamp { get; set; }
         
-        public required User.AppUser AppUser { get; set; } // FK
+        public required AppUser AppUser { get; set; } // FK
     }
 }

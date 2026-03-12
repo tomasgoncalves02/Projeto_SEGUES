@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Projeto_SEGUES.Models.Enums;
 
-public enum DiscountType
+public enum DiscountType : byte
 {
     [Display(Name = "Porcentagem")]
     Percentage,

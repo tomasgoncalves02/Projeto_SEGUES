@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+    <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+        <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+        <xsd:element name="root" msdata:IsDataSet="true">
+            <xsd:complexType>
+                <xsd:choice maxOccurs="unbounded">
+                    <xsd:element name="metadata">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+                            </xsd:sequence>
+                            <xsd:attribute name="name" use="required" type="xsd:string" />
+                            <xsd:attribute name="type" type="xsd:string" />
+                            <xsd:attribute name="mimetype" type="xsd:string" />
+                            <xsd:attribute ref="xml:space" />
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="assembly">
+                        <xsd:complexType>
+                            <xsd:attribute name="alias" type="xsd:string" />
+                            <xsd:attribute name="name" type="xsd:string" />
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="data">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+                            </xsd:sequence>
+                            <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="0" />
+                            <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+                            <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+                            <xsd:attribute ref="xml:space" />
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="resheader">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                            </xsd:sequence>
+                            <xsd:attribute name="name" type="xsd:string" use="required" />
+                        </xsd:complexType>
+                    </xsd:element>
+                </xsd:choice>
+            </xsd:complexType>
+        </xsd:element>
+    </xsd:schema>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>2.0</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+
+    <!-- Erros HTTP Padrão -->
+    <data name="BadRequest" xml:space="preserve">
+    <value>{LogType} Pedido inválido afetando {Table} durante {Operation}.</value>
+  </data>
+    <data name="Unauthorized" xml:space="preserve">
+    <value>{LogType} Tentativa de acesso não autorizado a {Table} durante {Operation}.</value>
+  </data>
+    <data name="Forbidden" xml:space="preserve">
+    <value>{LogType} Acesso proibido para {Table} durante {Operation}.</value>
+  </data>
+    <data name="NotFound" xml:space="preserve">
+    <value>{LogType} Recurso não encontrado em {Table} durante {Operation}.</value>
+  </data>
+    <data name="InternalServerError" xml:space="preserve">
+    <value>{LogType} Erro interno do servidor afetando {Table} durante {Operation}.</value>
+  </data>
+
+    <!-- Erros de Base de Dados -->
+    <data name="DatabaseConnectionError" xml:space="preserve">
+    <value>{LogType} Falha ao ligar à base de dados para {Table} durante {Operation}.</value>
+  </data>
+    <data name="DatabaseQueryError" xml:space="preserve">
+    <value>{LogType} Erro ao executar consulta em {Table} durante {Operation}.</value>
+  </data>
+    <data name="DataNotFoundError" xml:space="preserve">
+    <value>{LogType} Dados não encontrados em {Table} durante {Operation}.</value>
+  </data>
+    <data name="ConcurrencyError" xml:space="preserve">
+    <value>{LogType} Conflito de concorrência detetado em {Table} durante {Operation}.</value>
+  </data>
+
+    <!-- Erros de Identidade -->
+    <data name="InvalidCredentials" xml:space="preserve">
+    <value>{LogType} Falha na autenticação do utilizador durante {Operation}.</value>
+  </data>
+    <data name="UserNotFound" xml:space="preserve">
+    <value>{LogType} Utilizador não encontrado durante {Operation}.</value>
+  </data>
+    <data name="InvalidToken" xml:space="preserve">
+    <value>{LogType} Token inválido ou expirado durante {Operation}.</value>
+  </data>
+    <data name="UnauthorizedAccess" xml:space="preserve">
+    <value>{LogType} Acesso não autorizado a {Table} durante {Operation}.</value>
+  </data>
+    <data name="AccountLocked" xml:space="preserve">
+    <value>{LogType} Conta bloqueada para o utilizador durante {Operation}.</value>
+  </data>
+    <data name="UserAlreadyRegistered" xml:space="preserve">
+    <value>{LogType} Falha no registo: O utilizador já existe durante {Operation}.</value>
+  </data>
+
+    <!-- Erros de Lógica de Negócio -->
+    <data name="InvalidOperation" xml:space="preserve">
+    <value>{LogType} Operação inválida em {Table} durante {Operation}.</value>
+  </data>
+    <data name="ValidationError" xml:space="preserve">
+    <value>{LogType} Falha na validação para {Table} durante {Operation}.</value>
+  </data>
+    <data name="InsufficientFunds" xml:space="preserve">
+    <value>{LogType} Saldo insuficiente para a transação em {Table} durante {Operation}.</value>
+  </data>
+    <data name="EmailSenderError" xml:space="preserve">
+    <value>{LogType} Falha ao enviar e-mail durante {Operation}.</value>
+  </data>
+
+    <!-- Genéricos -->
+    <data name="UnexpectedError" xml:space="preserve">
+    <value>{LogType} Ocorreu um erro inesperado em {Table} durante {Operation}.</value>
+  </data>
+</root>

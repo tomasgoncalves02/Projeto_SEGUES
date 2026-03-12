@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Projeto_SEGUES.Models.Enums;
 
-public enum TicketState
+public enum TicketState : byte
 {
     [Display(Name = "Disponível")]
     Available,

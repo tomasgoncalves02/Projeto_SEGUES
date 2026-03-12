@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Projeto_SEGUES.Models.Enums;
 
-public enum OrderStatus
+public enum OrderStatus : byte
 {
     [Display(Name = "Carrinho")]
     Cart,

@@ -5,7 +5,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Localization;
 using Projeto_SEGUES.Data;
+using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Services;
 using Projeto_SEGUES.Models.User;
 using QuestPDF.Infrastructure;
@@ -15,6 +17,7 @@ using Serilog.Context;
 using Serilog.Sinks.MSSqlServer;
 using Serilog.Filters;
 using Projeto_SEGUES.Models.Payment;
+using Projeto_SEGUES.Resources;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -58,15 +61,18 @@ var columnOptions = new ColumnOptions
 {
     AdditionalColumns = new Collection<SqlColumn>
     {
-        new() { ColumnName = "UserId", DataType = SqlDbType.NVarChar, DataLength = 100, AllowNull = true },
-        new() { ColumnName = "RequestPath", DataType = SqlDbType.NVarChar, DataLength = 255, AllowNull = true },
-        // Columns for ErrorLog/UserLog/AlertLog compatibility
-        new() { ColumnName = "Table", DataType = SqlDbType.NVarChar, DataLength = 100, AllowNull = true },
-        new() { ColumnName = "Operation", DataType = SqlDbType.NVarChar, DataLength = 100, AllowNull = true },
-        new() { ColumnName = "UserAction", DataType = SqlDbType.NVarChar, DataLength = 100, AllowNull = true },
-        new() { ColumnName = "AlertType", DataType = SqlDbType.Int, AllowNull = true }
+        // Common
+        new() { ColumnName = "AppUserId", DataType = SqlDbType.NVarChar, DataLength = 450, AllowNull = true },
+        new() { ColumnName = "RequestPath", DataType = SqlDbType.NVarChar, DataLength = 250, AllowNull = true },
+        // UserLog
+        new() { ColumnName = "UserAction", DataType = SqlDbType.TinyInt, AllowNull = false },
+        // ErrorLog
+        new() { ColumnName = "Table", DataType = SqlDbType.TinyInt, AllowNull = false },
+        new() { ColumnName = "Operation", DataType = SqlDbType.TinyInt, AllowNull = false }
     }
 };
+columnOptions.Level.StoreAsEnum = true;
+
 builder.Host.UseSerilog((ctx, configuration) => 
     configuration.ReadFrom.Configuration(ctx.Configuration)
         .Enrich.FromLogContext()
@@ -85,15 +91,6 @@ builder.Host.UseSerilog((ctx, configuration) =>
             .WriteTo.MSSqlServer(
                 connectionString: connectionString,
                 sinkOptions: new MSSqlServerSinkOptions { TableName = "ErrorLog", AutoCreateSqlTable = false },
-                columnOptions: columnOptions
-            ))
-
-        // AlertLog: System alerts and security notifications
-        .WriteTo.Logger(lc => lc
-            .Filter.ByIncludingOnly(Matching.WithProperty("LogType", "Alert"))
-            .WriteTo.MSSqlServer(
-                connectionString: connectionString,
-                sinkOptions: new MSSqlServerSinkOptions { TableName = "AlertLog", AutoCreateSqlTable = false },
                 columnOptions: columnOptions
             ))
         // DbStats: Logging performance and storage metrics
@@ -168,7 +165,10 @@ builder.Services.AddScoped<IUserService, UserService>();
 StripeConfiguration.ApiKey = builder.Configuration["Secrets:StripeApiKey"];
 
 // MVC and Razor
-builder.Services.AddControllersWithViews();
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+builder.Services.AddControllersWithViews()
+    .AddViewLocalization()
+    .AddDataAnnotationsLocalization();
 builder.Services.AddRazorPages();
 
 
@@ -220,7 +220,8 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        app.Logger.LogError(ex, "{LogType} Error occurred affecting {Table} tables during {Operation}", "Error", "All", "Database Initialization");
+        var localizer = services.GetService<IStringLocalizer<Errors>>() ?? throw new InvalidOperationException("Localization service not found");
+        app.Logger.LogError(ex, localizer[nameof(AppErrors.InternalServerError)], "Error", TableName.All, AppOperation.DatabaseInitialization);
     }
 }
 
