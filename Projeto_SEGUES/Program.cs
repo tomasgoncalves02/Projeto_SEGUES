@@ -33,7 +33,7 @@ if (builder.Environment.IsDevelopment())
 }
 else
 {
-    connectionName = "AzureSQL";
+    connectionName = "AzureSQLServer";
     password = config["Secrets:AzureSQLPassword"];
 }
 string? connectionString = builder.Configuration.GetConnectionString(connectionName);
