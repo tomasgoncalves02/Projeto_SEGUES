@@ -18,24 +18,37 @@ namespace Projeto_SEGUES.Areas.Payment
         private readonly AppDbContext _context;
         private readonly IHttpClientFactory _clientFactory;
         private readonly UserManager<AppUser> _userManager;
-        private readonly StripeSettings _stripeSettings;
+     
 
-        [HttpGet]
-        public IActionResult Deposit() => View();
 
-        public PaymentController(AppDbContext context, IHttpClientFactory clientFactory, UserManager<AppUser> userManager, IOptions<StripeSettings> stripeSettings)
+
+        public PaymentController(AppDbContext context, IHttpClientFactory clientFactory, UserManager<AppUser> userManager)
         {
             _context = context;
             _clientFactory = clientFactory;
             _userManager = userManager;
-            _stripeSettings = stripeSettings.Value;
+        }
+
+        [HttpGet]
+        public IActionResult Deposit()
+        {
+            
+            return View();
         }
 
 
         [HttpPost]
-        public async Task<IActionResult> CreateCheckoutSession(string amount)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateCheckoutSession(decimal amount)
         {
+            if (amount <= 0)
+                return BadRequest("Dados inválidos.");
+
             var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return Challenge(); // Return to login if user is not authenticated
+
+            var currency = "eur";
 
             var transaction = new Transaction
             {
@@ -44,47 +57,34 @@ namespace Projeto_SEGUES.Areas.Payment
                 Reference = Guid.NewGuid().ToString().Substring(0, 8).ToUpper(),
                 IsPaid = false 
             };
+           
 
             _context.Set<Transaction>().Add(transaction);
             await _context.SaveChangesAsync();
 
-
-
-            var currency = "eur";
-            var successUrl = $"https://localhost:7223/Payment/Payment/SuccessPayment?reference={transaction.Reference}";
-            var cancelUrl = $"https://localhost:7223/Payment/Payment/CancelPayment";
-            StripeConfiguration.ApiKey = _stripeSettings.SecretKey;
-
-
-
-            
-
             var options = new SessionCreateOptions
             {
-                PaymentMethodTypes = new List<string>
-        {
-            "card"
-        },
+                PaymentMethodTypes = new List<string>{"card"},
                 LineItems = new List<SessionLineItemOptions>
-        {
-            new SessionLineItemOptions
-            {
-                PriceData = new SessionLineItemPriceDataOptions
                 {
-                    Currency = currency,
-                    UnitAmount = (long)(Convert.ToDecimal(amount) * 100),
-                    ProductData = new SessionLineItemPriceDataProductDataOptions
+                new SessionLineItemOptions
+                {
+                    PriceData = new SessionLineItemPriceDataOptions
                     {
-                        Name = "Carregar Saldo",
-                        Description = "Carregar saldo com" + amount
-                    }
+                        Currency = currency,
+                        UnitAmount = (long)(Convert.ToDecimal(amount) * 100),
+                        ProductData = new SessionLineItemPriceDataProductDataOptions
+                        {
+                            Name = "Carregar Saldo",
+                            Description = $"Carregamento de saldo no valor de {amount:C2} para a conta SEGUES."
+                        }
+                    },
+                    Quantity = 1
+                }
                 },
-                Quantity = 1
-            }
-        },
                 Mode = "payment",
-                SuccessUrl = successUrl,
-                CancelUrl = cancelUrl
+                SuccessUrl = Url.Action("SuccessPayment", "Payment", new { reference = transaction.Reference }, Request.Scheme),
+                CancelUrl = Url.Action("CancelPayment", "Payment", null, Request.Scheme)
             };
 
             var service = new SessionService();
@@ -111,8 +111,8 @@ namespace Projeto_SEGUES.Areas.Payment
 
                 TempData.SetSwalSuccess($"Foram carregados {transaction.Amount:C2} com sucesso!");
 
-                
-                return View();
+
+                return RedirectToAction("Index", "Home", new { area = "" });
             }
 
             TempData.SetSwalError("Pagamento não encontrado ou já processado.");
@@ -122,8 +122,9 @@ namespace Projeto_SEGUES.Areas.Payment
         [HttpGet]
         public IActionResult CancelPayment()
         {
-           
-            return View();
+
+            TempData.SetSwalError("Pagamento cancelado.");
+            return RedirectToAction("Index", "Home", new { area = "" });
         }
 
 

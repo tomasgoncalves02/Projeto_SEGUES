@@ -15,7 +15,6 @@ using Serilog.Context;
 using Serilog.Sinks.MSSqlServer;
 using Serilog.Filters;
 using Projeto_SEGUES.Models.Payment;
-using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -166,15 +165,13 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IUserService, UserService>();
 
 //Stripe
-builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("StripeSettings"));
-StripeConfiguration.ApiKey = builder.Configuration.GetSection("StripeSettings")["SecretKey"];
-
+StripeConfiguration.ApiKey = builder.Configuration["Secrets:StripeSecretKey"];
 
 // MVC and Razor
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
-StripeConfiguration.ApiKey = builder.Configuration["Secrets:StripeApiKey"];
+
 QuestPDF.Settings.License = LicenseType.Community;
 var app = builder.Build();
 
