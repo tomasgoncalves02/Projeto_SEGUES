@@ -23,7 +23,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             _logger = logger;
             _userManager = userManager;
         }
-        
+
         // Identity
         [BindProperty]
         public required InputModel Input { get; set; }
@@ -63,7 +63,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             }
 
             returnUrl ??= Url.Content("~/");
-            
+
             // Clear the existing external cookie to ensure a clean login process
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
@@ -102,17 +102,27 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                     return LocalRedirect(returnUrl);
                 }
 
-                // Se chegar aqui e for IsLockedOut, é porque ERROU a pass demasiadas vezes
+                // 4. Verificação de Autenticação de Dois Fatores (2FA)
+                if (result.RequiresTwoFactor)
+                {
+                    return RedirectToPage("./LoginWith2fa", new { ReturnUrl = "/", RememberMe = Input.RememberMe });
+                }
+
+                // 5. Verificação de Bloqueio (Lockout)
                 if (result.IsLockedOut)
                 {
                     _logger.LogWarning("User account locked out due to failed attempts.");
                     return RedirectToPage("./Lockout");
                 }
-
-                TempData.SetSwalError("Tentativa de login inválida.");
-                return Page();
+                else
+                {
+                    
+                    _logger.LogWarning("Invalid login attempt.");
+                    TempData.SetSwalError("Tentativa de login inválida.");
+                    return Page();
+                }
             }
-
+           
             return Page();
         }
     }
