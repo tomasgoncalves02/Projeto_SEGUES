@@ -855,5 +855,16 @@ function confirmarEdição(type,form) {
 }
 
 
+// ── Estatísticas: Resumo de Refeições ────────────────────────────────────────
+
+
+
+
+
+
+
+
+
+
 
 
