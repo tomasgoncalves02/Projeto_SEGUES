@@ -1,106 +1,148 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<Projeto_SEGUES.Models.User.AppUser> SignInManager
+
+@{
     ViewData["Title"] = "Página Inicial - SEGUES";
     var balance = ViewBag.UserBalance ?? 0m;
 }
 
-<div class="container mt-5">
-    <div class="row mb-5">
-        <div class="col-12">
-            <h3 class="fw-bold display-5">Olá, @ViewBag.FirstName! 👋</h3>
-            <p class="text-muted fs-5">Selecione uma das opções abaixo para gerir os seus serviços.</p>
-        </div>
-    </div>
+@if (!SignInManager.IsSignedIn(User))
+{
+    <div class="container landing-hero-container">
 
-    @* Main row *@
-    <div class="row g-4">
-        @* Balance Card *@
-        <div class="col-md-6 col-lg-3">
-            <div class="card h-100 shadow-sm card-ips bg-color-ips text-white hover-translate d-flex flex-column">
-                <div class="card-body text-center d-flex flex-column p-4">
-                    <small class="d-block opacity-75 fw-bold mb-2 fs-4">Saldo Disponível</small>
-                    <h2 class="display-6 fw-bold my-auto">@balance.ToString("C")</h2>
-                    <div class="mt-auto">
-                        <a asp-area="Payment" asp-controller="Payment" asp-action="Deposit" class="btn btn-ips fw-bold w-100 py-2" style="border: 1px solid var(--ips-border) !important">Carregar Saldo</a>
+        <div class="row align-items-center flex-grow-1">
+            <div class="col-lg-5">
+                <p class="fw-bold mb-1 text-muted small">BEM-VINDO AO</p>
+                <h1 class="display-1 fw-bold">SEGUES<span class="text-color-ips">.</span></h1>
+                <h2 class="fw-bold mb-4">SISTEMA DE GESTÃO DE <span class="text-color-ips">SENHAS</span></h2>
+
+                <p class="fs-5 text-muted mb-4">
+                    Compra as tuas senhas no refeitório e faz pedidos no bar de forma rápida e simples.
+                </p>
+
+                <div class="button-group-wrapper" style="max-width: 450px;">
+                    <div class="d-flex gap-2 mb-2">
+                        <a href="#" class="btn btn-ips py-3 flex-fill fw-bold">VER MENU</a>
+                        <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-ips-outline-secondary py-3 flex-fill fw-bold">INICIAR SESSÃO</a>
                     </div>
+                    <a href="#" class="btn btn-ips w-100 py-3 fw-bold rect-btn">
+                        HORÁRIO DE FUNCIONAMENTO
+                    </a>
                 </div>
+            </div>
+
+            <div class="col-lg-7 text-center">
+                <img src="~/images/hero-devices.jpg" class="img-fluid animate-float hero-image-lg" alt="SEGUES">
             </div>
         </div>
-        @* Ticket Card *@
-        <div class="col-md-6 col-lg-3">
-            <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
-                <div class="card-body text-center d-flex flex-column p-4">
-                    <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-cart-plus"></i></div>
-                    <h5 class="fw-bold">Refeitório</h5>
-                    <p class="text-muted small mb-4">Compra e usa as tuas senhas de refeição.</p>
-                    <div class="mt-auto">
-                        <a asp-area="Ticket" asp-controller="Ticket" asp-action="Index" class="btn w-100 py-2 fw-bold btn-ips">Ir para o Refeitório</a>
-                    </div>
-                </div>
-            </div>
+
+        <div class="text-center mt-auto pt-4">
+            <p class="mb-0">Não tens conta? <a asp-area="Identity" asp-page="/Account/Register" class="fw-bold text-color-ips text-decoration-none border-bottom border-2">Regista-te</a></p>
         </div>
-        @* Bar Card *@
-        <div class="col-md-6 col-lg-3">
-            <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
-                <div class="card-body text-center d-flex flex-column p-4">
-                    <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-cup-straw"></i></div>
-                    <h5 class="fw-bold">Bar</h5>
-                    <p class="text-muted small mb-4">Compra e gere os teus pedidos no bar.</p>
-                    <div class="mt-auto">
-                        <a asp-area="Order" asp-controller="Order" asp-action="Index" class="btn w-100 py-2 fw-bold btn-ips">Ir para o Bar</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        @* History Card *@
-        <div class="col-md-6 col-lg-3">
-            <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
-                <div class="card-body text-center d-flex flex-column p-4">
-                    <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-clock-history"></i></div>
-                    <h5 class="fw-bold">Histórico</h5>
-                    <p class="text-muted small mb-4">Visualiza o teu histórico de utilização e validade.</p>
-                    <div class="mt-auto">
-                        <a asp-area="Report" asp-controller="Report" asp-action="Index" class="btn w-100 py-2 fw-bold btn-ips">Ver Histórico</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        @* Employee Panel *@
-        @if (User.IsInRole("Employee"))
-        {
-            <div class="col-md-6 col-lg-3">
-                <div class="card h-100 shadow-sm card-ips p-4 hover-translate">
-                    <div class="card-body text-center d-flex flex-column p-0">
-                        <div class="mb-3 text-color-ips" style="color: #009697; font-size: 2.5rem;">
-                            <i class="bi bi-person-badge-fill"></i>
-                        </div>
-                        <h5 class="fw-bold" style="color: #2D2926;">Painel de Gestão</h5>
-                        <p class="text-muted small mb-4">Efetua as tuas tarefas de funcionário e gestão de refeições.</p>
-                        <div class="mt-auto">
-                            <a asp-area="Admin" asp-controller="Employee" asp-action="Index" class="btn w-100 py-2 fw-bold btn-ips">
-                                Ver Painel
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }
-        @* Admin Panel *@
-        @if (User.IsInRole("Admin"))
-        {
-            <div class="col-12 mt-4">
-                <div class="card shadow-lg card-admin p-4 hover-translate">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h4 class="fw-bold mb-1"><i class="bi bi-shield-lock me-2"></i>Painel de Administração</h4>
-                            <p class="mb-0 opacity-75">Configurações de limites e gestão de contas internas.</p>
-                        </div>
-                        <div class="col-md-4 text-center">
-                            @* or 2B95 *@
-                            <a asp-area="Admin" asp-controller="Admin" asp-action="Index" class="btn btn-outline-light btn-lg px-5">Gerir Sistema &#x2192</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }
     </div>
-</div>
+}
+else
+{
+    
+    <div class="container mt-5">
+        <div class="row mb-5">
+            <div class="col-12">
+                <h3 class="fw-bold display-5">Olá, @ViewBag.FirstName! 👋</h3>
+                <p class="text-muted fs-5">Selecione uma das opções abaixo para gerir os seus serviços.</p>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            @* Balance Card *@
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 shadow-sm card-ips bg-color-ips text-white hover-translate d-flex flex-column">
+                    <div class="card-body text-center d-flex flex-column p-4">
+                        <small class="d-block opacity-75 fw-bold mb-2 fs-4">Saldo Disponível</small>
+                        <h2 class="display-6 fw-bold my-auto">@balance.ToString("C")</h2>
+                        <div class="mt-auto">
+                            <a asp-area="Payment" asp-controller="Payment" asp-action="Deposit" class="btn btn-ips fw-bold w-100 py-2" style="border: 1px solid var(--ips-border) !important">Carregar Saldo</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* Ticket Card *@
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
+                    <div class="card-body text-center d-flex flex-column p-4">
+                        <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-cart-plus"></i></div>
+                        <h5 class="fw-bold">Refeitório</h5>
+                        <p class="text-muted small mb-4">Compra e usa as tuas senhas de refeição.</p>
+                        <div class="mt-auto">
+                            <a asp-area="Ticket" asp-controller="Ticket" asp-action="Index" class="btn w-100 py-2 fw-bold btn-ips">Ir para o Refeitório</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* Bar Card *@
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
+                    <div class="card-body text-center d-flex flex-column p-4">
+                        <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-cup-straw"></i></div>
+                        <h5 class="fw-bold">Bar</h5>
+                        <p class="text-muted small mb-4">Compra e gere os teus pedidos no bar.</p>
+                        <div class="mt-auto">
+                            <a asp-area="Order" asp-controller="Order" asp-action="Index" class="btn w-100 py-2 fw-bold btn-ips">Ir para o Bar</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* History Card *@
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
+                    <div class="card-body text-center d-flex flex-column p-4">
+                        <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-clock-history"></i></div>
+                        <h5 class="fw-bold">Histórico</h5>
+                        <p class="text-muted small mb-4">Visualiza o teu histórico de utilização e validade.</p>
+                        <div class="mt-auto">
+                            <a asp-area="Report" asp-controller="Report" asp-action="Index" class="btn w-100 py-2 fw-bold btn-ips">Ver Histórico</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* Employee & Admin Panels *@
+            @if (User.IsInRole("Employee"))
+            {
+                <div class="col-md-6 col-lg-3">
+                    <div class="card h-100 shadow-sm card-ips p-4 hover-translate">
+                        <div class="card-body text-center d-flex flex-column p-0">
+                            <div class="mb-3 text-color-ips" style="color: #009697; font-size: 2.5rem;">
+                                <i class="bi bi-person-badge-fill"></i>
+                            </div>
+                            <h5 class="fw-bold" style="color: #2D2926;">Painel de Gestão</h5>
+                            <p class="text-muted small mb-4">Efetua as tuas tarefas de funcionário e gestão de refeições.</p>
+                            <div class="mt-auto">
+                                <a asp-area="Admin" asp-controller="Employee" asp-action="Index" class="btn w-100 py-2 fw-bold btn-ips">Ver Painel</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (User.IsInRole("Admin"))
+            {
+                <div class="col-12 mt-4">
+                    <div class="card shadow-lg card-admin p-4 hover-translate">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h4 class="fw-bold mb-1"><i class="bi bi-shield-lock me-2"></i>Painel de Administração</h4>
+                                <p class="mb-0 opacity-75">Configurações de limites e gestão de contas internas.</p>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <a asp-area="Admin" asp-controller="Admin" asp-action="Index" class="btn btn-outline-light btn-lg px-5">Gerir Sistema &#x2192</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}

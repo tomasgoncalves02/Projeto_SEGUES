@@ -58,7 +58,6 @@
 
   <ItemGroup>
     <Folder Include="Models\Report\" />
-    <Folder Include="wwwroot\images\" />
   </ItemGroup>
 
   <ItemGroup>

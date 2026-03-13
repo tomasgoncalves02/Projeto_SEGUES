@@ -252,4 +252,50 @@ html {
         margin-left: 16rem !important;
         margin-right: 16rem !important;
     }
-}
+
+
+    .landing-hero-container {
+        min-height: 70vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between; 
+        padding: 2rem 0;
+    }
+
+    .hero-image-lg {
+        max-width: 100% !important;
+        height: auto;
+        z-index: 2;
+        position: relative;
+    }
+
+    .hero-circle-bg-large {
+        display: none;
+    }
+
+    .button-group-wrapper .btn {
+        min-width: 180px;
+    }
+
+    .rect-btn {
+        border-radius: 8px !important;
+    }
+
+    .animate-float {
+        animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0% {
+            transform: translateY(0px);
+        }
+
+        50% {
+            transform: translateY(-15px);
+        }
+
+        100% {
+            transform: translateY(0px);
+        }
+    }
+    }

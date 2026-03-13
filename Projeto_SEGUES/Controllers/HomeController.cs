@@ -21,39 +21,27 @@ namespace Projeto_SEGUES.Controllers
 
         public async Task<IActionResult> Index()
         {
-            // If not logged, redirect to login
-            if (User.Identity is not { IsAuthenticated: true })
+            // Check if logged
+            if (User.Identity is { IsAuthenticated: true })
             {
-                // If already in login page, do not show the message
-                if (Uri.TryCreate(Request.Headers.Referer, UriKind.Absolute, out var refererUri) &&
-                 string.Equals(refererUri.AbsolutePath, "/Identity/Account/Login", StringComparison.OrdinalIgnoreCase))
+                //If logged load dashboard data
+                var user = await _userManager.GetUserAsync(User);
+
+                if (user != null)
                 {
-                 return RedirectToPage("/Account/Login", new { area = "Identity" });
+                    ViewBag.UserBalance = user.Balance;
+                    ViewBag.FirstName = user.FirstName;
+                    var roles = await _userManager.GetRolesAsync(user);
+                    ViewBag.UserRole = roles.FirstOrDefault();
                 }
-                if (Request.Headers.Referer.Equals("/Identity/Account/Login"))
+                else
                 {
-                    return RedirectToPage("/Account/Login", new { area = "Identity" });
+                    _logger.LogInformation("User not found.");
+                    return View(); 
                 }
-                _logger.LogWarning("{LogType} Alert: {AlertType} User {UserId} not authenticated.", "Alert", "Warning", "");
-                TempData.SetSwalWarning("Faça login novamente. Desconectado por inatividade ou alteração dos dados.");
-                return RedirectToPage("/Account/Login", new { area = "Identity" });
             }
 
-            // Load user from database
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                _logger.LogInformation("User not found.");
-                TempData.SetSwalError("Erro ao carregar dados do utilizador.");
-                return RedirectToPage("/Account/Login", new { area = "Identity" });
-            }
-            
-            // Prepare data and return the dashboard view
-            ViewBag.UserBalance = user.Balance;
-            ViewBag.FirstName = user.FirstName;
-            var roles = await _userManager.GetRolesAsync(user);
-            ViewBag.UserRole = roles.FirstOrDefault();
-            
+            // Skips to this if isn´t logged
             return View();
         }
 
