@@ -64,18 +64,18 @@
                         </div>
                         <div class="col-8">
                             @{
-                                bool isAgora = Model.PickupTime == null || Model.PickupTime == TimeSpan.Zero;
+                                bool isAgendado = Model.DeliveryTime.HasValue && Model.DeliveryTime.Value != TimeSpan.Zero;
                             }
-                            <div class="alert alert-light border-0 mb-0 py-2 px-3 d-flex @(isAgora ? "justify-content-center" : "justify-content-between") align-items-center shadow-sm"
+                            <div class="alert alert-light border-0 mb-0 py-2 px-3 d-flex @(!isAgendado ? "justify-content-center" : "justify-content-between") align-items-center shadow-sm"
                                  style="background-color: var(--ips-shadow-soft); border-radius: 8px; min-height: 45px;">
-                                @if (isAgora)
+                                @if (!isAgendado)
                                 {
                                     <strong class="text-dark">Agora</strong>
                                 }
                                 else
                                 {
                                     <span class="text-dark fw-bold small me-2">A partir das</span>
-                                    <strong class="text-dark">@Model.PickupTime!.Value.ToString(@"hh\:mm")</strong>
+                                    <strong class="text-dark">@Model.DeliveryTime!.Value.ToString(@"hh\:mm")</strong>
                                 }
                             </div>
                         </div>
