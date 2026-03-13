@@ -72,6 +72,25 @@ public class AdminOrderManagementController : Controller
     }
 
     [HttpGet]
+    public async Task<IActionResult> GetOrderDetails(int id)
+    {
+        var order = await _orderService.GetOrderByIdAsync(id);
+        if (order == null) return NotFound();
+        var result = new
+        {
+            codigo = order.RedemptionCode,
+            produtos = order.ProductPurchases.Select(p => new
+            {
+                nome = p.Product.Name,
+                preco = p.ProductValue,
+                quantidade = p.Quantity
+            }).ToList()
+        };
+
+        return Json(result);
+    }
+
+    [HttpGet]
     public async Task<IActionResult> ExportOrdersPDF(string status, DateTime? date, string search)
     {
         var query = _context.Order

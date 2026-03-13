@@ -679,19 +679,25 @@ function confirmarCompraBar(formId) {
     }
 }
 
-function verDetalhesProdutos(id) {
+function verDetalhesProdutos(id, urlBase = '/Report/ReportOrder/GetOrderDetails') {
+    // 1. Mostrar Spinner de carregamento
     Notifications.info(null, '<div id="detailsModal" class="p-5 text-center"><div class="spinner-border text-color-ips"></div></div>', true, 0);
     let detailsModal = document.getElementById('detailsModal');
 
-    fetch(`/Report/ReportOrder/GetOrderDetails/${id}`)
-        .then(res => res.json())
+    // 2. Fazer o fetch para a URL fornecida
+    fetch(`${urlBase}/${id}`)
+        .then(res => {
+            if (!res.ok) throw new Error("Erro ao aceder aos detalhes");
+            return res.json();
+        })
         .then(data => {
-            // Validação de segurança: se não houver produtos, mostra mensagem amigável
-            if (!data.produtos || data.produtos.length === 0) {
-                detailsModal.innerHTML = '<div class="p-4">Nenhum detalhe encontrado.</div>';
+            // Validação: se não houver produtos ou dados
+            if (!data || !data.produtos || data.produtos.length === 0) {
+                detailsModal.innerHTML = '<div class="p-4 text-center text-muted">Nenhum detalhe encontrado para este pedido.</div>';
                 return;
             }
 
+            // Gerar linhas da tabela
             let pRows = data.produtos.map(p => `
                 <tr>
                     <td class="text-start fw-bold">${p.nome}</td>
@@ -700,27 +706,29 @@ function verDetalhesProdutos(id) {
                 </tr>
             `).join('');
 
+            // Injetar o conteúdo final no modal
             detailsModal.innerHTML = `
-                    <h2 class="fw-bold mb-4">Detalhes do Pedido</h2>
-                    <div class="text-start mb-3">
-                        <p class="mb-0 text-muted small fw-bold text-uppercase">Código de Recolha</p>
-                        <h4 class="text-color-ips fw-bold" style="letter-spacing: 2px;">${data.codigo}</h4>
-                    </div>
-                    <div class="table-responsive border rounded-3 shadow-sm">
-                        <table class="table table-hover mb-0">
-                            <thead class="bg-color-ips text-white small">
-                                <tr>
-                                    <th class="text-start">Produto</th>
-                                    <th>Preço</th>
-                                    <th>Qtd</th>
-                                </tr>
-                            </thead>
-                            <tbody>${pRows}</tbody>
-                        </table>
-                    </div>`;
+                <h2 class="fw-bold mb-4">Detalhes do Pedido</h2>
+                <div class="text-start mb-3">
+                    <p class="mb-0 text-muted small fw-bold text-uppercase">Código de Recolha</p>
+                    <h4 class="text-color-ips fw-bold" style="letter-spacing: 2px;">${data.codigo}</h4>
+                </div>
+                <div class="table-responsive border rounded-3 shadow-sm">
+                    <table class="table table-hover mb-0">
+                        <thead class="bg-color-ips text-white small">
+                            <tr>
+                                <th class="text-start">Produto</th>
+                                <th>Preço</th>
+                                <th>Qtd</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-center">${pRows}</tbody>
+                    </table>
+                </div>`;
         })
         .catch(err => {
             console.error("Erro ao carregar detalhes:", err);
+            detailsModal.innerHTML = '<div class="p-4 text-danger text-center">Erro ao carregar detalhes. Verifique as permissões.</div>';
             Notifications.error("Não foi possível carregar os detalhes do pedido.");
         });
 }
