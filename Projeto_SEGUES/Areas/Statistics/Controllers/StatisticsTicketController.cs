@@ -19,14 +19,5 @@ namespace Projeto_SEGUES.Areas.Statistics.Controllers
         {
             return View();
         }
-
-        [HttpGet]
-        public async Task<IActionResult> GetTotalTickets()
-        {
-            var result = await _statisticsService.GetTotalTicketsAsync();
-            return Json(result);
-        }
-
-
     }
 }
