@@ -36,9 +36,8 @@ else
     connectionName = "AzureSQLServer";
     password = config["Secrets:AzureSQLPassword"];
 }
-string? connectionString = builder.Configuration.GetConnectionString(connectionName);
 
-var connectionStringBuilder = new SqlConnectionStringBuilder(connectionString);
+/*var connectionStringBuilder = new SqlConnectionStringBuilder(connectionString);
 if (!string.IsNullOrWhiteSpace(password))
 {
     connectionStringBuilder.Password = password;
@@ -52,10 +51,34 @@ else
     if (connectionStringBuilder.ContainsKey("Password"))
         connectionStringBuilder.Remove("Password");
 }
-connectionString = connectionStringBuilder.ConnectionString;
+connectionString = connectionStringBuilder.ConnectionString;*/
 
-// Database
-builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
+
+// 1. Pega a string base do appsettings.json
+string? connectionString = builder.Configuration.GetConnectionString(connectionName);
+
+// 2. Se estivermos no Azure, forçamos as credenciais e desativamos o Windows Auth
+if (!builder.Environment.IsDevelopment())
+{
+    var csb = new SqlConnectionStringBuilder(connectionString);
+
+    // Força o desligamento da autenticação do Windows
+    csb.IntegratedSecurity = false;
+
+    // Injeta o Usuário e a Senha 
+    csb.UserID = config["Secrets:AzureSQLUser"] ?? csb.UserID;
+    csb.Password = config["Secrets:AzureSQLPassword"] ?? csb.Password;
+
+    connectionString = csb.ConnectionString;
+}
+
+// 3. Configura o DbContext com a string final
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(connectionString));
+
+// 4.Atualiza a configuração global para o Identity não usar a string antiga
+builder.Configuration[$"ConnectionStrings:{connectionName}"] = connectionString;
+
 
 var columnOptions = new ColumnOptions
 {
@@ -73,42 +96,43 @@ var columnOptions = new ColumnOptions
 };
 columnOptions.Level.StoreAsEnum = true;
 
-builder.Host.UseSerilog((ctx, configuration) => 
-    configuration.ReadFrom.Configuration(ctx.Configuration)
+builder.Host.UseSerilog((ctx, configuration) =>
+    configuration
+        .MinimumLevel.Information()
         .Enrich.FromLogContext()
         .WriteTo.Console()
-        // UserLog: Log user actions
-        .WriteTo.Logger(lc => lc
-            .Filter.ByIncludingOnly(Matching.WithProperty("LogType", "UserAction"))
-            .WriteTo.MSSqlServer(
-                connectionString: connectionString,
-                sinkOptions: new MSSqlServerSinkOptions { TableName = "UserLog", AutoCreateSqlTable = false },
-                columnOptions: columnOptions
-            ))
-        // ErrorLog: Capture exceptions and database errors
-        .WriteTo.Logger(lc => lc
-            .Filter.ByIncludingOnly(Matching.WithProperty("LogType", "Error"))
-            .WriteTo.MSSqlServer(
-                connectionString: connectionString,
-                sinkOptions: new MSSqlServerSinkOptions { TableName = "ErrorLog", AutoCreateSqlTable = false },
-                columnOptions: columnOptions
-            ))
-        // DbStats: Logging performance and storage metrics
-        .WriteTo.Logger(lc => lc
-            .Filter.ByIncludingOnly(Matching.WithProperty("LogType", "DbStats"))
-            .WriteTo.MSSqlServer(
-                connectionString: connectionString,
-                sinkOptions: new MSSqlServerSinkOptions { TableName = "DbStats", AutoCreateSqlTable = false },
-                columnOptions: columnOptions
-            ))
-        // Default System Logs
-        .WriteTo.Logger(lc => lc
-            .Filter.ByExcluding(Matching.WithProperty("LogType"))
-            .WriteTo.MSSqlServer(
-                connectionString: connectionString,
-                sinkOptions: new MSSqlServerSinkOptions { TableName = "ErrorLog", AutoCreateSqlTable = false },
-                columnOptions: columnOptions 
-            ))
+// UserLog: Log user actions
+.WriteTo.Logger(lc => lc
+    .Filter.ByIncludingOnly(Matching.WithProperty("LogType", "UserAction"))
+    .WriteTo.MSSqlServer(
+        connectionString: connectionString,
+        sinkOptions: new MSSqlServerSinkOptions { TableName = "UserLog", AutoCreateSqlTable = false },
+        columnOptions: columnOptions
+    ))
+// ErrorLog: Capture exceptions and database errors
+.WriteTo.Logger(lc => lc
+    .Filter.ByIncludingOnly(Matching.WithProperty("LogType", "Error"))
+    .WriteTo.MSSqlServer(
+        connectionString: connectionString,
+        sinkOptions: new MSSqlServerSinkOptions { TableName = "ErrorLog", AutoCreateSqlTable = false },
+        columnOptions: columnOptions
+    ))
+// DbStats: Logging performance and storage metrics
+.WriteTo.Logger(lc => lc
+    .Filter.ByIncludingOnly(Matching.WithProperty("LogType", "DbStats"))
+    .WriteTo.MSSqlServer(
+        connectionString: connectionString,
+        sinkOptions: new MSSqlServerSinkOptions { TableName = "DbStats", AutoCreateSqlTable = false },
+        columnOptions: columnOptions
+    ))
+// Default System Logs
+.WriteTo.Logger(lc => lc
+    .Filter.ByExcluding(Matching.WithProperty("LogType"))
+    .WriteTo.MSSqlServer(
+        connectionString: connectionString,
+        sinkOptions: new MSSqlServerSinkOptions { TableName = "ErrorLog", AutoCreateSqlTable = false },
+        columnOptions: columnOptions 
+    ))
 );
 
 // Identity
@@ -173,6 +197,9 @@ builder.Services.AddRazorPages();
 
 
 QuestPDF.Settings.License = LicenseType.Community;
+// Forçar a string de conexão correta em todo o lado
+builder.Configuration["ConnectionStrings:AzureSQLServer"] = connectionString;
+builder.Configuration["ConnectionStrings:LocalSQLServer"] = connectionString;
 var app = builder.Build();
 
 // Set localization (first thing after build!)
