@@ -2,6 +2,8 @@
 
 public interface IStatisticsService
 {
-    Task<object> GetTicketsStatsAsync(string period = "Dia");
+    Task<object> GetTicketsStats(string period = "Dia");
+
+
 }
 

@@ -864,6 +864,8 @@ function confirmarEdição(type,form) {
 
 // ── Estatísticas: Resumo de Refeições ────────────────────────────────────────
 
+let mealsChart;
+
 function renderChart(data, period) {
     const subtitles = {
         'Dia': 'Refeições por hora hoje',
@@ -873,27 +875,33 @@ function renderChart(data, period) {
         'Total': 'Todas as refeições'
     };
 
-    const ctx = document.getElementById('mealsChart').getContext('2d');
-    if (mealsChart && typeof mealsChart.destroy === 'function') {
-        mealsChart.destroy();
-        mealsChart = null;
-    }
+    const canvas = document.getElementById('mealsChart');
+    if (!canvas) return; 
 
+    const ctx = canvas.getContext('2d');
+
+    if (mealsChart) {
+        mealsChart.destroy();
+    }
 
     document.getElementById('chartSubtitle').textContent = subtitles[period] || '';
 
-   
+    
+    const chartLabels = data.map(d => d.label);
+    const chartValues = data.map(d => d.count);
 
     mealsChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: data.map(d => d.label),
+            labels: chartLabels,
             datasets: [{
-                data: data.map(d => d.count),
+                label: 'Refeições',
+                data: chartValues,
                 borderColor: 'darkcyan',
-                backgroundColor: 'rgba(0,139,139,0.10)',
-                borderWidth: 2.5,
-                pointRadius: 4,
+                backgroundColor: 'rgba(0,139,139,0.15)', 
+                borderWidth: 3,
+                pointRadius: 5,
+                pointHoverRadius: 7,
                 pointBackgroundColor: 'darkcyan',
                 tension: 0.4,
                 fill: true
@@ -902,10 +910,42 @@ function renderChart(data, period) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
             scales: {
-                x: { ticks: { color: '#6c757d', font: { size: 11 } }, grid: { color: 'rgba(0,0,0,0.04)' } },
-                y: { beginAtZero: true, ticks: { color: '#6c757d', font: { size: 11 } }, grid: { color: 'rgba(0,0,0,0.04)' } }
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Horas', 
+                        color: '#6c757d',
+                        font: {
+                            size: 12,
+                            weight: 'bold'
+                        },
+                        padding: { top: 10 }
+                    },
+                    grid: { display: false }
+                },
+                y: {
+                    beginAtZero: true,
+                    grace: '10%',
+                    title: {
+                        display: true,
+                        text: 'Nº Senhas', // Nome na lateral
+                        color: '#6c757d',
+                        font: {
+                            size: 12,
+                            weight: 'bold'
+                        },
+                        padding: { bottom: 10 }
+                    },
+                    ticks: {
+                        stepSize: 1,
+                        precision: 0,
+                        color: '#6c757d'
+                    },
+                    grid: {
+                        color: 'rgba(0,0,0,0.04)'
+                    }
+                }
             }
         }
     });
@@ -925,9 +965,11 @@ async function loadMealsSummary() {
     document.getElementById('idAverage').textContent =
         new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(d.averageRevenue);
     document.getElementById('idBuyers').textContent = d.newBuyers;
+
     document.getElementById('idStudent').textContent = find('Estudante');
     document.getElementById('idExternal').textContent = find('Externo');
-    document.getElementById('idWorker').textContent = find('Trabalhador IPS');    
+    document.getElementById('idWorker').textContent = find('Trabalhador IPS');
+
     renderChart(d.chart, period);
 }
 
