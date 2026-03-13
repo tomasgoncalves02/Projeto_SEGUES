@@ -36,7 +36,7 @@ public class AdminOrderManagementController : Controller
         var userId = _userManager.GetUserId(User);
         ViewBag.OpenBarTime = await _adminService.GetOpenBarTimeAsync();
         ViewBag.CloseBarTime = await _adminService.GetCloseBarTimesAsync();
-        return View(await _orderService.GetAdminOrderHistoryAsync(userId!));
+        return View(await _orderService.GetAdminOrderHistoryAsync());
     }
 
 

@@ -158,7 +158,7 @@
                                     <span class="text-muted">@order.OrderDate.ToString("HH:mm")</span>
                                 </td>
                                 <td>
-                                    @if (eParaDepois && order.DeliveryTime.HasValue)
+                                    @if (order.DeliveryTime.HasValue && order.DeliveryTime.Value != TimeSpan.Zero)
                                     {
                                         <span class="badge bg-light text-dark border fw-normal">
                                             <i class="bi bi-clock me-1"></i>@order.DeliveryTime.Value.ToString(@"hh\:mm")

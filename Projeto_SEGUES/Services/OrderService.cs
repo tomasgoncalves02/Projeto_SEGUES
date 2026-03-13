@@ -1,3 +1,5 @@
+//using Castle.Core.Smtp;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Areas.Order.ViewModels;
@@ -5,6 +7,7 @@ using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Order;
 using Projeto_SEGUES.Models.User;
+using System.ComponentModel.DataAnnotations;
 
 namespace Projeto_SEGUES.Services;
 
@@ -13,11 +16,13 @@ public class OrderService : IOrderService
     private readonly AppDbContext _context;
     private readonly IAdminService _adminService;
     private static readonly OrderStatus[] _activeStatus = Enum.GetValues<OrderStatus>().Where(s => s.IsActive()).ToArray();
+    private readonly IEmailSender _emailSender;
 
-    public OrderService(AppDbContext context, IAdminService adminService)
+    public OrderService(AppDbContext context, IAdminService adminService, IEmailSender emailSender)
     {
         _context = context;
         _adminService = adminService;
+        _emailSender = emailSender;
     }
 
     public async Task<Order> GetCartAsync(string userId)
@@ -184,6 +189,7 @@ public class OrderService : IOrderService
 
             await _context.SaveChangesAsync();
             await dbTransaction.CommitAsync();
+            await SendStatusUpdateEmailAsync(cart);
 
             return ServiceResult.Ok("Encomenda realizada com sucesso!");
         }
@@ -231,6 +237,7 @@ public class OrderService : IOrderService
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
+            await SendStatusUpdateEmailAsync(order);
 
             return ServiceResult.Ok("Pedido cancelado com sucesso e saldo reembolsado.");
         }
@@ -277,13 +284,15 @@ public class OrderService : IOrderService
             .OrderBy(o => o.PickupTime == TimeSpan.Zero ? o.OrderDate.TimeOfDay : o.PickupTime)
             .ToListAsync();
     }
-    
-    public async Task<List<Order>> GetAdminOrderHistoryAsync(string userId)
+
+    public async Task<List<Order>> GetAdminOrderHistoryAsync()
     {
-        // Doesn't include products info, includes User
+        // Removido o parâmetro 'string userId' pois o Admin quer ver TUDO
         return await _context.Order
-            .Where(o => o.AppUser.Id == userId && o.Status != OrderStatus.Cart)
-            .Include(o => o.AppUser)
+            .Include(o => o.AppUser) // Importante para saber quem fez o pedido
+            .Include(o => o.ProductPurchases) // Adicionado para poderes ver os produtos na View/PDF
+                .ThenInclude(p => p.Product)
+            .Where(o => o.Status != OrderStatus.Cart)
             .OrderByDescending(o => o.OrderDate)
             .ToListAsync();
     }
@@ -311,6 +320,7 @@ public class OrderService : IOrderService
 
         order.Status = newStatus;
         await _context.SaveChangesAsync();
+        await SendStatusUpdateEmailAsync(order);
 
         return ServiceResult.Ok("Status do pedido atualizado com sucesso.");
     }
@@ -332,6 +342,56 @@ public class OrderService : IOrderService
         order.Status = OrderStatus.Delivered;
         order.PickupTime = DateTime.Now.TimeOfDay;
         await _context.SaveChangesAsync();
+        await SendStatusUpdateEmailAsync(order);
         return ServiceResult.Ok("Código validado e pedido marcado como entregue.");
+    }
+
+    private async Task SendStatusUpdateEmailAsync(Order order)
+    {
+        if (order.AppUser == null || string.IsNullOrEmpty(order.AppUser.Email)) return;
+
+        // Obtém o nome amigável do Enum (ex: "Em Preparação")
+        var displayStatus = order.Status.GetType()
+            .GetField(order.Status.ToString())?
+            .GetCustomAttributes(typeof(DisplayAttribute), false)
+            .Cast<DisplayAttribute>()
+            .FirstOrDefault()?.Name ?? order.Status.ToString();
+
+        string title = "Atualização do Pedido";
+        string name = order.AppUser.UserName ?? "Cliente";
+
+        // Mensagem personalizada conforme o estado
+        string customMessage = order.Status switch
+        {
+            OrderStatus.Pending => "Recebemos o teu pedido e em breve começaremos a prepará-lo.",
+            OrderStatus.Preparing => "O teu pedido já está na cozinha e a ser preparado com todo o cuidado.",
+            OrderStatus.ReadyToDeliver => "Boas notícias! O teu pedido está pronto. Podes passar no bar para levantar.",
+            OrderStatus.Delivered => "Pedido entregue. Esperamos que gostes!",
+            OrderStatus.Cancelled => "O teu pedido foi cancelado e o respetivo valor foi reembolsado no teu saldo.",
+            _ => $"O estado do teu pedido foi alterado para: {displayStatus}."
+        };
+
+        string content = $"""
+        <p>O estado do teu pedido <strong>#{order.RedemptionCode}</strong> foi atualizado.</p>
+        <p style='font-size: 16px; color: #009697;'><strong>Estado Atual: {displayStatus}</strong></p>
+        <p>{customMessage}</p>
+        """;
+
+        // Se estiver pronto, destaca o código de levantamento para facilitar a vida ao utilizador
+        if (order.Status == OrderStatus.ReadyToDeliver)
+        {
+            content += $"""
+            <div style='background:#f4f7f6; padding:15px; border-left: 4px solid #009697; margin-top: 20px;'>
+                <p style='margin:0; font-weight:bold;'>Código de Levantamento:</p>
+                <span style='font-size:24px; letter-spacing: 2px; color: #009697;'>{order.RedemptionCode}</span>
+            </div>
+            """;
+        }
+
+        var emailService = (EmailSender)_emailSender;
+        var body = ((EmailSender)_emailSender).GetEmailBody(title, name, content);
+
+        // Envio assíncrono
+        await _emailSender.SendEmailAsync(order.AppUser.Email, $"SEGUES - Pedido #{order.RedemptionCode}", body);
     }
 }
