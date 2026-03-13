@@ -74,13 +74,16 @@ public class StatisticsService : IStatisticsService
                     .Select(g => new { label = g.Key, count = g.Count() })
                     .ToList();
 
-        var byCategory = await _context.Ticket
+        var tickets2 = await _context.Ticket
             .Include(t => t.Owner).ThenInclude(u => u.UserCategory)
             .Where(t => t.IsUsed && t.UsedDate >= start)
+            .ToListAsync();
+
+        var byCategory = tickets2
             .GroupBy(t => t.Owner.UserCategory.Name)
             .Select(g => new { category = g.Key, count = g.Count() })
             .OrderByDescending(g => g.count)
-            .ToListAsync();
+            .ToList();
 
 
         return new { totalMeals = count, totalRevenue = revenue, averageRevenue = averageRevenue, newBuyers = newBuyers, chart = chart, byCategory = byCategory };

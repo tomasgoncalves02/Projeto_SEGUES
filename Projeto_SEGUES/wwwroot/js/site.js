@@ -872,13 +872,17 @@ function renderChart(data, period) {
         'Ano': 'Refeições por mês este ano',
         'Total': 'Todas as refeições'
     };
-    document.getElementById('chartSubtitle').textContent = subtitles[period] || '';
 
     const ctx = document.getElementById('mealsChart').getContext('2d');
     if (mealsChart && typeof mealsChart.destroy === 'function') {
         mealsChart.destroy();
         mealsChart = null;
     }
+
+
+    document.getElementById('chartSubtitle').textContent = subtitles[period] || '';
+
+   
 
     mealsChart = new Chart(ctx, {
         type: 'line',
@@ -907,29 +911,13 @@ function renderChart(data, period) {
     });
 }
 
-function renderCategories(data) {
-    const container = document.getElementById('categoryCards');
-    if (!data || data.length === 0) {
-        container.innerHTML = '<div class="col-12 text-center text-muted py-3">Sem dados para o período.</div>';
-        return;
-    }
-    container.innerHTML = data.map(c => `
-        <div class="col-6">
-            <div class="card border-0 rounded-3 h-100" style="background: rgba(0,139,139,0.06);">
-                <div class="card-body p-3">
-                    <p class="small fw-semibold text-muted mb-1">${c.category}</p>
-                    <h4 class="fw-bold mb-0" style="color: darkcyan;">${c.count}</h4>
-                </div>
-            </div>
-        </div>
-    `).join('');
-}
-
 
 async function loadMealsSummary() {
     const period = document.getElementById('periodSelect')?.value ?? 'Dia';
     const d = await fetch(`/Statistics/StatisticsTicket/GetTicketsStats?period=${encodeURIComponent(period)}`)
         .then(r => r.json());
+    const cat = d.byCategory ?? [];
+    const find = name => (cat.find(c => c.category === name)?.count ?? 0);
 
     document.getElementById('idMeals').textContent = d.totalMeals;
     document.getElementById('idMoney').textContent =
@@ -937,9 +925,10 @@ async function loadMealsSummary() {
     document.getElementById('idAverage').textContent =
         new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(d.averageRevenue);
     document.getElementById('idBuyers').textContent = d.newBuyers;
-
+    document.getElementById('idStudent').textContent = find('Estudante');
+    document.getElementById('idExternal').textContent = find('Externo');
+    document.getElementById('idWorker').textContent = find('Trabalhador IPS');    
     renderChart(d.chart, period);
-    renderCategories(d.byCategory);
 }
 
 
