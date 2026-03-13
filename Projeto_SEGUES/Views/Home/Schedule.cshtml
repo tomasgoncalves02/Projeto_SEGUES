@@ -1,0 +1,33 @@
+﻿@{
+    ViewData["Title"] = "Schedule";
+    var openingTime = ViewBag.OpeningTime ?? "09:30";
+    var closingTime = ViewBag.ClosingTime ?? "21:30";
+}
+
+<div class="container d-flex align-items-center justify-content-center" style="min-height: 80vh;">
+    <div class="card shadow-lg border-0" style="width: 100%; max-width: 500px; border-radius: 10px; overflow: hidden;">
+
+        <div class="bg-color-ips py-4 text-center">
+            <h2 class="text-white fw-bold mb-0">Horário de Funcionamento</h2>
+        </div>
+
+        <div class="card-body p-4 p-md-5">
+
+            <div class="bg-color-ips-light d-flex justify-content-between align-items-center p-3 mb-3" style="border-radius: 5px;">
+                <span class="text-color-ips fw-bold fs-4">Horário de Abertura</span>
+                <span class="text-color-ips fw-bold fs-3">@openingTime</span>
+            </div>
+
+            <div class="bg-color-ips-light d-flex justify-content-between align-items-center p-3 mb-4" style="border-radius: 5px;">
+                <span class="text-color-ips fw-bold fs-4">Horário de Fecho</span>
+                <span class="text-color-ips fw-bold fs-3">@closingTime</span>
+            </div>
+
+            <div class="text-center mt-2">
+                <a asp-controller="Home" asp-action="Index" class="fw-bold text-color-ips text-decoration-none border-bottom border-2 border-color-ips pb-1">
+                    Voltar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

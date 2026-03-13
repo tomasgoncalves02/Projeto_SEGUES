@@ -1,10 +1,11 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Audit.ViewModels;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
+using Projeto_SEGUES.Services;
+using System.Diagnostics;
 
 namespace Projeto_SEGUES.Controllers
 {
@@ -12,10 +13,11 @@ namespace Projeto_SEGUES.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly UserManager<AppUser> _userManager;
-
-        public HomeController(ILogger<HomeController> logger, UserManager<AppUser> userManager)
+        private readonly IAdminService _adminService;
+        public HomeController(ILogger<HomeController> logger, UserManager<AppUser> userManager, IAdminService adminService)
         {
             _logger = logger;
+            _adminService = adminService;
             _userManager = userManager;
         }
 
@@ -47,6 +49,17 @@ namespace Projeto_SEGUES.Controllers
 
         public IActionResult Privacy()
         {
+            return View();
+        }
+
+        public async Task<IActionResult> Schedule()
+        {
+            var open = await _adminService.GetOpenBarTimeAsync();
+            var close = await _adminService.GetCloseBarTimesAsync();
+
+            ViewBag.OpeningTime = open.ToString(@"hh\:mm");
+            ViewBag.ClosingTime = close.ToString(@"hh\:mm");
+
             return View();
         }
 
