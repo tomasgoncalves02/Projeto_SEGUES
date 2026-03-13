@@ -119,30 +119,36 @@ public class OrderService : IOrderService
         var cart = await GetCartAsync(user.Id);
         if (cart.ProductPurchases.Count == 0) return ServiceResult.Fail("O carrinho está vazio.");
 
-        TimeSpan timeToValidate = receiveNow ? DateTime.Now.TimeOfDay : TimeSpan.Zero;
+        TimeSpan timeToValidate;
         TimeSpan? deliveryTime = null;
 
-        if (!receiveNow && TimeSpan.TryParse(pickupTime, out var parsedTime))
-        {
-            if (DateTime.Today.Add(parsedTime) < DateTime.Now)
-                return ServiceResult.Fail("Não é possível agendar para o passado.");
-
-            deliveryTime = parsedTime;
-            timeToValidate = parsedTime;
-        }
-        else if (receiveNow)
+        if (receiveNow)
         {
             timeToValidate = DateTime.Now.TimeOfDay;
         }
+        else
+        {           
+            if (TimeSpan.TryParse(pickupTime, out var parsedTime))
+            {
+                if (DateTime.Today.Add(parsedTime) < DateTime.Now)
+                    return ServiceResult.Fail("Não é possível agendar para o passado.");
 
-        // 2. Validar se o Bar está aberto
+                deliveryTime = parsedTime;
+                timeToValidate = parsedTime;
+            }
+            else
+            {
+                return ServiceResult.Fail("Horário de pickup inválido.");
+            }
+        }
+
         if (!await _adminService.IsBarOpenAsync(timeToValidate))
         {
             var open = await _adminService.GetOpenBarTimeAsync();
             var close = await _adminService.GetCloseBarTimesAsync();
-            return ServiceResult.Fail($"O Bar encontra-se encerrado. Horário: {open:hh\\:mm} às {close:hh\\:mm}.");
+            return ServiceResult.Fail($"O Bar encontra-se encerrado para o horário selecionado. Funcionamento: {open:hh\\:mm} às {close:hh\\:mm}.");
         }
-
+       
         decimal total = ApplyDiscount(cart.TotalValue, cart.Discount);
         if (user.Balance < total) return ServiceResult.Fail("Saldo insuficiente.");
 
@@ -161,7 +167,6 @@ public class OrderService : IOrderService
         try
         {
             var now = DateTime.Now;
-
             cart.Status = OrderStatus.Pending;
             cart.TotalValue = total;
             cart.OrderDate = now;
@@ -174,21 +179,22 @@ public class OrderService : IOrderService
             }
 
             user.Balance -= total;
-            
+
             var barTransaction = new Projeto_SEGUES.Models.Payment.Transaction
             {
                 User = user,
-                Amount = -total, 
+                Amount = -total,
                 Description = $"Consumo Bar - Pedido #{cart.RedemptionCode}",
                 Reference = "CONSUMO BAR",
                 IsPaid = true,
                 CreatedAt = now
-                
             };
             _context.Transaction.Add(barTransaction);
 
             await _context.SaveChangesAsync();
             await dbTransaction.CommitAsync();
+
+            // Envio de email após sucesso total
             await SendStatusUpdateEmailAsync(cart);
 
             return ServiceResult.Ok("Encomenda realizada com sucesso!");

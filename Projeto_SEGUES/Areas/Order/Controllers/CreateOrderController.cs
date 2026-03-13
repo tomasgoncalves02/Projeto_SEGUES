@@ -66,40 +66,14 @@ public class CreateOrderController : Controller
         ViewBag.TotalQuantity = _orderService.GetOrderTotal(cart).TotalQuantity;
         return View(cart);
     }
-    
+
     [HttpPost]
-    [ValidateAntiForgeryToken] 
-    public async Task<IActionResult> SubmitOrder(bool receiveNow, string? pickupTime) 
-    { 
-        
-
-        var openTime = await _adminService.GetOpenBarTimeAsync();
-        var closeTime = await _adminService.GetCloseBarTimesAsync();
-        var now = DateTime.Now.TimeOfDay;
-
-        if (now < openTime || now > closeTime)
-        {
-            TempData.SetSwalError($"O bar está encerrado. Horário de funcionamento: {openTime:hh\\:mm} - {closeTime:hh\\:mm}");
-            return RedirectToAction(nameof(Checkout));
-        }
-
-        if (TimeSpan.TryParse(pickupTime, out TimeSpan pickupTimeSpan))
-        {
-            if (pickupTimeSpan < openTime || pickupTimeSpan > closeTime)
-            {
-                TempData.SetSwalError($"Não pode fazer pedido para esse horario de recolha. Horário de funcionamento: {openTime:hh\\:mm} - {closeTime:hh\\:mm}");
-                return RedirectToAction(nameof(Checkout));
-            } 
-        }
-        else
-        {
-            TempData.SetSwalError("Horário de pickup inválido.");
-            return RedirectToAction(nameof(Checkout));
-        }
-
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SubmitOrder(bool receiveNow, string? pickupTime)
+    {        
         var user = await _userManager.GetUserAsync(User);
+        
         var result = await _orderService.SubmitOrderAsync(user!, receiveNow, pickupTime);
-
 
         if (result.Success)
         {
