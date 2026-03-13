@@ -113,7 +113,7 @@ public class StatisticsService : IStatisticsService
         return new
         {
             totalMeals = await GetaMealsStatsAsync(start),
-            totalRevenue = await GetaMealsStatsAsync(start),
+            totalRevenue = await GetaRevenueStatsAsync(start),
             averageRevenue = await GetAverageRevenueStatsAsync(start),
             newBuyers = await GetNewBuyersStatsAsync(start),
             chart = await GetInfoGraphStatsAsync(start, period),
