@@ -1,5 +1,8 @@
 ﻿@{
     ViewData["Title"] = "Estatisticas do Refeitório - Admin";
+    @section Scripts {
+        <script src="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.umd.min.js"></script>
+    }
 }
 
 <div class="container mt-5">
@@ -41,13 +44,60 @@
                 <div class="card-body p-4">
                     <p class="small fw-semibold text-muted mb-1">Refeições</p>
                     <h3 class="fw-bold mb-1" style="color: darkcyan;" id="idMeals">—</h3>
-                    <p class="mb-0 small" id="kpiMealsDelta"></p>
                 </div>
             </div>
         </div>
+        @* Receita Total *@
+        <div class="col-md-3">
+            <div class="card card-ips shadow-sm border-0 rounded-3 h-100">
+                <div class="card-body p-4">
+                    <p class="small fw-semibold text-muted mb-1">Receita Total</p>
+                    <h3 class="fw-bold mb-1" style="color: darkcyan;" id="idMoney">—</h3>
+                </div>
+            </div>
+        </div>
+        @* Receita Media *@
+        <div class="col-md-3">
+            <div class="card card-ips shadow-sm border-0 rounded-3 h-100">
+                <div class="card-body p-4">
+                    <p class="small fw-semibold text-muted mb-1">Compra Media</p>
+                    <h3 class="fw-bold mb-1" style="color: darkcyan;" id="idAverage">—</h3>
+                </div>
+            </div>
+        </div>
+        @* Novos Utilizadores *@
+        <div class="col-md-3">
+            <div class="card card-ips shadow-sm border-0 rounded-3 h-100">
+                <div class="card-body p-4">
+                    <p class="small fw-semibold text-muted mb-1">Utilizadores</p>
+                    <h3 class="fw-bold mb-1" style="color: darkcyan;" id="idBuyers">—</h3>
+                </div>
+            </div>
+        </div>
+
+
                
     </div>
+    @* Grafico *@
+    <div class="card card-ips shadow-sm border-0 rounded-3">
+        <div class="card-body p-4">
+            <h6 class="fw-bold mb-1" style="color: darkcyan;">Refeições ao longo do tempo</h6>
+            <p class="text-muted small mb-3" id="chartSubtitle">Refeições por hora hoje</p>
+            <div style="position: relative; height: 260px;">
+                <canvas id="mealsChart"></canvas>
+            </div>
+        </div>
+    </div>
 
+    @* Mini Cards *@
+    <div class="col-lg-5">
+        <div class="card card-ips shadow-sm border-0 rounded-3 h-100">
+            <div class="card-body p-4">
+                <h6 class="fw-bold mb-3" style="color: darkcyan;">Total de Senhas compradas</h6>
+                <div id="categoryCards" class="row g-2"></div>
+            </div>
+        </div>
+    </div>
    
 
     

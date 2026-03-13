@@ -17,7 +17,15 @@ namespace Projeto_SEGUES.Areas.Statistics.Controllers
 
         public IActionResult Index()
         {
+
             return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetTicketsStats(string period = "Dia")
+        {
+            var result = await _statisticsService.GetTicketsStatsAsync(period);
+            return Json(result);
         }
     }
 }

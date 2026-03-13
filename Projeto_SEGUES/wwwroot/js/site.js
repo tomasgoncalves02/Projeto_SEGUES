@@ -4,6 +4,13 @@
 document.addEventListener("DOMContentLoaded", addEvents);
 
 function addEvents() {
+
+    //Tickets
+    if (document.getElementById('idMeals')) {
+        loadMealsSummary();
+        document.getElementById('periodSelect').addEventListener('change', loadMealsSummary);
+    }
+
     // Swal
     const swalContainer = document.getElementById("swal-data");
     if (swalContainer && swalContainer.dataset.json && swalContainer.dataset.json.length > 0) {
@@ -857,6 +864,83 @@ function confirmarEdição(type,form) {
 
 // ── Estatísticas: Resumo de Refeições ────────────────────────────────────────
 
+function renderChart(data, period) {
+    const subtitles = {
+        'Dia': 'Refeições por hora hoje',
+        'Semana': 'Refeições por dia esta semana',
+        'Mês': 'Refeições por dia este mês',
+        'Ano': 'Refeições por mês este ano',
+        'Total': 'Todas as refeições'
+    };
+    document.getElementById('chartSubtitle').textContent = subtitles[period] || '';
+
+    const ctx = document.getElementById('mealsChart').getContext('2d');
+    if (mealsChart && typeof mealsChart.destroy === 'function') {
+        mealsChart.destroy();
+        mealsChart = null;
+    }
+
+    mealsChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.map(d => d.label),
+            datasets: [{
+                data: data.map(d => d.count),
+                borderColor: 'darkcyan',
+                backgroundColor: 'rgba(0,139,139,0.10)',
+                borderWidth: 2.5,
+                pointRadius: 4,
+                pointBackgroundColor: 'darkcyan',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: '#6c757d', font: { size: 11 } }, grid: { color: 'rgba(0,0,0,0.04)' } },
+                y: { beginAtZero: true, ticks: { color: '#6c757d', font: { size: 11 } }, grid: { color: 'rgba(0,0,0,0.04)' } }
+            }
+        }
+    });
+}
+
+function renderCategories(data) {
+    const container = document.getElementById('categoryCards');
+    if (!data || data.length === 0) {
+        container.innerHTML = '<div class="col-12 text-center text-muted py-3">Sem dados para o período.</div>';
+        return;
+    }
+    container.innerHTML = data.map(c => `
+        <div class="col-6">
+            <div class="card border-0 rounded-3 h-100" style="background: rgba(0,139,139,0.06);">
+                <div class="card-body p-3">
+                    <p class="small fw-semibold text-muted mb-1">${c.category}</p>
+                    <h4 class="fw-bold mb-0" style="color: darkcyan;">${c.count}</h4>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+
+async function loadMealsSummary() {
+    const period = document.getElementById('periodSelect')?.value ?? 'Dia';
+    const d = await fetch(`/Statistics/StatisticsTicket/GetTicketsStats?period=${encodeURIComponent(period)}`)
+        .then(r => r.json());
+
+    document.getElementById('idMeals').textContent = d.totalMeals;
+    document.getElementById('idMoney').textContent =
+        new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(d.totalRevenue);
+    document.getElementById('idAverage').textContent =
+        new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(d.averageRevenue);
+    document.getElementById('idBuyers').textContent = d.newBuyers;
+
+    renderChart(d.chart, period);
+    renderCategories(d.byCategory);
+}
 
 
 
