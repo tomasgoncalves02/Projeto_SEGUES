@@ -1,6 +1,7 @@
-using System.ComponentModel.DataAnnotations;
+using Projeto_SEGUES.Attributes;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Validators;
+using System.ComponentModel.DataAnnotations;
 
 namespace Projeto_SEGUES.Areas.Identity.ViewModels;
 
@@ -31,6 +32,7 @@ public class RegisterDataViewModel
     [DataType(DataType.Date)]
     [MinimumAge(ErrorMessage = "Deve ter pelo menos 18 anos para se registrar.")]
     [Display(Name = "Data de Nascimento")]
+    [MaximumAge(120, ErrorMessage = "{0} inválida. Não pode ter mais de {1} anos.")]
     public required DateTime BirthDate { get; init; }
     
     [Required(ErrorMessage = "A password é obrigatória.")]

@@ -1,6 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Projeto_SEGUES.Attributes;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Validators;
+using System.ComponentModel.DataAnnotations;
 
 namespace Projeto_SEGUES.Areas.Admin.ViewModels
 {
@@ -34,6 +35,7 @@ namespace Projeto_SEGUES.Areas.Admin.ViewModels
         [MinimumAge(ErrorMessage = "Deve ter pelo menos 18 anos.")]
         [Display(Name = "Data de Nascimento")]
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
+        [MaximumAge(120, ErrorMessage = "{0} inválida. Não pode ter mais de {1} anos.")]
         public required DateTime BirthDate { get; set; }
 
         [Required(ErrorMessage = "O saldo é obrigatório.")]
