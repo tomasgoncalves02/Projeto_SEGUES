@@ -1,4 +1,11 @@
-﻿@model IEnumerable<Projeto_SEGUES.Models.Inventory.Product>
+﻿@using Projeto_SEGUES.Services
+@using Microsoft.AspNetCore.Identity
+@using Projeto_SEGUES.Models.User @* Ou onde estiver o teu AppUser *@
+
+@inject IOrderService OrderService
+@inject UserManager<AppUser> UserManager
+
+@model IEnumerable<Projeto_SEGUES.Models.Inventory.Product>
 @{
     ViewData["Title"] = "Efetuar Pedido - SEGUES";
 }
@@ -31,11 +38,22 @@
                         <a asp-area="Order" asp-controller="CreateOrder" asp-action="Checkout" class="position-relative d-inline-block text-decoration-none">
                             <i class="bi bi-cart-check fs-2 text-color-ips"></i>
 
-                            @* Badge inicializada com o valor da BD *@
+                            @{
+                                // LÓGICA ALTERADA: Busca o valor real na BD em cada carregamento de página
+                                var user = await UserManager.GetUserAsync(User);
+                                int totalItensNoCarrinho = 0;
+                                if (user != null)
+                                {
+                                    var cart = await OrderService.GetCartAsync(user.Id);
+                                    totalItensNoCarrinho = OrderService.GetOrderTotal(cart).TotalQuantity;
+                                }
+                            }
+
+                            @* Badge agora usa totalItensNoCarrinho em vez de ViewBag *@
                             <span id="cart-count"
                                   class="position-absolute badge rounded-pill bg-danger"
-                                  style="display: @(ViewBag.TotalValue > 0 ? "block" : "none"); font-size: 0.65rem; top: -2px; right: -5px; padding: 0.35em 0.5em; border: 2px solid white;">
-                                @ViewBag.CartTotal.TotalQuantity
+                                  style="display: @(totalItensNoCarrinho > 0 ? "block" : "none"); font-size: 0.65rem; top: -2px; right: -5px; padding: 0.35em 0.5em; border: 2px solid white;">
+                                @totalItensNoCarrinho
                             </span>
                         </a>
                     </div>
