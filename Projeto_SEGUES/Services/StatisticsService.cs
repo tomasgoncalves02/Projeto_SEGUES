@@ -129,7 +129,7 @@ public class StatisticsService : IStatisticsService
     private async Task<object> GetConsuptionStatsAsync(DateTime start)
     {
         var count = await _context.Order
-                    .Where(o => o.OrderDate >= start && o.Status != OrderStatus.Cart)
+                    .Where(o => o.OrderDate >= start && o.Status != OrderStatus.Cart && o.Status != OrderStatus.Cancelled)
                     .CountAsync();
 
         return new object[] { count };
@@ -139,20 +139,20 @@ public class StatisticsService : IStatisticsService
     private async Task<object> GetRevenueBarStatsAsync (DateTime start)
     {
         var revenue = await _context.Order
-                    .Where(o => o.OrderDate >= start && o.Status != OrderStatus.Cart)
-                    .SumAsync(o => o.TotalValue);
+            .Where(o => o.OrderDate >= start && o.Status != OrderStatus.Cart && o.Status != OrderStatus.Cancelled)
+            .SumAsync(o => o.TotalValue);
 
         return new object[] { revenue };
     }
 
     private async Task<Object> GetAverageBuyStatsAsync(DateTime start)
     {
-        
+
         var orders = await _context.Order
-            .Where(o => o.OrderDate >= start && o.Status != OrderStatus.Cart)
+            .Where(o => o.OrderDate >= start && o.Status != OrderStatus.Cart && o.Status != OrderStatus.Cancelled)
             .ToListAsync();
 
-        
+
         if (!orders.Any())
             return 0m;
 
@@ -165,10 +165,10 @@ public class StatisticsService : IStatisticsService
     private async Task<Object> GetNewBarUsersStatsAsync(DateTime start)
     {
         var newUsersCount = await _context.Order
-         .Where(o => o.OrderDate >= start && o.Status != OrderStatus.Cart)
-         .Select(o => o.AppUser.Id)
-         .Distinct()
-         .CountAsync();
+             .Where(o => o.OrderDate >= start && o.Status != OrderStatus.Cart && o.Status != OrderStatus.Cancelled)
+             .Select(o => o.AppUser.Id)
+             .Distinct()
+             .CountAsync();
 
         return new object[] { newUsersCount };
     }
@@ -176,10 +176,9 @@ public class StatisticsService : IStatisticsService
     private async Task<object> GetBarGraphStatsAsync(DateTime start, int period)
     {
         var orders = await _context.Order
-             .Where(o => o.OrderDate >= start && o.Status != OrderStatus.Cart)
+             .Where(o => o.OrderDate >= start && o.Status != OrderStatus.Cart && o.Status != OrderStatus.Cancelled)
              .ToListAsync();
 
-       
         if (!orders.Any())
             return new List<object>();
 
@@ -196,7 +195,7 @@ public class StatisticsService : IStatisticsService
             .OrderBy(g => g.Key)
             .Select(g => new {
                 label = g.Key,
-                count = g.Count() 
+                count = g.Count()
             })
             .ToList();
 
@@ -205,13 +204,13 @@ public class StatisticsService : IStatisticsService
 
     private async Task<object> GetProductCategoryStatsAsync(DateTime start)
     {
-        
+
         var categoryData = await _context.OrderLine
-            .Where(ol => ol.Order.OrderDate >= start && ol.Order.Status != OrderStatus.Cart)
-            .GroupBy(ol => ol.Product.Category.Name) 
+            .Where(ol => ol.Order.OrderDate >= start && ol.Order.Status != OrderStatus.Cart && ol.Order.Status != OrderStatus.Cancelled)
+            .GroupBy(ol => ol.Product.Category.Name)
             .Select(g => new {
                 category = g.Key,
-                count = g.Sum(ol => ol.Quantity) 
+                count = g.Sum(ol => ol.Quantity)
             })
             .ToListAsync();
 
@@ -221,15 +220,14 @@ public class StatisticsService : IStatisticsService
     private async Task<object> GetTopProductsStatsAsync(DateTime start)
     {
         var topProducts = await _context.OrderLine
-            .Where(ol => ol.Order.OrderDate >= start && ol.Order.Status != OrderStatus.Cart)
-            
-            .GroupBy(ol => ol.Product.Name)
-            .Select(g => new {
-                name = g.Key,
-                quantity = g.Sum(ol => ol.Quantity) 
-            })
-            .OrderByDescending(p => p.quantity) 
-            .ToListAsync();
+             .Where(ol => ol.Order.OrderDate >= start && ol.Order.Status != OrderStatus.Cart && ol.Order.Status != OrderStatus.Cancelled && ol.Product.IsActive)
+             .GroupBy(ol => ol.Product.Name)
+             .Select(g => new {
+                 name = g.Key,
+                 quantity = g.Sum(ol => ol.Quantity)
+             })
+             .OrderByDescending(p => p.quantity)
+             .ToListAsync();
 
         return topProducts;
     }
