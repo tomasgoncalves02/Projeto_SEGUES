@@ -30,8 +30,9 @@ namespace SeguesTests.Tickets
             var mockUserMgr = GetMockUserManager();
             var mockRoleMgr = GetMockRoleManager();
             var mockService = new Mock<ITicketService>();
+            var mockAdminService = new Mock<IAdminService>();
 
-            var controller = new TicketController(mockUserMgr.Object, mockService.Object, context);
+            var controller = new TicketController(mockUserMgr.Object, mockService.Object, context, mockAdminService.Object);
 
             var catEstudante = new UserCategory { Name = "Estudante" };
             var catProfessor = new UserCategory { Name = "Professor" };

@@ -16,7 +16,6 @@ using Serilog;
 using Serilog.Context;
 using Serilog.Sinks.MSSqlServer;
 using Serilog.Filters;
-using Projeto_SEGUES.Models.Payment;
 using Projeto_SEGUES.Resources;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -36,13 +35,11 @@ else
     connectionName = "AzureSQLServer";
     password = config["Secrets:AzureSQLPassword"];
 }
+string? connectionString = builder.Configuration.GetConnectionString(connectionName);
 
-/*var connectionStringBuilder = new SqlConnectionStringBuilder(connectionString);
-if (!string.IsNullOrWhiteSpace(password))
-{
-    connectionStringBuilder.Password = password;
-}
-else
+var connectionStringBuilder = new SqlConnectionStringBuilder(connectionString);
+connectionStringBuilder.Password = password;
+if (connectionName == "LocalSQLServer")
 {
     // Use Windows Integrated Security for local SQL Server (no password)
     connectionStringBuilder.IntegratedSecurity = true;
@@ -51,34 +48,17 @@ else
     if (connectionStringBuilder.ContainsKey("Password"))
         connectionStringBuilder.Remove("Password");
 }
-connectionString = connectionStringBuilder.ConnectionString;*/
-
-
-// 1. Pega a string base do appsettings.json
-string? connectionString = builder.Configuration.GetConnectionString(connectionName);
-
-// 2. Se estivermos no Azure, forçamos as credenciais e desativamos o Windows Auth
-if (!builder.Environment.IsDevelopment())
+else
 {
-    var csb = new SqlConnectionStringBuilder(connectionString);
-
-    // Força o desligamento da autenticação do Windows
-    csb.IntegratedSecurity = false;
-
-    // Injeta o Usuário e a Senha 
-    csb.UserID = config["Secrets:AzureSQLUser"] ?? csb.UserID;
-    csb.Password = config["Secrets:AzureSQLPassword"] ?? csb.Password;
-
-    connectionString = csb.ConnectionString;
+    connectionStringBuilder.IntegratedSecurity = false;
 }
+connectionString = connectionStringBuilder.ConnectionString;
 
-// 3. Configura o DbContext com a string final
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-// 4.Atualiza a configuração global para o Identity não usar a string antiga
+// Update global config for Identity
 builder.Configuration[$"ConnectionStrings:{connectionName}"] = connectionString;
-
 
 var columnOptions = new ColumnOptions
 {
@@ -97,42 +77,45 @@ var columnOptions = new ColumnOptions
 columnOptions.Level.StoreAsEnum = true;
 
 builder.Host.UseSerilog((ctx, configuration) =>
-    configuration
-        .MinimumLevel.Information()
+    configuration.ReadFrom.Configuration(ctx.Configuration)
         .Enrich.FromLogContext()
-        .WriteTo.Console()
-// UserLog: Log user actions
-.WriteTo.Logger(lc => lc
-    .Filter.ByIncludingOnly(Matching.WithProperty("LogType", "UserAction"))
-    .WriteTo.MSSqlServer(
-        connectionString: connectionString,
-        sinkOptions: new MSSqlServerSinkOptions { TableName = "UserLog", AutoCreateSqlTable = false },
-        columnOptions: columnOptions
-    ))
-// ErrorLog: Capture exceptions and database errors
-.WriteTo.Logger(lc => lc
-    .Filter.ByIncludingOnly(Matching.WithProperty("LogType", "Error"))
-    .WriteTo.MSSqlServer(
-        connectionString: connectionString,
-        sinkOptions: new MSSqlServerSinkOptions { TableName = "ErrorLog", AutoCreateSqlTable = false },
-        columnOptions: columnOptions
-    ))
-// DbStats: Logging performance and storage metrics
-.WriteTo.Logger(lc => lc
-    .Filter.ByIncludingOnly(Matching.WithProperty("LogType", "DbStats"))
-    .WriteTo.MSSqlServer(
-        connectionString: connectionString,
-        sinkOptions: new MSSqlServerSinkOptions { TableName = "DbStats", AutoCreateSqlTable = false },
-        columnOptions: columnOptions
-    ))
-// Default System Logs
-.WriteTo.Logger(lc => lc
-    .Filter.ByExcluding(Matching.WithProperty("LogType"))
-    .WriteTo.MSSqlServer(
-        connectionString: connectionString,
-        sinkOptions: new MSSqlServerSinkOptions { TableName = "ErrorLog", AutoCreateSqlTable = false },
-        columnOptions: columnOptions 
-    ))
+        .WriteTo.Console() 
+        // UserLog: Log user actions
+        .WriteTo.Logger(lc => lc
+            .Filter.ByIncludingOnly(Matching.WithProperty("LogType", "UserAction"))
+            .WriteTo.MSSqlServer(
+                connectionString: connectionString,
+                sinkOptions: new MSSqlServerSinkOptions { TableName = "UserLog", AutoCreateSqlTable = false },
+                columnOptions: columnOptions
+            )
+        )
+        // ErrorLog: Capture exceptions and database errors
+        .WriteTo.Logger(lc => lc
+            .Filter.ByIncludingOnly(Matching.WithProperty("LogType", "Error"))
+            .WriteTo.MSSqlServer(
+                connectionString: connectionString,
+                sinkOptions: new MSSqlServerSinkOptions { TableName = "ErrorLog", AutoCreateSqlTable = false },
+                columnOptions: columnOptions
+            )
+        )
+        // DbStats: Logging performance and storage metrics
+        .WriteTo.Logger(lc => lc
+            .Filter.ByIncludingOnly(Matching.WithProperty("LogType", "DbStats"))
+            .WriteTo.MSSqlServer(
+                connectionString: connectionString,
+                sinkOptions: new MSSqlServerSinkOptions { TableName = "DbStats", AutoCreateSqlTable = false },
+                columnOptions: columnOptions
+            )
+        )
+        // Default System Logs
+        .WriteTo.Logger(lc => lc
+            .Filter.ByExcluding(Matching.WithProperty("LogType"))
+            .WriteTo.MSSqlServer(
+                connectionString: connectionString,
+                sinkOptions: new MSSqlServerSinkOptions { TableName = "ErrorLog", AutoCreateSqlTable = false },
+                columnOptions: columnOptions 
+            )
+        )
 );
 
 // Identity
@@ -198,9 +181,6 @@ builder.Services.AddRazorPages();
 
 
 QuestPDF.Settings.License = LicenseType.Community;
-// Forçar a string de conexão correta em todo o lado
-builder.Configuration["ConnectionStrings:AzureSQLServer"] = connectionString;
-builder.Configuration["ConnectionStrings:LocalSQLServer"] = connectionString;
 var app = builder.Build();
 
 // Set localization (first thing after build!)

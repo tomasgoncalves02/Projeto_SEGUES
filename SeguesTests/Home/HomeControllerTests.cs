@@ -7,6 +7,7 @@ using Moq;
 using Projeto_SEGUES.Controllers;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
+using Projeto_SEGUES.Services;
 using SeguesTests.Helpers;
 
 namespace SeguesTests.Home
@@ -15,6 +16,7 @@ namespace SeguesTests.Home
     {
         private readonly Mock<ILogger<HomeController>> _mockLogger;
         private readonly Mock<UserManager<AppUser>> _mockUserManager;
+        private readonly Mock<IAdminService> _mockAdminService;
 
         public HomeControllerTests()
         {
@@ -23,12 +25,14 @@ namespace SeguesTests.Home
             // Usamos o Helper para criar o Mock complexo do UserManager
             var usersList = new List<AppUser>();
             _mockUserManager = MockHelper.MockUserManager(usersList);
+            
+            _mockAdminService = new Mock<IAdminService>();
         }
 
         // Helper para configurar o Controller com contexto de utilizador
         private HomeController GetControllerWithUser(AppUser appUser = null, bool isAuthenticated = true)
         {
-            var controller = new HomeController(_mockLogger.Object, _mockUserManager.Object);
+            var controller = new HomeController(_mockLogger.Object, _mockUserManager.Object, _mockAdminService.Object);
 
             var claims = new List<Claim>();
             if (appUser != null)
