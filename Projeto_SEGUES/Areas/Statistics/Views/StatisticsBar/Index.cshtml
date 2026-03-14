@@ -1,5 +1,8 @@
 ﻿@{
     ViewData["Title"] = "Estatisticas do Bar - Admin"; 
+    @section Scripts {
+        <script src="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.umd.min.js"></script>
+    }
 }
 
 <div class="container mt-5">
@@ -39,7 +42,7 @@
             <div class="card card-ips shadow-sm border-0 rounded-3 h-100">
                 <div class="card-body p-4">
                     <p class="small fw-semibold text-muted mb-1">Total Consumos</p>
-                    <h3 class="fw-bold mb-1" style="color: darkcyan;" id="idConsumption">—</h3>
+                    <h3 class="fw-bold mb-1" style="color: darkcyan;" id="idConsumptionB">—</h3>
                 </div>
             </div>
         </div>
@@ -48,7 +51,7 @@
             <div class="card card-ips shadow-sm border-0 rounded-3 h-100">
                 <div class="card-body p-4">
                     <p class="small fw-semibold text-muted mb-1">Receita Total</p>
-                    <h3 class="fw-bold mb-1" style="color: darkcyan;" id="idMoneyBar">—</h3>
+                    <h3 class="fw-bold mb-1" style="color: darkcyan;" id="idMoneyB">—</h3>
                 </div>
             </div>
         </div>
@@ -57,7 +60,7 @@
             <div class="card card-ips shadow-sm border-0 rounded-3 h-100">
                 <div class="card-body p-4">
                     <p class="small fw-semibold text-muted mb-1">Compra Media</p>
-                    <h3 class="fw-bold mb-1" style="color: darkcyan;" id="idAverageBar">—</h3>
+                    <h3 class="fw-bold mb-1" style="color: darkcyan;" id="idAverageB">—</h3>
                 </div>
             </div>
         </div>
@@ -66,7 +69,7 @@
             <div class="card card-ips shadow-sm border-0 rounded-3 h-100">
                 <div class="card-body p-4">
                     <p class="small fw-semibold text-muted mb-1">Novos Utilizadores</p>
-                    <h3 class="fw-bold mb-1" style="color: darkcyan;" id="idBuyersBar">—</h3>
+                    <h3 class="fw-bold mb-1" style="color: darkcyan;" id="idBuyersB">—</h3>
                 </div>
             </div>
         </div>
@@ -79,9 +82,9 @@
             <div class="card card-ips shadow-sm border-0 rounded-3 h-100">
                 <div class="card-body p-4">
                     <h6 class="fw-bold mb-1" style="color: darkcyan;">Consumos ao longo do tempo</h6>
-                    <p class="text-muted small mb-3" id="chartSubtitle">Consumos por hora hoje</p>
+                    <p class="text-muted small mb-3" id="chartSubtitleB">Consumos por hora hoje</p>
                     <div style="position: relative; height: 260px;">
-                        <canvas id="categoryChart"></canvas>
+                        <canvas id="categoryChartB"></canvas>
                     </div>
                 </div>
             </div>

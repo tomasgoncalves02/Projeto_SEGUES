@@ -22,7 +22,7 @@ namespace Projeto_SEGUES.Areas.Statistics.Controllers
         [HttpGet]
         public async Task<IActionResult> GetBarStats(int period = 1)
         {
-            var result = await _statisticsService.GetTicketsStats(period);
+            var result = await _statisticsService.GetBarStats(period);
             return Json(result);
         }
 

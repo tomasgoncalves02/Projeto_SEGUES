@@ -79,20 +79,22 @@ const Notifications = {
  */
 document.addEventListener("DOMContentLoaded", addEvents);
 
-document.getElementById('periodSelect').addEventListener('click', function () {
-    if (this.value === "1") {
-        loadMealsSummary();
-    }
-});
+
 
 
 function addEvents() {
 
-    //Tickets
-    if (document.getElementById('idMeals')) {
-        loadMealsSummary();
-        document.getElementById('periodSelect').addEventListener('change', loadMealsSummary);
+    const periodSelectR = document.getElementById('periodSelectR');
+    if (periodSelectR) {
+        loadMealsSummary(); 
+        periodSelectR.addEventListener('change', loadMealsSummary); 
     }
+    const periodSelectB = document.getElementById('periodSelectB');
+    if (periodSelectB) {
+        loadBarSummary(); 
+        periodSelectB.addEventListener('change', loadBarSummary); 
+    }
+
 
     // Swal
     const swalContainer = document.getElementById("swal-data");
@@ -894,7 +896,7 @@ function confirmarEdição(type,form) {
 // ── Estatísticas: Resumo de Refeições ────────────────────────────────────────
 
 let mealsChart;
-
+let barChartB;
 
 function renderChart(data, period) {
     const config = {
@@ -984,6 +986,97 @@ function renderChart(data, period) {
 }
 
 
+function renderChartB(data, period) {
+    const config = {
+        '1': { sub: 'Consumos por hora hoje', x: 'Horas' },
+        '2': { sub: 'Consumos por dia esta semana', x: 'Dias da Semana' },
+        '3': { sub: 'Consumos por dia este mês', x: 'Dias do Mês' },
+        '4': { sub: 'Consumos por mês este ano', x: 'Meses' },
+        '5': { sub: 'Consumos por mês (Ano Atual)', x: 'Meses do Ano' }
+    };
+
+    const currentConfig = config[period] || { sub: '', x: 'Tempo' };
+
+    const canvas = document.getElementById('categoryChartB');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+
+    if (barChartB) {
+        barChartB.destroy();
+    }
+
+    const subtitleElem = document.getElementById('chartSubtitleB');
+    if (subtitleElem) subtitleElem.textContent = currentConfig.sub;
+
+    const chartLabels = data.map(d => d.label);
+    const chartValues = data.map(d => d.count);
+
+    barChartB = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: chartLabels,
+            datasets: [{
+                label: 'Pedidos',
+                data: chartValues,
+                borderColor: 'darkcyan',
+                backgroundColor: 'rgba(0,139,139,0.15)',
+                borderWidth: 3,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                pointBackgroundColor: 'darkcyan',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: currentConfig.x,
+                        color: '#6c757d',
+                        font: { size: 12, weight: 'bold' },
+                        padding: { top: 10 }
+                    },
+                    grid: { display: false }
+                },
+                y: {
+                    beginAtZero: true,
+                    grace: '10%',
+                    title: {
+                        display: true,
+                        text: 'Nº Pedidos',
+                        color: '#6c757d',
+                        font: { size: 12, weight: 'bold' },
+                        padding: { bottom: 10 }
+                    },
+                    ticks: { stepSize: 1, precision: 0, color: '#6c757d' },
+                    grid: { color: 'rgba(0,0,0,0.04)' }
+                }
+            }
+        }
+    });
+}
+
+function clearDataB() {
+    document.getElementById('idConsumptionB').textContent = '...';
+    document.getElementById('idMoneyB').textContent = '...';
+    document.getElementById('idAverageB').textContent = '...';
+    document.getElementById('idBuyersB').textContent = '...';
+
+    if (barChartB) {
+        barChartB.data.labels = [];
+        barChartB.options.scales.x.title.text = '';
+        barChartB.data.datasets.forEach((dataset) => {
+            dataset.data = [];
+        });
+        barChartB.update();
+    }
+}
+
 
 
 
@@ -1021,7 +1114,7 @@ async function loadMealsSummary() {
 
     clearDataR();
 
-    const periodSelect = document.getElementById('periodSelect');
+    const periodSelect = document.getElementById('periodSelectR');
     const period = periodSelect?.value;
 
     
@@ -1051,6 +1144,39 @@ async function loadMealsSummary() {
         console.error("Erro ao carregar estatísticas:", error);
     }
 }
+
+
+async function loadBarSummary() {
+
+    clearDataB();
+
+    const periodSelect = document.getElementById('periodSelectB');
+    const period = periodSelect?.value;
+
+
+
+    try {
+
+        const d = await fetch(`/Statistics/StatisticsBar/GetBarStats?period=${encodeURIComponent(period)}`)
+            .then(r => r.json());
+        const cat = d.byCategory ?? [];
+        const find = name => (cat.find(c => c.category === name)?.count ?? 0);
+
+
+
+        document.getElementById('idConsumptionB').textContent = d.totalConsumptions ?? 0;
+        document.getElementById('idMoneyB').textContent =
+            new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(d.totalRevenue ?? 0);
+        document.getElementById('idAverageB').textContent =
+            new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(d.averageRevenue ?? 0);
+        document.getElementById('idBuyersB').textContent = d.newBuyers ?? 0;
+
+        renderChartB(d.chart, period);
+    } catch (error) {
+        console.error("Erro ao carregar estatísticas do bar:", error);
+    }
+}
+
 
 
 
