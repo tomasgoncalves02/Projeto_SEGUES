@@ -1113,6 +1113,11 @@ function clearDataB() {
     document.getElementById('idAverageB').textContent = '...';
     document.getElementById('idBuyersB').textContent = '...';
 
+    const tbody = document.getElementById('topProductsTableBody');
+    if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="2" class="text-center text-muted py-3">A carregar...</td></tr>';
+    }
+
     if (productCategoryChart) {
         productCategoryChart.data.labels = [];
         productCategoryChart.data.datasets.forEach((dataset) => {
@@ -1227,9 +1232,38 @@ async function loadBarSummary() {
 
         renderChartB(d.chart, period);
         renderDoughnutChart(d.productCategories);
+
+        if (typeof renderDoughnutChart === 'function') renderDoughnutChart(d.productCategories);
+        renderTopProductsTable(d.topProducts);
+
     } catch (error) {
         console.error("Erro ao carregar estatísticas do bar:", error);
     }
+}
+
+function renderTopProductsTable(data) {
+    const tbody = document.getElementById('topProductsTableBody');
+    if (!tbody) return;
+
+    tbody.innerHTML = ''; 
+
+    const safeData = data || [];
+
+   
+    if (safeData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="2" class="text-center text-muted py-3">Sem vendas registadas neste período.</td></tr>';
+        return;
+    }
+
+    
+    safeData.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="fw-semibold text-dark">${item.name}</td>
+            <td class="text-center fw-bold" style="color: var(--ips); font-size: 1.1rem;">${item.quantity}</td>
+        `;
+        tbody.appendChild(tr);
+    });
 }
 
 
