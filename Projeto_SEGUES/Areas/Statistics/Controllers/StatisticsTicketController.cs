@@ -14,7 +14,7 @@ namespace Projeto_SEGUES.Areas.Statistics.Controllers
         {
             _statisticsService = statisticsService;
         }
-
+        [HttpGet]
         public IActionResult Index()
         {
 
