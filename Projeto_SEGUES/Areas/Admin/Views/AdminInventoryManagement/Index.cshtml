@@ -35,12 +35,8 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold small text-muted text-uppercase">Categoria</label>
-                            <select asp-for="@Model.CategoryId" class="form-select" required>
+                            <select asp-for="@Model.CategoryId" class="form-select" asp-items="ViewBag.Categories" required>
                                 <option value="">Selecione uma categoria</option>
-                                @foreach (SelectListItem item in ViewBag.Categories)
-                                {
-                                    <option value="@item.Value">@item.Text</option>
-                                }
                             </select>
                         </div>
                         <div class="row mb-3">
@@ -79,12 +75,8 @@
                     <div class="row g-3 align-items-end">
                         <div class="col-md-4">
                             <label class="form-label fw-bold small text-muted text-uppercase">Categoria</label>
-                            <select class="form-select" id="categoryFilter" onchange="filterTable()">
+                            <select class="form-select" id="categoryFilter" onchange="filterTable()" asp-items="ViewBag.Categories">
                                 <option value="">Categoria/Tipo</option>
-                                @foreach (SelectListItem item in ViewBag.Categories)
-                                {
-                                    <option value="@item.Value">@item.Text</option>
-                                }
                             </select>
                         </div>
                         <div class="col-md-5">

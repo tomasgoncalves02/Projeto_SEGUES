@@ -73,20 +73,31 @@ public class AdminInventoryManagementController : Controller
         var product = await _inventoryService.GetProductByIdAsync(id);
         if (product == null) return NotFound();
         ViewBag.Categories = await _inventoryService.GetAllCategoriesForDropdownAsync();
-        return View(product);
+        ProductViewModel productViewModel = new ProductViewModel
+        {
+            Id = product.Id,
+            Name = product.Name,
+            Description = product.Description,
+            CategoryId = product.Category.Id,
+            Price = product.Price,
+            Stock = product.Stock,
+            MinimumStock = product.MinimumStock,
+            IsActive = product.IsActive
+        };
+        return View(productViewModel);
     }
     
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Product product)
+    public async Task<IActionResult> Edit(ProductViewModel productViewModel)
     {
         ViewBag.Categories = await _inventoryService.GetAllCategoriesForDropdownAsync();
         if (!ModelState.IsValid)
         {
             TempData.SetSwalError("Não foi possível atualizar o produto. Verifique os campos.");
-            return View(product);
+            return View(productViewModel);
         }
-        var result = await _inventoryService.EditProductAsync(product);
+        var result = await _inventoryService.EditProductAsync(productViewModel);
         if (!result.Success)
         {
             TempData.SetSwalError(result.Message);
@@ -95,6 +106,6 @@ public class AdminInventoryManagementController : Controller
         {
             TempData.SetSwalSuccess(result.Message);
         }
-        return View(product);
+        return View(productViewModel);
     }
 }

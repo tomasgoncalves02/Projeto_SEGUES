@@ -1,4 +1,4 @@
-﻿@model Projeto_SEGUES.Models.Inventory.Product
+﻿@model Projeto_SEGUES.Areas.Inventory.ViewModels.ProductViewModel
 @{
     ViewData["Title"] = "Editar Produto - SEGUES";
 }
@@ -36,10 +36,10 @@
                             @* Categoria *@
                             <div class="col-md-12">
                                 <label class="form-label fw-bold small text-muted text-uppercase">Categoria</label>
-                                <select asp-for="@Model.Category" class="form-select" asp-items="ViewBag.Categories">
-                                    <option value="">Selecione...</option>
+                                <select asp-for="@Model.CategoryId" class="form-select" asp-items="ViewBag.Categories">
+                                    <option value="">Selecione uma categoria</option>
                                 </select>
-                                <span asp-validation-for="@Model.Category" class="text-danger small"></span>
+                                <span asp-validation-for="@Model.CategoryId" class="text-danger small"></span>
                             </div>
 
                             @* Stock *@
