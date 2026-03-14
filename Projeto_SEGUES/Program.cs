@@ -227,7 +227,7 @@ using (var scope = app.Services.CreateScope())
         // Create the database if it doesn't exist and migrate
         await context.Database.MigrateAsync();
         // Seed initial data
-        await DbSeeder.SeedRolesAndAdminAsync(services);
+        await DbSeeder.SeedInitialDataAsync(services);
     }
     catch (Exception ex)
     {

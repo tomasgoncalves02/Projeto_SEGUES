@@ -112,6 +112,10 @@ html {
     background-color: var(--ips-shadow-soft);
 }
 
+.fs-7 {
+    font-size: 0.75rem !important;
+}
+
 /* Cards */
 .card-ips {
     border: none !important;
@@ -253,34 +257,7 @@ html {
         margin-right: 16rem !important;
     }
 
-
-    .landing-hero-container {
-        min-height: 70vh;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between; 
-        padding: 2rem 0;
-    }
-
-    .hero-image-lg {
-        max-width: 100% !important;
-        height: auto;
-        z-index: 2;
-        position: relative;
-    }
-
-    .hero-circle-bg-large {
-        display: none;
-    }
-
-    .button-group-wrapper .btn {
-        min-width: 180px;
-    }
-
-    .rect-btn {
-        border-radius: 8px !important;
-    }
-
+    /* Animation in large screen */
     .animate-float {
         animation: float 6s ease-in-out infinite;
     }
@@ -289,13 +266,11 @@ html {
         0% {
             transform: translateY(0px);
         }
-
         50% {
             transform: translateY(-15px);
         }
-
         100% {
             transform: translateY(0px);
         }
     }
-    }
+}

@@ -8,8 +8,7 @@
 
 @if (!SignInManager.IsSignedIn(User))
 {
-    <div class="container landing-hero-container">
-
+    <div class="container d-flex flex-column px-xl-0 py-xl-4" style="min-height: 80vh;">
         <div class="row align-items-center flex-grow-1">
             <div class="col-lg-5">
                 <p class="fw-bold mb-1 text-muted small">BEM-VINDO AO</p>
@@ -22,19 +21,19 @@
 
                 <div class="button-group-wrapper" style="max-width: 450px;">
                     <div class="d-flex gap-2 mb-2">
-                        <button onclick="escolherEmenta()" class="btn btn-ips py-3 flex-fill fw-bold">
+                        <button onclick="escolherEmenta()" class="btn btn-ips py-3 flex-fill fw-bold col-2">
                             VER EMENTA
                         </button>
-                        <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-ips-outline-secondary py-3 flex-fill fw-bold">INICIAR SESSÃO</a>
+                        <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-ips-outline-secondary py-3 flex-fill fw-bold col-2">INICIAR SESSÃO</a>
                     </div>
-                    <a asp-controller="Home" asp-action="Schedule" class="btn btn-ips w-100 py-3 fw-bold rect-btn">
+                    <a asp-controller="Home" asp-action="Schedule" class="btn btn-ips w-100 py-3 fw-bold">
                         HORÁRIO DE FUNCIONAMENTO
                     </a>
                 </div>
             </div>
 
             <div class="col-lg-7 text-center">
-                <img src="~/images/hero-devices.jpg" class="img-fluid animate-float hero-image-lg" alt="SEGUES">
+                <img src="~/images/hero-devices.jpg" class="img-fluid animate-float" alt="SEGUES">
             </div>
         </div>
 
