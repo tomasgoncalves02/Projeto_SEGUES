@@ -22,7 +22,7 @@ namespace Projeto_SEGUES.Areas.Statistics.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetTicketsStats(string period = "Dia")
+        public async Task<IActionResult> GetTicketsStats(int period = 1)
         {
             var result = await _statisticsService.GetTicketsStats(period);
             return Json(result);

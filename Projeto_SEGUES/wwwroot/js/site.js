@@ -3,6 +3,13 @@
  */
 document.addEventListener("DOMContentLoaded", addEvents);
 
+document.getElementById('periodSelect').addEventListener('click', function () {
+    if (this.value === "1") {
+        loadMealsSummary();
+    }
+});
+
+
 function addEvents() {
 
     //Tickets
@@ -867,13 +874,15 @@ function confirmarEdição(type,form) {
 let mealsChart;
 
 function renderChart(data, period) {
-    const subtitles = {
-        'Dia': 'Refeições por hora hoje',
-        'Semana': 'Refeições por dia esta semana',
-        'Mês': 'Refeições por dia este mês',
-        'Ano': 'Refeições por mês este ano',
-        'Total': 'Todas as refeições'
+    const config = {
+        '1': { sub: 'Refeições por hora hoje', x: 'Horas' },
+        '2': { sub: 'Refeições por dia esta semana', x: 'Dias da Semana' },
+        '3': { sub: 'Refeições por dia este mês', x: 'Dias do Mês' },
+        '4': { sub: 'Refeições por mês este ano', x: 'Meses' },
+        '5': { sub: 'Refeições por mês (Ano Atual)', x: 'Meses do Ano' }
     };
+
+    const currentConfig = config[period] || { sub: '', x: 'Tempo' };
 
     const canvas = document.getElementById('mealsChart');
     if (!canvas) return; 
@@ -884,8 +893,8 @@ function renderChart(data, period) {
         mealsChart.destroy();
     }
 
-    document.getElementById('chartSubtitle').textContent = subtitles[period] || '';
-
+    const subtitleElem = document.getElementById('chartSubtitle');
+    if (subtitleElem) subtitleElem.textContent = currentConfig.sub;
     
     const chartLabels = data.map(d => d.label);
     const chartValues = data.map(d => d.count);
@@ -914,7 +923,7 @@ function renderChart(data, period) {
                 x: {
                     title: {
                         display: true,
-                        text: 'Horas', 
+                        text: currentConfig.x, 
                         color: '#6c757d',
                         font: {
                             size: 12,
@@ -929,7 +938,7 @@ function renderChart(data, period) {
                     grace: '10%',
                     title: {
                         display: true,
-                        text: 'Nº Senhas', // Nome na lateral
+                        text: 'Nº Senhas',
                         color: '#6c757d',
                         font: {
                             size: 12,
@@ -951,26 +960,68 @@ function renderChart(data, period) {
     });
 }
 
+function clearData() {
+    document.getElementById('idMeals').textContent = '...';
+    document.getElementById('idMoney').textContent = '...';
+    document.getElementById('idAverage').textContent = '...';
+    document.getElementById('idBuyers').textContent = '...';
+    document.getElementById('idStudent').textContent = '...';
+    document.getElementById('idExternal').textContent = '...';
+    document.getElementById('idWorker').textContent = '...';
+
+
+
+    if (mealsChart) {
+
+        mealsChart.data.labels = [];
+        mealsChart.options.scales.x.title.text = '';
+        mealsChart.data.datasets.forEach((dataset) => {
+            dataset.data = [];
+        });
+
+
+        mealsChart.update();
+    }
+
+        
+}
+
+
+
 
 async function loadMealsSummary() {
-    const period = document.getElementById('periodSelect')?.value ?? 'Dia';
-    const d = await fetch(`/Statistics/StatisticsTicket/GetTicketsStats?period=${encodeURIComponent(period)}`)
-        .then(r => r.json());
-    const cat = d.byCategory ?? [];
-    const find = name => (cat.find(c => c.category === name)?.count ?? 0);
 
-    document.getElementById('idMeals').textContent = d.totalMeals;
-    document.getElementById('idMoney').textContent =
-        new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(d.totalRevenue);
-    document.getElementById('idAverage').textContent =
-        new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(d.averageRevenue);
-    document.getElementById('idBuyers').textContent = d.newBuyers;
+    clearData();
 
-    document.getElementById('idStudent').textContent = find('Estudante');
-    document.getElementById('idExternal').textContent = find('Externo');
-    document.getElementById('idWorker').textContent = find('Trabalhador IPS');
+    const periodSelect = document.getElementById('periodSelect');
+    const period = periodSelect?.value;
 
-    renderChart(d.chart, period);
+    
+
+    try {
+
+        const d = await fetch(`/Statistics/StatisticsTicket/GetTicketsStats?period=${encodeURIComponent(period)}`)
+            .then(r => r.json());
+        const cat = d.byCategory ?? [];
+        const find = name => (cat.find(c => c.category === name)?.count ?? 0);
+
+
+
+        document.getElementById('idMeals').textContent = d.totalMeals;
+        document.getElementById('idMoney').textContent =
+            new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(d.totalRevenue);
+        document.getElementById('idAverage').textContent =
+            new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(d.averageRevenue);
+        document.getElementById('idBuyers').textContent = d.newBuyers;
+
+        document.getElementById('idStudent').textContent = find('Estudante');
+        document.getElementById('idExternal').textContent = find('Externo');
+        document.getElementById('idWorker').textContent = find('Trabalhador IPS');
+
+        renderChart(d.chart, period);
+    } catch (error) {
+        console.error("Erro ao carregar estatísticas:", error);
+    }
 }
 
 

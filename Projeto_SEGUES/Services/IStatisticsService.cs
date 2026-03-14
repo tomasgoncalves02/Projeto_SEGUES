@@ -2,7 +2,7 @@
 
 public interface IStatisticsService
 {
-    Task<object> GetTicketsStats(string period = "Dia");
+    Task<object> GetTicketsStats(int period = 1);
 
 
 }

@@ -56,7 +56,7 @@ public class StatisticsService : IStatisticsService
         return new object[] { newBuyers };
     }
 
-    private async Task<object> GetInfoGraphStatsAsync(DateTime start, string period)
+    private async Task<object> GetInfoGraphStatsAsync(DateTime start, int period)
     {
         var tickets = await _context.Ticket
              .Where(t => t.IsUsed && t.UsedDate >= start)
@@ -65,10 +65,11 @@ public class StatisticsService : IStatisticsService
         var chartData = tickets
             .GroupBy(t => period switch
             {
-                "Dia" => t.UsedDate!.Value.ToString("HH:00"),
-                "Semana" => t.UsedDate!.Value.ToString("dd/MM"),
-                "Mês" => t.UsedDate!.Value.ToString("dd"),
-                "Ano" => t.UsedDate!.Value.ToString("MMM"),
+                1 => t.UsedDate!.Value.ToString("HH:00"),
+                2 => t.UsedDate!.Value.ToString("dd/MM"),
+                3 => t.UsedDate!.Value.ToString("dd/MM"),
+                4 => t.UsedDate!.Value.ToString("MMMM"),
+                5 => t.UsedDate!.Value.ToString("MM/yyyy"),
                 _ => t.UsedDate!.Value.Year.ToString()
             })
             .OrderBy(g => g.Key)
@@ -96,16 +97,17 @@ public class StatisticsService : IStatisticsService
     }
 
     
-    public async Task<object> GetTicketsStats(string period = "Dia")
+    public async Task<object> GetTicketsStats(int period = 1)
     {
         var now = DateTime.Now;
 
         DateTime start = period switch
         {
-            "Semana" => now.Date.AddDays(-(int)now.DayOfWeek + 1),
-            "Mês" => new DateTime(now.Year, now.Month, 1),
-            "Ano" => new DateTime(now.Year, 1, 1),
-            "Total" => DateTime.MinValue,
+            1 => now.Date,
+            2 => now.Date.AddDays(-(now.DayOfWeek == DayOfWeek.Sunday ? 6 : (int)now.DayOfWeek - 1)),
+            3 => new DateTime(now.Year, now.Month, 1),
+            4 => new DateTime(now.Year, 1, 1),
+            5 => new DateTime(now.Year, 1, 1),
             _ => now.Date
         };
 
