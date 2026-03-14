@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Projeto_SEGUES.Areas.Inventory.ViewModels;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.Inventory;
 
@@ -37,8 +38,20 @@ public class InventoryService : IInventoryService
         return categories.Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name }).ToList();
     }
 
-    public async Task<ServiceResult> CreateProductAsync(Product product)
+    public async Task<ServiceResult> CreateProductAsync(ProductViewModel productViewModel)
     {
+        var category = await _context.ProductCategory.FindAsync(productViewModel.CategoryId);
+        if (category == null) return ServiceResult.Fail("Categoria não encontrada.");
+        Product product = new Product
+        {
+            Name = productViewModel.Name, 
+            Description = productViewModel.Description, 
+            Category = category, 
+            Price = productViewModel.Price, 
+            Stock = productViewModel.Stock, 
+            MinimumStock = productViewModel.MinimumStock, 
+            IsActive = true
+        };
         if (await _context.Product.AnyAsync(p => p.Name == product.Name))
         {
             return ServiceResult.Fail("Já existe um produto com esse nome.");

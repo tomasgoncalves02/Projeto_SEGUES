@@ -13,8 +13,9 @@ else
 {
     @foreach (var p in Model)
     {
-        <tr class="table-row-ips-hover" data-stock="@p.Stock" data-category-id="@p.Category?.Id">
-            <td class="fw-bold product-name text-start ps-4">@p.Name</td>
+        <tr class="table-row-ips-hover@(p.IsActive ? "" : " text-muted text-decoration-line-through")" data-stock="@p.Stock" data-category-id="@p.Category?.Id">
+            <td class="fw-bold text-start ps-4">@p.Name</td>
+            <td class="text-color-ips fw-bold" data-category-id="@p.Category?.Id">@p.Category?.Name</td>
             <td class="text-color-ips fw-bold">@p.Price.ToString("C")</td>
             <td>
                 <span class="badge @(p.Stock <= 0 ? "bg-danger" : (p.Stock < 5 ? "bg-warning text-dark" : "bg-success"))">@p.Stock</span>
@@ -28,11 +29,14 @@ else
                     <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-sm btn-ips-outline-secondary" title="Editar">
                         <i class="bi bi-pencil-square"></i>
                     </a>
-                    <form asp-action="Delete" asp-route-id="@p.Id" method="post" id="delete-form-@p.Id" class="d-inline">
-                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmDelete('@p.Id', '@p.Name')" title="Eliminar">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </form>
+                    @if (p.IsActive)
+                    {
+                        <form asp-action="Delete" asp-route-id="@p.Id" method="post" id="delete-form-@p.Id" class="d-inline">
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmDelete('@p.Id', '@p.Name')" title="Eliminar">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    }
                 </div>
             </td>
         </tr>

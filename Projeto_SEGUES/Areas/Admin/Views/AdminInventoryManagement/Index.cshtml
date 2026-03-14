@@ -1,5 +1,4 @@
-﻿@using Projeto_SEGUES.Models.Inventory
-@model Projeto_SEGUES.Models.Inventory.Product
+﻿@model Projeto_SEGUES.Areas.Inventory.ViewModels.ProductViewModel
 
 @{
     ViewData["Title"] = "Gestão de Inventário - SEGUES";
@@ -36,7 +35,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold small text-muted text-uppercase">Categoria</label>
-                            <select asp-for="@Model.Category" class="form-select" required>
+                            <select asp-for="@Model.CategoryId" class="form-select" required>
                                 <option value="">Selecione uma categoria</option>
                                 @foreach (SelectListItem item in ViewBag.Categories)
                                 {
@@ -47,7 +46,7 @@
                         <div class="row mb-3">
                             <div class="col-6">
                                 <label class="form-label fw-bold small text-muted text-uppercase">Preço (€)</label>
-                                <input asp-for="@Model.Price" type="number" step="0.5" class="form-control fw-bold text-color-ips" value="0.00" />
+                                <input asp-for="@Model.Price" type="number" step="0.01" class="form-control fw-bold text-color-ips" value="0.00" />
                             </div>
                             <div class="col-6">
                                 <label class="form-label fw-bold small text-muted text-uppercase">Stock</label>
@@ -80,7 +79,7 @@
                     <div class="row g-3 align-items-end">
                         <div class="col-md-4">
                             <label class="form-label fw-bold small text-muted text-uppercase">Categoria</label>
-                            <select class="form-select" id="statusFilter" onchange="filterTable()">
+                            <select class="form-select" id="categoryFilter" onchange="filterTable()">
                                 <option value="">Categoria/Tipo</option>
                                 @foreach (SelectListItem item in ViewBag.Categories)
                                 {
@@ -117,18 +116,17 @@
                         <thead class="bg-color-ips text-white">
                             <tr>
                                 <th class="py-3 text-start ps-4">Produto</th>
+                                <th class="py-3">Categoria</th>
                                 <th class="py-3">Preço</th>
                                 <th class="py-3">Stock</th>
                                 <th class="py-3 text-center pe-4">Ação</th>
                             </tr>
                         </thead>
-                        <tbody id="productListContainer">
-                        <div class="col-lg-8"
+                        <tbody id="productListContainer" class="col-lg-8"
                              hx-get="/Admin/AdminInventoryManagement/GetProducts"
                              hx-trigger="every 60s"
                              hx-swap="innerHTML">
                             <partial name="_ProductListPartial" model="@ViewBag.Products" />
-                        </div>
                         </tbody>
                     </table>
                 </div>
@@ -176,21 +174,17 @@
 @section Scripts {
     <script>
         function filterTable() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const status = document.getElementById('statusFilter').value;
-            const rows = document.querySelectorAll('.product-row');
+            const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
+            const searchCategory = document.getElementById('categoryFilter').value;
+            const rows = document.querySelectorAll('.table-row-ips-hover');
 
             rows.forEach(row => {
-                const name = row.querySelector('.product-name').textContent.toLowerCase();
-                const stock = parseInt(row.getAttribute('data-stock'));
+                const name = row.querySelector('td:first-child').textContent.trim().toLowerCase();
+                const category = parseInt(row.getAttribute('data-category-id'));
 
                 const matchesSearch = name.includes(searchTerm);
-                const matchesStatus = (status === "todos") ||
-                                    (status === "disponivel" && stock > 0) ||
-                                    (status === "baixo-stock" && stock > 0 && stock < 5) ||
-                                    (status === "esgotado" && stock <= 0);
-
-                row.style.display = (matchesSearch && matchesStatus) ? "" : "none";
+                const matchesCategory = searchCategory === "" || category === parseInt(searchCategory);
+                row.style.display = (matchesSearch && matchesCategory) ? "" : "none";
             });
         }
 

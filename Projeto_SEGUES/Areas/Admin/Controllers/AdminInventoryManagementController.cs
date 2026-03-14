@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Projeto_SEGUES.Areas.Inventory.ViewModels;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Inventory;
 using Projeto_SEGUES.Services;
@@ -27,19 +28,19 @@ public class AdminInventoryManagementController : Controller
     public async Task<IActionResult> GetProducts()
     {
         var products = await _inventoryService.GetAllProductsAsync();
-        return Json(products);
+        return PartialView("_ProductListPartial", products);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(Product product)
+    public async Task<IActionResult> Create(ProductViewModel productViewModel)
     {
         if (!ModelState.IsValid)
         {
-            TempData.SetSwalError("Não foi possível registar o produto. Verifique os campos.");
+            TempData.SetSwalError($"Não foi possível registar o produto. Verifique os campos.");
             return RedirectToAction(nameof(Index));
         }
-        var result = await _inventoryService.CreateProductAsync(product);
+        var result = await _inventoryService.CreateProductAsync(productViewModel);
         if (result.Success) {
             TempData.SetSwalSuccess(result.Message);
         }
