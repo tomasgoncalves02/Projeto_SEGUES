@@ -79,6 +79,40 @@ public class AdminService : IAdminService
         return result;
     }
 
+    // Substitui o teu método UpdateBarScheduleAsync por este mais completo:
+    public async Task UpdateBarScheduleAsync(string open, string close, string serviceName = "Bar")
+    {
+        if (!TimeSpan.TryParse(open, out var openTime) || !TimeSpan.TryParse(close, out var closeTime))
+        {
+            throw new ArgumentException("Formato de hora inválido.");
+        }
+
+        var config = await _context.AppConfig.FirstAsync();
+
+        switch (serviceName)
+        {
+            case "Almoço":
+                config.OpenLunchTime = openTime;
+                config.CloseLunchTime = closeTime;
+                break;
+            case "Jantar":
+                config.OpenDinnerTime = openTime;
+                config.CloseDinnerTime = closeTime;
+                break;
+            default: // "Bar"
+                config.OpenBarTime = openTime;
+                config.CloseBarTime = closeTime;
+                break;
+        }
+
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<TimeSpan> GetOpenLunchTimeAsync() => (await _context.AppConfig.FirstAsync()).OpenLunchTime;
+    public async Task<TimeSpan> GetCloseLunchTimeAsync() => (await _context.AppConfig.FirstAsync()).CloseLunchTime;
+    public async Task<TimeSpan> GetOpenDinnerTimeAsync() => (await _context.AppConfig.FirstAsync()).OpenDinnerTime;
+    public async Task<TimeSpan> GetCloseDinnerTimeAsync() => (await _context.AppConfig.FirstAsync()).CloseDinnerTime;
+
     private static string GenerateSecurePassword(int length = 12)
     {
         const string lowercase = "abcdefghijklmnopqrstuvwxyz";

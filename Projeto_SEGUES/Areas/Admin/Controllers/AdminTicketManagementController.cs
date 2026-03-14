@@ -34,6 +34,10 @@ public class AdminTicketManagementController : Controller
 
         ViewBag.Prices = await _adminService.GetTicketPricesAsync();
         ViewBag.CurrentValidityDays = await _adminService.GetTicketValidityDaysAsync();
+        ViewBag.LunchOpenTime = await _adminService.GetOpenLunchTimeAsync();
+        ViewBag.LunchCloseTime = await _adminService.GetCloseLunchTimeAsync();
+        ViewBag.DinnerOpenTime = await _adminService.GetOpenDinnerTimeAsync();
+        ViewBag.DinnerCloseTime = await _adminService.GetCloseDinnerTimeAsync();
 
         var history = await _ticketService.GetAllTicketsAsync();
 
@@ -102,6 +106,24 @@ public class AdminTicketManagementController : Controller
         }
 
         return PartialView("_AuditTableRows", query.OrderByDescending(t => t.TicketPurchase.TransactionDate).ToList());
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateSchedule(string serviceName, TimeSpan openTime, TimeSpan closeTime)
+    {
+        // 1. Validação simples
+        if (openTime >= closeTime)
+        {
+            TempData.SetSwalError($"No serviço de {serviceName}, a abertura deve ser antes do fecho.");
+            return RedirectToAction(nameof(Index));
+        }
+
+        // 2. Chamar o serviço para gravar (precisamos atualizar o IAdminService para aceitar o nome do serviço)
+        await _adminService.UpdateBarScheduleAsync(openTime.ToString(), closeTime.ToString(), serviceName);
+
+        TempData.SetSwalSuccess($"Horário de {serviceName} atualizado com sucesso!");
+        return RedirectToAction(nameof(Index));
     }
 
     [HttpGet]

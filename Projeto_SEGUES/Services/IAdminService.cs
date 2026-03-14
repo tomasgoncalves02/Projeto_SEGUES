@@ -29,6 +29,11 @@ public interface IAdminService
     Task<bool> IsBarOpenAsync(TimeSpan? requestedTime = null);
 
     Task UpdateBarScheduleAsync(string openBarTime, string closeBarTime);
+    Task UpdateBarScheduleAsync(string open, string close, string serviceName = "Bar");
+    Task<TimeSpan> GetOpenLunchTimeAsync();
+    Task<TimeSpan> GetCloseLunchTimeAsync();
+    Task<TimeSpan> GetOpenDinnerTimeAsync();
+    Task<TimeSpan> GetCloseDinnerTimeAsync();
 
 
 

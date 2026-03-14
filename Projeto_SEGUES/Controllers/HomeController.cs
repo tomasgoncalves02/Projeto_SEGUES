@@ -60,6 +60,11 @@ namespace Projeto_SEGUES.Controllers
             ViewBag.OpeningTime = open.ToString(@"hh\:mm");
             ViewBag.ClosingTime = close.ToString(@"hh\:mm");
 
+            ViewBag.LunchOpenTime = await _adminService.GetOpenLunchTimeAsync();
+            ViewBag.LunchCloseTime = await _adminService.GetCloseLunchTimeAsync();
+            ViewBag.DinnerOpenTime = await _adminService.GetOpenDinnerTimeAsync();
+            ViewBag.DinnerCloseTime = await _adminService.GetCloseDinnerTimeAsync();
+
             return View();
         }
 

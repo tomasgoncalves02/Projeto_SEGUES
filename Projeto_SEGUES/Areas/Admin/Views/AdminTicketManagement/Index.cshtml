@@ -6,6 +6,10 @@
     bool isAdmin = User.IsInRole("Admin");
     var prices = ViewBag.Prices as List<TicketPrice>;
     int currentValidityDays = ViewBag.CurrentValidityDays ?? 365;
+    TimeSpan LunchOpen = ViewBag.LunchOpenTime != null ? (TimeSpan)ViewBag.LunchOpenTime : new TimeSpan(12, 0, 0);
+    TimeSpan LunchClose = ViewBag.LunchCloseTime != null ? (TimeSpan)ViewBag.LunchCloseTime : new TimeSpan(14, 30, 0);
+    TimeSpan DinnerOpen = ViewBag.DinnerOpenTime != null ? (TimeSpan)ViewBag.DinnerOpenTime : new TimeSpan(19, 0, 0);
+    TimeSpan DinnerClose = ViewBag.DinnerCloseTime != null ? (TimeSpan)ViewBag.DinnerCloseTime : new TimeSpan(21, 30, 0);
 }
 
 <div class="container mt-5">
@@ -22,11 +26,52 @@
             <i class="bi bi-arrow-left me-2"></i>Voltar ao Painel
         </a>
     </div>
+    @* --- HORÁRIO DO REFEITÓRIO --- *@
+    <div class="row g-4 mb-5">
+        @foreach (var servico in new[] { "Almoço", "Jantar" })
+        {
+            <div class="col-lg-6">
+                <div class="card card-ips shadow-sm border-0 rounded-3 h-100">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold mb-3 d-flex align-items-center" style="color: darkcyan;">
+                            <i class="bi bi-clock me-2"></i> Definição de Horário: @servico
+                        </h6>
 
+                        <form asp-area="Admin" asp-controller="AdminTicketManagement" asp-action="UpdateSchedule" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="serviceName" value="@servico" />
+
+                            <div class="row g-3 align-items-end">
+                                <div class="col-auto">
+                                    <label class="form-label fw-semibold small mb-1">Início</label>
+                                    <input type="time" name="openTime" class="form-control shadow-none"
+                                           value="@(servico == "Almoço" ? LunchOpen.ToString(@"hh\:mm") : DinnerOpen.ToString(@"hh\:mm"))"
+                                           style="width: 140px;" />
+                                </div>
+
+                                <div class="col-auto">
+                                    <label class="form-label fw-semibold small mb-1">Fecho</label>
+                                    <input type="time" name="closeTime" class="form-control shadow-none"
+                                           value="@(servico == "Almoço" ? LunchClose.ToString(@"hh\:mm") : DinnerClose.ToString(@"hh\:mm"))"
+                                           style="width: 140px;" />
+                                </div>
+
+                                <div class="col-auto">
+                                    <button type="submit" class="btn btn-ips fw-bold px-4 shadow-sm">
+                                        Atualizar
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
     @* Gestão de Preçários e Validade (Admin Only) *@
     @if (isAdmin && prices != null && prices.Any())
     {
-        <div class="row g-4 mb-5">
+        <div class="row g-4 mb-4">
             @* Tabela de Preços *@
             <div class="col-lg-8">
                 <div class="card shadow-sm card-ips h-100">
@@ -94,7 +139,6 @@
             </div>
         </div>
     }
-
     @* --- SECÇÃO DE FILTROS DE AUDITORIA --- *@
     <div class="card card-ips shadow-sm mb-4 border-0 rounded-3">
         <div class="card-body p-4">

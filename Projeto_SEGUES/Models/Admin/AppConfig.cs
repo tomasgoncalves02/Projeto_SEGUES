@@ -17,4 +17,15 @@ public class AppConfig
 
     [Required]
     public TimeSpan CloseBarTime { get; set; } = new(23, 50, 0);
+    [Required]
+    public TimeSpan OpenLunchTime { get; set; } = new(12, 0, 0);
+
+    [Required]
+    public TimeSpan CloseLunchTime { get; set; } = new(14, 30, 0);
+
+    [Required]
+    public TimeSpan OpenDinnerTime { get; set; } = new(19, 0, 0);
+
+    [Required]
+    public TimeSpan CloseDinnerTime { get; set; } = new(21, 30, 0);
 }
