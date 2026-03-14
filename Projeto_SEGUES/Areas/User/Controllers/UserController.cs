@@ -116,7 +116,7 @@ public class UserController : Controller
     }
 
     [HttpPost]
-
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdatePassword(string currentPassword, string newPassword)
     {
         var user = await _userManager.GetUserAsync(User);

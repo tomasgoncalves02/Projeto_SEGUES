@@ -1,4 +1,80 @@
-﻿/*
+﻿
+
+const Notifications = {
+    // Success (Auto-close 3s, no button)
+    success: function (message, html = undefined) {
+        if (html) message = ''; // If HTML is provided, ignore text to avoid redundancy
+        return showSwal({
+            icon: 'success',
+            title: 'Operação Concluída',
+            text: message,
+            html: html,
+            timer: 3000,
+            showConfirmButton: false,
+            showCloseButton: true
+        });
+    },
+
+    // Error (Sticky, footer link)
+    error: function (message, html = undefined) {
+        if (html) message = ''; // If HTML is provided, ignore text to avoid redundancy
+        return showSwal({
+            icon: 'error',
+            title: 'Erro',
+            text: message,
+            html: html,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            footer: "Se o erro persistir, contacte o <a href='mailto:segues2026@gmail.com'>suporte</a>."
+        });
+    },
+
+    // Warning (Sticky, requires click)
+    warning: function (message, html = undefined) {
+        if (html) message = ''; // If HTML is provided, ignore text to avoid redundancy
+        return showSwal({
+            icon: 'warning',
+            title: 'Aviso',
+            text: message,
+            html: html,
+            allowOutsideClick: false,
+            allowEscapeKey: false
+        });
+    },
+
+    // Info (Auto-close 4s)
+    info: function (message, html = undefined, showConfirmButton = false, timer = 4000) {
+        if (html) message = ''; // If HTML is provided, ignore text to avoid redundancy
+        return showSwal({
+            icon: 'info',
+            title: 'Informação',
+            text: message,
+            html: html,
+            timer: timer,
+            showConfirmButton: showConfirmButton,
+            showCloseButton: true
+        });
+    },
+
+    // Confirmation (Returns Promise for logic)
+    confirm: function (message, html = undefined) {
+        if (html) message = ''; // If HTML is provided, ignore text to avoid redundancy
+        return showSwal({
+            icon: 'question',
+            title: 'Confirma Operação?',
+            text: message,
+            html: html,
+            showCancelButton: true,
+            confirmButtonText: 'Sim',
+            confirmButtomAriaLabel: 'Sim',
+            cancelButtonText: 'Não',
+            cancelButtonAriaLabel: 'Não',
+            allowOutsideClick: false,
+            allowEscapeKey: false
+        });
+    }
+};
+/*
  * Events registration
  */
 document.addEventListener("DOMContentLoaded", addEvents);
@@ -91,80 +167,7 @@ function showSwal(options) {
     return Swal.fire(config); // Return the promise
 }
 
-const Notifications = {
-    // Success (Auto-close 3s, no button)
-    success: function(message, html = undefined) {
-        if (html) message = ''; // If HTML is provided, ignore text to avoid redundancy
-        return showSwal({
-            icon: 'success',
-            title: 'Operação Concluída',
-            text: message,
-            html: html,
-            timer: 3000,
-            showConfirmButton: false,
-            showCloseButton: true
-        });
-    },
 
-    // Error (Sticky, footer link)
-    error: function(message, html = undefined) {
-        if (html) message = ''; // If HTML is provided, ignore text to avoid redundancy
-        return showSwal({
-            icon: 'error',
-            title: 'Erro',
-            text: message,
-            html: html,
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            footer: "Se o erro persistir, contacte o <a href='mailto:segues2026@gmail.com'>suporte</a>."
-        });
-    },
-
-    // Warning (Sticky, requires click)
-    warning: function(message, html = undefined) {
-        if (html) message = ''; // If HTML is provided, ignore text to avoid redundancy
-        return showSwal({
-            icon: 'warning',
-            title: 'Aviso',
-            text: message,
-            html: html,
-            allowOutsideClick: false,
-            allowEscapeKey: false
-        });
-    },
-
-    // Info (Auto-close 4s)
-    info: function(message, html = undefined, showConfirmButton = false, timer = 4000) {
-        if (html) message = ''; // If HTML is provided, ignore text to avoid redundancy
-        return showSwal({
-            icon: 'info',
-            title: 'Informação',
-            text: message,
-            html: html,
-            timer: timer,
-            showConfirmButton: showConfirmButton,
-            showCloseButton: true
-        });
-    },
-
-    // Confirmation (Returns Promise for logic)
-    confirm: function(message, html = undefined) {
-        if (html) message = ''; // If HTML is provided, ignore text to avoid redundancy
-        return showSwal({
-            icon: 'question',
-            title: 'Confirma Operação?',
-            text: message,
-            html: html,
-            showCancelButton: true,
-            confirmButtonText: 'Sim',
-            confirmButtomAriaLabel: 'Sim',
-            cancelButtonText: 'Não',
-            cancelButtonAriaLabel: 'Não',
-            allowOutsideClick: false,
-            allowEscapeKey: false
-        });
-    }
-};
 
 /*
  * Password Visibility Toggle
@@ -420,20 +423,20 @@ function enviarNovaPassword(currentPassword, newPassword) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'RequestVerificationToken': token
+            'RequestVerificationToken': token 
         },
         body: params.toString()
     })
         .then(r => r.json())
         .then(data => {
             if (data.success) {
-                Notifications.success("Password alterada com sucesso!");
+                Notifications.success("Password alterada!");
                 setTimeout(() => location.reload(), 1500);
             } else {
                 Notifications.error(data.message || "Erro ao atualizar password.");
             }
         })
-        .catch(() => Notifications.error("Erro de comunicação com o servidor."));
+        .catch(() => Notifications.error("Erro de comunicação."));
 }
 
 
@@ -515,11 +518,11 @@ function handleEditSubmit(typeName, key, value) {
     bodyParams.append('key', key);
     bodyParams.append('value', value);
 
-    fetch('/User/User/UpdateType', {
+    fetch('/User/User/UpdateType', { 
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'RequestVerificationToken': token
+            'RequestVerificationToken': token 
         },
         body: bodyParams.toString()
     })
