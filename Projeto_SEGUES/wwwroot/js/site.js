@@ -988,11 +988,11 @@ function renderChart(data, period) {
 
 function renderChartB(data, period) {
     const config = {
-        '1': { sub: 'Consumos por hora hoje', x: 'Horas' },
-        '2': { sub: 'Consumos por dia esta semana', x: 'Dias da Semana' },
-        '3': { sub: 'Consumos por dia este mês', x: 'Dias do Mês' },
-        '4': { sub: 'Consumos por mês este ano', x: 'Meses' },
-        '5': { sub: 'Consumos por mês (Ano Atual)', x: 'Meses do Ano' }
+        '1': { sub: 'Pedidos por hora hoje', x: 'Horas' },
+        '2': { sub: 'Pedidos por dia esta semana', x: 'Dias da Semana' },
+        '3': { sub: 'Pedidos por dia este mês', x: 'Dias do Mês' },
+        '4': { sub: 'Pedidos por mês este ano', x: 'Meses' },
+        '5': { sub: 'Pedidos por mês (Ano Atual)', x: 'Meses do Ano' }
     };
 
     const currentConfig = config[period] || { sub: '', x: 'Tempo' };
