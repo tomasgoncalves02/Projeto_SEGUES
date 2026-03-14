@@ -876,6 +876,7 @@ function confirmarEdição(type,form) {
 
 let mealsChart;
 
+
 function renderChart(data, period) {
     const config = {
         '1': { sub: 'Refeições por hora hoje', x: 'Horas' },
@@ -963,7 +964,12 @@ function renderChart(data, period) {
     });
 }
 
-function clearData() {
+
+
+
+
+
+function clearDataR() {
     document.getElementById('idMeals').textContent = '...';
     document.getElementById('idMoney').textContent = '...';
     document.getElementById('idAverage').textContent = '...';
@@ -994,7 +1000,7 @@ function clearData() {
 
 async function loadMealsSummary() {
 
-    clearData();
+    clearDataR();
 
     const periodSelect = document.getElementById('periodSelect');
     const period = periodSelect?.value;

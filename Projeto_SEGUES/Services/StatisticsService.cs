@@ -17,7 +17,7 @@ public class StatisticsService : IStatisticsService
         _context = context;
     }
 
-
+    //Refeitório
     private async Task<object> GetaMealsStatsAsync(DateTime start)
     {
         var count = await _context.Ticket
