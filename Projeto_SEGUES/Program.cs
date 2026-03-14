@@ -38,7 +38,10 @@ else
 string? connectionString = builder.Configuration.GetConnectionString(connectionName);
 
 var connectionStringBuilder = new SqlConnectionStringBuilder(connectionString);
-connectionStringBuilder.Password = password;
+if (!string.IsNullOrEmpty(password))
+{
+    connectionStringBuilder.Password = password;
+}
 if (connectionName == "LocalSQLServer")
 {
     // Use Windows Integrated Security for local SQL Server (no password)
