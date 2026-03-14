@@ -140,7 +140,7 @@
                         {
                             bool eParaDepois = order.PickupTime.HasValue && order.PickupTime.Value != TimeSpan.Zero;
 
-                            <tr class="order-row" data-status="@order.Status" data-date="@order.OrderDate.ToString("yyyy-MM-dd")">
+                            <tr class="order-row" data-status="@((byte)order.Status)" data-date="@order.OrderDate.ToString("yyyy-MM-dd")">
                                 <td class="ps-4 text-start">
                                     <div class="d-flex flex-column">
                                         <span class="fw-bold user-name">@order.AppUser?.FirstName @order.AppUser?.LastName</span>
@@ -220,8 +220,8 @@
 @section Scripts {
     <script>
         function filterTable() {
-            let searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            let status = document.getElementById('statusFilter').value;
+            let searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            let status = document.getElementById('statusFilter').value; // Retorna "1", "2", etc.
             let exactDate = document.getElementById('exactDateFilter').value;
             let rows = document.querySelectorAll('.order-row');
 
@@ -229,16 +229,19 @@
                 let userName = row.querySelector('.user-name').textContent.toLowerCase();
                 let userEmail = row.querySelector('.user-email').textContent.toLowerCase();
                 let orderId = row.querySelector('.order-id').textContent.toLowerCase();
-                let code = row.querySelector('.redemption-code').textContent.toLowerCase();
-                let orderStatus = row.getAttribute('data-status');
+                let code = row.querySelector('.redemption-code').textContent.toLowerCase().trim();
+
+                let orderStatus = row.getAttribute('data-status'); // Agora será "1", "2", etc.
                 let orderDate = row.getAttribute('data-date');
 
-                let matchesSearch = userName.includes(searchTerm) ||
+                let matchesSearch = searchTerm === "" ||
+                                   userName.includes(searchTerm) ||
                                    userEmail.includes(searchTerm) ||
                                    orderId.includes(searchTerm) ||
                                    code.includes(searchTerm);
 
-                let matchesStatus = (status === "todos" || orderStatus === status);
+                // Corrigido: o valor vazio "" no select significa "Todos"
+                let matchesStatus = (status === "" || orderStatus === status);
                 let matchesDate = !exactDate || (orderDate === exactDate);
 
                 row.style.display = (matchesSearch && matchesStatus && matchesDate) ? "" : "none";

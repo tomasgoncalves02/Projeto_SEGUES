@@ -26,10 +26,11 @@
                     <label class="form-label fw-bold small text-uppercase text-muted">Estado</label>
                     <select class="form-select shadow-none" id="statusFilter" onchange="filterHistory()">
                         <option value="todos">Todos os estados</option>
-                        <option value="0">Pendente</option>
-                        <option value="1">Em preparação</option>
-                        <option value="2">Entrega Pendente</option>
-                        <option value="3">Entregue</option>
+                        <option value="1">Pendente</option>
+                        <option value="2">Em preparação</option>
+                        <option value="3">Entrega Pendente</option>
+                        <option value="4">Entregue</option>
+                        <option value="5">Cancelado</option>
                     </select>
                 </div>
                 <div class="col-md-3">
@@ -81,7 +82,7 @@
                     {
                             bool eParaDepois = item.PickupTime.HasValue && item.PickupTime.Value != TimeSpan.Zero;
 
-                        <tr class="history-row" data-estado="@item.Status" data-data="@item.OrderDate.ToString("yyyy-MM-dd")">
+                            <tr class="history-row" data-estado="@((byte)item.Status)" data-data="@item.OrderDate.ToString("yyyy-MM-dd")">
                             <td class="fw-bold text-color-ips ps-4 text-start">
                                 <code class="fw-bold text-color-ips">@item.RedemptionCode</code>
                             </td>
@@ -161,18 +162,19 @@
 
 @section Scripts {
     <script>
-        function filterHistory() {
-            const search = document.getElementById('searchInput').value.toLowerCase();
+         function filterHistory() {
+            const search = document.getElementById('searchInput').value.toLowerCase().trim();
             const status = document.getElementById('statusFilter').value;
             const date = document.getElementById('dateFilter').value;
             const rows = document.querySelectorAll('.history-row');
 
             rows.forEach(row => {
-                const codigo = row.cells[0].textContent.toLowerCase();
+                // .trim() é vital aqui para ignorar espaços à volta do código
+                const codigo = row.cells[0].textContent.toLowerCase().trim();
                 const rowStatus = row.getAttribute('data-estado');
                 const rowDate = row.getAttribute('data-data');
 
-                const matchesSearch = codigo.includes(search);
+                const matchesSearch = search === "" || codigo.includes(search);
                 const matchesStatus = (status === "todos" || rowStatus === status);
                 const matchesDate = (date === "" || rowDate === date);
 
