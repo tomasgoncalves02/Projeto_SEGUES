@@ -90,16 +90,43 @@
             </div>
         </div>
 
-       
-
-        
-
-
-        
-    
-    
+        @* NOVO: Gráfico Circular (Categorias) *@
+        <div class="col-lg-5">
+            <div class="card card-ips shadow-sm border-0 rounded-3 h-100">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-1" style="color: darkcyan;">Por categoria</h6>
+                    <p class="text-muted small mb-4">Distribuição de produtos</p>
+                    <div style="position: relative; height: 240px;">
+                        <canvas id="productCategoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
+    @* Tabela de Produtos Mais Vendidos *@
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="card card-ips shadow-sm border-0 rounded-3">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-3" style="color: darkcyan;">Top Produtos Mais Vendidos</h6>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light text-muted small text-uppercase">
+                                <tr>
+                                    <th class="rounded-start">Produto</th>
+                                    <th class="text-center rounded-end" style="width: 150px;">Quantidade</th>
+                                </tr>
+                            </thead>
+                            <tbody id="topProductsTableBody">
+                                <tr><td colspan="2" class="text-center text-muted py-3">A carregar...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
 

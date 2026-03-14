@@ -203,6 +203,23 @@ public class StatisticsService : IStatisticsService
         return chartData;
     }
 
+    private async Task<object> GetProductCategoryStatsAsync(DateTime start)
+    {
+        
+        var categoryData = await _context.OrderLine
+            .Where(ol => ol.Order.OrderDate >= start && ol.Order.Status != OrderStatus.Cart)
+            .GroupBy(ol => ol.Product.Category.Name) 
+            .Select(g => new {
+                category = g.Key,
+                count = g.Sum(ol => ol.Quantity) 
+            })
+            .ToListAsync();
+
+        return categoryData;
+    }
+
+
+
 
 
 
@@ -225,7 +242,8 @@ public class StatisticsService : IStatisticsService
             totalRevenue = await GetRevenueBarStatsAsync(start),
             averageRevenue = await GetAverageBuyStatsAsync(start), 
             newBuyers = await GetNewBarUsersStatsAsync(start),
-            chart = await GetBarGraphStatsAsync(start, period)     
+            chart = await GetBarGraphStatsAsync(start, period),
+            productCategories = await GetProductCategoryStatsAsync(start)
         };
     }
 

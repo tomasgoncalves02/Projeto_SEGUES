@@ -897,6 +897,7 @@ function confirmarEdição(type,form) {
 
 let mealsChart;
 let barChartB;
+let productCategoryChart;
 
 function renderChart(data, period) {
     const config = {
@@ -1060,12 +1061,65 @@ function renderChartB(data, period) {
         }
     });
 }
+function renderDoughnutChart(data) {
+    const canvas = document.getElementById('productCategoryChart');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+
+    if (productCategoryChart) {
+        productCategoryChart.destroy();
+    }
+
+    const safeData = data || [];
+    const labels = safeData.map(d => d.category);
+    const values = safeData.map(d => d.count);
+
+    
+    const bgColors = ['#009697', '#007f80', 'rgba(0, 150, 151, 0.35)', '#dc3545', '#6c757d'];
+
+    productCategoryChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                backgroundColor: bgColors,
+                borderWidth: 2, 
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%', 
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        boxWidth: 40, 
+                        padding: 15,
+                        font: { size: 12 }
+                    }
+                }
+            }
+        }
+    });
+}
 
 function clearDataB() {
     document.getElementById('idConsumptionB').textContent = '...';
     document.getElementById('idMoneyB').textContent = '...';
     document.getElementById('idAverageB').textContent = '...';
     document.getElementById('idBuyersB').textContent = '...';
+
+    if (productCategoryChart) {
+        productCategoryChart.data.labels = [];
+        productCategoryChart.data.datasets.forEach((dataset) => {
+            dataset.data = [];
+        });
+        productCategoryChart.update();
+    }
 
     if (barChartB) {
         barChartB.data.labels = [];
@@ -1172,6 +1226,7 @@ async function loadBarSummary() {
         document.getElementById('idBuyersB').textContent = d.newBuyers ?? 0;
 
         renderChartB(d.chart, period);
+        renderDoughnutChart(d.productCategories);
     } catch (error) {
         console.error("Erro ao carregar estatísticas do bar:", error);
     }
