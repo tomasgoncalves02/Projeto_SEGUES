@@ -17,12 +17,14 @@ public class TicketController : Controller
     private readonly UserManager<AppUser> _userManager;
     private readonly ITicketService _ticketService;
     private readonly AppDbContext _context;
+    private readonly IAdminService _adminService;
 
-    public TicketController(UserManager<AppUser> userManager, ITicketService ticketService, AppDbContext context)
+    public TicketController(UserManager<AppUser> userManager, ITicketService ticketService, AppDbContext context, IAdminService adminService)
     {
         _userManager = userManager;
         _ticketService = ticketService;
         _context = context;
+        _adminService = adminService;
     }
 
     // Canteen
@@ -32,6 +34,10 @@ public class TicketController : Controller
         if (user == null) return Challenge();
 
         ViewBag.UserBalance = user.Balance;
+        ViewBag.LunchOpenTime = await _adminService.GetOpenLunchTimeAsync();
+        ViewBag.LunchCloseTime = await _adminService.GetCloseLunchTimeAsync();
+        ViewBag.DinnerOpenTime = await _adminService.GetOpenDinnerTimeAsync();
+        ViewBag.DinnerCloseTime = await _adminService.GetCloseDinnerTimeAsync();
         return View();
     }
 
