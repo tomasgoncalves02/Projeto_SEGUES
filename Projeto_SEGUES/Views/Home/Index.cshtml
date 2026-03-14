@@ -22,7 +22,9 @@
 
                 <div class="button-group-wrapper" style="max-width: 450px;">
                     <div class="d-flex gap-2 mb-2">
-                        <a href="https://software.movelife.net/pt-PT/Menus/PublicCC/Tj6o3O_vCFB2LmCmm9VUjw%3d%3d" class="btn btn-ips py-3 flex-fill fw-bold">VER EMENTA REFEITÓRIO</a>
+                        <button onclick="escolherEmenta()" class="btn btn-ips py-3 flex-fill fw-bold">
+                            VER EMENTA
+                        </button>
                         <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-ips-outline-secondary py-3 flex-fill fw-bold">INICIAR SESSÃO</a>
                     </div>
                     <a asp-controller="Home" asp-action="Schedule" class="btn btn-ips w-100 py-3 fw-bold rect-btn">
