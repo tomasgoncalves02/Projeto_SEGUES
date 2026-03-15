@@ -1,10 +1,15 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Moq;
 using Projeto_SEGUES.Areas.Admin;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
+using Projeto_SEGUES.Data;
+using Projeto_SEGUES.Models.Audit;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
@@ -19,14 +24,21 @@ namespace SeguesTests.Admin
         private readonly Mock<UserManager<AppUser>> _mockUserManager;
         private readonly Mock<IAdminService> _mockAdminService;
         private readonly AdminUserManagementController _controller;
+        private readonly AppDbContext _context;
 
         public AdminUserManagementControllerTests()
         {
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+            _context = new AppDbContext(options);
+
             var store = new Mock<IUserStore<AppUser>>();
             _mockUserManager = new Mock<UserManager<AppUser>>(store.Object, null, null, null, null, null, null, null, null);
             _mockAdminService = new Mock<IAdminService>();
+            
 
-            _controller = new AdminUserManagementController(_mockUserManager.Object, _mockAdminService.Object);
+            _controller = new AdminUserManagementController(_mockUserManager.Object, _mockAdminService.Object, _context);
 
             var httpContext = new DefaultHttpContext();
             _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
@@ -46,6 +58,8 @@ namespace SeguesTests.Admin
             Status = UserStatus.Active
         };
 
+
+        // Ensures Index action returns users based on search and role filters
         [Fact]
         public async Task Index_ReturnsView_WithFilteredUsers()
         {
@@ -60,6 +74,8 @@ namespace SeguesTests.Admin
             Assert.Equal("search", _controller.ViewData["SearchString"]);
         }
 
+
+        // Verifies GET Edit returns the correct view model for a valid user
         [Fact]
         public async Task Edit_Get_ReturnsView_WithViewModel()
         {
@@ -74,6 +90,8 @@ namespace SeguesTests.Admin
             Assert.Equal(user.Email, model.Email);
         }
 
+
+        // Confirms successful user update redirects to Index with success message
         [Fact]
         public async Task Edit_Post_ValidModel_RedirectsToIndex()
         {
@@ -103,6 +121,8 @@ namespace SeguesTests.Admin
             Assert.Contains("success", _controller.TempData["SwalData"]?.ToString());
         }
 
+
+        // Prevents administrators from deactivating their own accounts
         [Fact]
         public async Task Deactivate_SelfDeactivation_ReturnsError()
         {
@@ -118,6 +138,8 @@ namespace SeguesTests.Admin
             Assert.Contains("error", _controller.TempData["SwalData"]?.ToString());
         }
 
+
+        // Verifies that activating a user updates status and redirects to Details
         [Fact]
         public async Task Activate_ValidUser_RedirectsToDetails()
         {
@@ -131,6 +153,75 @@ namespace SeguesTests.Admin
             var redirectResult = Assert.IsType<RedirectToActionResult>(result);
             Assert.Equal("Details", redirectResult.ActionName);
             Assert.Equal(UserStatus.Active, user.Status);
+        }
+
+
+        // Validates UI translation logic for Gender and Status enums
+        [Fact]
+        public async Task Details_ReturnsView_WithCorrectPortugueseTranslations()
+        {
+            var user = CreateTestUser("1", "test@test.com");
+            user.Gender = Gender.Female;
+            user.Status = UserStatus.Active;
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            _mockUserManager.Setup(u => u.Users).Returns(_context.Users);
+
+            _mockUserManager.Setup(u => u.GetRolesAsync(It.IsAny<AppUser>())).ReturnsAsync(new List<string> { "Client" });
+            _mockAdminService.Setup(s => s.GetAllRolesForDropdownAsync()).ReturnsAsync(new List<SelectListItem>());
+
+            var result = await _controller.Details("1");
+
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.Equal("Feminino", _controller.ViewBag.GenderPT);
+            Assert.Equal("ATIVO", _controller.ViewBag.StatusPT);
+        }
+
+
+        // Ensures audit logs can be filtered by specific search keywords
+        [Fact]
+        public async Task StaffLog_FiltersBySearchString_ReturnsOnlyMatches()
+        {
+            var user = CreateTestUser("u1", "staff@test.com");
+            _context.UserLog.Add(new UserLog
+            {
+                AppUser = user,
+                Message = "Login Success",
+                UserAction = UserAction.LogIn,
+                TimeStamp = DateTime.Now
+            });
+            _context.UserLog.Add(new UserLog
+            {
+                AppUser = user,
+                Message = "User Updated",
+                UserAction = UserAction.Update,
+                TimeStamp = DateTime.Now
+            });
+            await _context.SaveChangesAsync();
+
+            var result = await _controller.StaffLog("Login", null);
+
+            var viewResult = Assert.IsType<ViewResult>(result);
+            var model = Assert.IsAssignableFrom<IEnumerable<UserLog>>(viewResult.Model);
+            Assert.Single(model);
+            Assert.Contains("Login", model.First().Message);
+        }
+
+
+        // Confirms deactivation sets status to Inactive and applies account lockout
+        [Fact]
+        public async Task Deactivate_ValidUser_SetsLockoutAndStatus()
+        {
+            var user = CreateTestUser("10", "target@test.com");
+            _mockUserManager.Setup(u => u.FindByIdAsync("10")).ReturnsAsync(user);
+            _mockUserManager.Setup(u => u.UpdateAsync(user)).ReturnsAsync(IdentityResult.Success);
+
+            var result = await _controller.Deactivate("10");
+
+            Assert.Equal(UserStatus.Inactive, user.Status);
+            _mockUserManager.Verify(u => u.SetLockoutEndDateAsync(user, It.Is<DateTimeOffset>(d => d > DateTimeOffset.Now)), Times.Once);
         }
     }
 }

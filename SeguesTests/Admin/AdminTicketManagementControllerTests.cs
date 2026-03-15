@@ -38,6 +38,28 @@ namespace SeguesTests.Admin
             _controller.TempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>());
         }
 
+        // Helper to create a valid user with required members
+        private AppUser CreateValidTestUser() => new()
+        {
+            FirstName = "Test",
+            LastName = "User",
+            Email = "test@test.com",
+            BirthDate = DateTime.Now.AddYears(-20),
+            Gender = Gender.Male,
+            UserCategory = new UserCategory { Name = "Estudante" }
+        };
+
+        // Helper to create a valid purchase
+        private TicketPurchase CreateValidPurchase(AppUser user) => new()
+        {
+            AppUser = user,
+            TransactionDate = DateTime.Now,
+            Value = 2.50m,
+            Quantity = 1
+        };
+
+
+        // Verifies the index view returns current ticket prices and audit history
         [Fact]
         public async Task Index_ReturnsView_WithPricesAndHistory()
         {
@@ -95,6 +117,8 @@ namespace SeguesTests.Admin
             Assert.Equal(history, viewResult.Model);
         }
 
+
+        // Ensures valid price updates redirect to index with a success message
         [Fact]
         public async Task UpdatePrices_ValidList_RedirectsWithSuccess()
         {
@@ -117,6 +141,8 @@ namespace SeguesTests.Admin
             Assert.Contains("success", _controller.TempData["SwalData"]?.ToString());
         }
 
+
+        // Handles system exceptions during price updates by showing an error message
         [Fact]
         public async Task UpdatePrices_Exception_RedirectsWithError()
         {
@@ -136,6 +162,8 @@ namespace SeguesTests.Admin
             Assert.Contains("error", _controller.TempData["SwalData"]?.ToString());
         }
 
+
+        // Confirms that global ticket validity can be updated successfully
         [Fact]
         public async Task UpdateValidity_ValidDays_RedirectsWithSuccess()
         {
@@ -149,6 +177,8 @@ namespace SeguesTests.Admin
             Assert.Contains("success", _controller.TempData["SwalData"]?.ToString());
         }
 
+
+        // Prevents updating validity days with values less than 1
         [Fact]
         public async Task UpdateValidity_InvalidDays_RedirectsWithError()
         {
@@ -161,6 +191,8 @@ namespace SeguesTests.Admin
             Assert.Contains("error", _controller.TempData["SwalData"]?.ToString());
         }
 
+
+        // Ensures the audit table partial view is returned for dynamic updates
         [Fact]
         public async Task GetUpdatedAuditTable_ReturnsPartialView()
         {
@@ -172,6 +204,77 @@ namespace SeguesTests.Admin
             var partialViewResult = Assert.IsType<PartialViewResult>(result);
             Assert.Equal("_AuditTableRows", partialViewResult.ViewName);
             Assert.Equal(history, partialViewResult.Model);
+        }
+
+        // Redirects to index when no prices are provided for update
+        [Fact]
+        public async Task UpdatePrices_NullList_RedirectsToIndex()
+        {
+            var result = await _controller.UpdatePrices(null!);
+
+            var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal("Index", redirectResult.ActionName);
+        }
+
+        // Redirects after successfully updating service schedules
+        [Fact]
+        public async Task UpdateSchedule_ValidTimes_RedirectsWithSuccess()
+        {
+            var open = new TimeSpan(12, 0, 0);
+            var close = new TimeSpan(14, 0, 0);
+
+            var result = await _controller.UpdateSchedule("Almoço", open, close);
+
+            _mockAdminService.Verify(s => s.UpdateBarScheduleAsync(open.ToString(), close.ToString(), "Almoço"), Times.Once);
+            Assert.IsType<RedirectToActionResult>(result);
+        }
+
+        // Prevents schedules where opening time is after or equal to closing
+        [Fact]
+        public async Task UpdateSchedule_InvalidTimes_ReturnsError()
+        {
+            var open = new TimeSpan(15, 0, 0);
+            var close = new TimeSpan(14, 0, 0);
+
+            var result = await _controller.UpdateSchedule("Jantar", open, close);
+
+            Assert.IsType<RedirectToActionResult>(result);
+            Assert.Contains("error", _controller.TempData.Values.FirstOrDefault()?.ToString()?.ToLower());
+        }
+
+        // Verifies the audit table filter logic for specific validation codes
+        [Fact]
+        public async Task GetUpdatedAuditTable_WithSearchFilter_ReturnsFilteredResults()
+        {
+            var user = CreateValidTestUser();
+            var purchase = CreateValidPurchase(user);
+            var history = new List<Ticket>
+            {
+                new Ticket { ValidationCode = "MATCH123", Owner = user, TicketPurchase = purchase }, // Fixed: Added TicketPurchase
+                new Ticket { ValidationCode = "OTHER", Owner = user, TicketPurchase = purchase }   // Fixed: Added TicketPurchase
+            };
+            _mockTicketService.Setup(s => s.GetAllTicketsAsync()).ReturnsAsync(history);
+
+            var result = await _controller.GetUpdatedAuditTable("MATCH", null, null);
+
+            var partialViewResult = Assert.IsType<PartialViewResult>(result);
+            var model = Assert.IsAssignableFrom<List<Ticket>>(partialViewResult.Model);
+            Assert.Single(model);
+            Assert.Equal("MATCH123", model[0].ValidationCode);
+        }
+
+        // Ensures the ticket audit report is generated as a PDF file
+        [Fact]
+        public async Task ExportTicketsPDF_ReturnsFileResult()
+        {
+            QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+            _mockTicketService.Setup(s => s.GetAllTicketsAsync()).ReturnsAsync(new List<Ticket>());
+
+            var result = await _controller.ExportTicketsPDF();
+
+            var fileResult = Assert.IsType<FileContentResult>(result);
+            Assert.Equal("application/pdf", fileResult.ContentType);
+            Assert.Equal("Auditoria_Senhas_IPS.pdf", fileResult.FileDownloadName);
         }
     }
 }
