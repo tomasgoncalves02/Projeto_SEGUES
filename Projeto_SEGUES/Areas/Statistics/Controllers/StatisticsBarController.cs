@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Projeto_SEGUES.Services;
 
 namespace Projeto_SEGUES.Areas.Statistics.Controllers
 {
     [Area("Statistics")]
+    [Authorize(Roles = "Admin")]
     public class StatisticsBarController : Controller
     {
         private readonly IStatisticsService _statisticsService;

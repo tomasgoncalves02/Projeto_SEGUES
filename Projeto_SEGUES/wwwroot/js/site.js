@@ -1177,22 +1177,24 @@ async function loadMealsSummary() {
     const period = periodSelect?.value;
 
     
-
     try {
+        const response = await fetch(`/Statistics/StatisticsTicket/GetTicketsStats?period=${encodeURIComponent(period)}`);
 
-        const d = await fetch(`/Statistics/StatisticsTicket/GetTicketsStats?period=${encodeURIComponent(period)}`)
-            .then(r => r.json());
+       
+        if (!response.ok) {
+            throw new Error(`Erro do Servidor: ${response.status}`);
+        }
+
+        const d = await response.json();
         const cat = d.byCategory ?? [];
         const find = name => (cat.find(c => c.category === name)?.count ?? 0);
 
-
-
-        document.getElementById('idMeals').textContent = d.totalMeals;
+        document.getElementById('idMeals').textContent = d.totalMeals ?? 0;
         document.getElementById('idMoney').textContent =
-            new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(d.totalRevenue);
+            new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(d.totalRevenue ?? 0);
         document.getElementById('idAverage').textContent =
-            new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(d.averageRevenue);
-        document.getElementById('idBuyers').textContent = d.newBuyers;
+            new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(d.averageRevenue ?? 0);
+        document.getElementById('idBuyers').textContent = d.newBuyers ?? 0;
 
         document.getElementById('idStudent').textContent = find('Estudante');
         document.getElementById('idExternal').textContent = find('Externo');
@@ -1200,7 +1202,7 @@ async function loadMealsSummary() {
 
         renderChart(d.chart, period);
     } catch (error) {
-        console.error("Erro ao carregar estatísticas:", error);
+        console.error("Erro ao carregar estatísticas do refeitório:", error);
     }
 }
 

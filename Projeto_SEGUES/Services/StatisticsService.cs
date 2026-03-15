@@ -20,62 +20,78 @@ public class StatisticsService : IStatisticsService
     //Refeitório
     private async Task<object> GetaMealsStatsAsync(DateTime start)
     {
-        var count = await _context.Ticket
+        return await _context.Ticket
                 .Where(t => t.IsUsed && t.UsedDate >= start)
                 .CountAsync();
-
-        return new object[] { count };
     }
 
-    private async Task<object> GetaRevenueStatsAsync(DateTime start)
+    private async Task<decimal> GetaRevenueStatsAsync(DateTime start)
     {
-        var revenue = await _context.TicketPurchase
-            .Where(p => p.TransactionDate >= start)
-            .SumAsync(p => p.Value);
+        var usedTickets = await _context.Ticket
+            .Include(t => t.TicketPurchase) 
+            .Where(t => t.IsUsed && t.UsedDate >= start)
+            .ToListAsync();
 
-        return new object[] { revenue };
+        if (!usedTickets.Any()) return 0m;
+
+        return usedTickets.Sum(t =>
+            t.TicketPurchase != null
+                ? t.TicketPurchase.Value / t.TicketPurchase.Quantity
+                : 0m);
     }
 
-    private async Task<object> GetAverageRevenueStatsAsync(DateTime start)
+    private async Task<decimal> GetAverageRevenueStatsAsync(DateTime start)
     {
-        var averageRevenue = await _context.TicketPurchase
-            .Where(p => p.TransactionDate >= start)
-            .AverageAsync(p => p.Value);
+        var usedTickets = await _context.Ticket
+            .Include(t => t.TicketPurchase)
+            .Where(t => t.IsUsed && t.UsedDate >= start)
+            .ToListAsync();
 
-        return new object[] { averageRevenue };
+        if (!usedTickets.Any()) return 0m;
+
+        var totalRevenue = usedTickets.Sum(t =>
+            t.TicketPurchase != null
+                ? t.TicketPurchase.Value / t.TicketPurchase.Quantity
+                : 0m);
+
+        return totalRevenue / usedTickets.Count;
     }
 
-    private async Task<object> GetNewBuyersStatsAsync(DateTime start)
+    private async Task<int> GetNewBuyersStatsAsync(DateTime start)
     {
-        var newBuyers = await _context.TicketPurchase
-            .Where(p => p.TransactionDate >= start)
-            .Select(p => p.AppUser.Id)
+        
+        return await _context.Ticket
+            .Where(t => t.IsUsed && t.UsedDate >= start)
+            .Select(t => t.Owner.Id)
             .Distinct()
             .CountAsync();
-
-        return new object[] { newBuyers };
     }
 
     private async Task<object> GetInfoGraphStatsAsync(DateTime start, int period)
     {
         var tickets = await _context.Ticket
-             .Where(t => t.IsUsed && t.UsedDate >= start)
+            
+             .Where(t => t.IsUsed && t.UsedDate != null && t.UsedDate >= start)
              .ToListAsync();
+
+
+        if (!tickets.Any())
+            return new List<object>();
 
         var chartData = tickets
             .GroupBy(t => period switch
             {
                 1 => t.UsedDate!.Value.ToString("HH:00"),
-                2 => t.UsedDate!.Value.ToString("dd/MM"),
+                2 => t.UsedDate!.Value.ToString("ddd dd/MM"), 
                 3 => t.UsedDate!.Value.ToString("dd/MM"),
-                4 => t.UsedDate!.Value.ToString("MMMM"),
+                4 => t.UsedDate!.Value.ToString("MM - MMMM"),
                 5 => t.UsedDate!.Value.ToString("MM/yyyy"),
                 _ => t.UsedDate!.Value.Year.ToString()
             })
             .OrderBy(g => g.Key)
             .Select(g => new {
                 label = g.Key,
-                count = g.Count() 
+                count = g.Count()
             })
             .ToList();
 
@@ -107,7 +123,7 @@ public class StatisticsService : IStatisticsService
             2 => now.Date.AddDays(-(now.DayOfWeek == DayOfWeek.Sunday ? 6 : (int)now.DayOfWeek - 1)),
             3 => new DateTime(now.Year, now.Month, 1),
             4 => new DateTime(now.Year, 1, 1),
-            5 => new DateTime(now.Year, 1, 1),
+            5 => DateTime.MinValue,
             _ => now.Date
         };
 
@@ -126,51 +142,38 @@ public class StatisticsService : IStatisticsService
 
 
     //Bar
-    private async Task<object> GetConsuptionStatsAsync(DateTime start)
+    private async Task<int> GetConsuptionStatsAsync(DateTime start)
     {
-        var count = await _context.Order
-                    .Where(o => o.OrderDate >= start && o.Status != OrderStatus.Cart && o.Status != OrderStatus.Cancelled)
-                    .CountAsync();
-
-        return new object[] { count };
+        return await _context.Order
+            .Where(o => o.OrderDate >= start && o.Status != OrderStatus.Cart && o.Status != OrderStatus.Cancelled)
+            .CountAsync();
     }
 
-
-    private async Task<object> GetRevenueBarStatsAsync (DateTime start)
+    private async Task<decimal> GetRevenueBarStatsAsync(DateTime start)
     {
-        var revenue = await _context.Order
+        return await _context.Order
             .Where(o => o.OrderDate >= start && o.Status != OrderStatus.Cart && o.Status != OrderStatus.Cancelled)
             .SumAsync(o => o.TotalValue);
-
-        return new object[] { revenue };
     }
 
-    private async Task<Object> GetAverageBuyStatsAsync(DateTime start)
+    private async Task<decimal> GetAverageBuyStatsAsync(DateTime start)
     {
-
         var orders = await _context.Order
             .Where(o => o.OrderDate >= start && o.Status != OrderStatus.Cart && o.Status != OrderStatus.Cancelled)
             .ToListAsync();
 
+        if (!orders.Any()) return 0m;
 
-        if (!orders.Any())
-            return 0m;
-
-        
-        var averageRevenue = orders.Average(o => o.TotalValue);
-
-        return new object[] { averageRevenue };
+        return orders.Average(o => o.TotalValue);
     }
 
-    private async Task<Object> GetNewBarUsersStatsAsync(DateTime start)
+    private async Task<int> GetNewBarUsersStatsAsync(DateTime start)
     {
-        var newUsersCount = await _context.Order
-             .Where(o => o.OrderDate >= start && o.Status != OrderStatus.Cart && o.Status != OrderStatus.Cancelled)
-             .Select(o => o.AppUser.Id)
-             .Distinct()
-             .CountAsync();
-
-        return new object[] { newUsersCount };
+        return await _context.Order
+            .Where(o => o.OrderDate >= start && o.Status != OrderStatus.Cart && o.Status != OrderStatus.Cancelled)
+            .Select(o => o.AppUser.Id)
+            .Distinct()
+            .CountAsync();
     }
 
     private async Task<object> GetBarGraphStatsAsync(DateTime start, int period)
@@ -252,10 +255,10 @@ public class StatisticsService : IStatisticsService
 
         return new
         {
-            totalConsumptions = await GetConsuptionStatsAsync(start),
-            totalRevenue = await GetRevenueBarStatsAsync(start),
-            averageRevenue = await GetAverageBuyStatsAsync(start), 
-            newBuyers = await GetNewBarUsersStatsAsync(start),
+            totalConsumptions = await GetConsuptionStatsAsync(start),  
+            totalRevenue = await GetRevenueBarStatsAsync(start),        
+            averageRevenue = await GetAverageBuyStatsAsync(start),       
+            newBuyers = await GetNewBarUsersStatsAsync(start),          
             chart = await GetBarGraphStatsAsync(start, period),
             productCategories = await GetProductCategoryStatsAsync(start),
             topProducts = await GetTopProductsStatsAsync(start)
