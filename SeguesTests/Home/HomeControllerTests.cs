@@ -1,138 +1,112 @@
-﻿/*using System.Security.Claims;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Projeto_SEGUES.Controllers;
-using Projeto_SEGUES.Models.Enums;
+using Projeto_SEGUES.Models.Audit.ViewModels;
 using Projeto_SEGUES.Models.User;
+using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Services;
-using SeguesTests.Helpers;
+using System.Security.Claims;
+using Xunit;
 
-namespace SeguesTests.Home
+namespace SeguesTests
 {
     public class HomeControllerTests
     {
         private readonly Mock<ILogger<HomeController>> _mockLogger;
         private readonly Mock<UserManager<AppUser>> _mockUserManager;
         private readonly Mock<IAdminService> _mockAdminService;
+        private readonly HomeController _controller;
 
         public HomeControllerTests()
         {
             _mockLogger = new Mock<ILogger<HomeController>>();
-
-            // Usamos o Helper para criar o Mock complexo do UserManager
-            var usersList = new List<AppUser>();
-            _mockUserManager = MockHelper.MockUserManager(usersList);
-            
             _mockAdminService = new Mock<IAdminService>();
+
+            var store = new Mock<IUserStore<AppUser>>();
+            _mockUserManager = new Mock<UserManager<AppUser>>(store.Object, null, null, null, null, null, null, null, null);
+
+            _controller = new HomeController(_mockLogger.Object, _mockUserManager.Object, _mockAdminService.Object);
+
+            var httpContext = new DefaultHttpContext();
+            _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
         }
 
-        // Helper para configurar o Controller com contexto de utilizador
-        private HomeController GetControllerWithUser(AppUser appUser = null, bool isAuthenticated = true)
-        {
-            var controller = new HomeController(_mockLogger.Object, _mockUserManager.Object, _mockAdminService.Object);
-
-            var claims = new List<Claim>();
-            if (appUser != null)
-            {
-                claims.Add(new Claim(ClaimTypes.NameIdentifier, appUser.Id ?? "1"));
-                claims.Add(new Claim(ClaimTypes.Name, appUser.UserName ?? "test"));
-            }
-
-            var identity = new ClaimsIdentity(claims, isAuthenticated ? "TestAuthType" : null);
-            var claimsPrincipal = new ClaimsPrincipal(identity);
-
-            controller.ControllerContext = new ControllerContext
-            {
-                HttpContext = new DefaultHttpContext { User = claimsPrincipal }
-            };
-
-            return controller;
-        }
-
+        // Ensures the index view populates user dashboard data when authenticated
         [Fact]
-        public async Task Index_RedirecionaParaLogin_SeNaoAutenticado()
+        public async Task Index_AuthenticatedUser_ReturnsViewWithDashboardData()
         {
-            // ARRANGE
-            var controller = GetControllerWithUser(isAuthenticated: false);
-
-            // ACT
-            var result = await controller.Index();
-
-            // ASSERT
-            var redirectResult = Assert.IsType<RedirectToPageResult>(result);
-            Assert.Equal("/Account/Login", redirectResult.PageName);
-        }
-
-        [Fact]
-        public async Task Index_RetornaViewComDados_SeAutenticado()
-        {
-            // ARRANGE
             var user = new AppUser
             {
-                Id = "123",
-                UserName = "joao@teste.com",
-                FirstName = "João",
-                LastName = "Silva",
+                Id = "u1",
+                FirstName = "Diogo",
+                LastName = "Teste",
+                Balance = 10.0m,
+                Email = "test@test.com",
+                BirthDate = DateTime.Now.AddYears(-20),
                 Gender = Gender.Male,
-                Balance = 15.50m,
-                UserCategory = new UserCategory { Name = "Estudante" },
-                BirthDate =  DateTime.Now.AddYears(-30),
+                UserCategory = new UserCategory { Name = "Estudante" }
             };
 
-            // Configurar o Mock para devolver este user quando pedido
-            _mockUserManager.Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
-                .ReturnsAsync(user);
-            _mockUserManager.Setup(u => u.GetRolesAsync(user))
-                .ReturnsAsync(new List<string> { "Estudante" });
-            _mockUserManager.Setup(u => u.GetUserNameAsync(user))
-                .ReturnsAsync(user.UserName);
+            var claims = new List<Claim> { new Claim(ClaimTypes.Name, "test@test.com") };
+            var identity = new ClaimsIdentity(claims, "TestAuth");
+            _controller.HttpContext.User = new ClaimsPrincipal(identity);
 
-            var controller = GetControllerWithUser(user, isAuthenticated: true);
+            _mockUserManager.Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(user);
+            _mockUserManager.Setup(u => u.GetRolesAsync(user)).ReturnsAsync(new List<string> { "Admin" });
 
-            // ACT
-            var result = await controller.Index();
+            var result = await _controller.Index();
 
-            // ASSERT
             var viewResult = Assert.IsType<ViewResult>(result);
-
-            // Verificar se a ViewBag foi preenchida corretamente
-            Assert.Equal(15.50m, viewResult.ViewData["UserBalance"]);
-            Assert.Equal("João", viewResult.ViewData["FirstName"]);
-            Assert.Equal("Estudante", viewResult.ViewData["UserRole"]);
+            Assert.Equal(10.0m, _controller.ViewBag.UserBalance);
+            Assert.Equal("Diogo", _controller.ViewBag.FirstName);
+            Assert.Equal("Admin", _controller.ViewBag.UserRole);
         }
 
+        // Returns a simple view when the user is not authenticated
         [Fact]
-        public async Task Index_RedirecionaLogin_SeUserNaoEncontradoNaBD()
+        public async Task Index_NotAuthenticated_ReturnsView()
         {
-            // ARRANGE
-            // Simulamos que está autenticado no cookie, mas foi apagado da BD
-            _mockUserManager.Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
-                .ReturnsAsync((AppUser)null);
+            _controller.HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity());
 
-            var controller = GetControllerWithUser(
-                new AppUser
-                {
-                    Id = "567",
-                    UserName = "",
-                    FirstName = "",
-                    LastName = "",
-                    Gender = Gender.Male,
-                    BirthDate =  DateTime.Now.AddYears(-30),
-                    Balance = 0,
-                    UserCategory = new UserCategory { Name = "" }
-                },
-                isAuthenticated: true
-            );
+            var result = await _controller.Index();
 
-            // ACT
-            var result = await controller.Index();
+            Assert.IsType<ViewResult>(result);
+        }
 
-            // ASSERT
-            var redirectResult = Assert.IsType<RedirectToPageResult>(result);
-            Assert.Equal("/Account/Login", redirectResult.PageName);
+        // Verifies the privacy page returns the correct view
+        [Fact]
+        public void Privacy_ReturnsView()
+        {
+            var result = _controller.Privacy();
+            Assert.IsType<ViewResult>(result);
+        }
+
+        // Ensures all bar and meal service times are correctly loaded into the view
+        [Fact]
+        public async Task Schedule_ReturnsView_WithAllServiceTimes()
+        {
+            _mockAdminService.Setup(s => s.GetOpenBarTimeAsync()).ReturnsAsync(new TimeSpan(8, 0, 0));
+            _mockAdminService.Setup(s => s.GetCloseBarTimesAsync()).ReturnsAsync(new TimeSpan(20, 0, 0));
+
+            var result = await _controller.Schedule();
+
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.Equal("08:00", _controller.ViewBag.OpeningTime);
+            Assert.Equal("20:00", _controller.ViewBag.ClosingTime);
+        }
+
+        // Returns the error view containing a valid RequestId for debugging
+        [Fact]
+        public void Error_ReturnsView_WithErrorViewModel()
+        {
+            var result = _controller.Error();
+
+            var viewResult = Assert.IsType<ViewResult>(result);
+            var model = Assert.IsType<ErrorViewModel>(viewResult.Model);
+            Assert.NotNull(model.RequestId);
         }
     }
-}*/
+}
