@@ -32,9 +32,9 @@ public class OrderService : IOrderService
             .ThenInclude(ol => ol.Product)
             .FirstOrDefaultAsync(o => o.AppUser.Id == userId && o.Status == OrderStatus.Cart);
         if (cart != null) return cart;
-        
+
         var user = await _context.Users.FindAsync(userId);
-        cart = new Order 
+        cart = new Order
         {
             AppUser = user!
         };
@@ -61,13 +61,13 @@ public class OrderService : IOrderService
             TotalValue = cart.TotalValue
         };
     }
-    
+
     public async Task<ServiceResult> AddToCartAsync(string userId, int productId, int quantity)
     {
         var cart = await GetCartAsync(userId);
         var product = await _context.Product.FindAsync(productId);
         if (product == null) return ServiceResult.Fail("Produto não encontrado.", GetOrderTotal(cart));
-        
+
         var line = await _context.OrderLine.FirstOrDefaultAsync(ol => ol.Order.Id == cart.Id && ol.ProductId == productId);
         if (line != null)
         {
@@ -81,7 +81,8 @@ public class OrderService : IOrderService
                 .FirstOrDefaultAsync(d => d.Products.Any(p => p.Id == productId));
             var productValue = ApplyDiscount(product.Price, discount);
             _context.OrderLine.Add(
-                new OrderLine {
+                new OrderLine
+                {
                     OrderId = cart.Id,
                     Order = cart,
                     ProductId = productId,
@@ -92,7 +93,7 @@ public class OrderService : IOrderService
                 });
             cart.TotalValue += quantity * productValue;
         }
-        
+
         await _context.SaveChangesAsync();
         return ServiceResult.Ok("Produto adicionado ao carrinho.", GetOrderTotal(cart));
     }
@@ -103,12 +104,12 @@ public class OrderService : IOrderService
         var line = await _context.OrderLine
             .FirstOrDefaultAsync(ol => ol.Order.Id == cart.Id && ol.ProductId == productId);
 
-        if (line == null) return ServiceResult.Fail("Produto não encontrado no carrinho.");       
+        if (line == null) return ServiceResult.Fail("Produto não encontrado no carrinho.");
         cart.TotalValue -= (line.Quantity * line.ProductValue);
         if (cart.TotalValue < 0) cart.TotalValue = 0;
 
         _context.OrderLine.Remove(line);
-       
+
         await _context.SaveChangesAsync();
 
         return ServiceResult.Ok("Produto removido do carrinho.", GetOrderTotal(cart));
@@ -127,7 +128,7 @@ public class OrderService : IOrderService
             timeToValidate = DateTime.Now.TimeOfDay;
         }
         else
-        {           
+        {
             if (TimeSpan.TryParse(pickupTime, out var parsedTime))
             {
                 if (DateTime.Today.Add(parsedTime) < DateTime.Now)
@@ -148,7 +149,7 @@ public class OrderService : IOrderService
             var close = await _adminService.GetCloseBarTimesAsync();
             return ServiceResult.Fail($"O Bar encontra-se encerrado para o horário selecionado. Funcionamento: {open:hh\\:mm} às {close:hh\\:mm}.");
         }
-       
+
         decimal total = ApplyDiscount(cart.TotalValue, cart.Discount);
         if (user.Balance < total) return ServiceResult.Fail("Saldo insuficiente.");
 
@@ -195,9 +196,17 @@ public class OrderService : IOrderService
             await dbTransaction.CommitAsync();
 
             // Envio de email após sucesso total
-            await SendStatusUpdateEmailAsync(cart);
-
-            return ServiceResult.Ok("Encomenda realizada com sucesso!");
+            try
+            {
+                await SendStatusUpdateEmailAsync(cart);
+                // Se correr bem, mensagem normal de sucesso
+                return ServiceResult.Ok("Encomenda realizada com sucesso!");
+            }
+            catch (Exception)
+            {
+                // Se falhar o email (sem net), avisamos o utilizador mas confirmamos o sucesso do pedido
+                return ServiceResult.Ok("Encomenda realizada com sucesso! (Nota: Não foi possível enviar o email de confirmação devido a uma falha de rede).");
+            }
         }
         catch (Exception)
         {
@@ -226,26 +235,33 @@ public class OrderService : IOrderService
                 item.Product.Stock += item.Quantity;
             }
 
-            
+
             order.AppUser.Balance += order.TotalValue;
-           
+
             var refundTransaction = new Projeto_SEGUES.Models.Payment.Transaction
             {
                 User = order.AppUser,
-                Amount = order.TotalValue, 
+                Amount = order.TotalValue,
                 Description = $"Reembolso Bar - Cancelamento Pedido #{order.RedemptionCode}",
                 Reference = "REEMBOLSO BAR",
                 IsPaid = true,
                 CreatedAt = now
-               
+
             };
             _context.Transaction.Add(refundTransaction);
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
-            await SendStatusUpdateEmailAsync(order);
-
-            return ServiceResult.Ok("Pedido cancelado com sucesso e saldo reembolsado.");
+            try
+            {
+                await SendStatusUpdateEmailAsync(order);
+                return ServiceResult.Ok("Pedido cancelado com sucesso e saldo reembolsado.");
+            }
+            catch (Exception)
+            {
+                // Se falhar a net aqui, o user sabe que o cancelamento foi feito mas o email falhou
+                return ServiceResult.Ok("Pedido cancelado com sucesso e saldo reembolsado! (Nota: O email de confirmação não pôde ser enviado por falha de rede).");
+            }
         }
         catch (Exception)
         {
@@ -271,7 +287,7 @@ public class OrderService : IOrderService
             .Include(o => o.AppUser)
             .FirstOrDefaultAsync(o => o.Id == id);
     }
-    
+
     public async Task<List<Order>> GetOrderHistoryAsync(string userId)
     {
         // Doesn't include products info
@@ -308,27 +324,41 @@ public class OrderService : IOrderService
         var order = await GetOrderByIdAsync(id);
         if (order == null || !_activeStatus.Contains(order.Status)) return ServiceResult.Fail("Pedido não encontrado.");
 
-        OrderStatus newStatus = (OrderStatus) newStatusId;
+        OrderStatus newStatus = (OrderStatus)newStatusId;
 
         if (!Enum.IsDefined(typeof(OrderStatus), newStatus) || newStatus == OrderStatus.Cart)
             return ServiceResult.Fail("Status inválido.");
-       
+
         if (!_activeStatus.Contains(newStatus) && newStatus != OrderStatus.Delivered)
         {
             return ServiceResult.Fail("Não é possível mudar para este estado.");
         }
-        
+
         if (newStatus != order.Status + 1)
             return ServiceResult.Fail("Transição de status inválida.");
-     
+
         if (newStatus == OrderStatus.Cancelled)
             return ServiceResult.Fail("Use a função específica para cancelar pedidos.");
 
-        order.Status = newStatus;
-        await _context.SaveChangesAsync();
-        await SendStatusUpdateEmailAsync(order);
+        try
+        {
+            order.Status = newStatus;
+            await _context.SaveChangesAsync();
+        }
+        catch (Exception)
+        {
+            return ServiceResult.Fail("Erro ao atualizar o estado na base de dados.");
+        }
 
-        return ServiceResult.Ok("Status do pedido atualizado com sucesso.");
+        try
+        {
+            await SendStatusUpdateEmailAsync(order);
+            return ServiceResult.Ok("Status do pedido atualizado com sucesso.");
+        }
+        catch (Exception)
+        {
+            return ServiceResult.Ok("Status atualizado com sucesso! (Nota: Falha ao enviar email de notificação ao cliente).");
+        }
     }
 
     public async Task<ServiceResult> ValidateOrderCodeAsync(int id, string codeEntered)
@@ -344,60 +374,84 @@ public class OrderService : IOrderService
 
         if (!string.Equals(order.RedemptionCode!.Trim(), codeEntered.Trim(), StringComparison.CurrentCultureIgnoreCase))
             return ServiceResult.Fail("Código inválido!");
-        
-        order.Status = OrderStatus.Delivered;
-        order.PickupTime = DateTime.Now.TimeOfDay;
-        await _context.SaveChangesAsync();
-        await SendStatusUpdateEmailAsync(order);
-        return ServiceResult.Ok("Código validado e pedido marcado como entregue.");
+
+        try
+        {
+            order.Status = OrderStatus.Delivered;
+            order.PickupTime = DateTime.Now.TimeOfDay;
+
+            await _context.SaveChangesAsync();
+        }
+        catch (Exception)
+        {
+            return ServiceResult.Fail("Erro ao registar a entrega na base de dados.");
+        }
+
+        try
+        {
+            await SendStatusUpdateEmailAsync(order);
+            return ServiceResult.Ok("Código validado e pedido marcado como entregue.");
+        }
+        catch (Exception)
+        {
+            return ServiceResult.Ok("Código validado e pedido entregue! (Nota: Falha ao enviar o email de confirmação de entrega).");
+        }
     }
 
     private async Task SendStatusUpdateEmailAsync(Order order)
     {
-        if (order.AppUser == null || string.IsNullOrEmpty(order.AppUser.Email)) return;
-
-        // Obtém o nome amigável do Enum (ex: "Em Preparação")
-        var displayStatus = order.Status.GetType()
-            .GetField(order.Status.ToString())?
-            .GetCustomAttributes(typeof(DisplayAttribute), false)
-            .Cast<DisplayAttribute>()
-            .FirstOrDefault()?.Name ?? order.Status.ToString();
-
-        string title = "Atualização do Pedido";
-        string name = order.AppUser.UserName ?? "Cliente";
-
-        // Mensagem personalizada conforme o estado
-        string customMessage = order.Status switch
+        try
         {
-            OrderStatus.Pending => "Recebemos o teu pedido e em breve começaremos a prepará-lo.",
-            OrderStatus.Preparing => "O teu pedido já está na cozinha e a ser preparado com todo o cuidado.",
-            OrderStatus.ReadyToDeliver => "Boas notícias! O teu pedido está pronto. Podes passar no bar para levantar.",
-            OrderStatus.Delivered => "Pedido entregue. Esperamos que gostes!",
-            OrderStatus.Cancelled => "O teu pedido foi cancelado e o respetivo valor foi reembolsado no teu saldo.",
-            _ => $"O estado do teu pedido foi alterado para: {displayStatus}."
-        };
+            if (order.AppUser == null || string.IsNullOrEmpty(order.AppUser.Email)) return;
 
-        string content = $"""
+            // Obtém o nome amigável do Enum (ex: "Em Preparação")
+            var displayStatus = order.Status.GetType()
+                .GetField(order.Status.ToString())?
+                .GetCustomAttributes(typeof(DisplayAttribute), false)
+                .Cast<DisplayAttribute>()
+                .FirstOrDefault()?.Name ?? order.Status.ToString();
+
+            string title = "Atualização do Pedido";
+            string name = order.AppUser.UserName ?? "Cliente";
+
+            // Mensagem personalizada conforme o estado
+            string customMessage = order.Status switch
+            {
+                OrderStatus.Pending => "Recebemos o teu pedido e em breve começaremos a prepará-lo.",
+                OrderStatus.Preparing => "O teu pedido já está na cozinha e a ser preparado com todo o cuidado.",
+                OrderStatus.ReadyToDeliver => "Boas notícias! O teu pedido está pronto. Podes passar no bar para levantar.",
+                OrderStatus.Delivered => "Pedido entregue. Esperamos que gostes!",
+                OrderStatus.Cancelled => "O teu pedido foi cancelado e o respetivo valor foi reembolsado no teu saldo.",
+                _ => $"O estado do teu pedido foi alterado para: {displayStatus}."
+            };
+
+            string content = $"""
         <p>O estado do teu pedido <strong>#{order.RedemptionCode}</strong> foi atualizado.</p>
         <p style='font-size: 16px; color: #009697;'><strong>Estado Atual: {displayStatus}</strong></p>
         <p>{customMessage}</p>
         """;
 
-        // Se estiver pronto, destaca o código de levantamento para facilitar a vida ao utilizador
-        if (order.Status == OrderStatus.ReadyToDeliver)
-        {
-            content += $"""
+            // Se estiver pronto, destaca o código de levantamento para facilitar a vida ao utilizador
+            if (order.Status == OrderStatus.ReadyToDeliver)
+            {
+                content += $"""
             <div style='background:#f4f7f6; padding:15px; border-left: 4px solid #009697; margin-top: 20px;'>
                 <p style='margin:0; font-weight:bold;'>Código de Levantamento:</p>
                 <span style='font-size:24px; letter-spacing: 2px; color: #009697;'>{order.RedemptionCode}</span>
             </div>
             """;
+            }
+
+            var emailService = (EmailSender)_emailSender;
+            var body = ((EmailSender)_emailSender).GetEmailBody(title, name, content);
+
+            // Envio assíncrono
+            await _emailSender.SendEmailAsync(order.AppUser.Email, $"SEGUES - Pedido #{order.RedemptionCode}", body);
         }
-
-        var emailService = (EmailSender)_emailSender;
-        var body = ((EmailSender)_emailSender).GetEmailBody(title, name, content);
-
-        // Envio assíncrono
-        await _emailSender.SendEmailAsync(order.AppUser.Email, $"SEGUES - Pedido #{order.RedemptionCode}", body);
+        catch (Exception ex)
+        {           
+            Console.WriteLine($"[Email Service Failure]: {ex.Message}");           
+            throw;
+        }
     }
 }

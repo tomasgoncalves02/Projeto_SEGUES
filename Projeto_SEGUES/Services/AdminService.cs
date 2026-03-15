@@ -40,7 +40,9 @@ public class AdminService : IAdminService
         {
             return IdentityResult.Failed(new IdentityError { Description = "Dados inválidos, tente novamente." });
         }
-
+        using var transaction = await _context.Database.BeginTransactionAsync();
+    try
+    {
         var category = await _context.UserCategory.FirstAsync(c => c.Name == "Externo");
         var user = new AppUser
         {
@@ -60,23 +62,29 @@ public class AdminService : IAdminService
         string password = GenerateSecurePassword();
         var result = await _userManager.CreateAsync(user, password);
 
-        if (result.Succeeded)
-        {
-            try
-            {         
-                await _userManager.AddToRoleAsync(user, model.AccountType);             
-                await SendWelcomeEmailAsync(model.Email, model.FirstName, model.AccountType, password);
-            }
-            catch (Exception)
-            {
-                await _userManager.DeleteAsync(user);
-                return IdentityResult.Failed(new IdentityError
-                {
-                    Description = "Erro de conexão: Não foi possível enviar o e-mail de ativação. A conta não foi criada. Verifique a sua ligação à internet."
-                });
-            }
+        if (!result.Succeeded) return result;         
+
+            // Adicionar Role
+            await _userManager.AddToRoleAsync(user, model.AccountType);
+   
+            // Se a net falhar aqui, o código salta para o catch
+            await SendWelcomeEmailAsync(model.Email, model.FirstName, model.AccountType, password);
+
+            // Só chegamos aqui se o email foi enviado com sucesso
+            await transaction.CommitAsync();
+
+            return IdentityResult.Success;
         }
-        return result;
+        catch (Exception)
+        {
+            // Se houve erro de rede no email, desfazemos TUDO o que foi feito na BD
+            await transaction.RollbackAsync();
+
+            return IdentityResult.Failed(new IdentityError
+            {
+                Description = "Erro de conexão: Não foi possível enviar o e-mail de ativação. A conta não foi criada. Verifique a sua ligação à internet."
+            });
+        }
     }
 
     // Substitui o teu método UpdateBarScheduleAsync por este mais completo:
@@ -156,7 +164,7 @@ public class AdminService : IAdminService
         var categories = await _context.UserCategory.ToListAsync();
         return categories.Select(c => new SelectListItem { Value = c.Name, Text = c.Name}).ToList();
     }
-    
+
     private async Task SendWelcomeEmailAsync(string email, string name, string type, string password)
     {
         var roleDisplay = (await _roleManager.FindByNameAsync(type))!.DisplayName;
@@ -171,22 +179,18 @@ public class AdminService : IAdminService
                  <p>Faça login e altere sua senha o mais breve possível.</p>
              </div>
              """);
-        // Retry 5 times
-        for (int i = 0; i < 5; i++)
-        {
+            
             try
             {
                 await _emailSender.SendEmailAsync(email, "SEGUES - Bem-vindo", emailBody);
-                return;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                Console.WriteLine($"Failed to send welcome email to: {email}. Retrying in 2 minutes...");
-                await Task.Delay(120000);
+                Console.WriteLine($"Erro crítico de rede no envio de email para {email}: {ex.Message}");
+                throw new Exception($"Failed to send welcome email to: {email} after multiple attempts.");
             }
-        }
-        throw new Exception($"Failed to send welcome email to: {email} after multiple attempts.");
-    }
+
+    }  
     
     /*
      * User Management
