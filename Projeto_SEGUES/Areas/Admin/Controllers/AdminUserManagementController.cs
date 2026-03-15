@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
+using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
@@ -16,11 +17,13 @@ public class AdminUserManagementController : Controller
 {
     private readonly UserManager<AppUser> _userManager;
     private readonly IAdminService _adminService;
-    
-    public AdminUserManagementController(UserManager<AppUser> userManager, IAdminService adminService)
+    private readonly AppDbContext _context;
+
+    public AdminUserManagementController(UserManager<AppUser> userManager, IAdminService adminService, AppDbContext context)
     {
         _userManager = userManager;
         _adminService = adminService;
+        _context = context;
     }
     
     public async Task<IActionResult> Index(string? searchString, string? roleFilter, string? categoryFilter)
@@ -200,5 +203,34 @@ public class AdminUserManagementController : Controller
         }
 
         return RedirectToAction(nameof(Details), new { id });
+    }
+    public IActionResult UserLogSelection()
+    {
+        return View();
+    }
+
+    public async Task<IActionResult> StaffLog(string search, string date)
+    {
+        // 1. Carregar logs incluindo os dados do utilizador
+        var query = _context.UserLog
+            .Include(l => l.AppUser)
+            .AsQueryable();
+
+        // 2. Filtro de pesquisa (Username ou Mensagem)
+        if (!string.IsNullOrEmpty(search))
+        {
+            query = query.Where(l => l.AppUser.UserName.Contains(search) || l.Message.Contains(search));
+        }
+
+        // 3. Filtro de data
+        if (!string.IsNullOrEmpty(date) && DateTime.TryParse(date, out DateTime parsedDate))
+        {
+            query = query.Where(l => l.TimeStamp.Date == parsedDate.Date);
+        }
+
+        // 4. Ordenar por TimeStamp (conforme o teu modelo .cs)
+        var logs = await query.OrderByDescending(l => l.TimeStamp).ToListAsync();
+
+        return View(logs);
     }
 }

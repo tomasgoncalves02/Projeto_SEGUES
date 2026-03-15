@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Areas.Order.ViewModels;
 using Projeto_SEGUES.Data;
+using Projeto_SEGUES.Models.Audit;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Order;
 using Projeto_SEGUES.Models.User;
@@ -319,7 +320,7 @@ public class OrderService : IOrderService
             .ToListAsync();
     }
 
-    public async Task<ServiceResult> UpdateOrderStatusAsync(int id, int newStatusId)
+    public async Task<ServiceResult> UpdateOrderStatusAsync(int id, int newStatusId, AppUser staffMember)
     {
         var order = await GetOrderByIdAsync(id);
         if (order == null || !_activeStatus.Contains(order.Status)) return ServiceResult.Fail("Pedido não encontrado.");
@@ -342,7 +343,19 @@ public class OrderService : IOrderService
 
         try
         {
+            var oldStatus = order.Status;
             order.Status = newStatus;
+
+            // --- ADICIONADO: REGISTO DE LOG NO HISTÓRICO ---
+            var log = new UserLog
+            {
+                UserAction = UserAction.UpdateStatus,
+                Message = $"Alterou o estado do pedido #{order.RedemptionCode} de {oldStatus} para {newStatus}.",
+                TimeStamp = DateTime.Now,
+                AppUser = staffMember,
+                RequestPath = "/Order/UpdateStatus"
+            };
+            _context.UserLog.Add(log);
             await _context.SaveChangesAsync();
         }
         catch (Exception)
@@ -361,7 +374,7 @@ public class OrderService : IOrderService
         }
     }
 
-    public async Task<ServiceResult> ValidateOrderCodeAsync(int id, string codeEntered)
+    public async Task<ServiceResult> ValidateOrderCodeAsync(int id, string codeEntered, AppUser staffMember)
     {
         if (string.IsNullOrWhiteSpace(codeEntered))
             return ServiceResult.Fail("Por favor, insira o código de levantamento.");
@@ -379,6 +392,16 @@ public class OrderService : IOrderService
         {
             order.Status = OrderStatus.Delivered;
             order.PickupTime = DateTime.Now.TimeOfDay;
+
+            var log = new UserLog
+            {
+                UserAction = UserAction.ValidateOrder,
+                Message = $"Entregou o pedido #{order.RedemptionCode} ao utilizador {order.AppUser.UserName}.",
+                TimeStamp = DateTime.Now,
+                AppUser = staffMember, 
+                RequestPath = "/Order/ValidateCode"
+            };
+            _context.UserLog.Add(log);
 
             await _context.SaveChangesAsync();
         }

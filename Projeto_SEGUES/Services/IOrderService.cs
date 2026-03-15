@@ -19,6 +19,6 @@ public interface IOrderService
     Task<List<Order>> GetOrderHistoryAsync(string userId);
     Task<List<Order>> GetUndeliveredOrdersAsync();
     Task<List<Order>> GetAdminOrderHistoryAsync();
-    Task<ServiceResult> UpdateOrderStatusAsync(int id, int newStatusId);
-    Task<ServiceResult> ValidateOrderCodeAsync(int id, string codeEntered);
+    Task<ServiceResult> UpdateOrderStatusAsync(int id, int newStatusId, AppUser staffMember);
+    Task<ServiceResult> ValidateOrderCodeAsync(int id, string codeEntered, AppUser staffMember);
 }

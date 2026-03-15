@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Data;
+using Projeto_SEGUES.Models.Audit;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.User;
@@ -201,6 +202,16 @@ public class TicketService : ITicketService
             }
             return ServiceResult.Fail("Bilhete expirado.");
         }
+
+        var log = new UserLog
+        {
+            UserAction = UserAction.ValidateTicket,
+            Message = $"Validou a senha #{ticket.ValidationCode} do utilizador {ticket.Owner.UserName}.",
+            TimeStamp = DateTime.Now,
+            RequestPath = "/Admin/AdminTicketManagement/Validate",
+            AppUser = validator // O funcionário que está logado e a validar
+        };
+        _context.UserLog.Add(log);
 
         if (ticket.State != TicketState.Available)
             return ServiceResult.Fail("Bilhete não está disponível (Cancelado ou Pendente).");

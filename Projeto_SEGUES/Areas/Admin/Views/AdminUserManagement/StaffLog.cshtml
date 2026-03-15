@@ -1,0 +1,164 @@
+﻿@model IEnumerable<Projeto_SEGUES.Models.Audit.UserLog>
+
+@{
+    ViewData["Title"] = "Histórico de Funcionários - SEGUES";
+}
+
+<div class="container mt-5">
+    @* --- Cabeçalho --- *@
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-8">
+            <h2 class="fw-bold title-underline mb-2">Histórico de Funcionários</h2>
+            <p class="text-muted">Consulta detalhada de todas as operações realizadas pelos funcionários.</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a asp-area="Admin" asp-controller="Admin" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4">
+                Voltar
+            </a>
+        </div>
+    </div>
+
+    @* --- Barra de Filtros --- *@
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-body filter-bar p-4">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold small">Ações</label>
+                    <select name="actionType" class="form-select">
+                        <option value="">Todas</option>
+                        @* Podes iterar os valores do Enum aqui se quiseres filtros específicos *@
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold small">Realizadas em</label>
+                    <input type="date" name="date" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold small">Pesquisar</label>
+                    <input type="text" name="search" class="form-control" placeholder="Utilizador ou mensagem...">
+                </div>
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="reset" class="btn btn-reset-x">Limpar Filtros</button>
+                    <button type="submit" class="btn btn-ips px-4 flex-grow-1">Pesquisar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @* --- Tabela de Registos --- *@
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 text-color-ips fw-bold">Ações realizadas</h6>
+            <span class="badge bg-color-ips-light text-color-ips">Total: @(Model?.Count() ?? 0) Registos</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="bg-color-ips text-white">
+                    <tr>
+                        <th>Funcionário</th>
+                        <th>Data e Hora</th>
+                        <th>Tipo de Ação</th>
+                        <th>Mensagem Resumida</th>
+                        <th class="text-center">Detalhes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var log in Model)
+                        {
+                            <tr class="table-row-ips-hover">
+                                <td>
+                                    <div class="fw-bold">@log.AppUser?.UserName</div>
+                                    <div class="small text-muted">@log.AppUser?.Email</div>
+                                </td>
+                                <td class="small">@log.TimeStamp.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                                <td>
+                                    <span class="badge bg-color-ips-light text-color-ips fw-bold">
+                                        @log.UserAction
+                                    </span>
+                                </td>
+                                <td class="text-truncate" style="max-width: 250px;">
+                                    @log.Message
+                                </td>
+                                <td class="text-center">
+                                    <button class="btn btn-ips-outline-secondary btn-sm"
+                                            onclick="openLogModal('@log.UserAction', '@log.Message', '@log.RequestPath', '@log.TimeStamp')">
+                                        <i class="bi bi-eye-fill"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">
+                                Nenhum registo de log encontrado com os filtros aplicados.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@* --- Modal de Detalhes --- *@
+<div class="modal fade" id="modalLogDetails" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-body p-5 text-center">
+                <div class="card-ips-icon mb-4" style="width: 80px; height: 80px; font-size: 2.5rem; margin: 0 auto;">
+                    <i class="bi bi-info-lg"></i>
+                </div>
+                <h3 class="fw-bold mb-4">Detalhes do Log</h3>
+
+                <div class="text-start">
+                    <div class="mb-3">
+                        <label class="small text-muted text-uppercase fw-bold">Tipo de Operação</label>
+                        <h5 id="modalUserAction" class="text-color-ips fw-bold">---</h5>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="small text-muted text-uppercase fw-bold">Data e Hora</label>
+                        <p id="modalTimeStamp" class="text-dark mb-0">---</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="small text-muted text-uppercase fw-bold">Caminho do Pedido (Request Path)</label>
+                        <p id="modalRequestPath" class="text-muted small code bg-light p-2 rounded">---</p>
+                    </div>
+
+                    <div class="mb-1">
+                        <label class="small text-muted text-uppercase fw-bold">Mensagem / Dados</label>
+                        <div class="p-3 bg-light rounded border">
+                            <p id="modalMessage" class="text-muted mb-0 small" style="white-space: pre-wrap;">
+                                ---
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-ips w-100 py-2 mt-4 fw-bold shadow-sm" data-bs-dismiss="modal">
+                    Fechar Janela
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openLogModal(action, message, path, time) {
+            document.getElementById('modalUserAction').innerText = action;
+            document.getElementById('modalMessage').innerText = message || "Sem descrição adicional.";
+            document.getElementById('modalRequestPath').innerText = path || "N/A";
+            document.getElementById('modalTimeStamp').innerText = time;
+
+            // Inicializar e mostrar o modal do Bootstrap
+            var myModal = new bootstrap.Modal(document.getElementById('modalLogDetails'));
+            myModal.show();
+        }
+    </script>
+}
