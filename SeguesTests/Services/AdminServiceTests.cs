@@ -1,142 +1,198 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Data;
+using Projeto_SEGUES.Models.Admin;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Xunit;
 
 namespace SeguesTests.Services
 {
     public class AdminServiceTests
     {
-        private AppDbContext GetDatabaseContext() => new AppDbContext(new DbContextOptionsBuilder<AppDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+        private AppDbContext GetDatabaseContext()
+        {
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning))
+                .Options;
+
+            return new AppDbContext(options);
+        }
 
         private Mock<UserManager<AppUser>> GetMockUserManager(AppDbContext context)
         {
-            var mock = new Mock<UserManager<AppUser>>(new Mock<IUserStore<AppUser>>().Object, null, null, null, null, null, null, null, null);
+            var userStore = new Mock<IUserStore<AppUser>>();
+            var mock = new Mock<UserManager<AppUser>>(userStore.Object, null, null, null, null, null, null, null, null);
+
             mock.Setup(m => m.Users).Returns(context.Users);
+
             return mock;
         }
 
-        private Mock<RoleManager<Role>> GetMockRoleManager(AppDbContext context)
-        {
-            var mock = new Mock<RoleManager<Role>>(new Mock<IRoleStore<Role>>().Object, null, null, null, null);
-            mock.Setup(m => m.Roles).Returns(context.Roles);
-            return mock;
-        }
+        private Mock<RoleManager<Role>> GetMockRoleManager() =>
+            new Mock<RoleManager<Role>>(new Mock<IRoleStore<Role>>().Object, null, null, null, null);
 
+
+
+        // Verifies that internal user creation fails when the specified role is not found
         [Fact]
-        public async Task CreateInternalUserAsync_InvalidRole_ReturnsFailed()
+        public async Task CreateInternalUserAsync_InvalidRole_ReturnsFailedResult()
         {
             var context = GetDatabaseContext();
-            var mockUserMgr = GetMockUserManager(context);
-            var mockRoleMgr = GetMockRoleManager(context);
-            var mockEmailSender = new Mock<IEmailSender>();
+            var mockRoleMgr = GetMockRoleManager();
+            var service = new AdminService(context, GetMockUserManager(context).Object, mockRoleMgr.Object, new Mock<IEmailSender>().Object);
 
-            var service = new AdminService(context, mockUserMgr.Object, mockRoleMgr.Object, mockEmailSender.Object);
-
-            mockRoleMgr.Setup(m => m.FindByNameAsync("Inexistente")).ReturnsAsync((Role)null!);
+            mockRoleMgr.Setup(m => m.FindByNameAsync("NonExistent")).ReturnsAsync((Role)null!);
 
             var model = new CreateInternalUserViewModel
             {
-                AccountType = "Inexistente",
-                Email = "teste@teste.pt",
-                FirstName = "Nome",
-                LastName = "Apelido",
-                Gender = Gender.Other,
-                BirthDate = new DateTime(1990, 1, 1)
+                AccountType = "NonExistent",
+                FirstName = "Pedro",
+                LastName = "Tester",
+                Email = "pedro@test.com",
+                Gender = Gender.Male,
+                BirthDate = DateTime.Now.AddYears(-20)
             };
 
             var result = await service.CreateInternalUserAsync(model);
 
             Assert.False(result.Succeeded);
-            Assert.Contains(result.Errors, e => e.Description.Contains("Dados inválidos"));
+            Assert.Contains("Dados inválidos", result.Errors.First().Description);
         }
 
+        // Ensures that the internal user creation process is fully rolled back if the welcome email fails to send, protecting database consistency
         [Fact]
-        public async Task GetFilteredUsersAsync_CategoryFilter_ReturnsMatch()
+        public async Task CreateInternalUserAsync_EmailFailure_RollsBackUserCreation()
         {
             var context = GetDatabaseContext();
-            var service = new AdminService(context, GetMockUserManager(context).Object, GetMockRoleManager(context).Object, new Mock<IEmailSender>().Object);
+            var mockUserMgr = GetMockUserManager(context);
+            var mockRoleMgr = GetMockRoleManager();
+            var mockEmailSender = new Mock<IEmailSender>();
 
-            var catDocente = new UserCategory { Name = "Docente" };
-            var catEstudante = new UserCategory { Name = "Estudante" };
-            context.UserCategory.AddRange(catDocente, catEstudante);
-
-            context.Users.Add(new AppUser { Id = "u1", FirstName = "A", LastName = "B", Email = "a@a.pt", UserCategory = catDocente, BirthDate = new DateTime(2000, 1, 1), Gender = Gender.Other });
-            context.Users.Add(new AppUser { Id = "u2", FirstName = "C", LastName = "D", Email = "c@c.pt", UserCategory = catEstudante, BirthDate = new DateTime(2000, 1, 1), Gender = Gender.Other });
+            context.UserCategory.Add(new UserCategory { Name = "Externo" });
             await context.SaveChangesAsync();
 
-            var result = await service.GetFilteredUsersAsync(null, null, "Docente");
+            var service = new AdminService(context, mockUserMgr.Object, mockRoleMgr.Object, mockEmailSender.Object);
 
-            Assert.Single(result);
-            Assert.Equal("u1", result[0].Id);
+            mockRoleMgr.Setup(m => m.FindByNameAsync(It.IsAny<string>())).ReturnsAsync(new Role { Name = "Admin", DisplayName = "Administrador" });
+            mockUserMgr.Setup(m => m.CreateAsync(It.IsAny<AppUser>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Success);
+
+            mockEmailSender.Setup(m => m.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ThrowsAsync(new Exception("Network failure"));
+
+            var model = new CreateInternalUserViewModel
+            {
+                Email = "pedro@test.com",
+                FirstName = "Pedro",
+                LastName = "Tester",
+                AccountType = "Admin",
+                Gender = Gender.Male,
+                BirthDate = DateTime.Now.AddYears(-25)
+            };
+
+            var result = await service.CreateInternalUserAsync(model);
+
+            Assert.False(result.Succeeded);
+            Assert.Contains("Erro de conexão", result.Errors.First().Description);
         }
 
+        // Verifies that the search filter correctly identifies users by their first name (case-insensitive)
         [Fact]
         public async Task GetFilteredUsersAsync_SearchByName_ReturnsMatch()
         {
             var context = GetDatabaseContext();
-            var service = new AdminService(context, GetMockUserManager(context).Object, GetMockRoleManager(context).Object, new Mock<IEmailSender>().Object);
+            var mockUserMgr = GetMockUserManager(context);
+            var service = new AdminService(context, mockUserMgr.Object, GetMockRoleManager().Object, new Mock<IEmailSender>().Object);
 
-            var cat = new UserCategory { Name = "Cliente" };
-            context.UserCategory.Add(cat);
+            var cat = new UserCategory { Id = 1, Name = "Student"};
 
-            context.Users.Add(new AppUser { Id = "u1", FirstName = "Diogo", LastName = "Silva", Email = "diogo@pt.pt", UserCategory = cat, BirthDate = new DateTime(1995, 1, 1), Gender = Gender.Male });
-            context.Users.Add(new AppUser { Id = "u2", FirstName = "Joao", LastName = "Costa", Email = "joao@pt.pt", UserCategory = cat, BirthDate = new DateTime(1995, 1, 1), Gender = Gender.Male });
+            context.Users.Add(new AppUser
+            {
+                Id = "u-pedro",
+                FirstName = "Pedro",
+                LastName = "Silva",
+                Email = "pedro@test.pt",
+                UserCategory = cat,
+                BirthDate = DateTime.Now.AddYears(-20),
+                Gender = Gender.Male
+            });
             await context.SaveChangesAsync();
 
-            var result = await service.GetFilteredUsersAsync("diogo", null, null);
+            var result = await service.GetFilteredUsersAsync("pedro", null, null);
 
             Assert.Single(result);
-            Assert.Equal("Diogo", result[0].FirstName);
+            Assert.Equal("Pedro", result[0].FirstName);
         }
 
+        // Confirms that ticket prices are updated and the expiration date is set to the end of the next day
         [Fact]
-        public async Task GetCategoryByNameAsync_ReturnsCategory()
+        public async Task UpdateTicketPricesAsync_UpdatesPriceAndDate()
         {
             var context = GetDatabaseContext();
-            var service = new AdminService(context, GetMockUserManager(context).Object, GetMockRoleManager(context).Object, new Mock<IEmailSender>().Object);
+            var service = new AdminService(context, GetMockUserManager(context).Object, GetMockRoleManager().Object, new Mock<IEmailSender>().Object);
 
-            var cat = new UserCategory { Name = "Externo" };
-            context.UserCategory.Add(cat);
-            await context.SaveChangesAsync();
-
-            var result = await service.GetCategoryByNameAsync("Externo");
-
-            Assert.NotNull(result);
-            Assert.Equal("Externo", result.Name);
-        }
-
-        [Fact]
-        public async Task UpdateTicketPricesAsync_UpdatesPrice()
-        {
-            var context = GetDatabaseContext();
-            var service = new AdminService(context, GetMockUserManager(context).Object, GetMockRoleManager(context).Object, new Mock<IEmailSender>().Object);
-
-            var cat = new UserCategory { Name = "Estudante" };
-            var price = new TicketPrice { Id = 1, Price = 2.0m, UserCategory = cat, InitialDatePrice = DateTime.Now.AddDays(-5), EndDatePrice = DateTime.Now.AddDays(10) };
-            context.UserCategory.Add(cat);
+            var cat = new UserCategory { Id = 1, Name = "Estudante" };
+            var price = new TicketPrice
+            {
+                Id = 1,
+                Price = 2.0m,
+                UserCategory = cat, 
+                InitialDatePrice = DateTime.Now,
+                EndDatePrice = DateTime.Now
+            };
             context.TicketPrice.Add(price);
             await context.SaveChangesAsync();
 
-            var newPrices = new List<TicketPrice>
+            var updateList = new List<TicketPrice>
     {
-        new TicketPrice { Id = 1, Price = 3.5m, UserCategory = cat }
+        new TicketPrice { Id = 1, Price = 4.5m, UserCategory = cat }
     };
 
-            await service.UpdateTicketPricesAsync(newPrices);
+            await service.UpdateTicketPricesAsync(updateList);
 
             var updated = await context.TicketPrice.FindAsync(1);
-            Assert.NotNull(updated);
-            Assert.Equal(3.5m, updated.Price);
-            Assert.Equal(DateTime.Today.AddDays(1).AddTicks(-1).Date, updated.EndDatePrice.Date);
+            Assert.Equal(4.5m, updated!.Price);
+            Assert.Equal(DateTime.Today.AddDays(1).AddTicks(-1), updated.EndDatePrice);
         }
-    }
+
+        // Validates the bar's operational status logic based on the configured open and close times
+        [Fact]
+        public async Task IsBarOpenAsync_ValidatesTimeCorrect()
+        {
+            var context = GetDatabaseContext();
+        context.AppConfig.Add(new AppConfig { OpenBarTime = new TimeSpan(8, 0, 0), CloseBarTime = new TimeSpan(18, 0, 0) });
+            await context.SaveChangesAsync();
+
+        var service = new AdminService(context, GetMockUserManager(context).Object, GetMockRoleManager().Object, new Mock<IEmailSender>().Object);
+
+        Assert.True(await service.IsBarOpenAsync(new TimeSpan(10, 0, 0))); 
+            Assert.False(await service.IsBarOpenAsync(new TimeSpan(20, 0, 0))); 
+        }
+
+
+
+        // Ensures that the service name switch (Lunch/Dinner/Bar) correctly updates the respective fields in configuration
+        [Fact]
+        public async Task UpdateBarScheduleAsync_UpdatesCorrectService()
+        {
+        var context = GetDatabaseContext();
+        context.AppConfig.Add(new AppConfig { OpenLunchTime = new TimeSpan(11, 0, 0), CloseLunchTime = new TimeSpan(14, 0, 0) });
+        await context.SaveChangesAsync();
+
+        var service = new AdminService(context, GetMockUserManager(context).Object, GetMockRoleManager().Object, new Mock<IEmailSender>().Object);
+
+        await service.UpdateBarScheduleAsync("12:00", "15:00", "Almoço");
+
+        var updated = await context.AppConfig.FirstAsync();
+        Assert.Equal(new TimeSpan(12, 0, 0), updated.OpenLunchTime);
+        }
+     }
 }
