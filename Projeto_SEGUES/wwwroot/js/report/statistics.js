@@ -1,4 +1,4 @@
-import { DOM } from "../core/dom";
+import { DOM } from "../core/dom.js";
 
 function clearData(ids) {
     ids.forEach(id => {
@@ -13,3 +13,6 @@ const Statistics = {
         DOM.bind('selectOrdersPeriod', 'change', loadBarSummary);
     } 
 };
+
+DOM.bindDocumentLoad(Statistics.init);
+export { Statistics };

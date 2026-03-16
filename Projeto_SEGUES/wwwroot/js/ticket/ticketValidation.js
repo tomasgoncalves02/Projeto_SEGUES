@@ -1,4 +1,4 @@
-import {DOM} from "../core/dom.js";
+import { DOM } from "../core/dom.js";
 
 const TicketValidation = {
     init() {
@@ -12,3 +12,5 @@ const TicketValidation = {
         });
     }
 };
+
+export { TicketValidation };

@@ -31,10 +31,9 @@ const DOM = {
         if (executeImmediately) fn();
     },
     bindAll(className, event, fn) {
-        const elems = this.byClass(className);
-        if (!elems) return;
+        const elems = Array.from(this.byClass(className));
         elems.forEach(el => el.addEventListener(event, fn));
     }
 };
 
-export {DOM};
+export { DOM };

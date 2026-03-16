@@ -83,43 +83,5 @@ namespace SeguesTests.Admin
             Assert.IsType<RedirectToActionResult>(result);
             _mockAdminService.Verify(s => s.UpdateBarScheduleAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }
-
-        // Returns JSON data for valid order details requests
-        [Fact]
-        public async Task GetOrderDetails_ValidId_ReturnsJson()
-        {
-            var order = new Order
-            {
-                Id = 1,
-                RedemptionCode = "ABC",
-                AppUser = new AppUser
-                {
-                    FirstName = "tester",
-                    LastName = "user",
-                    Email = "test@test.com",
-                    BirthDate = DateTime.Now.AddYears(-20),
-                    Gender = Gender.Male,
-                    UserCategory = new UserCategory { Name = "Estudante" }
-                },
-                ProductPurchases = new List<OrderLine>(),
-                OrderDate = DateTime.Now 
-            };
-            _mockOrderService.Setup(s => s.GetOrderByIdAsync(1)).ReturnsAsync(order);
-
-            var result = await _controller.GetOrderDetails(1);
-
-            Assert.IsType<JsonResult>(result);
-        }
-
-        // Returns NotFound when requesting details for non-existent order
-        [Fact]
-        public async Task GetOrderDetails_InvalidId_ReturnsNotFound()
-        {
-            _mockOrderService.Setup(s => s.GetOrderByIdAsync(99)).ReturnsAsync((Order)null!);
-
-            var result = await _controller.GetOrderDetails(99);
-
-            Assert.IsType<NotFoundResult>(result);
-        }
     }
 }

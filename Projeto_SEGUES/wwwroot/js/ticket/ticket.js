@@ -1,5 +1,4 @@
-import {DOM} from "../core/dom.js";
-import {Notifications} from "../core/notifications";
+import { DOM, Notifications } from "../core/core.js";
 
 function showQr(code) {
     Notifications.show({
@@ -23,4 +22,6 @@ const Ticket = {
         });
     }
 };
-export {Ticket};
+
+DOM.bindDocumentLoad(Ticket.init);
+export { Ticket };

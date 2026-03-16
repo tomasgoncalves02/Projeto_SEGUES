@@ -204,7 +204,7 @@
                                 </td>
                                 <td class="fw-bold text-color-ips">@order.TotalValue.ToString("N2")€</td>
                                 <td class="pe-4">
-                                    <button type="button" class="btn btn-sm btn-ips fw-bold px-3 shadow-sm" onclick="verDetalhesProdutos(@order.Id, '/Admin/AdminOrderManagement/GetOrderDetails')">
+                                    <button type="button" class="btn btn-sm btn-ips fw-bold px-3 shadow-sm showOrderDetails" data-id="@order.Id">
                                         <i class="bi bi-search"></i>
                                     </button>
                                 </td>
@@ -218,6 +218,7 @@
 </div>
 
 @section Scripts {
+    <script type="module" src="~/js/report/reportOrder.js"></script>
     <script>
         function filterTable() {
             let searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();

@@ -25,19 +25,26 @@ public class ReportOrderController : Controller
         return View(await _orderService.GetOrderHistoryAsync(userId));
     }
     
-    // Endpoint for HTMX update of order details
+    // API access point for JS showOrderDetails function
     [HttpGet]
     public async Task<IActionResult> GetOrderDetails(int id) 
     {
         var order = await _orderService.GetOrderByIdAsync(id);
         if (order == null) return NotFound();
         
-        if (order?.AppUser.Id != _userManager.GetUserId(User))
-            order = null;
+        // Security check: if the user is not admin, do not show order info if it does not belong to the user
+        if (!User.IsInRole("Admin") && order.AppUser.Id != _userManager.GetUserId(User))
+            return Unauthorized();
+        
         return Json(new
         {
-            produtos = order?.ProductPurchases.Select(p => new { nome = p.Product.Name, quantidade = p.Quantity, preco = p.Product.Price }),
-            codigo = order?.RedemptionCode
+            code = order.RedemptionCode,
+            products = order.ProductPurchases.Select(p => new
+            {
+                name = p.Product.Name,
+                quantity = p.Quantity,
+                price = p.ProductValue
+            }).ToList()
         });
     }
 }

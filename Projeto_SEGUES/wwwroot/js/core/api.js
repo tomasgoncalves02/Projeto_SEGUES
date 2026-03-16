@@ -2,7 +2,7 @@
  * API helper functions.
  * Fetch and Send data logic with anti-forgery token.
  */
-import {DOM} from "./dom.js";
+import { DOM } from "./dom.js";
 
 function getToken() {
     return DOM.byName('__RequestVerificationToken')[0]?.value || '';
@@ -21,12 +21,12 @@ async function request(method, url, params = {}) {
             'Content-Type': 'application/x-www-form-urlencoded'
         };
         if (method !== 'GET') {
-            headers['RequestVerificationToken'] = this.getToken();
+            headers['RequestVerificationToken'] = getToken();
         }
         const options = { method, headers };
 
         if (method === 'GET') {
-            url = this.buildQuery(url, params);
+            url = buildQuery(url, params);
         } else if (params && Object.keys(params).length > 0) {
             options.body = new URLSearchParams(params);
         }
@@ -44,20 +44,20 @@ async function request(method, url, params = {}) {
 
 const Api = {
     async get(url, params = {}) {
-        return await this.request('GET', url, params);
+        return await request('GET', url, params);
     },
     async post(url, params = {}) {
-        return await this.request('POST', url, params);
+        return await request('POST', url, params);
     },
     async put(url, params = {}) {
-        return await this.request('PUT', url, params);
+        return await request('PUT', url, params);
     },
     async patch(url, params = {}) {
-        return await this.request('PATCH', url, params);
+        return await request('PATCH', url, params);
     },
     async delete(url, params = {}) {
-        return await this.request('DELETE', url, params);
+        return await request('DELETE', url, params);
     }
 };
 
-export {Api};
+export { Api };

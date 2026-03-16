@@ -1,4 +1,4 @@
-import {DOM} from "../core/dom";
+import { DOM } from "../core/dom.js";
 
 function togglePasswordVisibility(toggleBtn, passwordInput) {
     const icon = DOM.byTag('i', toggleBtn)[0];
@@ -26,4 +26,6 @@ const Password = {
         setupPasswordToggle('toggleConfirmPassword', 'confirmPasswordInput');
     }
 };
-export {Password};
+
+DOM.bindDocumentLoad(Password.init);
+export { Password };

@@ -2,7 +2,7 @@
  * Notifications helper functions.
  * Swal pop-ups.
  */
-import {DOM} from "./dom.js";
+import { DOM } from "./dom.js";
 
 const Notifications = {
     // Initialize and show Swal pop-ups
@@ -11,7 +11,7 @@ const Notifications = {
         if (!container?.dataset.json?.length) return;
         
         try {
-            this.show(JSON.parse(container.dataset.json));
+            Notifications.show(JSON.parse(container.dataset.json));
         } catch (e) {
             console.error("Invalid JSON data for Swal: ", e);
         }
@@ -30,21 +30,22 @@ const Notifications = {
             allowEscapeKey: options.allowEscapeKey ?? true,
             showCloseButton: options.showCloseButton ?? false,
             backdrop: options.backdrop || "var(--ips-shadow-soft)",
+            didOpen: options.didOpen,
             // Confirm Button
             showConfirmButton: options.showConfirmButton ?? true,
             confirmButtonText: options.confirmButtonText || 'OK',
             confirmButtonColor: options.confirmButtonColor || 'var(--ips)',
-            confirmButtonAriaLabel: options.confirmButtonAriaLabel || 'OK',
+            confirmButtonAriaLabel: options.confirmButtonAriaLabel || options.confirmButtonText || 'OK',
             // Deny Button
             showDenyButton: options.showDenyButton ?? false,
             denyButtonText: options.denyButtonText || 'Não',
             denyButtonColor: options.denyButtonColor || 'var(--deny)',
-            denyButtonAriaLabel: options.denyButtonAriaLabel || 'Não',
+            denyButtonAriaLabel: options.denyButtonAriaLabel || options.denyButtonText || 'Não',
             // Cancel Button
             showCancelButton: options.showCancelButton ?? false,
             cancelButtonText: options.cancelButtonText || 'Cancelar',
             cancelButtonColor: options.cancelButtonColor || 'var(--cancel)',
-            cancelButtonAriaLabel: options.cancelButtonAriaLabel || 'Cancelar'
+            cancelButtonAriaLabel: options.cancelButtonAriaLabel || options.cancelButtonText || 'Cancelar'
         });
     },
     // Wrapper for success pop-up (Auto-close 3s, no button)
@@ -68,7 +69,7 @@ const Notifications = {
             html: html,
             allowOutsideClick: false,
             allowEscapeKey: false,
-            footer: "Se o erro persistir, contacte o <a href='mailto:segues2026@gmail.com'>suporte</a>."
+            footer: 'Se o erro persistir, contacte o <a href="mailto:segues2026@gmail.com">suporte</a>.'
         });
     },
     // Wrapper for warning pop-up (Sticky, requires click)
@@ -109,6 +110,64 @@ const Notifications = {
             allowOutsideClick: false,
             allowEscapeKey: false
         });
+    },
+    // Wrapper for loading pop-up (No buttons)
+    loading() {
+        return this.show({
+            icon: 'info',
+            title: 'A processar...',
+            text: '',
+            html: '<p class="p-5 text-center">Por favor, aguarde.</p>',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        })
+    },
+    // Update loading pop-up on error
+    loadingError(html) {
+        setTimeout(() => {
+            Swal.hideLoading();
+        }, 0);
+        setTimeout(() => {
+            Swal.update({
+                icon: 'error',
+                title: 'Erro',
+                html: html,
+                showConfirmButton: true,
+                footer: 'Se o erro persistir, contacte o <a href="mailto:segues2026@gmail.com">suporte</a>.'
+            });
+        }, 0);
+    },
+    // Update loading pop-up on success
+    loadingSuccess(title, html) {
+        setTimeout(() => {
+            Swal.hideLoading();
+        }, 0);
+        setTimeout(() => {
+            Swal.update({
+                title: title,
+                html: html,
+                showConfirmButton: true
+            });
+        }, 0);
+    },
+    // Update loading pop-up on success with empty data
+    loadingSuccessEmpty(html) {
+        setTimeout(() => {
+            Swal.hideLoading();
+        }, 0);
+        setTimeout(() => {
+            Swal.update({
+                title: 'Sem resultados',
+                html: html,
+                showConfirmButton: true
+            });
+        }, 0);
     }
 };
-export {Notifications};
+
+DOM.bindDocumentLoad(Notifications.init);
+export { Notifications };

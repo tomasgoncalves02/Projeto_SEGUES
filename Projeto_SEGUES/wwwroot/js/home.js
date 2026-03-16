@@ -1,5 +1,4 @@
-import {Notifications} from "./core/notifications";
-import {DOM} from "./core/dom";
+import { DOM, Notifications } from "./core/core.js";
 
 function pickMenu() {
     Notifications.show({
@@ -10,8 +9,8 @@ function pickMenu() {
         confirmButtonText: 'Refeitório',
         denyButtonText: 'Bar',
         cancelButtonText: 'Cancelar',
-        confirmButtonColor: 'var(--ips)',
         denyButtonColor: 'var(--ips)',
+        cancelButtonColor: 'var(--deny)'
     }).then((result) => {
         if (result.isConfirmed) {
             window.open("https://software.movelife.net/pt-PT/Menus/PublicCC/Tj6o3O_vCFB2LmCmm9VUjw%3d%3d", "_blank");
@@ -27,4 +26,5 @@ const Home = {
     }
 }
 
-export {Home};
+DOM.bindDocumentLoad(Home.init);
+export { Home };

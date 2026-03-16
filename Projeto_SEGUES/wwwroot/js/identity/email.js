@@ -1,4 +1,4 @@
-import {DOM} from "../core/dom.js";
+import { DOM } from "../core/dom.js";
 
 const Email = {
     init() {
@@ -15,4 +15,5 @@ const Email = {
     }
 }
 
-export {Email};
+DOM.bindDocumentLoad(Email.init);
+export { Email };
