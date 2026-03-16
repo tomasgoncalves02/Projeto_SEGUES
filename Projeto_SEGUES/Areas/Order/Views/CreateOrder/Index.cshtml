@@ -138,7 +138,7 @@
                                     </select>
                                 </td>
                                 <td class="pe-4">
-                                    <button class="btn btn-ips btn-sm px-4 fw-bold shadow-sm text-uppercase" onclick="processAddToCart(@p.Id, '@p.Name')">
+                                    <button class="btn btn-ips btn-sm px-4 fw-bold shadow-sm text-uppercase" onclick="addToCart(@p.Id, '@p.Name')">
                                         <i class="bi bi-plus-lg me-1"></i> Adicionar
                                     </button>
                                 </td>
@@ -152,6 +152,7 @@
 </div>
 
 @section Scripts {
+    <script src="~/js/order/createOrder.js"></script>
     <script>
         function filterOrderTable() {
             const input = document.getElementById('orderSearch').value.toLowerCase();
@@ -166,42 +167,5 @@
             document.getElementById('orderSearch').value = "";
             filterOrderTable();
         }
-
-        /**
-         * Adiciona ao carrinho salvando na Base de Dados (via Controller)
-         */
-        function processAddToCart(id, name) {
-            const qty = document.getElementById('qty-' + id).value;
-            const url = '@Url.Action("AddToCart", "CreateOrder", new { area = "Order" })';
-
-            fetch(`${url}?id=${id}&qty=${qty}`, {
-                method: 'POST',
-                headers: {
-                    // Importante para requisições POST em ASP.NET Core
-                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Atualiza a badge com o total real retornado pela BD (data.count)
-                    const badge = document.getElementById('cart-count');
-                    if (badge) {
-                        badge.innerText = data.count;
-                        badge.style.display = "block";
-                    }
-
-                    // Notificação do seu site.js
-                    Notifications.success(`${qty}x ${name} adicionado ao carrinho!`);
-                } else {
-                    Notifications.error(data.message || "Erro ao adicionar ao carrinho.");
-                }
-            })
-            .catch(error => {
-                console.error('Erro:', error);
-                Notifications.error("Ocorreu um erro na comunicação com o servidor.");
-            });
-        }
-  
     </script>
 }

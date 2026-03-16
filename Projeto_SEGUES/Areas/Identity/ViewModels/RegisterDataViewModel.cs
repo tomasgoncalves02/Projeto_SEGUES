@@ -29,9 +29,10 @@ public class RegisterDataViewModel
     public required string Email { get; init; }
     
     [Required(ErrorMessage = "A data de nascimento é obrigatória.")]
-    [DataType(DataType.Date)]
+    [DataType(DataType.Date, ErrorMessage = "Data de nascimento inválida.")]
     [MinimumAge(ErrorMessage = "Deve ter pelo menos 18 anos para se registrar.")]
     [Display(Name = "Data de Nascimento")]
+    [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
     [MaximumAge(120, ErrorMessage = "{0} inválida. Não pode ter mais de {1} anos.")]
     public required DateTime BirthDate { get; init; }
     

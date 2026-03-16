@@ -26,13 +26,13 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         {
             if (userId == null || email == null || code == null)
             {
-                return RedirectToPage("/Index");
+                return RedirectToAction("Index", "Home", new { area = "" });
             }
 
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
-                return NotFound($"Não foi possível alterar o email. Tente novamente mais tarde ou contacte o suporte.");
+                return NotFound("Não foi possível alterar o email. Tente novamente mais tarde ou contacte o suporte.");
             }
 
             code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
@@ -41,7 +41,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             if (!result.Succeeded)
             {
                 TempData.SetSwalError("Erro ao alterar email. Tente novamente mais tarde ou contacte o suporte.");
-                return Page();
+                return RedirectToAction("Index", "User", new { area = "User" });
             }
             
             // Update the username to match the new email
@@ -52,12 +52,12 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                 await _userManager.ChangeEmailAsync(user, currentEmail, code);
                 
                 TempData.SetSwalError("Erro ao alterar email. Tente novamente mais tarde ou contacte o suporte.");
-                return Page();
+                return RedirectToAction("Index", "User", new { area = "User" });
             }
 
             await _signInManager.RefreshSignInAsync(user);
             TempData.SetSwalSuccess("Email alterado com sucesso.");
-            return Page();
+            return RedirectToAction("Index", "User", new { area = "User" });
         }
     }
 }

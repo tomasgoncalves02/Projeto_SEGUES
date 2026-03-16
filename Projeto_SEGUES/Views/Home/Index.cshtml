@@ -3,7 +3,6 @@
 
 @{
     ViewData["Title"] = "Página Inicial - SEGUES";
-    var balance = ViewBag.UserBalance ?? 0m;
 }
 
 @if (!SignInManager.IsSignedIn(User))
@@ -11,23 +10,30 @@
     <div class="container d-flex flex-column px-xl-0 py-xl-4" style="min-height: 80vh;">
         <div class="row align-items-center flex-grow-1">
             <div class="col-lg-5">
-                <p class="fw-bold mb-1 text-muted small">BEM-VINDO AO</p>
-                <h1 class="display-1 fw-bold">SEGUES<span class="text-color-ips">.</span></h1>
-                <h2 class="fw-bold mb-4">SISTEMA DE GESTÃO DE <span class="text-color-ips">SENHAS</span></h2>
+                <p class="fs-3 mb-1 text-muted">BEM-VINDO AO</p>
+                <h1 class="display-1 fw-bold">S<span class="text-color-ips">.</span>E<span class="text-color-ips">.</span>G<span class="text-color-ips">.</span>U<span class="text-color-ips">.</span>E<span class="text-color-ips">.</span>S<span class="text-color-ips">.</span></h1>
+                <h2 class="fw-bold mb-4">
+                    <span aria-hidden="true">
+                        <b class="text-color-ips fs-1">S</b>istema <b class="text-color-ips fs-1">E</b>letrónico de <b class="text-color-ips fs-1">G</b>estão <b class="text-color-ips fs-1">U</b>niversitária de <b class="text-color-ips fs-1">E</b>ncomendas e <b class="text-color-ips fs-1">S</b>enhas
+                    </span>
+                    <span class="visually-hidden">
+                        Sistema Eletrónico de Gestão Universitária de Encomendas e Senhas
+                    </span>
+                </h2>
 
                 <p class="fs-5 text-muted mb-4">
                     Compra as tuas senhas no refeitório e faz pedidos no bar de forma rápida e simples.
                 </p>
-
-                <div class="button-group-wrapper" style="max-width: 450px;">
+                
+                <div style="max-width: 450px;">
                     <div class="d-flex gap-2 mb-2">
-                        <button onclick="escolherEmenta()" class="btn btn-ips py-3 flex-fill fw-bold col-2">
-                            VER EMENTA
+                        <button id="pickMenu" class="btn btn-ips py-3 flex-fill fw-bold col-2">
+                            Ver Ementa
                         </button>
-                        <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-ips-outline-secondary py-3 flex-fill fw-bold col-2">INICIAR SESSÃO</a>
+                        <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-ips-outline-secondary py-3 flex-fill fw-bold col-2">Iniciar Sessão</a>
                     </div>
                     <a asp-controller="Home" asp-action="Schedule" class="btn btn-ips w-100 py-3 fw-bold">
-                        HORÁRIO DE FUNCIONAMENTO
+                        Horário de Funcionamento
                     </a>
                 </div>
             </div>
@@ -38,13 +44,21 @@
         </div>
 
         <div class="text-center mt-auto pt-4">
-            <p class="mb-0">Não tens conta? <a asp-area="Identity" asp-page="/Account/Register" class="fw-bold text-color-ips text-decoration-none border-bottom border-2">Regista-te</a></p>
+            <p class="mb-0">Não tens conta? <a asp-area="Identity" asp-page="/Account/Register" class="fw-bold text-color-ips">Regista-te</a></p>
         </div>
     </div>
+    @section Scripts {
+        <script src="~/js/home.js"></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                Home.init();
+            });
+        </script>
+    }
 }
 else
 {
-    
+    var balance = ViewBag.UserBalance ?? 0m;
     <div class="container mt-5">
         <div class="row mb-5">
             <div class="col-12">

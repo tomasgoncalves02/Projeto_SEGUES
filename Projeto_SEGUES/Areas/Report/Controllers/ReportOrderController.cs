@@ -1,6 +1,4 @@
-﻿using System.Text.Json;
-using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
@@ -32,9 +30,10 @@ public class ReportOrderController : Controller
     public async Task<IActionResult> GetOrderDetails(int id) 
     {
         var order = await _orderService.GetOrderByIdAsync(id);
+        if (order == null) return NotFound();
+        
         if (order?.AppUser.Id != _userManager.GetUserId(User))
             order = null;
-        //TODO Partial view _OrderDetails
         return Json(new
         {
             produtos = order?.ProductPurchases.Select(p => new { nome = p.Product.Name, quantidade = p.Quantity, preco = p.Product.Price }),

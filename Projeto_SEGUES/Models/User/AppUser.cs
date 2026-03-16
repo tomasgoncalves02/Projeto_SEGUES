@@ -32,7 +32,7 @@ namespace Projeto_SEGUES.Models.User
         [Display(Name = "NIF")]
         public string? FiscalNumber { get; set; }
         
-        [DataType(DataType.Date)]
+        [DataType(DataType.Date, ErrorMessage = "Data de nascimento inválida.")]
         [MinimumAge(ErrorMessage = "Deve ter pelo menos 18 anos para se registrar.")]
         [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
         [Display(Name = "Data de Nascimento")]

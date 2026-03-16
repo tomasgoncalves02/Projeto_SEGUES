@@ -96,7 +96,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account.Manage
             await _signInManager.RefreshSignInAsync(user);
             _logger.LogInformation("Utilizador alterou a password com sucesso.");
             TempData.SetSwalSuccess("A sua password foi alterada com sucesso.");
-            return RedirectToPage();
+            return RedirectToAction("Index", "User", new { area = "User" });
         }
     }
 }

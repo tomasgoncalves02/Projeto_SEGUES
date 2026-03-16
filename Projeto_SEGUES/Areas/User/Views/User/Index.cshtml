@@ -1,15 +1,14 @@
-﻿@using Microsoft.AspNetCore.Identity
-@using Projeto_SEGUES.Models.User
-@inject SignInManager<AppUser> SignInManager
-@inject UserManager<AppUser> UserManager
-@Html.AntiForgeryToken()
+﻿@using Projeto_SEGUES.Models.Enums
+@model Projeto_SEGUES.Areas.User.ViewModels.EditUserViewModel
 
 @{
     ViewData["Title"] = "Perfil - SEGUES";
+    var initialLetter = Model.FirstName[0].ToString().ToUpper();
 }
 
+
 <div class="container mt-5">
-@* Top row *@
+    @* Top row *@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="fw-bold title-underline">Perfil</h1>
         @* Return button *@
@@ -17,109 +16,116 @@
             <i class="bi bi-arrow-left me-2"></i>Voltar
         </a>
     </div>
-</div>
-
-
-
-@if (SignInManager.IsSignedIn(User))
-{
-    var roles = ViewBag.Roles as List<SelectListItem> ?? [];
-    var user = await UserManager.GetUserAsync(User);
-    if (user == null) return;
-    var userRoles = await UserManager.GetRolesAsync(user);
-    var userRole = userRoles.FirstOrDefault() ?? "Client";
-    var roleText = roles.Find(r => r.Value == userRole)?.Text ?? userRole;
-
-   
-
-    var name = user?.FirstName ?? "Utilizador";
-    var lastname = user?.LastName ?? "Utilizador";
-    var email = user?.Email ?? "Email";
-    var birthDate = user?.BirthDate;
-    var genre = user?.Gender;
-
-    
-    var fields = new List<(string Label, string Value, string Key)>
-    {
-        ("Nome", name, "name"),
-        ("Apelido", lastname, "lastname"),
-        ("Email", email, "email"),
-        ("Data de Nascimento", birthDate?.ToString("dd/MM/yyyy") ?? "Não definido", "birthDate"),
-        ("Género", genre?.ToDisplayName() ?? "Não definido","genre"),
-        ("Password","******","password")
-
-    };
-    var initialLetter = name[0].ToString().ToUpper();
-
-
-
-
+    @* Profile *@
     <div class="card card-ips mb-4 shadow-sm">
         <div class="card-body py-4">
-
-            <div class="d-flex align-items-center justify-content-between flex-wrap p-0 gap-2">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
                 <div class="d-flex align-items-center">
-                    <div class="avatar-circle" style="width: 60px; height: 60px; font-size: 2rem; display: flex; align-items: center; justify-content: center;">@initialLetter</div>
-                    <span class="ms-3 text-dark fw-bold fs-3">@name</span>
+                    <div class="avatar-circle" style="width: 60px; height: 60px; font-size: 2rem;">@initialLetter</div>
+                    <div class="ms-3">
+                        <span class="text-dark fw-bold fs-3">@Model.FirstName @Model.LastName</span>
+                        <div class="text-muted">@ViewBag.Email</div>
+                    </div>
                 </div>
-
-              
-
-
-                <span class="badge  @userRole.ToBadgeClass() fw-semibold fs-5 w-100 d-md-none"> @roleText.ToUpper()</span>
-                <span class="badge  @userRole.ToBadgeClass() fw-semibold fs-5 d-none d-md-block"> @roleText.ToUpper()</span>
+                <span class="badge @Model.Role.ToBadgeClass() fw-semibold fs-5 px-3">@Model.Role.ToUpper()</span>
             </div>
-            <br/>
-            <hr class="m-0" style="border-color: #ddd; border-width: 2px;">
+            <hr class="mb-4" style="border-color: #ddd; border-width: 2px;">
 
-            <div class="card-body p-4">
-                <h4 class="fw-bold mb-4 text-dark">Informações</h4>
-                <div class="row">
-                    <div class="col-12 col-md-6">
-                        <div class="d-flex flex-column gap-2">
-                            @foreach (var field in fields)
-                            {
-                                <div class="d-flex justify-content-between align-items-center px-3 py-2 rounded" style="background-color: #d8efeb;">
-                                    <span class="text-dark">@field.Label: <span class="fw-bold">@field.Value</span></span>
+            <form id="profileForm" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                <input type="hidden" asp-for="Id"/>
+                @Html.AntiForgeryToken()
+                
+                <div class="row g-3">
+                    <h4 class="fw-bold text-dark mb-2">Informações Pessoais</h4>
 
-
-                                    @switch (field.Key)
-                                    {
-                                        case "birthDate":
-                                            <a onclick="showEditData('@field.Label', '@field.Value', '@field.Key')" class="text-decoration-none fw-semibold" style="cursor: pointer; color: #129b8e;">Editar</a>
-                                            break;
-                                        case "genre":
-                                            <a onclick="showEditGenre('@field.Label', '@field.Value', '@field.Key')" class="text-decoration-none fw-semibold" style="cursor: pointer; color: #129b8e;">Editar</a>
-                                            break;
-                                        case "password":
-                                            <a onclick="showEditPassword('@field.Label', '@field.Key')" class="text-decoration-none fw-semibold" style="cursor: pointer; color: #129b8e;">Editar</a>
-                                            break;
-                                        default:
-                                            <a onclick="showEdit('@field.Label', '@field.Value', '@field.Key')" class="text-decoration-none fw-semibold" style="cursor: pointer; color: #129b8e;">Editar</a>
-                                            break;
-                                    }
-                                </div>
-                            }
+                    <div class="col-md-6">
+                        <label asp-for="FirstName" class="form-label fw-bold"></label>
+                        <input asp-for="FirstName" class="form-control" />
+                        <span asp-validation-for="FirstName" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="LastName" class="form-label fw-bold"></label>
+                        <input asp-for="LastName" class="form-control" />
+                        <span asp-validation-for="LastName" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Gender" class="form-label fw-bold"></label>
+                        <select asp-for="Gender" class="form-select" asp-items="Html.GetEnumSelectList<Gender>()">
+                            <option value="">Selecione...</option>
+                        </select>
+                        <span asp-validation-for="Gender" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="BirthDate" class="form-label fw-bold"></label>
+                        <input asp-for="BirthDate" type="date" class="form-control" />
+                        <span asp-validation-for="BirthDate" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="FiscalNumber" class="form-label fw-bold small"></label>
+                        <input asp-for="FiscalNumber" class="form-control" />
+                        <span asp-validation-for="FiscalNumber" class="text-danger small"></span>
+                    </div>
+                    
+                    <h4 class="fw-bold text-dark mt-4 mb-2">Localização</h4>
+                    <div class="col-md-8">
+                        <label asp-for="Address" class="form-label fw-bold small"></label>
+                        <input asp-for="Address" class="form-control" />
+                        <span asp-validation-for="Address" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="PostalCode" class="form-label fw-bold small"></label>
+                        <input asp-for="PostalCode" class="form-control" />
+                        <span asp-validation-for="PostalCode" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="City" class="form-label fw-bold small"></label>
+                        <input asp-for="City" class="form-control" />
+                        <span asp-validation-for="City" class="text-danger small"></span>
+                    </div>
+                    
+                    @if (Model.Category == "Student")
+                    {
+                        <h4 class="fw-bold text-dark mt-4 mb-2">Dados Académicos</h4>
+                        <div class="col-md-6">
+                            <label asp-for="StudentNumber" class="form-label fw-bold small"></label>
+                            <input asp-for="StudentNumber" class="form-control" />
+                            <span asp-validation-for="StudentNumber" class="text-danger small"></span>
+                        </div>
+                    }
+                    else if (Model.Category == "Employee")
+                    {
+                        <h4 class="fw-bold text-dark mt-4 mb-2">Dados Profissionais</h4>
+                        <div class="col-md-6">
+                            <label asp-for="RoleDescription" class="form-label fw-bold small"></label>
+                            <input asp-for="RoleDescription" class="form-control" />
+                            <span asp-validation-for="RoleDescription" class="text-danger small"></span>
+                        </div>
+                    }
+                    
+                    <div class="col-12 mt-4">
+                        <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center">
+                            <div class="d-flex gap-2">
+                                <a asp-area="Identity" asp-page="/Account/Manage/Email" class="btn btn-outline-primary fw-bold">
+                                    <i class="bi bi-envelope me-2"></i>Alterar Email
+                                </a>
+                                <a asp-area="Identity" asp-page="/Account/Manage/ChangePassword" class="btn btn-outline-warning fw-bold">
+                                    <i class="bi bi-key me-2"></i>Alterar Password
+                                </a>
+                            </div>
+                            <button type="submit" class="btn btn-ips px-5 fw-bold">
+                                Guardar Alterações
+                            </button>
                         </div>
                     </div>
                 </div>
-            </div>
-            
-
-
+            </form>
         </div>
     </div>
+</div>
 
-   
-
-
- }
-
-
-
-
-
-
-
-
-
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

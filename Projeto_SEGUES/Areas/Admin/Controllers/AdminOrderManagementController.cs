@@ -10,7 +10,6 @@ using Projeto_SEGUES.Services;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using System.Reflection.Metadata;
 
 namespace Projeto_SEGUES.Areas.Admin;
 

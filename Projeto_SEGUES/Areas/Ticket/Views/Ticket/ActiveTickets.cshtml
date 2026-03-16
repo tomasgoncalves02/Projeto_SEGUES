@@ -32,11 +32,7 @@
 </div>
 
 @section Scripts {
-    <script>       
-        if (typeof showQr === 'function') {
-            window.showQr = showQr;
-        }
-
+    <script>
         document.addEventListener('htmx:afterProcess', function() {
             console.log("Senhas ativas atualizadas via HTMX.");
         });

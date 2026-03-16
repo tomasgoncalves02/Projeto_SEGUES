@@ -15,6 +15,7 @@ using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using System.Security.Claims;
 using System.Security.Principal;
+using Projeto_SEGUES.Areas.User.ViewModels;
 using Xunit;
 
 namespace SeguesTests.Admin
@@ -87,7 +88,7 @@ namespace SeguesTests.Admin
 
             var viewResult = Assert.IsType<ViewResult>(result);
             var model = Assert.IsType<EditUserViewModel>(viewResult.Model);
-            Assert.Equal(user.Email, model.Email);
+            Assert.Equal(user.Id, model.Id);
         }
 
 
@@ -98,14 +99,13 @@ namespace SeguesTests.Admin
             var model = new EditUserViewModel
             {
                 Id = "1",
-                Email = "new@test.com",
                 FirstName = "New",
                 LastName = "Name",
                 Category = "Estudante",
                 Role = "Admin",
                 Gender = Gender.Male,
                 BirthDate = DateTime.Now.AddYears(-20),
-                Balance = 10.00m 
+                Balance = 10.00m
             };
 
             var user = CreateTestUser("1", "old@test.com");

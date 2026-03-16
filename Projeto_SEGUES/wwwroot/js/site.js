@@ -1,255 +1,29 @@
-﻿
+﻿/* ===================
+ * Imports
+ * =================== */
+import { Notifications, Api, DOM } from "./core/core.js";
 
-const Notifications = {
-    // Success (Auto-close 3s, no button)
-    success: function (message, html = undefined) {
-        if (html) message = ''; // If HTML is provided, ignore text to avoid redundancy
-        return showSwal({
-            icon: 'success',
-            title: 'Operação Concluída',
-            text: message,
-            html: html,
-            timer: 3000,
-            showConfirmButton: false,
-            showCloseButton: true
-        });
-    },
+/* ===================
+ * Expose to window
+ * =================== */
+window.Notifications = Notifications;
+window.Api = Api;
+window.DOM = DOM;
 
-    // Error (Sticky, footer link)
-    error: function (message, html = undefined) {
-        if (html) message = ''; // If HTML is provided, ignore text to avoid redundancy
-        return showSwal({
-            icon: 'error',
-            title: 'Erro',
-            text: message,
-            html: html,
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            footer: "Se o erro persistir, contacte o <a href='mailto:segues2026@gmail.com'>suporte</a>."
-        });
-    },
-
-    // Warning (Sticky, requires click)
-    warning: function (message, html = undefined) {
-        if (html) message = ''; // If HTML is provided, ignore text to avoid redundancy
-        return showSwal({
-            icon: 'warning',
-            title: 'Aviso',
-            text: message,
-            html: html,
-            allowOutsideClick: false,
-            allowEscapeKey: false
-        });
-    },
-
-    // Info (Auto-close 4s)
-    info: function (message, html = undefined, showConfirmButton = false, timer = 4000) {
-        if (html) message = ''; // If HTML is provided, ignore text to avoid redundancy
-        return showSwal({
-            icon: 'info',
-            title: 'Informação',
-            text: message,
-            html: html,
-            timer: timer,
-            showConfirmButton: showConfirmButton,
-            showCloseButton: true
-        });
-    },
-
-    // Confirmation (Returns Promise for logic)
-    confirm: function (message, html = undefined) {
-        if (html) message = ''; // If HTML is provided, ignore text to avoid redundancy
-        return showSwal({
-            icon: 'question',
-            title: 'Confirma Operação?',
-            text: message,
-            html: html,
-            showCancelButton: true,
-            confirmButtonText: 'Sim',
-            confirmButtomAriaLabel: 'Sim',
-            cancelButtonText: 'Não',
-            cancelButtonAriaLabel: 'Não',
-            allowOutsideClick: false,
-            allowEscapeKey: false
-        });
-    }
-};
-/*
+/* ===================
  * Events registration
- */
-document.addEventListener("DOMContentLoaded", addEvents);
+ * =================== */
+document.addEventListener("DOMContentLoaded", () => {
+    Notifications.init();
+});
 
 
-
-
-function addEvents() {
-
-    const periodSelectR = document.getElementById('periodSelectR');
-    if (periodSelectR) {
-        loadMealsSummary(); 
-        periodSelectR.addEventListener('change', loadMealsSummary); 
-    }
-    const periodSelectB = document.getElementById('periodSelectB');
-    if (periodSelectB) {
-        loadBarSummary(); 
-        periodSelectB.addEventListener('change', loadBarSummary); 
-    }
-
-
-    // Swal
-    const swalContainer = document.getElementById("swal-data");
-    if (swalContainer && swalContainer.dataset.json && swalContainer.dataset.json.length > 0) {
-        try {
-            showSwal(JSON.parse(swalContainer.dataset.json));
-        } catch (e) {
-            console.error("Invalid JSON data for Swal:", e);
-        }
-    }
-    
-    // Password Visibility Toggle
-    function setupPasswordToggle(buttonId, inputId) {
-        const toggleBtn = document.getElementById( buttonId );
-        const passwordInput = document.getElementById( inputId );
-        if (toggleBtn && passwordInput) {
-            toggleBtn.addEventListener('click', () => togglePasswordVisibility(toggleBtn, passwordInput));
-        }
-    }
-    setupPasswordToggle('togglePassword', 'passwordInput');
-    setupPasswordToggle('toggleConfirmPassword', 'confirmPasswordInput');
-    
-    // Verify Email Validation Code and Auto-Submit
-    setupVerifyCode('verificationCodeInput');
-    
-    // Show Qr
-    const qrBtnList = document.getElementsByClassName("showQr");
-    for (let btn of qrBtnList)
-        btn.addEventListener("click", () => showQr(btn.dataset.code));
-    
-    // Focus ticket code validation
-    setupTicketCodeValidation('TicketCodeInput');
-}
-
-/*
- * Swal and Notifications Wrapper (matches C# TempDataExtensions
- */
-function showSwal(options) {
-    if (!options || typeof options !== "object") {
-        console.error("showSwal requires a valid options object.");
-        return;
-    }
-
-    const config = {
-        icon: options.icon !== undefined ? options.icon : 'info',
-        title: options.title || '',
-        text: options.text || '',
-        html: options.html || undefined,
-        footer: options.footer || undefined,
-        timer: options.timer || undefined,
-        // Behavior
-        allowOutsideClick: options.allowOutsideClick ?? true,
-        allowEscapeKey: options.allowEscapeKey ?? true,
-        showCloseButton: options.showCloseButton ?? false,
-        backdrop: options.backdrop || "var(--ips-shadow-soft)",
-        // Confirm Button
-        showConfirmButton: options.showConfirmButton ?? true,
-        confirmButtonText: options.confirmButtonText || 'OK',
-        confirmButtonColor: options.confirmButtonColor || 'var(--ips)',
-        confirmButtonAriaLabel: options.confirmButtonAriaLabel || 'OK',
-        // Deny Button
-        showDenyButton: options.showDenyButton ?? false,
-        denyButtonText: options.denyButtonText || 'Não',
-        denyButtonColor: options.denyButtonColor || 'var(--deny)',
-        denyButtonAriaLabel: options.denyButtonAriaLabel || 'Não',
-        // Cancel Button
-        showCancelButton: options.showCancelButton ?? false,
-        cancelButtonText: options.cancelButtonText || 'Cancelar',
-        cancelButtonColor: options.cancelButtonColor || 'var(--cancel)',
-        cancelButtonAriaLabel: options.cancelButtonAriaLabel || 'Cancelar'
-    };
-    return Swal.fire(config); // Return the promise
-}
-
-function escolherEmenta() {
-    Swal.fire({
-        title: 'Qual ementa deseja visualizar?',
-        icon: 'question',
-        showCancelButton: true,
-        showDenyButton: true,
-        confirmButtonText: 'Refeitório',
-        denyButtonText: 'Bar',
-        cancelButtonText: 'Cancelar',
-        confirmButtonColor: '#009697', 
-        denyButtonColor: '#009697',    
-        reverseButtons: true
-    }).then((result) => {
-        if (result.isConfirmed) {
-            window.open("https://software.movelife.net/pt-PT/Menus/PublicCC/Tj6o3O_vCFB2LmCmm9VUjw%3d%3d", "_blank");
-        } else if (result.isDenied) {
-            window.open(" https://software.movelife.net/pt-PT/Menus/PublicCC/Tj6o3O_vCFDXvHU0nbgTmg%3d%3d?DaySelected=13%2F03%2F2026&capit=5&idzone=1616", "_blank");
-        }
-    });
-}
-
-/*
- * Password Visibility Toggle
- */
-function togglePasswordVisibility(toggleBtn, passwordInput) {
-    const icon = toggleBtn.getElementsByTagName('i')[0];
-    const isPassword = passwordInput.type === 'password';
-    passwordInput.type = isPassword ? 'text' : 'password';
-    if (icon) {
-        icon.classList.toggle('bi-eye');
-        icon.classList.toggle('bi-eye-slash');
-    }
-}
-
-/*
- * Input Validation and Formatting
- */
-function calculateTotal(quantityString, priceString) {
-    if (!quantityString || !priceString) return "0,00 €";
-    const quantity = Number(quantityString) || 0;
-    const price = Number(priceString) || 0;
-    return (quantity * price).toFixed(2).toString().replace('.', ',') + ' €';
-}
-
-/*
+/* ===================
  * Code generation and verification
- */
-// Verify Email Validation Code and Auto-Submit
-function setupVerifyCode(inputId) {
-    const codeInput = document.getElementById(inputId);
-    if (!codeInput) return;
-    
-    const validationForm = codeInput.closest("form");
-    codeInput.addEventListener("input", function () {
-        // Remove any non-numeric characters
-        this.value = this.value.replace(/[^0-9]/g, '');
-        // Auto-submit when 6 digits are reached
-        if (this.value.length === 6 && validationForm) {
-            validationForm.submit();
-        }
-    });
-}
-
-// Display QR Code
-function showQr(code) {
-    showSwal({
-        title: 'Senha de Refeição', 
-        html: `<div class="p-3 text-color-ips">
-                 <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${code}" class="mb-3 border rounded p-2 shadow-sm" alt="QR">
-                 <h2 class="fw-bold text-color-ips" style="letter-spacing: 6px;">${code}</h2>
-                 <p class="text-muted small mt-2">
-                    Apresente este código no refeitório para validação.<br />
-                    Mantém o brilho do telemóvel alto para facilitar a leitura.
-                 </p>
-              </div>`,
-        backdrop: 'var(--ips-shadow-soft)'
-    });
-}
+ * =================== */
 
 function showCode(code) {
-    showSwal({
+    Notifications._show({
         title: 'Codigo de Pedido',
         html: `<div class="p-3 text-color-ips">
                  <h2 class="fw-bold text-color-ips" style="letter-spacing: 6px;">${code}</h2>
@@ -262,352 +36,14 @@ function showCode(code) {
     });
 }
 
-// Ticket Code Validation
-function setupTicketCodeValidation(inputId) {
-    const codeInput = document.getElementById(inputId);
-    if (!codeInput) return;
-    document.addEventListener("DOMContentLoaded", function() {
-        codeInput.focus();
-        codeInput.addEventListener('blur', function() { 
-            setTimeout(() => this.focus(), 100); 
-        });
-    });
-}
 
-//Edit personal data
-function showEdit(typeName, currentName, key) {
-    Swal.fire({
-        title: `<h2 class="fw-bold mb-4">${typeName}</h2>`,
-        html: `
-            <div class="p-2 d-flex flex-column align-items-center">
-                <input type="text" id="editInput" class="form-control" placeholder="${typeName}" value="${currentName}">
-            </div>`,
-        showCancelButton: true,
-        confirmButtonText: 'Editar',
-        confirmButtonColor: '#009A93',
-        cancelButtonText: 'Fechar',
-        preConfirm: () => {
-            const value = Swal.getPopup().querySelector('#editInput').value;
-            if (!value) {
-                Swal.showValidationMessage(`Por favor, preencha o campo`);
-                return false;
-            }
-            return { value };
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            handleEditSubmit(typeName, key, result.value.value);
-        }
-    });
-}
-
-function showEditData(typeName, currentName, key) {
-    let inputValue = '';
-    if (currentName && currentName !== 'Não definido') {
-        const parts = currentName.split('/');
-        if (parts.length === 3) {
-            inputValue = `${parts[2]}-${parts[1]}-${parts[0]}`;
-        }
-    }
-
-    Swal.fire({
-        title: `<h2 class="fw-bold mb-4">${typeName}</h2>`,
-        html: `
-            <div class="p-2 d-flex flex-column align-items-center">
-                <input type="date" id="editInput" class="form-control" value="${inputValue}">
-            </div>`,
-        showCancelButton: true,
-        confirmButtonText: 'Editar',
-        confirmButtonColor: '#009A93',
-        cancelButtonText: 'Fechar',
-        preConfirm: () => {
-            const value = Swal.getPopup().querySelector('#editInput').value;
-            if (!value) {
-                Swal.showValidationMessage(`Por favor, selecione uma data`);
-                return false;
-            }
-            return { value };
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            handleEditSubmit(typeName, key, result.value.value);
-        }
-    });
-}
-
-function showEditGenre(typeName, currentName, key) {
-    fetch('/User/User/GetGenders')
-        .then(r => r.json())
-        .then(genders => {
-            const options = genders.map(g =>
-                `<option value="${g.value}" ${currentName === g.text ? 'selected' : ''}>${g.text}</option>`
-            ).join('');
-
-            Swal.fire({
-                title: `<h2 class="fw-bold mb-4">${typeName}</h2>`,
-                html: `
-                    <div class="p-2 d-flex flex-column align-items-center">
-                        <select id="genreSelect" class="form-select">
-                            <option value="">Selecione...</option>
-                            ${options}
-                        </select>
-                    </div>`,
-                showCancelButton: true,
-                confirmButtonText: 'Editar',
-                confirmButtonColor: '#009A93',
-                cancelButtonText: 'Fechar',
-                preConfirm: () => {
-                    const value = Swal.getPopup().querySelector('#genreSelect').value;
-                    if (!value) {
-                        Swal.showValidationMessage(`Por favor, selecione um género`);
-                        return false;
-                    }
-                    return { value };
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    handleEditSubmit(typeName, key, result.value.value);
-                }
-            });
-        });
-}
-
-function showEditPassword(typeName, key) {
-    Swal.fire({
-        title: `<h2 class="fw-bold mb-4">${typeName}</h2>`,
-        html: `
-            <div class="p-2 d-flex flex-column align-items-center">
-
-                    <div class="input-group mb-3">
-            <input type="password" id="oldpassword" class="form-control" placeholder="Password Atual">
-            <button class="btn btn-ips-outline-secondary px-3" type="button" onclick="togglePasswordVisibility(this, document.getElementById('oldpassword'))">
-                <i class="bi fs-5 bi-eye"></i>
-            </button>
-        </div>
-        <div class="input-group mb-3">
-            <input type="password" id="newpassword" class="form-control" placeholder="Nova Password">
-            <button class="btn btn-ips-outline-secondary px-3" type="button" onclick="togglePasswordVisibility(this, document.getElementById('newpassword'))">
-                <i class="bi fs-5 bi-eye"></i>
-            </button>
-        </div>
-        <div class="input-group mb-3">
-            <input type="password" id="confirmnewpassword" class="form-control" placeholder="Confirme a Nova Password">
-            <button class="btn btn-ips-outline-secondary px-3" type="button" onclick="togglePasswordVisibility(this, document.getElementById('confirmnewpassword'))">
-                <i class="bi fs-5 bi-eye"></i>
-            </button>
-        </div>
-  
-            </div>`,
-        showCancelButton: true,
-        confirmButtonText: 'Editar',
-        confirmButtonColor: '#009A93',
-        cancelButtonText: 'Fechar',
-        preConfirm: () => {
-            const currentPassword = Swal.getPopup().querySelector('#oldpassword').value;
-            const newPassword = Swal.getPopup().querySelector('#newpassword').value;
-            const confirmPassword = Swal.getPopup().querySelector('#confirmnewpassword').value;
-            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,}$/;
-
-            if (!currentPassword || !newPassword || !confirmPassword) {
-                Swal.showValidationMessage(`Por favor, preencha todos os campos`);
-                return false;
-            }
-            if (newPassword !== confirmPassword) {
-                Swal.showValidationMessage(`As passwords novas não coincidem`);
-                return false;
-            }
-            if (!passwordRegex.test(newPassword)) {
-                Swal.showValidationMessage(`A password deve ter mínimo 12 caracteres, uma maiúscula, uma minúscula, um número e um símbolo (@$!%*?&)`);
-                return false;
-            }
-
-          
-                
-
-            return { currentPassword, newPassword };
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            enviarNovaPassword(result.value.currentPassword, result.value.newPassword);
-        }
-    });
-}
-
-function enviarNovaPassword(currentPassword, newPassword) {
-    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-
-    const params = new URLSearchParams();
-    params.append('currentPassword', currentPassword);
-    params.append('newPassword', newPassword);
-
-    fetch('/User/User/UpdatePassword', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'RequestVerificationToken': token 
-        },
-        body: params.toString()
-    })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                Notifications.success("Password alterada!");
-                setTimeout(() => location.reload(), 1500);
-            } else {
-                Notifications.error(data.message || "Erro ao atualizar password.");
-            }
-        })
-        .catch(() => Notifications.error("Erro de comunicação."));
-}
-
-
-function confirmarEdicao(typeName, key) {
-    let value = "";
-
-    // Evita tentar ler valor de um campo de password que não existe como input único
-    if (key === 'genre') {
-        value = document.getElementById('genreSelect')?.value;
-    } else if (key !== 'password') {
-        value = document.getElementById(typeName)?.value;
-    }
-
-    Notifications.confirm(`Tens a certeza que queres alterar ${typeName}?`)
-        .then(r => {
-            if (r.isConfirmed) {
-                if (key === 'password') {
-                    handlePasswordSubmit(); // Agora sem parâmetros
-                } else {
-                    handleEditSubmit(typeName, key, value);
-                }
-            }
-        });
-}
-
-
-
-function handlePasswordSubmit() {
-    // Adicionei verificações de existência para evitar o erro "null reading value"
-    const oldInput = document.getElementById('oldpassword');
-    const newInput = document.getElementById('newpassword');
-    const confirmInput = document.getElementById('confirmnewpassword');
-
-    if (!oldInput || !newInput || !confirmInput) {
-        console.error("Erro: Inputs de password não encontrados no DOM.");
-        return;
-    }
-
-    const currentPassword = oldInput.value;
-    const newPassword = newInput.value;
-    const confirmPassword = confirmInput.value;
-    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-
-    if (newPassword !== confirmPassword) {
-        Notifications.error("As passwords não coincidem.");
-        return;
-    }
-
-    // Usar URLSearchParams garante que o formato enviado não causa erro 400
-    const bodyParams = new URLSearchParams();
-    bodyParams.append('currentPassword', currentPassword);
-    bodyParams.append('newPassword', newPassword);
-
-    fetch('/User/User/UpdatePassword', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'RequestVerificationToken': token
-        },
-        body: bodyParams.toString()
-    })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                Swal.close();
-                Notifications.success("Password atualizada!");
-                setTimeout(() => location.reload(), 1500);
-            } else {
-                Notifications.error(data.message || "Erro ao atualizar.");
-            }
-        })
-        .catch(() => Notifications.error("Erro de comunicação com o servidor."));
-}
-
-function handleEditSubmit(typeName, key, value) {
-    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-
-    const bodyParams = new URLSearchParams();
-    bodyParams.append('key', key);
-    bodyParams.append('value', value);
-
-    fetch('/User/User/UpdateType', { 
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'RequestVerificationToken': token 
-        },
-        body: bodyParams.toString()
-    })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                Swal.close();
-                Notifications.success(typeName + " atualizado!");
-                setTimeout(() => location.reload(), 1500);
-            } else {
-                Notifications.error(data.message || "Erro na atualização.");
-            }
-        })
-        .catch(() => Notifications.error("Erro de rede."));
-}
-
-//-----------------------------------------------------------------------------------------
 
 /* ==========================================
    Novas Funcionalidades: Inventário e Bar
    ========================================== */
 
-/**
- * Filtra tabelas genericamente por texto e estado.
- * Usado no Inventário, Histórico e Pedidos.
- */
-function filterTableGeneric(tableId, searchInputId, statusFilterId, rowClass) {
-    const searchTerm = document.getElementById(searchInputId).value.toLowerCase();
-    const status = statusFilterId ? document.getElementById(statusFilterId).value : "todos";
-    const rows = document.querySelectorAll(`.${rowClass}`);
 
-    rows.forEach(row => {
-        const textContent = row.innerText.toLowerCase();
-        const rowStatus = row.getAttribute('data-estado') || row.getAttribute('data-stock');
 
-        const matchesSearch = textContent.includes(searchTerm);
-        const matchesStatus = (status === "todos" || rowStatus === status);
-
-        row.style.display = (matchesSearch && matchesStatus) ? "" : "none";
-    });
-}
-
-/**
- * Lógica do Carrinho de Compras (Efetuar Pedido)
- */
-let cartCount = 0;
-function updateCartBadge(quantity) {
-    cartCount += parseInt(quantity);
-    const badge = document.getElementById('cart-count');
-    if (badge) {
-        badge.innerText = cartCount;
-        badge.style.display = cartCount > 0 ? "block" : "none";
-    }
-}
-
-/**
- * Formatação de Moeda para Modais (Portugal)
- */
-function formatCurrency(value) {
-    return new Intl.NumberFormat('pt-PT', {
-        style: 'currency',
-        currency: 'EUR'
-    }).format(value);
-}
 
 /**
  * Exibe Detalhes do Produto no Inventário (BarProductViewModel)
@@ -650,54 +86,8 @@ function confirmDelete(id, name, formPrefix) {
     });
 }
 
-// Adicionar ao carrinho (BD)
-function processAddToCart(id, name) {
-    const qty = document.getElementById('qty-' + id).value;
 
-    fetch(`/Bar/OrderManagement/AddToCart?id=${id}&qty=${qty}`, { method: 'POST' })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                updateCartBadgeManual(data.count); // Usa a função de badge
-                Notifications.success(`${qty}x ${name} adicionado!`);
-            }
-        });
-}
 
-// REMOVER DO CARRINHO (Ajustado para CreateOrderController)
-function removeFromCart(id, name) {
-    Notifications.confirm(`Desejas remover ${name} do carrinho?`).then(res => {
-        if (res.isConfirmed) {
-            fetch(`/Order/CreateOrder/RemoveFromCart?id=${id}`, {
-                method: 'POST',
-                headers: {
-                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
-                }
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        Notifications.error(data.message || "Não foi possível remover o item.");
-                    }
-                })
-                .catch(err => {
-                    console.error("Erro na remoção:", err);
-                    Notifications.error("Erro de comunicação com o servidor.");
-                });
-        }
-    });
-}
-
-// Helper para atualizar a badge com valor exato da BD
-function updateCartBadgeManual(count) {
-    const badge = document.getElementById('cart-count');
-    if (badge) {
-        badge.innerText = count;
-        badge.style.display = count > 0 ? "block" : "none";
-    }
-}
 // Adiciona isto no início do site.js
 function confirmarCompraBar(formId) {
     // Verifica se o objeto de notificações existe
@@ -770,6 +160,7 @@ function verDetalhesProdutos(id, urlBase = '/Report/ReportOrder/GetOrderDetails'
             Notifications.error("Não foi possível carregar os detalhes do pedido.");
         });
 }
+window.verDetalhesProdutos = verDetalhesProdutos;
 
 /**
  * Lógica de atualização de estado com validação de código para entrega
@@ -847,7 +238,7 @@ function handleUpdate() {
     }
 }
 
-function showProductDetails(name, description, price) {
+function showProductDetails2(name, description, price) {
     Swal.fire({
         title: '<strong>Detalhes do Produto</strong>',
         icon: 'info',
@@ -1173,7 +564,7 @@ async function loadMealsSummary() {
 
     clearDataR();
 
-    const periodSelect = document.getElementById('periodSelectR');
+    const periodSelect = document.getElementById('selectTicketsPeriod');
     const period = periodSelect?.value;
 
     
@@ -1211,7 +602,7 @@ async function loadBarSummary() {
 
     clearDataB();
 
-    const periodSelect = document.getElementById('periodSelectB');
+    const periodSelect = document.getElementById('selectOrdersPeriod');
     const period = periodSelect?.value;
 
 

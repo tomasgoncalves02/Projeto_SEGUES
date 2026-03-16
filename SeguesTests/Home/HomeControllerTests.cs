@@ -9,6 +9,7 @@ using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Services;
 using System.Security.Claims;
+using Microsoft.Extensions.Localization;
 using Xunit;
 
 namespace SeguesTests
@@ -16,6 +17,7 @@ namespace SeguesTests
     public class HomeControllerTests
     {
         private readonly Mock<ILogger<HomeController>> _mockLogger;
+        private readonly Mock<IStringLocalizer<AppErrors>> _mockLocalizer;
         private readonly Mock<UserManager<AppUser>> _mockUserManager;
         private readonly Mock<IAdminService> _mockAdminService;
         private readonly HomeController _controller;
@@ -23,12 +25,13 @@ namespace SeguesTests
         public HomeControllerTests()
         {
             _mockLogger = new Mock<ILogger<HomeController>>();
+            _mockLocalizer = new Mock<IStringLocalizer<AppErrors>>();
             _mockAdminService = new Mock<IAdminService>();
 
             var store = new Mock<IUserStore<AppUser>>();
             _mockUserManager = new Mock<UserManager<AppUser>>(store.Object, null, null, null, null, null, null, null, null);
 
-            _controller = new HomeController(_mockLogger.Object, _mockUserManager.Object, _mockAdminService.Object);
+            _controller = new HomeController(_mockLogger.Object, _mockLocalizer.Object, _mockUserManager.Object, _mockAdminService.Object);
 
             var httpContext = new DefaultHttpContext();
             _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };

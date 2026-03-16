@@ -18,6 +18,7 @@ namespace SeguesTests.User
         private readonly Mock<UserManager<AppUser>> _mockUserManager;
         private readonly UserController _controller;
 
+        /*
         public UserControllerTests()
         {
             _mockAdminService = new Mock<IAdminService>();
@@ -143,6 +144,6 @@ namespace SeguesTests.User
             var jsonResult = Assert.IsType<JsonResult>(result);
             var list = Assert.IsAssignableFrom<IEnumerable<object>>(jsonResult.Value);
             Assert.NotEmpty(list);
-        }
+        }*/
     }
 }

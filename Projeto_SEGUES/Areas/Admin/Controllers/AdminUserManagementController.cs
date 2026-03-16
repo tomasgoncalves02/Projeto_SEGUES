@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
+using Projeto_SEGUES.Areas.User.ViewModels;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Enums;
@@ -86,7 +87,6 @@ public class AdminUserManagementController : Controller
         return View(new EditUserViewModel
         {
             Id = user.Id,
-            Email = user.Email!,
             FirstName = user.FirstName,
             LastName = user.LastName,
             Gender = user.Gender,
@@ -113,8 +113,6 @@ public class AdminUserManagementController : Controller
 
         user.FirstName = model.FirstName;
         user.LastName = model.LastName;
-        user.Email = model.Email;
-        user.UserName = model.Email;
         user.Balance = model.Balance;
         user.Gender = model.Gender;
         user.BirthDate = model.BirthDate;

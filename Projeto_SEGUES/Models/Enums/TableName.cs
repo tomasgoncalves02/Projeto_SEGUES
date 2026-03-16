@@ -8,6 +8,7 @@ public enum TableName : byte
     DbStats,
     Discount,
     Employee,
+    Identity,
     Order,
     OrderLine,
     PostalCode,

@@ -4,17 +4,21 @@ using Projeto_SEGUES.Models.Audit.ViewModels;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using System.Diagnostics;
+using Microsoft.Extensions.Localization;
+using Projeto_SEGUES.Models.Enums;
 
 namespace Projeto_SEGUES.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly IStringLocalizer<AppErrors> _localizer;
         private readonly UserManager<AppUser> _userManager;
         private readonly IAdminService _adminService;
-        public HomeController(ILogger<HomeController> logger, UserManager<AppUser> userManager, IAdminService adminService)
+        public HomeController(ILogger<HomeController> logger, IStringLocalizer<AppErrors> localizer, UserManager<AppUser> userManager, IAdminService adminService)
         {
             _logger = logger;
+            _localizer = localizer;
             _adminService = adminService;
             _userManager = userManager;
         }
@@ -22,26 +26,23 @@ namespace Projeto_SEGUES.Controllers
         public async Task<IActionResult> Index()
         {
             // Check if logged
-            if (User.Identity is { IsAuthenticated: true })
+            if (User.Identity is not { IsAuthenticated: true }) return View();
+            
+            // If logged load data for view
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user != null)
             {
-                //If logged load dashboard data
-                var user = await _userManager.GetUserAsync(User);
-
-                if (user != null)
-                {
-                    ViewBag.UserBalance = user.Balance;
-                    ViewBag.FirstName = user.FirstName;
-                    var roles = await _userManager.GetRolesAsync(user);
-                    ViewBag.UserRole = roles.FirstOrDefault();
-                }
-                else
-                {
-                    _logger.LogInformation("User not found.");
-                    return View(); 
-                }
+                ViewBag.UserBalance = user.Balance;
+                ViewBag.FirstName = user.FirstName;
+                var roles = await _userManager.GetRolesAsync(user);
+                ViewBag.UserRole = roles.FirstOrDefault();
             }
-
-            // Skips to this if isn´t logged
+            else
+            {
+                _logger.LogError(null, _localizer[nameof(AppErrors.UserNotFound)], "Error", TableName.Identity, AppOperation.Read);
+            }
+            
             return View();
         }
 

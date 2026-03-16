@@ -36,8 +36,8 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account.Manage
         
         public class InputModel
         {
-            [Required]
-            [EmailAddress]
+            [Required(ErrorMessage = "O email é obrigatório.")]
+            [EmailAddress(ErrorMessage = "Email inválido.")]
             [Display(Name = "Novo email")]
             public required string NewEmail { get; init; }
         }
@@ -87,13 +87,14 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account.Manage
                 var userId = await _userManager.GetUserIdAsync(user);
                 var code = await _userManager.GenerateChangeEmailTokenAsync(user, Input.NewEmail);
                 code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+                email = Input.NewEmail;
                 var callbackUrl = Url.Page(
                     "/Account/ConfirmEmailChange",
                     pageHandler: null,
-                    values: new { area = "Identity", userId, email = Input.NewEmail, code },
+                    values: new { area = "Identity", userId, email, code },
                     protocol: Request.Scheme)!;
                 await _emailSender.SendEmailAsync(
-                    Input.NewEmail,
+                    email,
                     "Confirma o teu email",
                     $"Por favor confirma a tua conta <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicando aqui</a>.");
                 TempData.SetSwalSuccess("Link de confirmação para alterar o email enviado. Por favor verifica o teu email.");
@@ -122,9 +123,9 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account.Manage
             var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
             var callbackUrl = Url.Page(
-                "/Account/ConfirmEmail",
+                "/Account/ConfirmEmailChange",
                 pageHandler: null,
-                values: new { area = "Identity", userId, code },
+                values: new { area = "Identity", userId, email, code },
                 protocol: Request.Scheme)!;
             await _emailSender.SendEmailAsync(
                 email,
