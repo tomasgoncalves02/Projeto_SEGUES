@@ -93,6 +93,9 @@ public class UserController : Controller
                 if (date > DateTime.Now.AddYears(-18))
                     return BadRequest(new { success = false, message = "Deve ter pelo menos 18 anos." });
 
+                if (date < DateTime.Now.AddYears(-120))
+                    return BadRequest(new { sucess = false, message = "Deve ter menos de 120 anos" });
+
                 user.BirthDate = date;
                 break;
 
