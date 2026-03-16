@@ -1,0 +1,46 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  buildConfiguration: 'Release'
+  webAppName: 'segues-projeto-esa-pv'     
+  azureServiceConnection: 'ConexaoAzure'    
+
+stages:
+- stage: Build
+  displayName: 'CI - Compilar Projeto'
+  jobs:
+  - job: BuildJob
+    steps:
+    - task: UseDotNet@2
+      displayName: 'Instalar .NET SDK 8.x'
+      inputs:
+        version: '8.x'
+
+    - script: dotnet publish --configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)
+      displayName: 'Publicar e Gerar ZIP'
+
+    - publish: $(Build.ArtifactStagingDirectory)
+      artifact: drop
+      displayName: 'Guardar Artefacto'
+
+- stage: Deploy
+  displayName: 'CD - Enviar para o Azure'
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+  - deployment: DeployJob
+    environment: 'production'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureWebApp@1
+            displayName: 'Deploy para App Service'
+            inputs:
+              azureSubscription: $(azureServiceConnection)
+              appName: $(webAppName)
+              package: '$(Pipeline.Workspace)/drop/**/*.zip'
