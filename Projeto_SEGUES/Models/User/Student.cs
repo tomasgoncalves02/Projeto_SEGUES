@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Projeto_SEGUES.Models.User
 {
@@ -8,7 +8,7 @@ namespace Projeto_SEGUES.Models.User
         [MaxLength(20)]
         [Display(Name = "Número de Estudante")]
         public required string StudentNumber { get; set; }
-        
+
         public School? School { get; set; } // FK
     }
 }

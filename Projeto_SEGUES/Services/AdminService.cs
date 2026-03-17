@@ -20,9 +20,9 @@ public class AdminService : IAdminService
     private readonly IEmailSender _emailSender;
 
     public AdminService(
-        AppDbContext context, 
-        UserManager<AppUser> userManager, 
-        RoleManager<Role> roleManager, 
+        AppDbContext context,
+        UserManager<AppUser> userManager,
+        RoleManager<Role> roleManager,
         IEmailSender emailSender)
     {
         _context = context;
@@ -42,32 +42,32 @@ public class AdminService : IAdminService
             return IdentityResult.Failed(new IdentityError { Description = "Dados inválidos, tente novamente." });
         }
         using var transaction = await _context.Database.BeginTransactionAsync();
-    try
-    {
-        var category = await _context.UserCategory.FirstAsync(c => c.Name == "Externo");
-        var user = new AppUser
+        try
         {
-            UserName = model.Email,
-            Email = model.Email,
-            FirstName = model.FirstName,
-            LastName = model.LastName,
-            Gender = model.Gender,
-            BirthDate = model.BirthDate,
-            Balance = 0m,
-            CreationDate = DateTime.Now,
-            EmailConfirmed = true,
-            Status = UserStatus.Active,
-            UserCategory = category
-        };
+            var category = await _context.UserCategory.FirstAsync(c => c.Name == "Externo");
+            var user = new AppUser
+            {
+                UserName = model.Email,
+                Email = model.Email,
+                FirstName = model.FirstName,
+                LastName = model.LastName,
+                Gender = model.Gender,
+                BirthDate = model.BirthDate,
+                Balance = 0m,
+                CreationDate = DateTime.Now,
+                EmailConfirmed = true,
+                Status = UserStatus.Active,
+                UserCategory = category
+            };
 
-        string password = GenerateSecurePassword();
-        var result = await _userManager.CreateAsync(user, password);
+            string password = GenerateSecurePassword();
+            var result = await _userManager.CreateAsync(user, password);
 
-        if (!result.Succeeded) return result;         
+            if (!result.Succeeded) return result;
 
             // Adicionar Role
             await _userManager.AddToRoleAsync(user, model.AccountType);
-   
+
             // Se a net falhar aqui, o código salta para o catch
             await SendWelcomeEmailAsync(model.Email, model.FirstName, model.AccountType, password);
 
@@ -156,21 +156,21 @@ public class AdminService : IAdminService
         const string digits = "0123456789";
         const string symbols = "!@#$%^&*()_+-=[]{}|;:,.?";
         const string allChars = lowercase + uppercase + digits + symbols;
-    
+
         var password = new char[length];
-            
+
         // Ensure at least one of each required character type
         password[0] = lowercase[RandomNumberGenerator.GetInt32(lowercase.Length)];
         password[1] = uppercase[RandomNumberGenerator.GetInt32(uppercase.Length)];
         password[2] = digits[RandomNumberGenerator.GetInt32(digits.Length)];
         password[3] = symbols[RandomNumberGenerator.GetInt32(symbols.Length)];
-    
+
         // Fill remaining characters randomly
         for (int i = 4; i < length; i++)
         {
             password[i] = allChars[RandomNumberGenerator.GetInt32(allChars.Length)];
         }
-    
+
         // Shuffle the password to randomize position of required characters
         return new string(password.OrderBy(_ => RandomNumberGenerator.GetInt32(length)).ToArray());
     }
@@ -178,19 +178,19 @@ public class AdminService : IAdminService
     public async Task<List<SelectListItem>> GetNonClientRolesForDropdownAsync()
     {
         var roles = await _roleManager.Roles.Where(r => r.Name != "Client").ToListAsync();
-        return roles.Select(r => new SelectListItem { Value = r.Name, Text = r.DisplayName}).ToList();
+        return roles.Select(r => new SelectListItem { Value = r.Name, Text = r.DisplayName }).ToList();
     }
-    
+
     public async Task<List<SelectListItem>> GetAllRolesForDropdownAsync()
     {
         var roles = await _roleManager.Roles.ToListAsync();
-        return roles.Select(r => new SelectListItem { Value = r.Name, Text = r.DisplayName}).ToList();
+        return roles.Select(r => new SelectListItem { Value = r.Name, Text = r.DisplayName }).ToList();
     }
-    
+
     public async Task<List<SelectListItem>> GetAllCategoriesForDropdownAsync()
     {
         var categories = await _context.UserCategory.ToListAsync();
-        return categories.Select(c => new SelectListItem { Value = c.Name, Text = c.Name}).ToList();
+        return categories.Select(c => new SelectListItem { Value = c.Name, Text = c.Name }).ToList();
     }
 
     private async Task SendWelcomeEmailAsync(string email, string name, string type, string password)
@@ -207,19 +207,19 @@ public class AdminService : IAdminService
                  <p>Faça login e altere sua senha o mais breve possível.</p>
              </div>
              """);
-            
-            try
-            {
-                await _emailSender.SendEmailAsync(email, "SEGUES - Bem-vindo", emailBody);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Erro crítico de rede no envio de email para {email}: {ex.Message}");
-                throw new Exception($"Failed to send welcome email to: {email} after multiple attempts.");
-            }
 
-    }  
-    
+        try
+        {
+            await _emailSender.SendEmailAsync(email, "SEGUES - Bem-vindo", emailBody);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro crítico de rede no envio de email para {email}: {ex.Message}");
+            throw new Exception($"Failed to send welcome email to: {email} after multiple attempts.");
+        }
+
+    }
+
     /*
      * User Management
      */
@@ -236,14 +236,14 @@ public class AdminService : IAdminService
                                      || u.LastName.ToLower().Contains(searchString)
                                      || u.Email!.ToLower().Contains(searchString));
         }
-        
+
         // Role
         if (!string.IsNullOrEmpty(roleFilter))
         {
             roleFilter = roleFilter.Trim();
             var role = await _roleManager.FindByNameAsync(roleFilter);
             if (role == null) return await query.ToListAsync();
-                
+
             var userIdsInRole = _context.UserRoles
                 .Where(ur => ur.RoleId == role.Id)
                 .Select(ur => ur.UserId);
@@ -252,7 +252,7 @@ public class AdminService : IAdminService
         }
 
         if (string.IsNullOrEmpty(categoryFilter)) return await query.ToListAsync();
-        
+
         // Category
         categoryFilter = categoryFilter.Trim();
         query = query.Where(u => u.UserCategory.Name == categoryFilter);
@@ -260,7 +260,7 @@ public class AdminService : IAdminService
     }
 
     public Task<UserCategory> GetCategoryByNameAsync(string modelCategory)
-    { 
+    {
         return _context.UserCategory.FirstAsync(c => c.Name == modelCategory);
     }
 
@@ -294,7 +294,7 @@ public class AdminService : IAdminService
         int days = (await _context.AppConfig.FirstAsync()).TicketValidityDays;
         return days > 0 ? days : 365;
     }
-    
+
     public async Task UpdateTicketValidityDaysAsync(int days)
     {
         var config = await _context.AppConfig.FirstAsync();
@@ -332,7 +332,7 @@ public class AdminService : IAdminService
     {
         var config = await _context.AppConfig.FirstAsync();
         var timeToCheck = requestedTime ?? DateTime.Now.TimeOfDay;
-    
+
         if (config.OpenBarTime <= config.CloseBarTime)
         {
             return timeToCheck >= config.OpenBarTime && timeToCheck <= config.CloseBarTime;

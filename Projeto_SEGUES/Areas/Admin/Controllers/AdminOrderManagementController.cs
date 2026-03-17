@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -134,16 +134,20 @@ public class AdminOrderManagementController : Controller
                 page.Size(PageSizes.A4.Landscape());
                 page.Margin(15);
 
-                page.Header().Row(row => {
+                page.Header().Row(row =>
+                {
                     if (System.IO.File.Exists(logoPath)) row.ConstantItem(100).Image(logoPath);
-                    row.RelativeItem().Column(col => {
+                    row.RelativeItem().Column(col =>
+                    {
                         col.Item().AlignRight().Text("Histórico Geral de Pedidos").FontSize(16).SemiBold().FontColor("#009697");
                         col.Item().AlignRight().Text($"Gerado em: {DateTime.Now:dd/MM/yyyy HH:mm}").FontSize(8).Italic();
                     });
                 });
 
-                page.Content().PaddingTop(10).Table(table => {
-                    table.ColumnsDefinition(columns => {
+                page.Content().PaddingTop(10).Table(table =>
+                {
+                    table.ColumnsDefinition(columns =>
+                    {
                         columns.RelativeColumn(1.5f); // Utilizador
                         columns.ConstantColumn(40);   // Nº
                         columns.ConstantColumn(60);   // Código
@@ -155,7 +159,8 @@ public class AdminOrderManagementController : Controller
                         columns.ConstantColumn(55);   // Valor
                     });
 
-                    table.Header(header => {
+                    table.Header(header =>
+                    {
                         string[] titles = { "Utilizador", "Nº", "Código", "Data", "Agendado", "Produtos", "Estado", "Recolhido em", "Total" };
                         foreach (var t in titles)
                             header.Cell().Background("#009697").Padding(4).AlignCenter().Text(t).FontColor(Colors.White).FontSize(8).SemiBold();
@@ -164,7 +169,8 @@ public class AdminOrderManagementController : Controller
                     foreach (var o in orders)
                     {
                         // Utilizador
-                        table.Cell().Element(CellStyle).Column(c => {
+                        table.Cell().Element(CellStyle).Column(c =>
+                        {
                             c.Item().Text($"{o.AppUser?.FirstName} {o.AppUser?.LastName}").FontSize(8).SemiBold();
                             c.Item().Text(o.AppUser?.Email).FontSize(7).FontColor(Colors.Grey.Medium);
                         });
@@ -181,7 +187,8 @@ public class AdminOrderManagementController : Controller
                         );
 
                         // Produtos
-                        table.Cell().Element(CellStyle).PaddingLeft(4).Column(c => {
+                        table.Cell().Element(CellStyle).PaddingLeft(4).Column(c =>
+                        {
                             foreach (var p in o.ProductPurchases)
                                 c.Item().Text($"• {p.Quantity}x {p.Product?.Name} ({p.ProductValue:N2}€)").FontSize(7);
                         });
@@ -199,7 +206,8 @@ public class AdminOrderManagementController : Controller
                     }
                 });
 
-                page.Footer().AlignCenter().Text(x => {
+                page.Footer().AlignCenter().Text(x =>
+                {
                     x.Span("Página "); x.CurrentPageNumber();
                 });
             });

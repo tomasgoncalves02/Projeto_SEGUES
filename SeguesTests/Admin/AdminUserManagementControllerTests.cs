@@ -1,13 +1,12 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Moq;
 using Projeto_SEGUES.Areas.Admin;
-using Projeto_SEGUES.Areas.Admin.ViewModels;
+using Projeto_SEGUES.Areas.User.ViewModels;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.Audit;
 using Projeto_SEGUES.Models.Enums;
@@ -15,8 +14,6 @@ using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using System.Security.Claims;
 using System.Security.Principal;
-using Projeto_SEGUES.Areas.User.ViewModels;
-using Xunit;
 
 namespace SeguesTests.Admin
 {
@@ -37,7 +34,7 @@ namespace SeguesTests.Admin
             var store = new Mock<IUserStore<AppUser>>();
             _mockUserManager = new Mock<UserManager<AppUser>>(store.Object, null, null, null, null, null, null, null, null);
             _mockAdminService = new Mock<IAdminService>();
-            
+
 
             _controller = new AdminUserManagementController(_mockUserManager.Object, _mockAdminService.Object, _context);
 

@@ -1,11 +1,11 @@
-using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.Enums;
+using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.User;
 
 namespace Projeto_SEGUES.Services;
 
 public interface ITicketService
-{    
+{
     Task<List<Ticket>> GetUserTicketsAsync(string userId);
     Task<List<Ticket>> GetActiveTicketsAsync(string userId);
     Task<List<Ticket>> GetRecentUsedTicketsAsync(int take = 10);

@@ -1,8 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Projeto_SEGUES.Areas.Statistics.Controllers;
 using Projeto_SEGUES.Services;
-using Xunit;
 
 namespace SeguesTests.Statistics
 {

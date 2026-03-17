@@ -1,6 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Projeto_SEGUES.Areas.Inventory.Controllers;
-using Xunit;
 
 namespace SeguesTests.Inventory
 {

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Models.Admin;
 using Projeto_SEGUES.Models.Enums;
@@ -17,13 +17,13 @@ namespace Projeto_SEGUES.Data
             await SeedInventoryAsync(serviceProvider);
             await SeedTestData(serviceProvider); // TODO: Remove on app release
         }
-        
+
         public static async Task SeedRolesAndAdminAsync(IServiceProvider serviceProvider)
         {
             var roleManager = serviceProvider.GetRequiredService<RoleManager<Role>>();
             var userManager = serviceProvider.GetRequiredService<UserManager<AppUser>>();
             var context = serviceProvider.GetRequiredService<AppDbContext>();
-            
+
             // AppConfig
             if (!await context.AppConfig.AnyAsync())
             {
@@ -33,7 +33,7 @@ namespace Projeto_SEGUES.Data
                 appConfig.CanteenLink = "https://software.movelife.net/pt-PT/Menus/PublicCC/Tj6o3O_vCFB2LmCmm9VUjw%3d%3d";
                 await context.AppConfig.AddAsync(appConfig);
             }
-            
+
             // Roles
             var roles = new[]
             {
@@ -49,7 +49,7 @@ namespace Projeto_SEGUES.Data
                     await roleManager.CreateAsync(role);
                 }
             }
-            
+
             // UserCategories
             var categories = new[]
             {
@@ -64,7 +64,7 @@ namespace Projeto_SEGUES.Data
                     await context.UserCategory.AddAsync(category);
             }
             await context.SaveChangesAsync();
-            
+
             // TicketPrice
             var defaultPrices = new Dictionary<string, decimal>
             {
@@ -79,10 +79,10 @@ namespace Projeto_SEGUES.Data
                 var catDb = await context.UserCategory
                     .FirstOrDefaultAsync(c => c.Name == category);
                 if (catDb == null) continue;
-                
+
                 if (await context.TicketPrice.AnyAsync(tp => tp.UserCategory.Id == catDb.Id && tp.EndDatePrice > DateTime.Now))
                     continue;
-                
+
                 context.TicketPrice.Add(new TicketPrice
                 {
                     UserCategory = catDb,
@@ -114,7 +114,7 @@ namespace Projeto_SEGUES.Data
                     Status = UserStatus.Active,
                     UserCategory = adminCategory!
                 };
-                
+
                 var createAdmin = await userManager.CreateAsync(newAdmin, "AdminSEGUES123!");
 
                 if (createAdmin.Succeeded)
@@ -128,7 +128,7 @@ namespace Projeto_SEGUES.Data
         public static async Task SeedInventoryAsync(IServiceProvider serviceProvider)
         {
             var context = serviceProvider.GetRequiredService<AppDbContext>();
-            
+
             // ProductCategory
             var defaultProductsCategories = new List<ProductCategory>
             {
@@ -149,7 +149,7 @@ namespace Projeto_SEGUES.Data
         {
             var context = serviceProvider.GetRequiredService<AppDbContext>();
             var userManager = serviceProvider.GetRequiredService<UserManager<AppUser>>();
-            
+
             // Create employee
             var employeeEmail = "employee@employee.com";
             var employeeUser = await userManager.FindByEmailAsync(employeeEmail);
@@ -178,7 +178,7 @@ namespace Projeto_SEGUES.Data
                 }
             }
             await context.SaveChangesAsync();
-            
+
             // Products default data
             var dbProductCategories = await context.ProductCategory.ToListAsync();
             var defaultProducts = new List<Product>
@@ -231,7 +231,7 @@ namespace Projeto_SEGUES.Data
                     await context.Product.AddAsync(product);
             }
             await context.SaveChangesAsync();
-            
+
             // Create tickets
             var adminUser = await userManager.FindByEmailAsync("admin@admin.com");
             employeeUser = await userManager.FindByEmailAsync(employeeEmail);
@@ -246,8 +246,8 @@ namespace Projeto_SEGUES.Data
             await context.SaveChangesAsync();
 
             var tickets = new List<Ticket>();
-            var now = DateTime.Now; 
-            
+            var now = DateTime.Now;
+
             /* 10 tickets same day different hours */
             for (int i = 0; i < 10; i++)
             {
@@ -263,66 +263,66 @@ namespace Projeto_SEGUES.Data
                     ValidatedBy = adminUser,
                     TicketPurchase = ticketPurchase
                 });
-            } 
-            /* 10 tickets in the same week but different days */ 
-            var startOfWeek = now.Date.AddDays(-(int)now.DayOfWeek + (int)DayOfWeek.Monday);
-            for (int i = 0; i < 10; i++) 
-            { 
-                var usedDate = startOfWeek.AddDays(i % 7).AddHours(9 + i);
-                tickets.Add(new Ticket 
-                { 
-                    ExpirationDate = now.AddDays(365), 
-                    State = TicketState.Used, 
-                    IsUsed = true, 
-                    UsedDate = usedDate, 
-                    Owner = employeeUser!, 
-                    ValidationCode = Guid.NewGuid().ToString("N")[..8].ToUpper(), 
-                    ValidatedBy = adminUser, 
-                    TicketPurchase = ticketPurchase 
-                }); 
-            } 
-            /* 10 tickets in the same month spread out by days */ 
-            var startOfMonth = new DateTime(now.Year, now.Month, 1);
-            for (int i = 0; i < 10; i++) 
-            { 
-                var usedDate = startOfMonth.AddDays(i * 3).AddHours(10);
-                tickets.Add(new Ticket 
-                { 
-                    ExpirationDate = now.AddDays(365), 
-                    State = TicketState.Used, 
-                    IsUsed = true,
-                    UsedDate = usedDate, 
-                    Owner = employeeUser!, 
-                    ValidationCode = Guid.NewGuid().ToString("N")[..8].ToUpper(), 
-                    ValidatedBy = adminUser, 
-                    TicketPurchase = ticketPurchase 
-                }); 
-            } 
-            /* 10 tickets in the same year spread by months */ 
-            for (int i = 0; i < 10; i++) 
-            { 
-                var usedDate = new DateTime(now.Year, (i % 12) + 1, 15).AddHours(11);
-                tickets.Add(new Ticket 
-                { 
-                    ExpirationDate = now.AddDays(365), 
-                    State = TicketState.Used, 
-                    IsUsed = true, 
-                    UsedDate = usedDate, 
-                    Owner = employeeUser!, 
-                    ValidationCode = Guid.NewGuid().ToString("N")[..8].ToUpper(), 
-                    ValidatedBy = adminUser, 
-                    TicketPurchase = ticketPurchase 
-                }); 
             }
-            
+            /* 10 tickets in the same week but different days */
+            var startOfWeek = now.Date.AddDays(-(int)now.DayOfWeek + (int)DayOfWeek.Monday);
+            for (int i = 0; i < 10; i++)
+            {
+                var usedDate = startOfWeek.AddDays(i % 7).AddHours(9 + i);
+                tickets.Add(new Ticket
+                {
+                    ExpirationDate = now.AddDays(365),
+                    State = TicketState.Used,
+                    IsUsed = true,
+                    UsedDate = usedDate,
+                    Owner = employeeUser!,
+                    ValidationCode = Guid.NewGuid().ToString("N")[..8].ToUpper(),
+                    ValidatedBy = adminUser,
+                    TicketPurchase = ticketPurchase
+                });
+            }
+            /* 10 tickets in the same month spread out by days */
+            var startOfMonth = new DateTime(now.Year, now.Month, 1);
+            for (int i = 0; i < 10; i++)
+            {
+                var usedDate = startOfMonth.AddDays(i * 3).AddHours(10);
+                tickets.Add(new Ticket
+                {
+                    ExpirationDate = now.AddDays(365),
+                    State = TicketState.Used,
+                    IsUsed = true,
+                    UsedDate = usedDate,
+                    Owner = employeeUser!,
+                    ValidationCode = Guid.NewGuid().ToString("N")[..8].ToUpper(),
+                    ValidatedBy = adminUser,
+                    TicketPurchase = ticketPurchase
+                });
+            }
+            /* 10 tickets in the same year spread by months */
+            for (int i = 0; i < 10; i++)
+            {
+                var usedDate = new DateTime(now.Year, (i % 12) + 1, 15).AddHours(11);
+                tickets.Add(new Ticket
+                {
+                    ExpirationDate = now.AddDays(365),
+                    State = TicketState.Used,
+                    IsUsed = true,
+                    UsedDate = usedDate,
+                    Owner = employeeUser!,
+                    ValidationCode = Guid.NewGuid().ToString("N")[..8].ToUpper(),
+                    ValidatedBy = adminUser,
+                    TicketPurchase = ticketPurchase
+                });
+            }
+
             await context.Ticket.AddRangeAsync(tickets);
             await context.SaveChangesAsync();
-            
+
             // Create Orders
             var orders = new List<Order>();
             var products = context.Product.ToList();
             var rnd = new Random();
-            
+
             // Local auxilliary function to create orders
             Order CreateOrder(DateTime orderDate)
             {
@@ -360,34 +360,34 @@ namespace Projeto_SEGUES.Data
                 order.TotalValue = order.ProductPurchases.Sum(l => l.ProductValue * l.Quantity);
                 return order;
             }
-            
+
             /* 10 orders in the same day with different time */
             for (int i = 0; i < 10; i++)
             {
                 var date = now.Date.AddHours(8 + i);
                 orders.Add(CreateOrder(date));
-            } 
+            }
             /* 10 orders in the same week, in different days */
             startOfWeek = now.Date.AddDays(-(int)now.DayOfWeek + (int)DayOfWeek.Monday);
             for (int i = 0; i < 10; i++)
             {
                 var date = startOfWeek.AddDays(i % 7).AddHours(9 + i);
                 orders.Add(CreateOrder(date));
-            } 
+            }
             /* 10 orders in the same month in different days */
             startOfMonth = new DateTime(now.Year, now.Month, 1);
             for (int i = 0; i < 10; i++)
             {
                 var date = startOfMonth.AddDays(i * 3).AddHours(12);
                 orders.Add(CreateOrder(date));
-            } 
+            }
             /* 10 orders in the same year in different months */
             for (int i = 0; i < 10; i++)
             {
                 var date = new DateTime(now.Year, (i % 12) + 1, 15).AddHours(13);
                 orders.Add(CreateOrder(date));
             }
-            
+
             await context.Order.AddRangeAsync(orders);
             await context.SaveChangesAsync();
         }

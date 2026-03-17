@@ -1,14 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Moq;
 using Projeto_SEGUES.Areas.User.Controllers;
-using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
-using System.Security.Claims;
-using Xunit;
 
 namespace SeguesTests.User
 {

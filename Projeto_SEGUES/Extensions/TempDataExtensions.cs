@@ -1,5 +1,5 @@
-using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using System.Text.Json;
 
 namespace Projeto_SEGUES.Extensions;
 
@@ -10,7 +10,7 @@ public static class TempDataExtensions
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false
     };
-    
+
     // Json Helpers
     public static void SetJson<T>(this ITempDataDictionary tempData, string key, T value, bool toJs = false) where T : class
     {
@@ -25,12 +25,13 @@ public static class TempDataExtensions
         try
         {
             return JsonSerializer.Deserialize<T>(json, fromJs ? JsonOptions : null);
-        } catch
+        }
+        catch
         {
             return null;
         }
     }
-    
+
     // Swal Helpers
     private const string SwalKey = "SwalData";
 
@@ -113,15 +114,15 @@ public static class TempDataExtensions
             ShowCloseButton = true
         });
     }
-    
+
     public static void SetSwalConfirmation(this ITempDataDictionary tempData, string message)
     {
-        SetSwal(tempData, new SwalDto 
-        { 
-            Icon = "question", 
+        SetSwal(tempData, new SwalDto
+        {
+            Icon = "question",
             Title = "Confirma Operação?",
-            Text = message, 
-            ShowCancelButton = true, 
+            Text = message,
+            ShowCancelButton = true,
             ConfirmButtonText = "Sim",
             ConfirmButtonAriaLabel = "Sim",
             CancelButtonText = "Não",

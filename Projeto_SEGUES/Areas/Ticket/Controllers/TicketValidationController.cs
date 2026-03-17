@@ -14,7 +14,7 @@ public class TicketValidationController : Controller
 {
     private readonly ITicketService _ticketService;
     private readonly UserManager<AppUser> _userManager;
-    
+
     public TicketValidationController(UserManager<AppUser> userManager, ITicketService ticketService)
     {
         _userManager = userManager;
@@ -30,7 +30,7 @@ public class TicketValidationController : Controller
         };
         return View(model);
     }
-    
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Index(ValidateTicketViewModel model)
@@ -49,7 +49,7 @@ public class TicketValidationController : Controller
             TempData.SetSwalSuccess(result.Result.Message);
         else
             TempData.SetSwalError(result.Result.Message);
-        
+
         // Clear the form
         ModelState.Clear();
         model.Code = string.Empty;

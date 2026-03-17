@@ -8,7 +8,7 @@ public class AppConfig
 
     [Required]
     public int MaxTicketsPerUser { get; set; } = 100;
-    
+
     [Required]
     public int TicketValidityDays { get; set; } = 365; // Default: 1 year
 
@@ -31,7 +31,7 @@ public class AppConfig
 
     [Url]
     public string? BarLink { get; set; } = "https://www.ips.pt";
-    
+
     [Url]
     public string? CanteenLink { get; set; } = "https://www.ips.pt";
 }

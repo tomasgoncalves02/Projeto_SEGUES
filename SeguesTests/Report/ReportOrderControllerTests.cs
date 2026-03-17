@@ -1,14 +1,13 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Projeto_SEGUES.Areas.Report;
+using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Order;
 using Projeto_SEGUES.Models.User;
-using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Services;
 using System.Security.Claims;
-using Xunit;
 
 namespace SeguesTests.Report
 {
@@ -160,7 +159,7 @@ namespace SeguesTests.Report
                 Description = "sabe muito bem",
                 Category = new Projeto_SEGUES.Models.Inventory.ProductCategory { Description = "comeres", Name = "comer" },
                 MinimumStock = 10,
-                 Stock = 60,
+                Stock = 60,
                 Name = "Café",
                 Price = 0.70m
             };
@@ -171,7 +170,7 @@ namespace SeguesTests.Report
                 OrderId = order.Id,
                 Order = order,
                 Product = product,
-                ProductValue = product.Price, 
+                ProductValue = product.Price,
                 Quantity = 2
             };
 

@@ -23,18 +23,18 @@ public class TicketService : ITicketService
         var now = DateTime.Now;
         // Executes directly in the database without loading entities into memory
         await _context.Ticket
-            .Where(t => t.Owner.Id == userId 
-                        && t.State == TicketState.Available 
+            .Where(t => t.Owner.Id == userId
+                        && t.State == TicketState.Available
                         && t.ExpirationDate < now)
             .ExecuteUpdateAsync(s => s.SetProperty(t => t.State, TicketState.Expired));
     }
-    
+
     private async Task ExpireTicketsGlobalAsync()
     {
         var now = DateTime.Now;
         // Updates ALL expired tickets in the system in one go
         await _context.Ticket
-            .Where(t => t.State == TicketState.Available 
+            .Where(t => t.State == TicketState.Available
                         && t.ExpirationDate < now)
             .ExecuteUpdateAsync(s => s.SetProperty(t => t.State, TicketState.Expired));
     }
@@ -84,11 +84,11 @@ public class TicketService : ITicketService
         await _context.Entry(user).Reference(u => u.UserCategory).LoadAsync();
         var userCategoryId = user.UserCategory?.Id;
         if (userCategoryId == null) return 0m;
-        
+
         var now = DateTime.Now;
         var price = await _context.TicketPrice
             .Where(p => p.UserCategory.Id == userCategoryId
-                        && now >= p.InitialDatePrice 
+                        && now >= p.InitialDatePrice
                         && now <= p.EndDatePrice)
             .OrderByDescending(p => p.InitialDatePrice)
             .FirstOrDefaultAsync();
@@ -148,11 +148,12 @@ public class TicketService : ITicketService
 
             for (int i = 0; i < quantity; i++)
             {
-                do {
+                do
+                {
                     code = Guid.NewGuid().ToString()[..8].ToUpper();
                 }
-                while(_context.Ticket.Any(t => t.ValidationCode == code));
-                
+                while (_context.Ticket.Any(t => t.ValidationCode == code));
+
                 _context.Ticket.Add(new Ticket
                 {
                     Owner = dbUser,
@@ -195,7 +196,7 @@ public class TicketService : ITicketService
         if (ticket.State == TicketState.Expired || ticket.ExpirationDate < DateTime.Now)
         {
             // Auto-update to expired if it wasn't already
-            if(ticket.State != TicketState.Expired) 
+            if (ticket.State != TicketState.Expired)
             {
                 ticket.State = TicketState.Expired;
                 await _context.SaveChangesAsync();
@@ -228,7 +229,7 @@ public class TicketService : ITicketService
 
     // Query History (Search/Filter)
     public async Task<List<Ticket>> QueryHistoryAsync(string userId, string searchString, TicketState? stateFilter, string flowFilter, DateTime? dateFilter)
-    {   
+    {
         // Ensure we update expired tickets before fetching
         await ExpireUserTicketsAsync(userId);
 
@@ -296,12 +297,12 @@ public class TicketService : ITicketService
         await ExpireTicketsGlobalAsync();
 
         return await _context.Ticket
-            .Include(t => t.Owner)                      
-            .Include(t => t.TicketPurchase)             
-            .Include(t => t.Transfers)                  
-                .ThenInclude(tr => tr.Sender)           
+            .Include(t => t.Owner)
+            .Include(t => t.TicketPurchase)
             .Include(t => t.Transfers)
-                .ThenInclude(tr => tr.Receiver)      
+                .ThenInclude(tr => tr.Sender)
+            .Include(t => t.Transfers)
+                .ThenInclude(tr => tr.Receiver)
             .OrderByDescending(t => t.TicketPurchase.TransactionDate)
             .ToListAsync();
     }

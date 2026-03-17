@@ -1,9 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.Enums;
-using Projeto_SEGUES.Models.Ticket;
-using Stripe;
 
 
 namespace Projeto_SEGUES.Services;
@@ -28,7 +25,7 @@ public class StatisticsService : IStatisticsService
     private async Task<decimal> GetaRevenueStatsAsync(DateTime start)
     {
         var usedTickets = await _context.Ticket
-            .Include(t => t.TicketPurchase) 
+            .Include(t => t.TicketPurchase)
             .Where(t => t.IsUsed && t.UsedDate >= start)
             .ToListAsync();
 
@@ -59,7 +56,7 @@ public class StatisticsService : IStatisticsService
 
     private async Task<int> GetNewBuyersStatsAsync(DateTime start)
     {
-        
+
         return await _context.Ticket
             .Where(t => t.IsUsed && t.UsedDate >= start)
             .Select(t => t.Owner.Id)
@@ -70,7 +67,7 @@ public class StatisticsService : IStatisticsService
     private async Task<object> GetInfoGraphStatsAsync(DateTime start, int period)
     {
         var tickets = await _context.Ticket
-            
+
              .Where(t => t.IsUsed && t.UsedDate != null && t.UsedDate >= start)
              .ToListAsync();
 
@@ -82,14 +79,15 @@ public class StatisticsService : IStatisticsService
             .GroupBy(t => period switch
             {
                 1 => t.UsedDate!.Value.ToString("HH:00"),
-                2 => t.UsedDate!.Value.ToString("ddd dd/MM"), 
+                2 => t.UsedDate!.Value.ToString("ddd dd/MM"),
                 3 => t.UsedDate!.Value.ToString("dd/MM"),
                 4 => t.UsedDate!.Value.ToString("MM - MMMM"),
                 5 => t.UsedDate!.Value.ToString("MM/yyyy"),
                 _ => t.UsedDate!.Value.Year.ToString()
             })
             .OrderBy(g => g.Key)
-            .Select(g => new {
+            .Select(g => new
+            {
                 label = g.Key,
                 count = g.Count()
             })
@@ -112,7 +110,7 @@ public class StatisticsService : IStatisticsService
             .ToList();
     }
 
-    
+
     public async Task<object> GetTicketsStats(int period = 1)
     {
         var now = DateTime.Now;
@@ -196,7 +194,8 @@ public class StatisticsService : IStatisticsService
                 _ => o.OrderDate.Year.ToString()
             })
             .OrderBy(g => g.Key)
-            .Select(g => new {
+            .Select(g => new
+            {
                 label = g.Key,
                 count = g.Count()
             })
@@ -211,7 +210,8 @@ public class StatisticsService : IStatisticsService
         var categoryData = await _context.OrderLine
             .Where(ol => ol.Order.OrderDate >= start && ol.Order.Status != OrderStatus.Cart && ol.Order.Status != OrderStatus.Cancelled)
             .GroupBy(ol => ol.Product.Category.Name)
-            .Select(g => new {
+            .Select(g => new
+            {
                 category = g.Key,
                 count = g.Sum(ol => ol.Quantity)
             })
@@ -225,7 +225,8 @@ public class StatisticsService : IStatisticsService
         var topProducts = await _context.OrderLine
              .Where(ol => ol.Order.OrderDate >= start && ol.Order.Status != OrderStatus.Cart && ol.Order.Status != OrderStatus.Cancelled && ol.Product.IsActive)
              .GroupBy(ol => ol.Product.Name)
-             .Select(g => new {
+             .Select(g => new
+             {
                  name = g.Key,
                  quantity = g.Sum(ol => ol.Quantity)
              })
@@ -255,10 +256,10 @@ public class StatisticsService : IStatisticsService
 
         return new
         {
-            totalConsumptions = await GetConsuptionStatsAsync(start),  
-            totalRevenue = await GetRevenueBarStatsAsync(start),        
-            averageRevenue = await GetAverageBuyStatsAsync(start),       
-            newBuyers = await GetNewBarUsersStatsAsync(start),          
+            totalConsumptions = await GetConsuptionStatsAsync(start),
+            totalRevenue = await GetRevenueBarStatsAsync(start),
+            averageRevenue = await GetAverageBuyStatsAsync(start),
+            newBuyers = await GetNewBarUsersStatsAsync(start),
             chart = await GetBarGraphStatsAsync(start, period),
             productCategories = await GetProductCategoryStatsAsync(start),
             topProducts = await GetTopProductsStatsAsync(start)

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
@@ -9,7 +9,6 @@ using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using System.Security.Claims;
-using Xunit;
 
 namespace SeguesTests.Admin
 {
@@ -125,8 +124,8 @@ namespace SeguesTests.Admin
             var updatedPrices = new List<TicketPrice>
     {
         new TicketPrice
-        { 
-            Price = 3.00m, 
+        {
+            Price = 3.00m,
             UserCategory = new UserCategory { Name = "Estudante" },
             InitialDatePrice = DateTime.Now,
             EndDatePrice = DateTime.Now.AddMonths(1)

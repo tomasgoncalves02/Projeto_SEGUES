@@ -1,6 +1,5 @@
 //using Castle.Core.Smtp;
 using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Areas.Order.ViewModels;
 using Projeto_SEGUES.Data;
@@ -399,7 +398,7 @@ public class OrderService : IOrderService
                 UserAction = UserAction.ValidateOrder,
                 Message = $"Entregou o pedido #{order.RedemptionCode} ao utilizador {order.AppUser.UserName}.",
                 TimeStamp = DateTime.Now,
-                AppUser = staffMember, 
+                AppUser = staffMember,
                 RequestPath = "/Order/ValidateCode"
             };
             _context.UserLog.Add(log);
@@ -473,8 +472,8 @@ public class OrderService : IOrderService
             await _emailSender.SendEmailAsync(order.AppUser.Email, $"SEGUES - Pedido #{order.RedemptionCode}", body);
         }
         catch (Exception ex)
-        {           
-            Console.WriteLine($"[Email Service Failure]: {ex.Message}");           
+        {
+            Console.WriteLine($"[Email Service Failure]: {ex.Message}");
             throw;
         }
     }

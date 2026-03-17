@@ -1,16 +1,14 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Moq;
 using Projeto_SEGUES.Areas.Order;
 using Projeto_SEGUES.Areas.Order.ViewModels;
-using Projeto_SEGUES.Models.Order;
-using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Models.Enums;
+using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using System.Security.Claims;
-using Xunit;
 
 namespace SeguesTests.Orders
 {

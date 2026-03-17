@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
@@ -8,7 +8,6 @@ using Projeto_SEGUES.Areas.Ticket.ViewModels;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using System.Security.Claims;
-using Xunit;
 
 namespace SeguesTests.Tickets
 {
@@ -37,7 +36,7 @@ namespace SeguesTests.Tickets
             LastName = "Staff",
             BirthDate = DateTime.Today.AddYears(-20),
             Gender = Projeto_SEGUES.Models.Enums.Gender.Male,
-            UserCategory = new UserCategory { Name ="Employee"},
+            UserCategory = new UserCategory { Name = "Employee" },
             Email = "pedro.staff@segues.pt"
         };
 

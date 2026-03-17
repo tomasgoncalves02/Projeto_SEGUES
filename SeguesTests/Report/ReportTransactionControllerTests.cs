@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +11,6 @@ using Projeto_SEGUES.Models.Payment;
 using Projeto_SEGUES.Models.User;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
-using Xunit;
 
 namespace SeguesTests.Report
 {
@@ -165,7 +164,7 @@ namespace SeguesTests.Report
                     {
                         Id = 1,
                         Name = "Estudante"
-                       
+
                     }
                 }
             };

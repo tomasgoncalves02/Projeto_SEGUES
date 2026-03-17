@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using Projeto_SEGUES.Models.Audit.ViewModels;
+using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using System.Diagnostics;
-using Microsoft.Extensions.Localization;
-using Projeto_SEGUES.Models.Enums;
 
 namespace Projeto_SEGUES.Controllers
 {
@@ -29,7 +29,7 @@ namespace Projeto_SEGUES.Controllers
             ViewBag.BarLink = await _adminService.GetBarMenuLinkAsync();
             // Check if logged
             if (User.Identity is not { IsAuthenticated: true }) return View();
-            
+
             // If logged load data for view
             var user = await _userManager.GetUserAsync(User);
 
@@ -38,13 +38,13 @@ namespace Projeto_SEGUES.Controllers
                 ViewBag.UserBalance = user.Balance;
                 ViewBag.FirstName = user.FirstName;
                 var roles = await _userManager.GetRolesAsync(user);
-                ViewBag.UserRole = roles.FirstOrDefault();                
+                ViewBag.UserRole = roles.FirstOrDefault();
             }
             else
             {
                 _logger.LogError(null, _localizer[nameof(AppErrors.UserNotFound)], "Error", TableName.Identity, AppOperation.Read);
             }
-            
+
             return View();
         }
 

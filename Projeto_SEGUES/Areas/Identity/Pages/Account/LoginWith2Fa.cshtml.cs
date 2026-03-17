@@ -1,8 +1,8 @@
-using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Projeto_SEGUES.Models.User;
+using System.ComponentModel.DataAnnotations;
 
 namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 {

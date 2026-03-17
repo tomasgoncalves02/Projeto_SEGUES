@@ -1,22 +1,22 @@
-using System.Collections.ObjectModel;
-using System.Data;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.Enums;
-using Projeto_SEGUES.Services;
 using Projeto_SEGUES.Models.User;
+using Projeto_SEGUES.Resources;
+using Projeto_SEGUES.Services;
 using QuestPDF.Infrastructure;
-using Stripe;
 using Serilog;
 using Serilog.Context;
-using Serilog.Sinks.MSSqlServer;
 using Serilog.Filters;
-using Projeto_SEGUES.Resources;
+using Serilog.Sinks.MSSqlServer;
+using Stripe;
+using System.Collections.ObjectModel;
+using System.Data;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -82,7 +82,7 @@ columnOptions.Level.StoreAsEnum = true;
 builder.Host.UseSerilog((ctx, configuration) =>
     configuration.ReadFrom.Configuration(ctx.Configuration)
         .Enrich.FromLogContext()
-        .WriteTo.Console() 
+        .WriteTo.Console()
         // UserLog: Log user actions
         .WriteTo.Logger(lc => lc
             .Filter.ByIncludingOnly(Matching.WithProperty("LogType", "UserAction"))
@@ -116,28 +116,29 @@ builder.Host.UseSerilog((ctx, configuration) =>
             .WriteTo.MSSqlServer(
                 connectionString: connectionString,
                 sinkOptions: new MSSqlServerSinkOptions { TableName = "ErrorLog", AutoCreateSqlTable = false },
-                columnOptions: columnOptions 
+                columnOptions: columnOptions
             )
         )
 );
 
 // Identity
-builder.Services.AddIdentity<AppUser, Role>(options => {
+builder.Services.AddIdentity<AppUser, Role>(options =>
+{
     options.SignIn.RequireConfirmedAccount = true;
     options.SignIn.RequireConfirmedEmail = true;
     options.User.RequireUniqueEmail = true;
     // Password
-    options.Password.RequireDigit = true;           
-    options.Password.RequireLowercase = true;     
-    options.Password.RequireUppercase = true;       
-    options.Password.RequireNonAlphanumeric = true; 
-    options.Password.RequiredLength = 12;            
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireNonAlphanumeric = true;
+    options.Password.RequiredLength = 12;
     options.Password.RequiredUniqueChars = 4;
 })
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
 
-builder.Services.Configure<SecurityStampValidatorOptions>(options => 
+builder.Services.Configure<SecurityStampValidatorOptions>(options =>
     options.ValidationInterval = TimeSpan.FromMinutes(15)
 );
 
@@ -146,7 +147,7 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.ExpireTimeSpan = TimeSpan.FromMinutes(15);
     options.SlidingExpiration = true; // Reset timer on request
     // Redirect unauthenticated users (invalid token/cookie) to the Index page
-    options.LoginPath = "/"; 
+    options.LoginPath = "/";
     // Redirect authenticated users who lack the required role to the Index page
     options.AccessDeniedPath = "/";
     // Redirect to the Index page after HTMX Request when the user is logged out

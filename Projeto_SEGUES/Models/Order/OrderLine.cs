@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
 using Projeto_SEGUES.Models.Inventory;
+using System.ComponentModel.DataAnnotations;
 
 namespace Projeto_SEGUES.Models.Order
 {
@@ -7,13 +7,13 @@ namespace Projeto_SEGUES.Models.Order
     {
         [Required]
         public required int ProductId { get; set; }
-        
+
         [Required]
         public required Product Product { get; set; } // FK
-        
+
         [Required]
         public required int OrderId { get; set; }
-        
+
         [Required]
         public required Order Order { get; set; } // FK
 
@@ -21,9 +21,9 @@ namespace Projeto_SEGUES.Models.Order
         [Range(1, int.MaxValue)]
         [Display(Name = "Quantidade")]
         public required int Quantity { get; set; } = 1;
-        
+
         public Discount? Discount { get; set; }
-        
+
         [Required]
         [Range(0, double.MaxValue)]
         [Display(Name = "Valor")]

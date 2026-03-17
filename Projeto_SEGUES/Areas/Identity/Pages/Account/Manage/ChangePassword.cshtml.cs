@@ -1,12 +1,12 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.User;
+using System.ComponentModel.DataAnnotations;
 
 namespace Projeto_SEGUES.Areas.Identity.Pages.Account.Manage
 {

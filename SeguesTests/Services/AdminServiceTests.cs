@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Moq;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Data;
@@ -10,8 +10,6 @@ using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Xunit;
 
 namespace SeguesTests.Services
 {
@@ -112,7 +110,7 @@ namespace SeguesTests.Services
             var mockUserMgr = GetMockUserManager(context);
             var service = new AdminService(context, mockUserMgr.Object, GetMockRoleManager().Object, new Mock<IEmailSender>().Object);
 
-            var cat = new UserCategory { Id = 1, Name = "Student"};
+            var cat = new UserCategory { Id = 1, Name = "Student" };
 
             context.Users.Add(new AppUser
             {
@@ -144,7 +142,7 @@ namespace SeguesTests.Services
             {
                 Id = 1,
                 Price = 2.0m,
-                UserCategory = cat, 
+                UserCategory = cat,
                 InitialDatePrice = DateTime.Now,
                 EndDatePrice = DateTime.Now
             };
@@ -168,13 +166,13 @@ namespace SeguesTests.Services
         public async Task IsBarOpenAsync_ValidatesTimeCorrect()
         {
             var context = GetDatabaseContext();
-        context.AppConfig.Add(new AppConfig { OpenBarTime = new TimeSpan(8, 0, 0), CloseBarTime = new TimeSpan(18, 0, 0) });
+            context.AppConfig.Add(new AppConfig { OpenBarTime = new TimeSpan(8, 0, 0), CloseBarTime = new TimeSpan(18, 0, 0) });
             await context.SaveChangesAsync();
 
-        var service = new AdminService(context, GetMockUserManager(context).Object, GetMockRoleManager().Object, new Mock<IEmailSender>().Object);
+            var service = new AdminService(context, GetMockUserManager(context).Object, GetMockRoleManager().Object, new Mock<IEmailSender>().Object);
 
-        Assert.True(await service.IsBarOpenAsync(new TimeSpan(10, 0, 0))); 
-            Assert.False(await service.IsBarOpenAsync(new TimeSpan(20, 0, 0))); 
+            Assert.True(await service.IsBarOpenAsync(new TimeSpan(10, 0, 0)));
+            Assert.False(await service.IsBarOpenAsync(new TimeSpan(20, 0, 0)));
         }
 
 
@@ -183,16 +181,16 @@ namespace SeguesTests.Services
         [Fact]
         public async Task UpdateBarScheduleAsync_UpdatesCorrectService()
         {
-        var context = GetDatabaseContext();
-        context.AppConfig.Add(new AppConfig { OpenLunchTime = new TimeSpan(11, 0, 0), CloseLunchTime = new TimeSpan(14, 0, 0) });
-        await context.SaveChangesAsync();
+            var context = GetDatabaseContext();
+            context.AppConfig.Add(new AppConfig { OpenLunchTime = new TimeSpan(11, 0, 0), CloseLunchTime = new TimeSpan(14, 0, 0) });
+            await context.SaveChangesAsync();
 
-        var service = new AdminService(context, GetMockUserManager(context).Object, GetMockRoleManager().Object, new Mock<IEmailSender>().Object);
+            var service = new AdminService(context, GetMockUserManager(context).Object, GetMockRoleManager().Object, new Mock<IEmailSender>().Object);
 
-        await service.UpdateBarScheduleAsync("12:00", "15:00", "Almoço");
+            await service.UpdateBarScheduleAsync("12:00", "15:00", "Almoço");
 
-        var updated = await context.AppConfig.FirstAsync();
-        Assert.Equal(new TimeSpan(12, 0, 0), updated.OpenLunchTime);
+            var updated = await context.AppConfig.FirstAsync();
+            Assert.Equal(new TimeSpan(12, 0, 0), updated.OpenLunchTime);
         }
-     }
+    }
 }

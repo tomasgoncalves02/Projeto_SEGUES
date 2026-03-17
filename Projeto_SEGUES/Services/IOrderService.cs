@@ -1,5 +1,4 @@
 using Projeto_SEGUES.Areas.Order.ViewModels;
-using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Order;
 using Projeto_SEGUES.Models.User;
 

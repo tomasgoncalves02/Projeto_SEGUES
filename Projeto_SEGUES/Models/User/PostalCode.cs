@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Projeto_SEGUES.Models.User
 {
@@ -6,12 +6,12 @@ namespace Projeto_SEGUES.Models.User
     {
         [Key]
         public int Id { get; set; }
-        
+
         [Required]
         [MaxLength(9)]
         [Display(Name = "Código Postal")]
         public required string Code { get; set; } // Ex: "2900-000"
-        
+
         public ICollection<AppUser> Users { get; set; } = new List<AppUser>();
     }
 }

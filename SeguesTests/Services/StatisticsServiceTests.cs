@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Inventory;
@@ -6,8 +6,6 @@ using Projeto_SEGUES.Models.Order;
 using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
-using System.Reflection; // Necessário para ler as propriedades
-using Xunit;
 
 namespace SeguesTests.Services
 {
@@ -129,7 +127,7 @@ namespace SeguesTests.Services
                     Owner = pedro,
                     State = TicketState.Used,
                     ExpirationDate = DateTime.Now.AddDays(1),
-                    TicketPurchase = p1 
+                    TicketPurchase = p1
                 },
                 new Ticket
                 {
@@ -139,7 +137,7 @@ namespace SeguesTests.Services
                     Owner = staff,
                     State = TicketState.Used,
                     ExpirationDate = DateTime.Now.AddDays(1),
-                    TicketPurchase = p2 
+                    TicketPurchase = p2
                 }
             );
             await context.SaveChangesAsync();

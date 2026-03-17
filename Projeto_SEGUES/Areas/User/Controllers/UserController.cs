@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Projeto_SEGUES.Areas.User.ViewModels;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
-using Projeto_SEGUES.Areas.User.ViewModels;
 
 namespace Projeto_SEGUES.Areas.User.Controllers;
 
@@ -26,7 +26,7 @@ public class UserController : Controller
         var user = await _userManager.GetUserAsync(User);
         if (user == null) return NotFound();
         ViewBag.Email = user.Email;
-        
+
         var roles = await _userManager.GetRolesAsync(user);
         var userRole = roles.FirstOrDefault() ?? "Client";
 
@@ -47,7 +47,7 @@ public class UserController : Controller
         };
         return View(editUserViewModel);
     }
-    
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateProfile(EditUserViewModel model)
@@ -58,13 +58,13 @@ public class UserController : Controller
             TempData.SetSwalError("Utilizador não encontrado.");
             return NotFound();
         }
-        
+
         if (!ModelState.IsValid)
         {
             var errors = string.Join("<br>", ModelState.Values
                 .SelectMany(v => v.Errors)
                 .Select(e => e.ErrorMessage));
-        
+
             return BadRequest(new { success = false, message = errors });
         }
 
@@ -93,7 +93,7 @@ public class UserController : Controller
             var identityErrors = string.Join("<br>", result.Errors.Select(e => e.Description));
             return BadRequest(new { success = false, message = $"Erro ao atualizar perfil: {identityErrors}" });
         }
-        
+
         TempData.SetSwalSuccess("Perfil atualizado com sucesso!");
         return Ok(new { success = true, message = "Perfil atualizado com sucesso!" });
     }

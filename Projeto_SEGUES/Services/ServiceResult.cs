@@ -4,7 +4,7 @@ public class ServiceResult
 {
     public bool Success { get; private set; }
     public string Message { get; private set; }
-    public object? Data { get; private set; } 
+    public object? Data { get; private set; }
 
     public ServiceResult(bool success, string message, object? data = null)
     {

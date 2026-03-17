@@ -15,12 +15,12 @@ public enum UserAction : byte
     SessionTimedOut,
     Other,
 
-        // --- AÁıes de NegÛcio SEGUES (ADICIONAR ESTES) ---
-    ValidateTicket,   // Quando o funcion·rio valida uma senha de refeiÁ„o
-    ValidateOrder,    // Quando o funcion·rio entrega um pedido do bar (Redemption Code)
-    UpdateStatus,     // Quando o funcion·rio muda o estado de um pedido (ex: Pendente -> Pronto)
+    // --- A√ß√µes de Neg√≥cio SEGUES (ADICIONAR ESTES) ---
+    ValidateTicket,   // Quando o funcion√°rio valida uma senha de refei√ß√£o
+    ValidateOrder,    // Quando o funcion√°rio entrega um pedido do bar (Redemption Code)
+    UpdateStatus,     // Quando o funcion√°rio muda o estado de um pedido (ex: Pendente -> Pronto)
 
-    // --- Gest„o de Dados ---
+    // --- Gest√£o de Dados ---
     Create,           // Criar novos registos 
     Update,           // Editar registos existentes
     Delete,           // Apagar registos

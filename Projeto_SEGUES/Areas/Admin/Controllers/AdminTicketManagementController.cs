@@ -8,7 +8,6 @@ using Projeto_SEGUES.Services;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using QuestPDF.Previewer;
 
 namespace Projeto_SEGUES.Areas.Admin;
 
@@ -229,7 +228,8 @@ public class AdminTicketManagementController : Controller
                     {
                         var lastTrans = t.Transfers?.OrderByDescending(x => x.TransferDate).FirstOrDefault();
 
-                        table.Cell().Element(ContentStyle).AlignLeft().Column(c => {
+                        table.Cell().Element(ContentStyle).AlignLeft().Column(c =>
+                        {
                             c.Item().Text($"{t.Owner?.FirstName} {t.Owner?.LastName}").FontSize(8).SemiBold();
                             c.Item().Text(t.Owner?.Email).FontSize(7).FontColor(Colors.Grey.Medium);
                         });
@@ -245,7 +245,8 @@ public class AdminTicketManagementController : Controller
                     }
                 });
 
-                page.Footer().AlignCenter().Text(x => {
+                page.Footer().AlignCenter().Text(x =>
+                {
                     x.Span("Página "); x.CurrentPageNumber();
                 });
             });

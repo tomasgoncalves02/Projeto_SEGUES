@@ -1,12 +1,10 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Payment;
 using Projeto_SEGUES.Models.User;
-using Stripe;
 using Stripe.Checkout;
 
 namespace Projeto_SEGUES.Areas.Payment
