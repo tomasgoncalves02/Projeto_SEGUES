@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+Ôªøusing Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Projeto_SEGUES.Areas.Order.ViewModels;
@@ -9,11 +9,11 @@ using Projeto_SEGUES.Services;
 namespace Projeto_SEGUES.Areas.Order;
 
 /// <summary>
-/// Controller respons·vel pela criaÁ„o de novas encomendas e gest„o do carrinho de compras.
+/// Controller respons√°vel pela cria√ß√£o de novas encomendas e gest√£o do carrinho de compras.
 /// </summary>
 /// <remarks>
-/// Este controlador coordena a interaÁ„o entre o invent·rio de produtos e o serviÁo de encomendas, 
-/// permitindo a adiÁ„o/remoÁ„o de itens e a finalizaÁ„o do processo de compra (Checkout).
+/// Este controlador coordena a intera√ß√£o entre o invent√°rio de produtos e o servi√ßo de encomendas, 
+/// permitindo a adi√ß√£o/remo√ß√£o de itens e a finaliza√ß√£o do processo de compra (Checkout).
 /// </remarks>
 [Area("Order")]
 [Authorize]
@@ -25,12 +25,12 @@ public class CreateOrderController : Controller
     private readonly IAdminService _adminService;
 
     /// <summary>
-    /// Inicializa uma nova inst‚ncia do controlador com os serviÁos de invent·rio, encomendas, utilizadores e administraÁ„o.
+    /// Inicializa uma nova inst√¢ncia do controlador com os servi√ßos de invent√°rio, encomendas, utilizadores e administra√ß√£o.
     /// </summary>
-    /// <param name="inventoryService">ServiÁo para consulta de produtos disponÌveis.</param>
-    /// <param name="orderService">ServiÁo para gest„o de operaÁıes do carrinho e encomendas.</param>
+    /// <param name="inventoryService">Servi√ßo para consulta de produtos dispon√≠veis.</param>
+    /// <param name="orderService">Servi√ßo para gest√£o de opera√ß√µes do carrinho e encomendas.</param>
     /// <param name="userManager">Gestor de utilizadores Identity.</param>
-    /// <param name="adminService">ServiÁo de configuraÁıes globais do sistema.</param>
+    /// <param name="adminService">Servi√ßo de configura√ß√µes globais do sistema.</param>
     public CreateOrderController(
         IInventoryService inventoryService,
         IOrderService orderService,
@@ -45,9 +45,9 @@ public class CreateOrderController : Controller
     }
 
     /// <summary>
-    /// Apresenta a p·gina de seleÁ„o de produtos para a nova encomenda.
+    /// Apresenta a p√°gina de sele√ß√£o de produtos para a nova encomenda.
     /// </summary>
-    /// <returns>A View com a lista de produtos disponÌveis e o estado atual do carrinho no ViewBag.</returns>
+    /// <returns>A View com a lista de produtos dispon√≠veis e o estado atual do carrinho no ViewBag.</returns>
     public async Task<IActionResult> Index()
     {
         var userId = _userManager.GetUserId(User)!;
@@ -62,7 +62,7 @@ public class CreateOrderController : Controller
     /// </summary>
     /// <param name="id">ID do produto a adicionar.</param>
     /// <param name="qty">Quantidade pretendida.</param>
-    /// <returns>Objeto JSON contendo o sucesso da operaÁ„o, mensagem e totais atualizados do carrinho.</returns>
+    /// <returns>Objeto JSON contendo o sucesso da opera√ß√£o, mensagem e totais atualizados do carrinho.</returns>
     [HttpPost]
     public async Task<IActionResult> AddToCart(int id, int qty)
     {
@@ -73,10 +73,10 @@ public class CreateOrderController : Controller
     }
 
     /// <summary>
-    /// Remove um produto especÌfico do carrinho de compras via AJAX.
+    /// Remove um produto espec√≠fico do carrinho de compras via AJAX.
     /// </summary>
     /// <param name="id">ID do produto a remover.</param>
-    /// <returns>Objeto JSON com o estado atualizado do carrinho apÛs a remoÁ„o.</returns>
+    /// <returns>Objeto JSON com o estado atualizado do carrinho ap√≥s a remo√ß√£o.</returns>
     [HttpPost]
     public async Task<IActionResult> RemoveFromCart(int id)
     {
@@ -87,9 +87,9 @@ public class CreateOrderController : Controller
     }
 
     /// <summary>
-    /// Apresenta a p·gina de finalizaÁ„o de compra (Checkout), mostrando o resumo do pedido e saldo do utilizador.
+    /// Apresenta a p√°gina de finaliza√ß√£o de compra (Checkout), mostrando o resumo do pedido e saldo do utilizador.
     /// </summary>
-    /// <returns>A View de Checkout com o conte˙do do carrinho atual.</returns>
+    /// <returns>A View de Checkout com o conte√∫do do carrinho atual.</returns>
     [HttpGet]
     public async Task<IActionResult> Checkout()
     {
@@ -101,13 +101,13 @@ public class CreateOrderController : Controller
     }
 
     /// <summary>
-    /// Processa a submiss„o final da encomenda, validando saldo e hor·rios de recolha.
+    /// Processa a submiss√£o final da encomenda, validando saldo e hor√°rios de recolha.
     /// </summary>
-    /// <param name="receiveNow">Indica se a recolha È imediata.</param>
+    /// <param name="receiveNow">Indica se a recolha √© imediata.</param>
     /// <param name="pickupTime">Hora agendada para a recolha (opcional).</param>
     /// <returns>Redireciona para a lista de pedidos ativos em caso de sucesso ou volta ao Checkout em caso de erro.</returns>
     /// <remarks>
-    /// Utiliza o serviÁo <see cref="IOrderService.SubmitOrderAsync"/> para persistir a encomenda e abater o saldo do utilizador.
+    /// Utiliza o servi√ßo <see cref="IOrderService.SubmitOrderAsync"/> para persistir a encomenda e abater o saldo do utilizador.
     /// </remarks>
     [HttpPost]
     [ValidateAntiForgeryToken]
