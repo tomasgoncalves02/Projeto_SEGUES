@@ -23,10 +23,12 @@ public class OrderController : Controller
     {
         var user = await _userManager.GetUserAsync(User);
         if (user == null) return Challenge();
-
+       
         ViewBag.UserBalance = user.Balance;      
         ViewBag.OpeningTime = (await _adminService.GetOpenBarTimeAsync()).ToString(@"hh\:mm");
         ViewBag.ClosingTime = (await _adminService.GetCloseBarTimesAsync()).ToString(@"hh\:mm");
+
+        ViewBag.BarLink = await _adminService.GetBarMenuLinkAsync();
 
         return View();
     }

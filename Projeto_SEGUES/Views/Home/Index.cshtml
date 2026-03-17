@@ -27,7 +27,10 @@
                 
                 <div style="max-width: 450px;">
                     <div class="d-flex gap-2 mb-2">
-                        <button id="pickMenu" class="btn btn-ips py-3 flex-fill fw-bold col-2">
+                        <button id="pickMenu"
+                                class="btn btn-ips py-3 flex-fill fw-bold"
+                                data-refeitorio="@ViewBag.RefeitorioLink"
+                                data-bar="@ViewBag.BarLink">
                             Ver Ementa
                         </button>
                         <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-ips-outline-secondary py-3 flex-fill fw-bold col-2">Iniciar Sessão</a>

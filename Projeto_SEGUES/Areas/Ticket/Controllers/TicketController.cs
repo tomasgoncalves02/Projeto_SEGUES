@@ -38,6 +38,7 @@ public class TicketController : Controller
         ViewBag.LunchCloseTime = await _adminService.GetCloseLunchTimeAsync();
         ViewBag.DinnerOpenTime = await _adminService.GetOpenDinnerTimeAsync();
         ViewBag.DinnerCloseTime = await _adminService.GetCloseDinnerTimeAsync();
+        ViewBag.RefeitorioLink = await _adminService.GetRefeitorioMenuLinkAsync();
         return View();
     }
 

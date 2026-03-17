@@ -8,105 +8,113 @@
         <div class="col-md-6">
             <h2 class="fw-bold title-underline mb-0">Painel de Administração</h2>
         </div>
-        <div class="col-md-6 text-end d-flex justify-content-end align-items-center gap-3">          
+        <div class="col-md-6 text-end d-flex justify-content-end align-items-center gap-3">
             @* Return button *@
             <a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4" style="padding-top: 0.72rem; padding-bottom: 0.71rem;">
                 <i class="bi bi-arrow-left me-2"></i>Voltar
             </a>
         </div>
     </div>
-    
-    @* Cards *@
+
+    @* Cards - Grid ajustada para col-lg-3 para combinar com o Refeitório *@
     <div class="row g-4">
         @* Create Internal Account *@
-        <div class="col-md-6 col-lg-4">
+        <div class="col-md-6 col-lg-3">
             <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
-                <div class="card-body d-flex flex-column p-5 text-center">
+                <div class="card-body text-center d-flex flex-column p-4">
                     <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-person-plus"></i></div>
-                    <h3 class="card-title fw-bold">Novo Registo</h3>
-                    <p class="text-muted">Criar manualmente um Administrador ou Funcionário no sistema.</p>
-                    <div class="mt-auto pt-3">
-                        <a asp-area="Admin" asp-controller="AdminCreateInternalAccount" asp-action="Index" class="btn btn-ips w-100 py-2 fw-bold">
-                            Criar Conta
-                        </a>
+                    <h5 class="fw-bold">Novo Registo</h5>
+                    <p class="text-muted small mb-4">Criar manualmente um Administrador ou Funcionário no sistema.</p>
+                    <div class="mt-auto">
+                        <a asp-area="Admin" asp-controller="AdminCreateInternalAccount" asp-action="Index" class="btn btn-ips w-100 py-2 fw-bold">Criar Conta</a>
                     </div>
                 </div>
             </div>
         </div>
+
         @* User Management *@
-        <div class="col-md-6 col-lg-4">
+        <div class="col-md-6 col-lg-3">
             <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
-                <div class="card-body d-flex flex-column p-5 text-center">
+                <div class="card-body text-center d-flex flex-column p-4">
                     <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-people"></i></div>
-                    <h3 class="card-title fw-bold">Gerir Utilizadores</h3>
-                    <p class="text-muted">Consultar lista, ver detalhes, editar ou apagar contas registadas.</p>
-                    <div class="mt-auto pt-3">
-                        <a asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Index" class="btn btn-ips w-100 py-2 fw-bold">
-                            Ver Lista
-                        </a>
+                    <h5 class="fw-bold">Utilizadores</h5>
+                    <p class="text-muted small mb-4">Consultar lista, ver detalhes, editar ou apagar contas registadas.</p>
+                    <div class="mt-auto">
+                        <a asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Index" class="btn btn-ips w-100 py-2 fw-bold">Ver Lista</a>
                     </div>
                 </div>
             </div>
         </div>
+
         @* Ticket Management *@
-        <div class="col-md-6 col-lg-4">
+        <div class="col-md-6 col-lg-3">
             <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
-                <div class="card-body d-flex flex-column p-5 text-center">
+                <div class="card-body text-center d-flex flex-column p-4">
                     <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-ticket-perforated"></i></div>
-                    <h3 class="card-title fw-bold">Gestão de Senhas</h3>
-                    <p class="text-muted">Monitorizar vendas, validar estados e verificar as expirações.</p>
-                    <div class="mt-auto pt-3">
-                        <a asp-area="Admin" asp-controller="AdminTicketManagement" asp-action="Index" class="btn btn-ips w-100 py-2 fw-bold">
-                            Gerir Senhas
-                        </a>
+                    <h5 class="fw-bold">Gestão de Senhas</h5>
+                    <p class="text-muted small mb-4">Monitorizar vendas, validar estados e verificar as expirações.</p>
+                    <div class="mt-auto">
+                        <a asp-area="Admin" asp-controller="AdminTicketManagement" asp-action="Index" class="btn btn-ips w-100 py-2 fw-bold">Gerir Senhas</a>
                     </div>
                 </div>
             </div>
         </div>
+
         @* Bar Management *@
-        <div class="col-md-6 col-lg-4">
+        <div class="col-md-6 col-lg-3">
             <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
-                <div class="card-body d-flex flex-column p-5 text-center">
+                <div class="card-body text-center d-flex flex-column p-4">
                     <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-cup-straw"></i></div>
-                    <h3 class="card-title fw-bold">Gestão do Bar</h3>
-                    <p class="text-muted">Gerir o inventário de produtos e categorias do bar.</p>
-                    <div class="mt-auto pt-3">
-                        <a asp-area="Admin" asp-controller="AdminBarManagement" asp-action="Index" class="btn btn-ips w-100 py-2 fw-bold">
-                            Gerir Bar
-                        </a>
+                    <h5 class="fw-bold">Gestão do Bar</h5>
+                    <p class="text-muted small mb-4">Gerir o inventário de produtos e categorias do bar.</p>
+                    <div class="mt-auto">
+                        <a asp-area="Admin" asp-controller="AdminBarManagement" asp-action="Index" class="btn btn-ips w-100 py-2 fw-bold">Gerir Bar</a>
                     </div>
                 </div>
             </div>
         </div>
+
         @* Statistics *@
-        <div class="col-md-6 col-lg-4">
+        <div class="col-md-6 col-lg-3">
             <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
-                <div class="card-body d-flex flex-column p-5 text-center">
+                <div class="card-body text-center d-flex flex-column p-4">
                     <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-bar-chart-line"></i></div>
-                    <h3 class="card-title fw-bold">Estatísticas</h3>
-                    <p class="text-muted">Consultar dados estatísticos da aplicação.</p>
-                    <div class="mt-auto pt-3">
-                        <a asp-area="Statistics" asp-controller="StatisticsPage" asp-action="Index" class="btn btn-ips w-100 py-2 fw-bold">
-                            Ver Estatísticas
-                        </a>
+                    <h5 class="fw-bold">Estatísticas</h5>
+                    <p class="text-muted small mb-4">Consultar dados estatísticos da aplicação e utilização.</p>
+                    <div class="mt-auto">
+                        <a asp-area="Statistics" asp-controller="StatisticsPage" asp-action="Index" class="btn btn-ips w-100 py-2 fw-bold">Ver Dados</a>
                     </div>
                 </div>
             </div>
         </div>
-        @* User History *@
-        <div class="col-md-6 col-lg-4">
+
+        @* Staff Logs *@
+        <div class="col-md-6 col-lg-3">
             <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
-                <div class="card-body d-flex flex-column p-5 text-center">
-                    <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-bar-chart-line"></i></div>
-                    <h3 class="card-title fw-bold">Logs dos funcionários</h3>
-                    <p class="text-muted">Monitorizar ações realizadas pelos funcionários.</p>
-                    <div class="mt-auto pt-3">
-                        <a asp-area="Admin" asp-controller="AdminUserManagement" asp-action="StaffLog" class="btn btn-ips w-75 py-2 fw-bold">
-                            Gerir Logs
-                        </a>
+                <div class="card-body text-center d-flex flex-column p-4">
+                    <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-journal-text"></i></div>
+                    <h5 class="fw-bold">Logs Staff</h5>
+                    <p class="text-muted small mb-4">Monitorizar ações realizadas pelos funcionários no sistema.</p>
+                    <div class="mt-auto">
+                        <a asp-area="Admin" asp-controller="AdminUserManagement" asp-action="StaffLog" class="btn btn-ips w-100 py-2 fw-bold">Gerir Logs</a>
                     </div>
                 </div>
             </div>
         </div>
+
+        @* Menu Management *@
+        <div class="col-md-6 col-lg-3">
+            <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
+                <div class="card-body text-center d-flex flex-column p-4">
+                    <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-journal-richtext"></i></div>
+                    <h5 class="fw-bold">Gerir Ementas</h5>
+                    <p class="text-muted small mb-4">Configurar os links externos das ementas Bar e Refeitório.</p>
+                    <div class="mt-auto">
+                        <a asp-area="Admin" asp-controller="AdminMenuManagement" asp-action="Index" class="btn btn-ips w-100 py-2 fw-bold">Configurar Links</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>

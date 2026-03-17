@@ -28,4 +28,10 @@ public class AppConfig
 
     [Required]
     public TimeSpan CloseDinnerTime { get; set; } = new(21, 30, 0);
+
+    [Url]
+    public string? RefeitorioLink { get; set; } = "https://www.ips.pt";
+
+    [Url]
+    public string? BarLink { get; set; } = "https://www.ips.pt";
 }

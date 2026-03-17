@@ -25,6 +25,8 @@ namespace Projeto_SEGUES.Controllers
 
         public async Task<IActionResult> Index()
         {
+            ViewBag.RefeitorioLink = await _adminService.GetRefeitorioMenuLinkAsync();
+            ViewBag.BarLink = await _adminService.GetBarMenuLinkAsync();
             // Check if logged
             if (User.Identity is not { IsAuthenticated: true }) return View();
             
@@ -36,7 +38,7 @@ namespace Projeto_SEGUES.Controllers
                 ViewBag.UserBalance = user.Balance;
                 ViewBag.FirstName = user.FirstName;
                 var roles = await _userManager.GetRolesAsync(user);
-                ViewBag.UserRole = roles.FirstOrDefault();
+                ViewBag.UserRole = roles.FirstOrDefault();                
             }
             else
             {

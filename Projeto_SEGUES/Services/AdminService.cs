@@ -1,13 +1,14 @@
-using System.Security.Cryptography;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Data;
+using Projeto_SEGUES.Models.Admin;
+using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.User;
-using Projeto_SEGUES.Areas.Admin.ViewModels;
-using Projeto_SEGUES.Models.Enums;
+using System.Security.Cryptography;
 
 namespace Projeto_SEGUES.Services;
 
@@ -85,6 +86,33 @@ public class AdminService : IAdminService
                 Description = "Erro de conexão: Não foi possível enviar o e-mail de ativação. A conta não foi criada. Verifique a sua ligação à internet."
             });
         }
+    }
+    public async Task<string> GetBarMenuLinkAsync()
+    {
+        var config = await _context.AppConfig.FirstOrDefaultAsync();
+        return config?.BarLink ?? "https://www.ips.pt";
+    }
+
+    public async Task<string> GetRefeitorioMenuLinkAsync()
+    {
+        var config = await _context.AppConfig.FirstOrDefaultAsync();
+        return config?.RefeitorioLink ?? "https://www.ips.pt";
+    }
+
+    public async Task UpdateMenuLinksAsync(string refeitorioLink, string barLink)
+    {
+        var config = await _context.AppConfig.FirstOrDefaultAsync();
+
+        if (config == null)
+        {
+            config = new AppConfig();
+            _context.AppConfig.Add(config);
+        }
+
+        config.RefeitorioLink = refeitorioLink;
+        config.BarLink = barLink;
+
+        await _context.SaveChangesAsync();
     }
 
     // Substitui o teu método UpdateBarScheduleAsync por este mais completo:

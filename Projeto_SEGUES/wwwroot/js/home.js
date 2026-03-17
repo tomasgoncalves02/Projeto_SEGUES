@@ -1,6 +1,10 @@
 import { DOM, Notifications } from "./core/core.js";
 
 function pickMenu() {
+    const btn = document.getElementById('pickMenu');
+    const refeitorioUrl = btn.getAttribute('data-refeitorio');
+    const barUrl = btn.getAttribute('data-bar');
+
     Notifications.show({
         title: 'Qual ementa deseja visualizar?',
         icon: 'question',
@@ -12,10 +16,10 @@ function pickMenu() {
         denyButtonColor: 'var(--ips)',
         cancelButtonColor: 'var(--deny)'
     }).then((result) => {
-        if (result.isConfirmed) {
-            window.open("https://software.movelife.net/pt-PT/Menus/PublicCC/Tj6o3O_vCFB2LmCmm9VUjw%3d%3d", "_blank");
-        } else if (result.isDenied) {
-            window.open("https://software.movelife.net/pt-PT/Menus/PublicCC/Tj6o3O_vCFDXvHU0nbgTmg%3d%3d", "_blank");
+        if (result.isConfirmed && refeitorioUrl) {
+            window.open(refeitorioUrl, "_blank");
+        } else if (result.isDenied && barUrl) {
+            window.open(barUrl, "_blank");
         }
     });
 }
