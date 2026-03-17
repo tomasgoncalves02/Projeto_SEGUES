@@ -7,11 +7,11 @@ using Projeto_SEGUES.Services;
 namespace Projeto_SEGUES.Areas.Order;
 
 /// <summary>
-/// Controller respons·vel pela gest„o operacional de pedidos por parte dos funcion·rios e administradores.
+/// Controller respons√°vel pela gest√£o operacional de pedidos por parte dos funcion√°rios e administradores.
 /// </summary>
 /// <remarks>
-/// Este controlador permite ao staff monitorizar pedidos pendentes, atualizar estados de produÁ„o 
-/// e validar cÛdigos de levantamento para finalizar o ciclo de entrega ao utilizador.
+/// Este controlador permite ao staff monitorizar pedidos pendentes, atualizar estados de produ√ß√£o 
+/// e validar c√≥digos de levantamento para finalizar o ciclo de entrega ao utilizador.
 /// </remarks>
 [Authorize(Roles = "Admin,Employee")]
 [Area("Order")]
@@ -21,10 +21,10 @@ public class OrderManagementController : Controller
     private readonly UserManager<AppUser> _userManager;
 
     /// <summary>
-    /// Inicializa uma nova inst‚ncia do controlador com os serviÁos de pedidos e gest„o de utilizadores.
+    /// Inicializa uma nova inst√¢ncia do controlador com os servi√ßos de pedidos e gest√£o de utilizadores.
     /// </summary>
-    /// <param name="orderService">ServiÁo de lÛgica de negÛcio para manipulaÁ„o de encomendas.</param>
-    /// <param name="userManager">Gestor de utilizadores para identificar o funcion·rio que realiza as aÁıes.</param>
+    /// <param name="orderService">Servi√ßo de l√≥gica de neg√≥cio para manipula√ß√£o de encomendas.</param>
+    /// <param name="userManager">Gestor de utilizadores para identificar o funcion√°rio que realiza as a√ß√µes.</param>
     public OrderManagementController(IOrderService orderService, UserManager<AppUser> userManager)
     {
         _orderService = orderService;
@@ -32,16 +32,16 @@ public class OrderManagementController : Controller
     }
 
     /// <summary>
-    /// Apresenta a interface principal de gest„o de pedidos n„o entregues.
+    /// Apresenta a interface principal de gest√£o de pedidos n√£o entregues.
     /// </summary>
-    /// <returns>A View de Ìndice com a lista de pedidos pendentes para processamento.</returns>
+    /// <returns>A View de √≠ndice com a lista de pedidos pendentes para processamento.</returns>
     public async Task<IActionResult> Index()
     {
         return View(await _orderService.GetUndeliveredOrdersAsync());
     }
 
     /// <summary>
-    /// ObtÈm apenas a tabela de pedidos para atualizaÁıes parciais de interface.
+    /// Obt√©m apenas a tabela de pedidos para atualiza√ß√µes parciais de interface.
     /// </summary>
     /// <returns>Uma PartialView contendo a tabela atualizada de encomendas por entregar.</returns>
     [HttpGet]
@@ -51,10 +51,10 @@ public class OrderManagementController : Controller
     }
 
     /// <summary>
-    /// ObtÈm os detalhes de um pedido especÌfico para exibiÁ„o num painel lateral (Side Card).
+    /// Obt√©m os detalhes de um pedido espec√≠fico para exibi√ß√£o num painel lateral (Side Card).
     /// </summary>
-    /// <param name="id">Identificador ˙nico da encomenda.</param>
-    /// <returns>Uma PartialView com os detalhes da encomenda ou NotFound caso n„o exista.</returns>
+    /// <param name="id">Identificador √∫nico da encomenda.</param>
+    /// <returns>Uma PartialView com os detalhes da encomenda ou NotFound caso n√£o exista.</returns>
     [HttpGet]
     public async Task<IActionResult> GetOrderDetailsSide(int id)
     {
@@ -65,11 +65,11 @@ public class OrderManagementController : Controller
     }
 
     /// <summary>
-    /// Atualiza o estado de um pedido (ex: Em PreparaÁ„o, Pronto).
+    /// Atualiza o estado de um pedido (ex: Em Prepara√ß√£o, Pronto).
     /// </summary>
     /// <param name="id">ID do pedido a atualizar.</param>
     /// <param name="newStatus">Inteiro representativo do novo estado (Enum OrderStatus).</param>
-    /// <returns>StatusCode 200 (Ok) em caso de sucesso ou 400 (BadRequest) em caso de erro na lÛgica de negÛcio.</returns>
+    /// <returns>StatusCode 200 (Ok) em caso de sucesso ou 400 (BadRequest) em caso de erro na l√≥gica de neg√≥cio.</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateStatus(int id, int newStatus)
@@ -81,11 +81,11 @@ public class OrderManagementController : Controller
     }
 
     /// <summary>
-    /// Valida o cÛdigo de redenÁ„o inserido pelo funcion·rio para confirmar a entrega do pedido.
+    /// Valida o c√≥digo de reden√ß√£o inserido pelo funcion√°rio para confirmar a entrega do pedido.
     /// </summary>
     /// <param name="id">ID do pedido a validar.</param>
-    /// <param name="codeEntered">CÛdigo alfanumÈrico fornecido pelo cliente.</param>
-    /// <returns>Resultado da operaÁ„o em formato JSON.</returns>
+    /// <param name="codeEntered">C√≥digo alfanum√©rico fornecido pelo cliente.</param>
+    /// <returns>Resultado da opera√ß√£o em formato JSON.</returns>
     /// <remarks>
     /// Adiciona o Header "HX-Trigger" para notificar o frontend (via HTMX) de que o pedido foi atualizado com sucesso.
     /// </remarks>
