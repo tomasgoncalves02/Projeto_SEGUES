@@ -1,10 +1,11 @@
 import { Notifications, Api, DOM } from "../core/core.js";
+import { MathUtils } from "../core/mathUtils.js";
 
 function updateCartElement(id, value) {
     const el = DOM.byId(id);
     if (el) {
         el.innerText = value;
-        el.style.display = value > 0 ? "block" : "none";
+        el.style.display = parseFloat(value) > 0 ? "inline-block" : "none";
     }
 }
 
@@ -21,15 +22,15 @@ async function addToCart(id, name) {
             Notifications.error(`Erro ao adicionar ${qty}x ${name} ao carrinho: ${data.message}`);
             return;
         }
-        updateCartElement('cart-count', data.count);
-        updateCartElement('cart-total', data.value);
+        updateCartElement('cartCount', data.count);
+        updateCartElement('cartTotal', MathUtils.numberToCurrencyString(data.value));
         Notifications.success(`${qty}x ${name} adicionado ao carrinho!`);
     } catch (e) { 
         Notifications.error(`Erro ao adicionar ${qty}x ${name} ao carrinho: ${e.message}`);
     }
 }
 
-function removeFromCart(id, name) {
+async function removeFromCart(id, name) {
     Notifications.confirm(`Desejas remover ${name} do carrinho?`).then(async res => {
         if (res.isConfirmed) {
             try {
@@ -47,4 +48,27 @@ function removeFromCart(id, name) {
     });
 }
 
-export { addToCart, removeFromCart };
+function confirmOrder() {
+    Notifications.confirm("Tem a certeza que deseja efetuar este pedido?")
+        .then((result) => {
+            if (result.isConfirmed) {
+                const form = DOM.byId("checkoutForm");
+                if (form) form.submit();
+            }
+        });
+}
+
+const CreateOrder = {
+    init() {
+        DOM.bindAll('addToCart', 'click', async function() {
+            await addToCart(this.dataset.id, this.dataset.name);
+        });
+        DOM.bindAll('removeFromCart', 'click', async function() {
+            await removeFromCart(this.dataset.id, this.dataset.name);
+        });
+        DOM.bind('confirmOrder', 'click', confirmOrder);
+    }
+}
+
+DOM.bindDocumentLoad(CreateOrder.init);
+export { CreateOrder };

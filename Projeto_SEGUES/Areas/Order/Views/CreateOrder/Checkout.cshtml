@@ -30,7 +30,7 @@
                         <span class="fs-1 fw-bold text-color-ips">@Model.TotalValue.ToString("N2") €</span>
                     </div>
 
-                    <form id="formConfirmacao" asp-area="Order" asp-controller="CreateOrder" asp-action="SubmitOrder" method="post">
+                    <form id="checkoutForm" asp-area="Order" asp-controller="CreateOrder" asp-action="SubmitOrder" method="post">
                         @Html.AntiForgeryToken()
                         <p class="fw-bold small mb-2 text-uppercase text-muted text-start">Data de recebimento</p>
                         <div class="row g-2 mb-4">
@@ -51,39 +51,7 @@
                             </div>
                         </div>
 
-                        @section Scripts {
-                            <script>
-                                // Toggle do campo de hora
-                                document.querySelectorAll('input[name="receiveNow"]').forEach(function(radio) {
-                                    radio.addEventListener('change', function() {
-                                        var wrapper = document.getElementById('pickup-time-wrapper');
-                                        if (this.value === 'false') {
-                                            var agora = new Date();
-                                            document.getElementById('pickupTime').value =
-                                                String(agora.getHours()).padStart(2, '0') + ':' +
-                                                String(agora.getMinutes()).padStart(2, '0');
-                                            wrapper.style.display = 'block';
-                                        } else {
-                                            wrapper.style.display = 'none';
-                                        }
-                                    });
-                                });
-
-                                // Antes de submeter, se for "Agora" preenche a hora atual
-                                document.getElementById('formConfirmacao').addEventListener('submit', function() {
-                                    var receiveNow = document.querySelector('input[name="receiveNow"]:checked').value;
-                                    if (receiveNow === 'true') {
-                                        var agora = new Date();
-                                        document.getElementById('pickupTime').value =
-                                            String(agora.getHours()).padStart(2, '0') + ':' +
-                                            String(agora.getMinutes()).padStart(2, '0');
-                                    }
-                                });
-                            </script>
-                        }
-
-                        <button type="button"
-                                onclick="confirmarCompraBar('formConfirmacao')"
+                        <button type="button" id="confirmOrder"
                                 class="btn btn-ips w-100 py-3 fw-bold text-uppercase shadow-sm"
                                 @(Model.ProductPurchases.Any() ? "" : "disabled")>
                             Confirmar compra
@@ -112,8 +80,7 @@
                             <td class="text-color-ips fw-bold">@item.ProductValue.ToString("C")</td>
                             <td><span class="badge bg-light text-dark border px-3">@item.Quantity</span></td>
                             <td class="pe-4">
-                                <button type="button" class="btn btn-link text-muted p-0 border-0"
-                                        onclick="removeFromCart(@item.ProductId, '@item.Product.Name')">
+                                <button type="button" class="btn btn-link text-muted p-0 border-0 removeFromCart" data-id="@item.ProductId" data-name="@item.Product.Name">
                                     <i class="bi bi-x-lg"></i>
                                 </button>
                             </td>
@@ -127,5 +94,34 @@
 </div>
 
 @section Scripts {
-    <script src="~/js/order/createOrder.js"></script>
+    <script type="module" src="~/js/order/createOrder.js"></script>
+    
+    <script>
+                                // Toggle do campo de hora
+                                document.querySelectorAll('input[name="receiveNow"]').forEach(function(radio) {
+                                    radio.addEventListener('change', function() {
+                                        var wrapper = document.getElementById('pickup-time-wrapper');
+                                        if (this.value === 'false') {
+                                            var agora = new Date();
+                                            document.getElementById('pickupTime').value =
+                                                String(agora.getHours()).padStart(2, '0') + ':' +
+                                                String(agora.getMinutes()).padStart(2, '0');
+                                            wrapper.style.display = 'block';
+                                        } else {
+                                            wrapper.style.display = 'none';
+                                        }
+                                    });
+                                });
+
+                                // Antes de submeter, se for "Agora" preenche a hora atual
+                                document.getElementById('checkoutForm').addEventListener('submit', function() {
+                                    var receiveNow = document.querySelector('input[name="receiveNow"]:checked').value;
+                                    if (receiveNow === 'true') {
+                                        var agora = new Date();
+                                        document.getElementById('pickupTime').value =
+                                            String(agora.getHours()).padStart(2, '0') + ':' +
+                                            String(agora.getMinutes()).padStart(2, '0');
+                                    }
+                                });
+                            </script>
 }

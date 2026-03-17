@@ -15,7 +15,7 @@ function pickMenu() {
         if (result.isConfirmed) {
             window.open("https://software.movelife.net/pt-PT/Menus/PublicCC/Tj6o3O_vCFB2LmCmm9VUjw%3d%3d", "_blank");
         } else if (result.isDenied) {
-            window.open("https://software.movelife.net/pt-PT/Menus/PublicCC/Tj6o3O_vCFDXvHU0nbgTmg%3d%3d?DaySelected=13%2F03%2F2026&capit=5&idzone=1616", "_blank");
+            window.open("https://software.movelife.net/pt-PT/Menus/PublicCC/Tj6o3O_vCFDXvHU0nbgTmg%3d%3d", "_blank");
         }
     });
 }

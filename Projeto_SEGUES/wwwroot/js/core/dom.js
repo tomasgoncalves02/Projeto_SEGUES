@@ -6,10 +6,10 @@ const DOM = {
         return root.getElementById(id);
     },
     byClass(className, root = document) {
-        return root.getElementsByClassName(className);
+        return Array.from(root.getElementsByClassName(className));
     },
     byTag(tagName, root = document) {
-        return root.getElementsByTagName(tagName);
+        return Array.from(root.getElementsByTagName(tagName));
     },
     byName(name, root = document) {
         return root.getElementsByName(name);
@@ -31,7 +31,7 @@ const DOM = {
         if (executeImmediately) fn();
     },
     bindAll(className, event, fn) {
-        const elems = Array.from(this.byClass(className));
+        const elems = this.byClass(className);
         elems.forEach(el => el.addEventListener(event, fn));
     }
 };

@@ -285,6 +285,7 @@ public class OrderService : IOrderService
         return await _context.Order
             .Include(o => o.ProductPurchases)
             .ThenInclude(ol => ol.Product)
+            .ThenInclude(p => p.Category)
             .Include(o => o.AppUser)
             .FirstOrDefaultAsync(o => o.Id == id);
     }

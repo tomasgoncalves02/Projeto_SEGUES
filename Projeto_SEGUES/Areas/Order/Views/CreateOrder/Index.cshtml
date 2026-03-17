@@ -1,22 +1,15 @@
-﻿@using Projeto_SEGUES.Services
-@using Microsoft.AspNetCore.Identity
-@using Projeto_SEGUES.Models.User @* Ou onde estiver o teu AppUser *@
+﻿@model IEnumerable<Projeto_SEGUES.Models.Inventory.Product>
 
-@inject IOrderService OrderService
-@inject UserManager<AppUser> UserManager
-
-@model IEnumerable<Projeto_SEGUES.Models.Inventory.Product>
 @{
     ViewData["Title"] = "Efetuar Pedido - SEGUES";
+    bool isStaff = User.IsInRole("Admin") || User.IsInRole("Employee");
 }
 
 <div class="container mt-4 text-start">
     @* Top row *@
     <div class="row mb-4 align-items-center">
         <div class="col-md-7">
-            <h2 class="fw-bold title-underline mb-2">
-                Efetuar Pedido
-            </h2>
+            <h2 class="fw-bold title-underline mb-2">Efetuar Pedido</h2>
             <p class="text-muted small">Seleciona os produtos e as quantidades que pretendes adquirir.</p>
         </div>
         <div class="col-md-5 text-end">
@@ -26,82 +19,65 @@
         </div>
     </div>
 
-    @* Barra de Filtros Estilizada *@
+    @* Filters Bar *@
     <div class="card card-ips shadow-sm mb-4 border-0 rounded-3">
         <div class="card-body p-4 filter-bar">
             <div class="row g-3 align-items-end">
-
-                @* Secção do Carrinho Clicável com Badge Ajustada *@
+                @* Checkout Cart *@
                 <div class="col-md-4 col-xl-2 border-end pe-4 d-flex align-items-center justify-content-center">
                     <div class="text-center">
                         <span class="fw-bold small d-block text-uppercase text-muted mb-1">Carrinho</span>
                         <a asp-area="Order" asp-controller="CreateOrder" asp-action="Checkout" class="position-relative d-inline-block text-decoration-none">
                             <i class="bi bi-cart-check fs-2 text-color-ips"></i>
-
-                            @{
-                                // LÓGICA ALTERADA: Busca o valor real na BD em cada carregamento de página
-                                var user = await UserManager.GetUserAsync(User);
-                                int totalItensNoCarrinho = 0;
-                                if (user != null)
-                                {
-                                    var cart = await OrderService.GetCartAsync(user.Id);
-                                    totalItensNoCarrinho = OrderService.GetOrderTotal(cart).TotalQuantity;
-                                }
-                            }
-
-                            @* Badge agora usa totalItensNoCarrinho em vez de ViewBag *@
-                            <span id="cart-count"
-                                  class="position-absolute badge rounded-pill bg-danger"
-                                  style="display: @(totalItensNoCarrinho > 0 ? "block" : "none"); font-size: 0.65rem; top: -2px; right: -5px; padding: 0.35em 0.5em; border: 2px solid white;">
-                                @totalItensNoCarrinho
+                            <span id="cartCount" class="position-absolute badge rounded-pill bg-danger fs-7"
+                                  style="display: @(ViewBag.CartTotal.TotalQuantity > 0 ? "block" : "none"); top: -2px; right: -5px; padding: 0.35em 0.5em; border: 2px solid white;">
+                                @ViewBag.CartTotal.TotalQuantity
                             </span>
                         </a>
+                        <span class="fw-bold small d-block text-uppercase text-muted mt-2">Total: <span id="cartTotal">@ViewBag.CartTotal.TotalValue €</span></span>
                     </div>
                 </div>
 
-                @* Filtro de Tipo *@
-                <div class="col-md-4 col-xl-2">
-                    <label for="typeFilter" class="form-label small fw-bold text-muted text-uppercase mb-1">Tipo</label>
-                    <select id="typeFilter" class="form-select form-select-sm border-secondary-subtle">
-                        <option value="todos">Bebidas/Comidas</option>
-                        @foreach (var cat in ViewBag.Categories)
+                @* Category filter *@
+                <div class="col-md-4 col-xl-3">
+                    <label for="categoryFilter" class="form-label small fw-bold text-muted mb-1">Categoria</label>
+                    <select id="categoryFilter" class="form-select form-select-sm border-secondary-subtle">
+                        <option value="">Todas</option>
+                        @foreach (SelectListItem cat in ViewBag.Categories)
                         {
-                            <option value="@cat.ToString()">@cat.ToString()</option>
+                            <option value="@cat.Value">@cat.Text</option>
                         }
                     </select>
                 </div>
 
-                @* Campo de Pesquisa *@
-                <div class="col-md-6 col-xl">
-                    <label for="orderSearch" class="form-label small fw-bold text-muted text-uppercase mb-1">Pesquisar</label>
-                    <input id="orderSearch" type="text" class="form-control form-control-sm border-secondary-subtle"
-                           placeholder="Nome do produto..." onkeyup="filterOrderTable()">
+                @* Search filter *@
+                <div class="col-md col-xl">
+                    <label for="nameFilter" class="form-label small fw-bold text-muted mb-1">Pesquisar</label>
+                    <input id="nameFilter" type="text" class="form-control form-control-sm border-secondary-subtle" placeholder="Nome do produto...">
                 </div>
 
-                @* Botão PESQUISAR e Limpar *@
-                <div class="col-md-4 col-xl-auto text-end text-xl-start" style="width: fit-content">
-                    <div class="d-flex align-items-center justify-content-end justify-content-xl-start gap-3">
-                        <a href="javascript:void(0)" onclick="clearOrderFilters()"
-                           class="text-muted small text-decoration-none d-flex align-items-center text-nowrap btn-reset-x">
-                            Limpar filtros <i class="bi bi-x-circle ms-1"></i>
-                        </a>
-                        <button type="button" onclick="filterOrderTable()" class="btn btn-ips fw-bold px-3 py-2 shadow-sm d-flex align-items-center text-uppercase" style="height: 38px;">
-                            <i class="bi bi-search me-2"></i> PESQUISAR
-                        </button>
-                    </div>
+                @* Clear button *@
+                <div class="col-md-auto text-end">
+                    <button type="button" id="clearProductsTableFilters" class="btn btn-sm fw-bold px-3 py-2">
+                        <i class="bi bi-x-circle me-1"></i> Limpar
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    @* Tabela de Produtos *@
-    <div class="card card-ips shadow-sm border-0 rounded-3 overflow-hidden">
-        <div class="table-responsive" style="max-height: 550px; overflow-y: auto;">
-            <table class="table table-hover align-middle mb-0 text-center" id="orderTable">
-                <thead class="bg-color-ips text-white" style="position: sticky; top: 0; z-index: 2;">
+    @* Products Table *@
+    <div class="card card-ips shadow-sm border-0 rounded-3">
+        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold text-color-ips"><i class="bi bi-list-ul me-2"></i>Lista de Produtos</h5>
+            <span class="badge bg-light text-dark border"><span id="productsCountBadge">@Model.Count()</span> registos</span>
+        </div>
+        <div class="table-responsive" style="max-height: 550px;">
+            <table class="table table-hover align-middle mb-0 text-center">
+                <thead class="bg-color-ips text-white position-sticky top-0">
                     <tr>
                         <th class="ps-4 py-3 text-start">Nome</th>
-                        <th class="py-3">Informações</th>
+                        <th class="py-3">Categoria</th>
                         <th class="py-3">Preço</th>
                         <th class="py-3">Quantidade</th>
                         <th class="pe-4 py-3">Ação</th>
@@ -121,26 +97,32 @@
                     {
                         @foreach (var p in Model)
                         {
-                            <tr class="order-row">
-                                <td class="ps-4 text-start fw-bold product-name">@p.Name</td>
-                                <td>
-                                    <button class="btn btn-sm btn-ips shadow-sm" onclick="showProductDetails('@p.Name', '@Html.Raw(p.Description?.Replace("'", "\\'"))', '@p.Price.ToString("0.00") €')">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                </td>
+                            var productInfo = new
+                            {
+                                name = p.Name,
+                                description = p.Description,
+                                price = p.Price.ToString("C"),
+                                categoryName = p.Category.Name,
+                                categoryDescription = p.Category.Description,
+                                stock = isStaff ? (int?) p.Stock : null,
+                                minStock = isStaff ? (int?) p.MinimumStock : null
+                            };
+                            <tr class="productRow" data-name="@p.Name" data-categoryid="@p.Category.Id">
+                                <td class="ps-4 text-start fw-bold">@p.Name</td>
+                                <td>@p.Category.Name</td> 
                                 <td class="text-color-ips fw-bold">@p.Price.ToString("C")</td>
                                 <td>
-                                    <select class="form-select form-select-sm d-inline-block w-auto border-secondary-subtle" id="qty-@p.Id">
-                                        @for (int i = 1; i <= Math.Min(p.Stock, 10); i++)
-                                        {
-                                            <option value="@i">@i</option>
-                                        }
-                                    </select>
+                                    <input type="number" id="qty-@p.Id" min="1" max="10" value="1" class="form-control form-control-sm border-secondary-subtle" />
                                 </td>
                                 <td class="pe-4">
-                                    <button class="btn btn-ips btn-sm px-4 fw-bold shadow-sm text-uppercase" onclick="addToCart(@p.Id, '@p.Name')">
-                                        <i class="bi bi-plus-lg me-1"></i> Adicionar
-                                    </button>
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <button class="btn btn-ips btn-sm px-3 fw-bold addToCart" data-id="@p.Id" data-name="@p.Name">
+                                            <i class="bi bi-cart-plus me-1"></i> Adicionar
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-ips shadow-sm showProductDetails" data-product='@Html.Raw(Json.Serialize(productInfo))'>
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         }
@@ -152,20 +134,6 @@
 </div>
 
 @section Scripts {
-    <script src="~/js/order/createOrder.js"></script>
-    <script>
-        function filterOrderTable() {
-            const input = document.getElementById('orderSearch').value.toLowerCase();
-            const rows = document.querySelectorAll('.order-row');
-            rows.forEach(row => {
-                const name = row.querySelector('.product-name').textContent.toLowerCase();
-                row.style.display = name.includes(input) ? "" : "none";
-            });
-        }
-
-        function clearOrderFilters() {
-            document.getElementById('orderSearch').value = "";
-            filterOrderTable();
-        }
-    </script>
+    <script type="module" src="~/js/order/createOrder.js"></script>
+    <script type="module" src="~/js/inventory/inventory.js"></script>
 }

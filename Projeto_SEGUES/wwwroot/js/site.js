@@ -3,29 +3,6 @@
  * =================== */
 import { DOM, Api, Notifications } from "./core/core.js";
 
-/* ===================
- * Code generation and verification
- * =================== */
-
-function showCode(code) {
-    Notifications._show({
-        title: 'Codigo de Pedido',
-        html: `<div class="p-3 text-color-ips">
-                 <h2 class="fw-bold text-color-ips" style="letter-spacing: 6px;">${code}</h2>
-                 <p class="text-muted small mt-2">
-                    Apresente este código no bar para validação.<br />
-                    Mantém o brilho do telemóvel alto para facilitar a leitura.
-                 </p>
-              </div>`,
-        backdrop: 'var(--ips-shadow-soft)'
-    });
-}
-
-
-
-/* ==========================================
-   Novas Funcionalidades: Inventário e Bar
-   ========================================== */
 
 /**
  * Exibe Detalhes do Produto no Inventário (BarProductViewModel)
@@ -53,41 +30,6 @@ function showProductDetails(id, name, description, price, stock) {
     }
 }
 
-/**
- * Confirmação de Eliminação Customizada usando o teu objeto Notifications
- */
-function confirmDelete(id, name, formPrefix) {
-    Notifications.confirm(
-        '',
-        `Tem a certeza que deseja eliminar <b>${name}</b>?<br>` +
-        `<small class='text-muted'>Esta ação não pode ser revertida.</small>`
-    ).then((result) => {
-        if (result.isConfirmed) {
-            document.getElementById(`${formPrefix}${id}`).submit();
-        }
-    });
-}
-
-
-
-// Adiciona isto no início do site.js
-function confirmarCompraBar(formId) {
-    // Verifica se o objeto de notificações existe
-    if (typeof Notifications !== 'undefined' && Notifications.confirm) {
-        Notifications.confirm("Tem a certeza que deseja efetuar este pedido?")
-            .then((result) => {
-                if (result.isConfirmed) {
-                    const form = document.getElementById(formId);
-                    if (form) form.submit();
-                }
-            });
-    } else {
-        // Fallback de segurança
-        if (confirm("Tem a certeza que deseja efetuar este pedido?")) {
-            document.getElementById(formId).submit();
-        }
-    }
-}
 
 
 /**
@@ -166,50 +108,6 @@ function handleUpdate() {
     }
 }
 
-function showProductDetails2(name, description, price) {
-    Swal.fire({
-        title: '<strong>Detalhes do Produto</strong>',
-        icon: 'info',
-        html: `
-                    <div class="text-start mt-3">
-                        <small class="text-muted fw-bold text-uppercase d-block mb-1" style="font-size: 0.7rem;">Nome do Produto</small>
-                        <h5 class="fw-bold mb-4" style="color: #009697;">${name}</h5>
-
-                        <small class="text-muted fw-bold text-uppercase d-block mb-1" style="font-size: 0.7rem;">Descrição</small>
-                        <p class="text-muted small mb-4">${description || 'Nenhuma descrição disponível para este produto.'}</p>
-
-                        <div class="card bg-light border-0 shadow-sm rounded-3">
-                            <div class="card-body text-center py-3">
-                                <small class="text-muted fw-bold text-uppercase d-block mb-1" style="font-size: 0.7rem;">Preço</small>
-                                <h3 class="fw-bold text-dark mb-0">${price}</h3>
-                            </div>
-                        </div>
-                    </div>
-                `,
-        showCloseButton: false,
-        focusConfirm: false,
-        confirmButtonText: 'Fechar',
-        confirmButtonColor: '#009697',
-        customClass: {
-            popup: 'rounded-4 shadow-lg',
-            confirmButton: 'px-4 py-2 fw-bold rounded-3 shadow-sm'
-        }
-    });
-}
-
-function confirmarCancelamento(form) {
-    Notifications.confirm("Tens a certeza que queres cancelar este pedido?")
-        .then(result => {
-            if (result.isConfirmed) form.submit();
-        });
-}
-
-function confirmarEdição(type,form) {
-    Notifications.confirm("Tens a certeza que queres alterar o teu " + type + " ?")
-        .then(result => {
-            if (result.isConfirmed) form.submit();
-        });
-}
 
 
 // ── Estatísticas: Resumo de Refeições ────────────────────────────────────────
