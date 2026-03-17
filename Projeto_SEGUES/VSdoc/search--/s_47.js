@@ -1,0 +1,1 @@
+search_result['47']=["topic_0000000000000014.html","AdminMenuManagementController.Index Method","Apresenta a página de gestão de ementas com os links atualmente configurados."];

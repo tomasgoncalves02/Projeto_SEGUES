@@ -1,0 +1,1 @@
+search_result['504']=["topic_0000000000000104.html","ReportTicketsController Class","Controller responsável pela visualização e filtragem do histórico de senhas do utilizador."];

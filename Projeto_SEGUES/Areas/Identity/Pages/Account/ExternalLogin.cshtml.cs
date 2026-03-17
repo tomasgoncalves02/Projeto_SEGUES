@@ -18,6 +18,13 @@ using Projeto_SEGUES.Validators;
 
 namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 {
+    /// <summary>
+    /// Modelo responsável pelo fluxo de autenticação e registo através de fornecedores externos.
+    /// </summary>
+    /// <remarks>
+    /// Este modelo gere o callback do fornecedor, a recolha de dados adicionais do utilizador 
+    /// e o fluxo de verificação por código antes da criação definitiva da conta.
+    /// </remarks>
     [AllowAnonymous]
     public class ExternalLoginModel : PageModel
     {
@@ -26,6 +33,9 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         private readonly IEmailSender _emailSender;
         private readonly ILogger<ExternalLoginModel> _logger;
 
+        /// <summary>
+        /// Inicializa uma nova instância de <see cref="ExternalLoginModel"/>.
+        /// </summary>
         public ExternalLoginModel(
             SignInManager<AppUser> signInManager,
             UserManager<AppUser> userManager,
@@ -37,34 +47,54 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             _logger = logger;
             _emailSender = emailSender;
         }
-        
+
+        /// <summary>
+        /// Dados de entrada para a finalização do registo externo.
+        /// </summary>
         [BindProperty]
         public required InputModel Input { get; set; }
-        
+
+        /// <summary>
+        /// Nome do fornecedor de autenticação (ex: Google).
+        /// </summary>
         public string ProviderDisplayName { get; set; }
-        
+
+        /// <summary>
+        /// URL de redirecionamento após o processo de login.
+        /// </summary>
         public string ReturnUrl { get; set; }
-        
+
+        /// <summary>
+        /// Mensagem de erro persistida entre pedidos.
+        /// </summary>
         [TempData]
         public string ErrorMessage { get; set; }
-        
+
+        /// <summary>
+        /// Define as propriedades necessárias para completar o perfil do utilizador.
+        /// </summary>
         public class InputModel
         {
+            /// <summary>Email do utilizador obtido do fornecedor.</summary>
             [Required]
             [EmailAddress]
             public required string Email { get; init; }
-            
+
+            /// <summary>Primeiro nome do utilizador.</summary>
             [Required]
             [Display(Name = "Primeiro Nome")]
             public string FirstName { get; init; }
 
+            /// <summary>Apelido do utilizador.</summary>
             [Required]
             [Display(Name = "Sobrenome")]
             public string LastName { get; init; }
 
+            /// <summary>Género do utilizador (conforme <see cref="Gender"/>).</summary>
             [Required]
             public Gender Gender { get; init; }
-            
+
+            /// <summary>Data de nascimento com validação de maioridade.</summary>
             [Required]
             [DataType(DataType.Date, ErrorMessage = "A data de nascimento deve ser uma data válida.")]
             [MinimumAge(ErrorMessage = "Deve ter pelo menos 18 anos para se registrar.")]
@@ -72,17 +102,19 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             [Display(Name = "Data de Nascimento")]
             public DateTime BirthDate { get; init; }
         }
-        
+
+        /// <summary>Redireciona para o login caso o acesso seja direto via GET.</summary>
         public IActionResult OnGet() => RedirectToPage("./Login");
 
+        /// <summary>Inicia o desafio de autenticação para o fornecedor externo.</summary>
         public IActionResult OnPost(string provider, string returnUrl = null)
         {
-            // Request a redirect to the external login provider.
             var redirectUrl = Url.Page("./ExternalLogin", pageHandler: "Callback", values: new { returnUrl });
             var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
             return new ChallengeResult(provider, properties);
         }
 
+        /// <summary>Processa o retorno do fornecedor externo e verifica se o utilizador já possui conta.</summary>
         public async Task<IActionResult> OnGetCallbackAsync(string returnUrl = null, string remoteError = null)
         {
             returnUrl ??= Url.Content("~/");
@@ -100,7 +132,6 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                 return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
             }
 
-            // Sign in the user with this external login provider if the user already has a login.
             var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
             if (result.Succeeded)
             {
@@ -112,7 +143,6 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                 return RedirectToPage("./Lockout");
             }
 
-            // If the user does not have an account, then ask the user to create an account.
             ReturnUrl = returnUrl;
             ProviderDisplayName = info.ProviderDisplayName;
             if (info.Principal.HasClaim(c => c.Type == ClaimTypes.Email))
@@ -125,10 +155,16 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             return Page();
         }
 
+        /// <summary>
+        /// Valida os dados submetidos e inicia o fluxo de verificação de código por email.
+        /// </summary>
+        /// <remarks>
+        /// Se o utilizador já existir, apenas vincula o login. Caso contrário, gera um código 
+        /// aleatório e guarda os dados temporariamente em TempData para validação posterior.
+        /// </remarks>
         public async Task<IActionResult> OnPostConfirmationAsync(string returnUrl = null)
         {
             returnUrl ??= Url.Content("~/");
-            // Get the information about the user from the external login provider
             var info = await _signInManager.GetExternalLoginInfoAsync();
             if (info == null)
             {
@@ -141,7 +177,6 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                 var user = await _userManager.FindByEmailAsync(Input.Email);
                 if (user != null)
                 {
-                    // If the user exists, just link the login and sign in
                     var addLoginResult = await _userManager.AddLoginAsync(user, info);
                     if (addLoginResult.Succeeded)
                     {
@@ -149,24 +184,22 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                         return LocalRedirect(returnUrl);
                     }
                 }
-                
-                // Prepare data for VerifyCode flow
+
                 var verificationCode = System.Security.Cryptography.RandomNumberGenerator.GetInt32(100000, 999999).ToString();
-                var registrationData = new RegisterDataViewModel 
+                var registrationData = new RegisterDataViewModel
                 {
                     FirstName = Input.FirstName,
                     LastName = Input.LastName,
                     Gender = Input.Gender,
                     Email = Input.Email,
-                    BirthDate =  Input.BirthDate,
-                    Password = Guid.NewGuid() + "1aA!", // Random password for external login
-                    ConfirmPassword = "", 
+                    BirthDate = Input.BirthDate,
+                    Password = Guid.NewGuid() + "1aA!",
+                    ConfirmPassword = "",
                     Code = verificationCode,
                     ExpiryTime = DateTime.Now.AddMinutes(5)
                 };
-                
+
                 TempData.SetJson("RegistrationData", registrationData);
-                // Store external info to link after verification
                 TempData["ExternalLoginProvider"] = info.LoginProvider;
                 TempData["ExternalLoginKey"] = info.ProviderKey;
 
@@ -179,7 +212,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                         <h1 style='background-color: #eee; padding: 10px; display: inline-block; letter-spacing: 5px;'>{verificationCode}</h1>
                      </div>
                      """);
-                await _emailSender.SendEmailAsync(Input.Email, "Código de Validação SEGUES", emailBody); 
+                await _emailSender.SendEmailAsync(Input.Email, "Código de Validação SEGUES", emailBody);
                 return RedirectToPage("VerifyCode", new { returnUrl });
             }
             ProviderDisplayName = info.ProviderDisplayName;
@@ -188,4 +221,3 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         }
     }
 }
-                     

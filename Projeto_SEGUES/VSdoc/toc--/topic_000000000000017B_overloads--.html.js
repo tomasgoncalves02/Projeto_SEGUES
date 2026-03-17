@@ -1,0 +1,1 @@
+var breadcrumbs=[['-1',"",""],['2',"Projeto_SEGUES Reference","topic_000000000000031A.html"],['458',"Projeto_SEGUES.Migrations Namespace","topic_0000000000000178.html"],['459',"initial Class","topic_0000000000000179.html"],['460',"Methods","topic_0000000000000179_methods--.html"],['463',"Down Method","topic_000000000000017B_overloads--.html"]];

@@ -1,0 +1,1 @@
+search_result['107']=["topic_0000000000000035.html","CreateInternalUserViewModel.BirthDate Property","Obtém ou define a data de nascimento do utilizador."];

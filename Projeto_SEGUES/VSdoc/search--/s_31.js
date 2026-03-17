@@ -1,0 +1,1 @@
+search_result['31']=["topic_000000000000000B.html","AdminInventoryManagementController.Index Method","Lista todos os produtos e categorias disponíveis no sistema."];

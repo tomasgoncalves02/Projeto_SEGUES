@@ -1,0 +1,1 @@
+search_result['55']=["topic_0000000000000017.html","AdminOrderManagementController Constructor","Inicializa uma nova instância do controlador com os serviços de administração, pedidos, gestão de utilizadores e contexto de dados."];

@@ -13,6 +13,13 @@ using Projeto_SEGUES.Services;
 
 namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 {
+    /// <summary>
+    /// Model responsável pela validação do código de verificação enviado por email durante o registo.
+    /// </summary>
+    /// <remarks>
+    /// Esta classe gere a confirmação final dos dados do utilizador, a atribuição automática 
+    /// de categorias (Estudante/Trabalhador IPS/Externo) e a criação efetiva da conta no Identity.
+    /// </remarks>
     public class VerifyCodeModel : PageModel
     {
         private readonly UserManager<AppUser> _userManager;
@@ -20,6 +27,9 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         private readonly AppDbContext _context;
         private readonly IEmailSender _emailSender;
 
+        /// <summary>
+        /// Inicializa uma nova instância de <see cref="VerifyCodeModel"/>.
+        /// </summary>
         public VerifyCodeModel(
             UserManager<AppUser> userManager,
             SignInManager<AppUser> signInManager,
@@ -32,28 +42,50 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             _emailSender = emailSender;
         }
 
-        // Identity
+        /// <summary>
+        /// Modelo de entrada para o código de 6 dígitos introduzido pelo utilizador.
+        /// </summary>
         [BindProperty]
         public required InputModel Input { get; set; }
 
+        /// <summary>
+        /// Email do utilizador a ser exibido na interface para confirmação.
+        /// </summary>
         public required string UserEmailDisplay { get; set; }
 
+        /// <summary>
+        /// Define a estrutura de validação para a introdução do código.
+        /// </summary>
         public class InputModel
         {
+            /// <summary>Código numérico de verificação.</summary>
             [Required(ErrorMessage = "Introduza o código.")]
             public required string Code { get; init; }
         }
-   
+
+        /// <summary>
+        /// Prepara a página de verificação, recuperando os dados temporários do registo.
+        /// </summary>
+        /// <returns>A página de verificação ou redirecionamento para o Registo se os dados expirarem.</returns>
         public IActionResult OnGet()
         {
             if (TempData["RegistrationData"] is not string) return RedirectToPage("Register");
             var data = TempData.GetJson<RegisterDataViewModel>("RegistrationData");
             if (data == null) return RedirectToPage("Register");
+
             UserEmailDisplay = data.Email;
+            // Mantém os dados no TempData para o próximo pedido (POST)
             TempData.Keep("RegistrationData");
             return Page();
         }
 
+        /// <summary>
+        /// Valida o código introduzido e cria a conta do utilizador na base de dados.
+        /// </summary>
+        /// <remarks>
+        /// Este método realiza a lógica de negócio de classificar o utilizador com base no sufixo do email
+        /// e associa logins externos caso o fluxo tenha sido iniciado por um provider (Google/Facebook).
+        /// </remarks>
         public async Task<IActionResult> OnPostAsync()
         {
             if (TempData["RegistrationData"] is not string jsonData)
@@ -66,19 +98,22 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             UserEmailDisplay = data.Email;
 
             if (!ModelState.IsValid) return Page();
-            
+
+            // Verificação de expiração do código (5 minutos)
             if (DateTime.Now > data.ExpiryTime)
             {
                 TempData.Remove("RegistrationData");
                 ModelState.AddModelError("", "O código expirou (limite de 5 minutos). Por favor registe-se novamente.");
                 return Page();
             }
+
             if (Input.Code != data.Code)
             {
                 ModelState.AddModelError("", "Código incorreto. Tente novamente.");
                 return Page();
             }
 
+            // Lógica de Atribuição de Categoria Automática
             string categoryName = "Externo";
             if (data.Email.ToLower().Contains("@estudantes."))
             {
@@ -88,8 +123,10 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             {
                 categoryName = "Trabalhador IPS";
             }
-            
+
             var category = await _context.UserCategory.FirstOrDefaultAsync(c => c.Name == categoryName);
+
+            // Mapeamento dos dados temporários para a entidade AppUser
             var user = new AppUser
             {
                 UserName = data.Email,
@@ -101,10 +138,12 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                 UserCategory = category!,
                 EmailConfirmed = true
             };
+
             var result = await _userManager.CreateAsync(user, data.Password);
 
             if (result.Succeeded)
             {
+                // Vinculação de Login Externo (se aplicável)
                 if (TempData.TryGetValue("ExternalLoginProvider", out object? value))
                 {
                     var provider = value?.ToString()!;
@@ -112,26 +151,32 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                     var info = new UserLoginInfo(provider, key, provider);
                     await _userManager.AddLoginAsync(user, info);
                 }
+
                 await _userManager.AddToRoleAsync(user, "Client");
                 await _signInManager.SignInAsync(user, isPersistent: false);
+
                 TempData.Remove("RegistrationData");
                 TempData.SetSwalSuccess("Conta criada e validada com sucesso!");
                 return RedirectToAction("Index", "Home", new { area = "" });
             }
-            
+
             foreach (var error in result.Errors)
             {
                 ModelState.AddModelError(string.Empty, error.Description);
             }
             return Page();
         }
-        
+
+        /// <summary>
+        /// Gera e envia um novo código de verificação para o utilizador.
+        /// </summary>
+        /// <returns>A página atual com uma mensagem de confirmação de reenvio.</returns>
         public async Task<IActionResult> OnPostResendCodeAsync()
         {
             var data = TempData.GetJson<RegisterDataViewModel>("RegistrationData");
             if (data == null) return RedirectToPage("Register");
 
-            // Generate new code and update expiry
+            // Regeneração do código e atualização da validade
             string newCode = System.Security.Cryptography.RandomNumberGenerator.GetInt32(100000, 999999).ToString();
             data.Code = newCode;
             data.ExpiryTime = DateTime.Now.AddMinutes(5);
@@ -146,6 +191,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                     <h1 style='background-color: #eee; padding: 10px; display: inline-block; letter-spacing: 5px;'>{newCode}</h1>
                  </div>
                  """);
+
             try
             {
                 await _emailSender.SendEmailAsync(data.Email, "Código de Validação SEGUES", emailBody);
@@ -155,6 +201,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             {
                 ModelState.AddModelError("", "Erro ao reenviar o email. Tente mais tarde.");
             }
+
             UserEmailDisplay = data.Email;
             TempData.Keep("RegistrationData");
             return Page();

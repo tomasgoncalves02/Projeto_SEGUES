@@ -1,0 +1,1 @@
+search_result['66']=["topic_000000000000001D.html","AdminTicketManagementController.Index Method","Apresenta o painel principal de gestão de senhas, incluindo preçários, horários e histórico."];

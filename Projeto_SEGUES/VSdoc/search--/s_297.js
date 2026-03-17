@@ -1,0 +1,1 @@
+search_result['297']=["topic_0000000000000099.html","InputModel.TwoFactorCode Property","Código numérico de 6 dígitos gerado pela aplicação autenticadora."];

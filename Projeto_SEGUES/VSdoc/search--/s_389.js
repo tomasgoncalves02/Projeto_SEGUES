@@ -1,0 +1,1 @@
+search_result['389']=["topic_00000000000000C8.html","RegisterDataViewModel.ExpiryTime Property","Data e hora de expiração da sessão ou do código de registo."];

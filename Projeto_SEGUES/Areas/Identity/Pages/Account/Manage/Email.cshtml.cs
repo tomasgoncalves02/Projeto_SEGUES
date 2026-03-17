@@ -14,11 +14,23 @@ using Projeto_SEGUES.Models.User;
 
 namespace Projeto_SEGUES.Areas.Identity.Pages.Account.Manage
 {
+    /// <summary>
+    /// Classe de modelo para a página de gestão de email do utilizador.
+    /// </summary>
+    /// <remarks>
+    /// Esta classe permite ao utilizador visualizar o seu email atual, verificar o estado de confirmação 
+    /// e solicitar a alteração do endereço através do envio de tokens de segurança por email.
+    /// </remarks>
     public class EmailModel : PageModel
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly IEmailSender _emailSender;
 
+        /// <summary>
+        /// Inicializa uma nova instância de <see cref="EmailModel"/>.
+        /// </summary>
+        /// <param name="userManager">Gestor de utilizadores para operações de conta.</param>
+        /// <param name="emailSender">Serviço de envio de emails para notificações e tokens.</param>
         public EmailModel(
             UserManager<AppUser> userManager,
             IEmailSender emailSender)
@@ -26,22 +38,41 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account.Manage
             _userManager = userManager;
             _emailSender = emailSender;
         }
-        
+
+        /// <summary>
+        /// Obtém ou define o email atual do utilizador.
+        /// </summary>
         public required string Email { get; set; }
-        
+
+        /// <summary>
+        /// Indica se o email atual já foi confirmado pelo utilizador.
+        /// </summary>
         public bool IsEmailConfirmed { get; set; }
-        
+
+        /// <summary>
+        /// Modelo de entrada de dados para o formulário de alteração de email.
+        /// </summary>
         [BindProperty]
         public required InputModel Input { get; set; }
-        
+
+        /// <summary>
+        /// Define as propriedades e validações do formulário de entrada para novo email.
+        /// </summary>
         public class InputModel
         {
+            /// <summary>
+            /// O novo endereço de email pretendido pelo utilizador.
+            /// </summary>
             [Required(ErrorMessage = "O email é obrigatório.")]
             [EmailAddress(ErrorMessage = "Email inválido.")]
             [Display(Name = "Novo email")]
             public required string NewEmail { get; init; }
         }
 
+        /// <summary>
+        /// Carrega os dados do utilizador para as propriedades do modelo.
+        /// </summary>
+        /// <param name="user">O utilizador autenticado atual.</param>
         private async Task LoadAsync(AppUser user)
         {
             var email = (await _userManager.GetEmailAsync(user))!;
@@ -55,6 +86,10 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account.Manage
             IsEmailConfirmed = await _userManager.IsEmailConfirmedAsync(user);
         }
 
+        /// <summary>
+        /// Processa o pedido GET inicial para a página de gestão de email.
+        /// </summary>
+        /// <returns>A página Razor com os dados carregados.</returns>
         public async Task<IActionResult> OnGetAsync()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -67,6 +102,10 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account.Manage
             return Page();
         }
 
+        /// <summary>
+        /// Processa o pedido de alteração de email e envia o link de confirmação para o novo endereço.
+        /// </summary>
+        /// <returns>Redirecionamento para a mesma página com mensagem de sucesso ou erro.</returns>
         public async Task<IActionResult> OnPostChangeEmailAsync()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -104,6 +143,10 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account.Manage
             return RedirectToPage();
         }
 
+        /// <summary>
+        /// Reenvia o email de confirmação para o endereço de email atual, caso este ainda não esteja confirmado.
+        /// </summary>
+        /// <returns>Redirecionamento para a página atual com feedback visual.</returns>
         public async Task<IActionResult> OnPostSendVerificationEmailAsync()
         {
             var user = await _userManager.GetUserAsync(User);

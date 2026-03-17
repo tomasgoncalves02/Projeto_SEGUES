@@ -1,0 +1,1 @@
+search_result['486']=["topic_00000000000000FC.html","PaymentController.CancelPayment Method","Gere o retorno do utilizador quando o pagamento é cancelado ou interrompido."];

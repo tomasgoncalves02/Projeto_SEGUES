@@ -1,0 +1,1 @@
+search_result['87']=["topic_000000000000002B.html","AdminUserManagementController.UserLogSelection Method","Apresenta a página de seleção para diferentes tipos de logs."];

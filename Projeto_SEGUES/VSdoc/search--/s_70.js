@@ -1,0 +1,1 @@
+search_result['70']=["topic_0000000000000021.html","AdminTicketManagementController.UpdateSchedule Method","Atualiza os horários de funcionamento de um serviço específico (Almoço ou Jantar)."];

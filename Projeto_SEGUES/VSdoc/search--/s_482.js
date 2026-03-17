@@ -1,0 +1,1 @@
+search_result['482']=["topic_00000000000000F8.html","PaymentController Constructor","Inicializa uma nova instância do controlador de pagamentos."];

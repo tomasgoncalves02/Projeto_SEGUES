@@ -1,0 +1,1 @@
+search_result['14']=["topic_0000000000000004.html","AdminController.Index Method","Apresenta o dashboard ou a página inicial do painel administrativo."];

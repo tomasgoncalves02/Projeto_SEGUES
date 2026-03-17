@@ -1,0 +1,1 @@
+search_result['308']=["topic_000000000000009F.html","LogoutModel Class","Model responsável por encerrar a sessão autenticada do utilizador."];

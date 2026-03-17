@@ -1,0 +1,1 @@
+search_result['57']=["topic_0000000000000019.html","AdminOrderManagementController.UpdateOpenAndCloseTime Method","Atualiza as horas de abertura e fecho do bar com validações de consistência."];

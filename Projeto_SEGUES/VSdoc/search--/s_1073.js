@@ -1,0 +1,1 @@
+search_result['1073']=["topic_00000000000002A9.html","EmailSender.SendEmailAsync Method","This API supports the ASP.NET Core Identity infrastructure and is not intended to be used as a general purpose\r\n            email abstraction. It should be implemented by the application so the Identi..."];

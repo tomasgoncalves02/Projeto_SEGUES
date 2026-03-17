@@ -1,0 +1,1 @@
+search_result['116']=["topic_0000000000000039.html","MenuManagementViewModel.BarUrl Property","Obtém ou define o endereço URL da ementa do bar."];
