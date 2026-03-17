@@ -3,35 +3,6 @@
  * =================== */
 import { DOM, Api, Notifications } from "./core/core.js";
 
-
-/**
- * Exibe Detalhes do Produto no Inventário (BarProductViewModel)
- */
-
-function showProductDetails(id, name, description, price, stock) {
-    const nameElem = document.getElementById('view-name');
-    const descElem = document.getElementById('view-description');
-    const priceElem = document.getElementById('view-price');
-    const stockElem = document.getElementById('view-stock');
-
-    if (nameElem) nameElem.innerText = name;
-    if (descElem) descElem.innerText = description || "Sem descrição disponível.";
-    if (priceElem) priceElem.innerText = formatCurrency(price.replace(',', '.'));
-
-    if (stockElem) {
-        stockElem.innerText = stock;
-        stockElem.className = "fw-bold fs-4 " +
-            (stock <= 0 ? "text-danger" : (stock < 5 ? "text-warning" : "text-success"));
-    }
-
-    const modalElem = document.getElementById('productModal');
-    if (modalElem) {
-        new bootstrap.Modal(modalElem).show();
-    }
-}
-
-
-
 /**
  * Lógica de atualização de estado com validação de código para entrega
  */

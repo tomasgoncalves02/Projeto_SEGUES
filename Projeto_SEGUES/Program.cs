@@ -149,6 +149,18 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LoginPath = "/"; 
     // Redirect authenticated users who lack the required role to the Index page
     options.AccessDeniedPath = "/";
+    // Redirect to the Index page after HTMX Request when the user is logged out
+    options.Events.OnRedirectToLogin = ctx =>
+    {
+        if (ctx.Request.Headers["HX-Request"] == "true")
+        {
+            ctx.Response.Headers["HX-Redirect"] = ctx.RedirectUri;
+            ctx.Response.StatusCode = StatusCodes.Status200OK;
+            return Task.CompletedTask;
+        }
+        ctx.Response.Redirect(ctx.RedirectUri);
+        return Task.CompletedTask;
+    };
 });
 
 // Microsoft Authentication

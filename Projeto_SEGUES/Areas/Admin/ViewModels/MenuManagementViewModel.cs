@@ -6,7 +6,7 @@ namespace Projeto_SEGUES.Areas.Admin.ViewModels
     {
         [Url(ErrorMessage = "Introduza um URL válido (ex: https://...)")]
         [Display(Name = "Link da Ementa do Refeitório")]
-        public string? RefeitorioUrl { get; set; }
+        public string? CanteenUrl { get; set; }
 
         [Url(ErrorMessage = "Introduza um URL válido (ex: https://...)")]
         [Display(Name = "Link da Ementa do Bar")]

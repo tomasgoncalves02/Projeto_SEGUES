@@ -86,7 +86,7 @@ function confirmDeleteProduct() {
 
 const Inventory = {
     init() {
-        DOM.bindAll('showProductDetails', 'click', showProductDetails);
+        DOM.delegate('showProductDetails', 'click', showProductDetails);
         DOM.bind('categoryFilter', 'change', filterProductsTable);
         DOM.bind('nameFilter', 'keyup', filterProductsTable);
         DOM.bind('clearProductsTableFilters', 'click', clearProductsTableFilters);
@@ -95,4 +95,4 @@ const Inventory = {
 };
 
 DOM.bindDocumentLoad(Inventory.init);
-export {Inventory};
+export { Inventory };

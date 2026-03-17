@@ -25,7 +25,7 @@ namespace Projeto_SEGUES.Controllers
 
         public async Task<IActionResult> Index()
         {
-            ViewBag.RefeitorioLink = await _adminService.GetRefeitorioMenuLinkAsync();
+            ViewBag.CanteenLink = await _adminService.GetCanteenMenuLinkAsync();
             ViewBag.BarLink = await _adminService.GetBarMenuLinkAsync();
             // Check if logged
             if (User.Identity is not { IsAuthenticated: true }) return View();

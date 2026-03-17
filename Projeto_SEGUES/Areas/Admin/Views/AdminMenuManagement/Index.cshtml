@@ -40,11 +40,11 @@
                                     <i class="bi bi-egg-fried me-2"></i>Ementa do Refeitório
                                 </label>
                                 @* asp-for preenche automaticamente o link que está na BD *@
-                                <input asp-for="RefeitorioUrl" class="form-control form-control-lg"
+                                <input asp-for="CanteenUrl" class="form-control form-control-lg"
                                        placeholder="https://exemplo.com/refeitorio">
                                 <div class="form-text">
                                     <strong>Atual:</strong>
-                                    <span class="text-break">@(string.IsNullOrEmpty(Model.RefeitorioUrl) ? "Nenhum link definido" : Model.RefeitorioUrl)</span>
+                                    <span class="text-break">@(string.IsNullOrEmpty(Model.CanteenUrl) ? "Nenhum link definido" : Model.CanteenUrl)</span>
                                 </div>
                             </div>
                         </div>

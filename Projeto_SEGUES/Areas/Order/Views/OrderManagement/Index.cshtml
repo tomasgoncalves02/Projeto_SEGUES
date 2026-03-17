@@ -35,10 +35,13 @@
             <div
                 hx-get="/Order/OrderManagement/GetOrdersTable"
                 hx-trigger="every 30s"
-                hx-swap="innerHTML"
-                hx-boost="true">
+                hx-swap="innerHTML">
                 <partial name="_ManageOrdersTablePartial" model="Model"/>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script type="module" src="~/js/inventory/inventory.js"></script>
+}

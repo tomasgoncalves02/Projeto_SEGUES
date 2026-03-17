@@ -15,14 +15,13 @@
             <tbody>
             @foreach (var order in Model)
             {
-                <tr data-order-id="@order.Id" class="table-row-ips-hover">
+                <tr class="table-row-ips-hover">
                     @* Select *@
                     <td>
                         <button class="btn btn-sm btn-ips shadow-sm"
                                 hx-get="/Order/OrderManagement/GetOrderDetailsSide/@order.Id"
-                                hx-target="#side-panel-target"
-                                hx-boost="true">
-                            <i class="bi bi-eye text-white"></i>
+                                hx-target="#side-panel-target">
+                            <i class="bi bi-arrow-up-left"></i>
                         </button>
                     </td>
                     @* User *@

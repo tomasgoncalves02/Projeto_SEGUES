@@ -19,7 +19,7 @@ public class AdminMenuManagementController : Controller
     {
         var model = new MenuManagementViewModel
         {
-            RefeitorioUrl = await _adminService.GetRefeitorioMenuLinkAsync(),
+            CanteenUrl = await _adminService.GetCanteenMenuLinkAsync(),
             BarUrl = await _adminService.GetBarMenuLinkAsync()
         };
         return View(model);
@@ -29,7 +29,7 @@ public class AdminMenuManagementController : Controller
     public async Task<IActionResult> SaveLinks(MenuManagementViewModel model)
     {
         if (!ModelState.IsValid) return View("Index", model);
-        await _adminService.UpdateMenuLinksAsync(model.RefeitorioUrl, model.BarUrl);
+        await _adminService.UpdateMenuLinksAsync(model.CanteenUrl, model.BarUrl);
         TempData.SetSwalSuccess("Os links das ementas foram atualizados com sucesso!");
         return RedirectToAction("Index");
     }

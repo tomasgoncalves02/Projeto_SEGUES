@@ -1,9 +1,8 @@
 import { DOM, Notifications } from "./core/core.js";
 
 function pickMenu() {
-    const btn = document.getElementById('pickMenu');
-    const refeitorioUrl = btn.getAttribute('data-refeitorio');
-    const barUrl = btn.getAttribute('data-bar');
+    const canteenUrl = this.dataset.canteen;
+    const barUrl = this.dataset.bar;
 
     Notifications.show({
         title: 'Qual ementa deseja visualizar?',
@@ -16,8 +15,8 @@ function pickMenu() {
         denyButtonColor: 'var(--ips)',
         cancelButtonColor: 'var(--deny)'
     }).then((result) => {
-        if (result.isConfirmed && refeitorioUrl) {
-            window.open(refeitorioUrl, "_blank");
+        if (result.isConfirmed && canteenUrl) {
+            window.open(canteenUrl, "_blank");
         } else if (result.isDenied && barUrl) {
             window.open(barUrl, "_blank");
         }

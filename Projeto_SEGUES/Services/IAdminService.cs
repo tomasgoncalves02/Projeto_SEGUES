@@ -36,8 +36,8 @@ public interface IAdminService
     Task<TimeSpan> GetCloseDinnerTimeAsync();
 
     Task<string> GetBarMenuLinkAsync();
-    Task<string> GetRefeitorioMenuLinkAsync();
-    Task UpdateMenuLinksAsync(string refeitorioLink, string barLink);
+    Task<string> GetCanteenMenuLinkAsync();
+    Task UpdateMenuLinksAsync(string canteenLink, string barLink);
 
 
 

@@ -33,6 +33,15 @@ const DOM = {
     bindAll(className, event, fn) {
         const elems = this.byClass(className);
         elems.forEach(el => el.addEventListener(event, fn));
+    },
+    // Delegates an event listener to an element with the given class.
+    // Like bindAll but works also for future elements added to the DOM by HTMX
+    delegate(className, event, fn, root = document) {
+        root.addEventListener(event, function(e) {
+            const el = e.target.closest('.' + className);
+            if (!el) return;
+            fn.call(el, e);
+        })
     }
 };
 

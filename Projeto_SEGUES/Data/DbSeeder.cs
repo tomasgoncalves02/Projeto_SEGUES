@@ -28,6 +28,9 @@ namespace Projeto_SEGUES.Data
             if (!await context.AppConfig.AnyAsync())
             {
                 var appConfig = new AppConfig();
+                // Links for current IPS menus
+                appConfig.BarLink = "https://software.movelife.net/pt-PT/Menus/PublicCC/Tj6o3O_vCFDXvHU0nbgTmg%3d%3d";
+                appConfig.CanteenLink = "https://software.movelife.net/pt-PT/Menus/PublicCC/Tj6o3O_vCFB2LmCmm9VUjw%3d%3d";
                 await context.AppConfig.AddAsync(appConfig);
             }
             

@@ -93,13 +93,13 @@ public class AdminService : IAdminService
         return config?.BarLink ?? "https://www.ips.pt";
     }
 
-    public async Task<string> GetRefeitorioMenuLinkAsync()
+    public async Task<string> GetCanteenMenuLinkAsync()
     {
         var config = await _context.AppConfig.FirstOrDefaultAsync();
-        return config?.RefeitorioLink ?? "https://www.ips.pt";
+        return config?.CanteenLink ?? "https://www.ips.pt";
     }
 
-    public async Task UpdateMenuLinksAsync(string refeitorioLink, string barLink)
+    public async Task UpdateMenuLinksAsync(string canteenLink, string barLink)
     {
         var config = await _context.AppConfig.FirstOrDefaultAsync();
 
@@ -109,7 +109,7 @@ public class AdminService : IAdminService
             _context.AppConfig.Add(config);
         }
 
-        config.RefeitorioLink = refeitorioLink;
+        config.CanteenLink = canteenLink;
         config.BarLink = barLink;
 
         await _context.SaveChangesAsync();
