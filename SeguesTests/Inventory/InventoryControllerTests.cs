@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Projeto_SEGUES.Areas.Inventory.Controllers;
 
 namespace SeguesTests.Inventory
@@ -14,7 +14,7 @@ namespace SeguesTests.Inventory
 
         // Confirms that the Index action successfully returns the default inventory view
         [Fact]
-        public async Task Index_ReturnsView()
+        public void Index_ReturnsView()
         {
             var result = _controller.Index();
 

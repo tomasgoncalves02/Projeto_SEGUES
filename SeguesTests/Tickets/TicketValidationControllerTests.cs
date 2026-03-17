@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
@@ -137,7 +137,7 @@ namespace SeguesTests.Tickets
             await _controller.Index(model);
 
             Assert.True(_controller.ModelState.IsValid);
-            Assert.Equal(0, _controller.ModelState.Count);
+            Assert.Empty(_controller.ModelState);
         }
 
         // Ensures that the recent tickets list is still refreshed even if the submitted validation code is null or empty

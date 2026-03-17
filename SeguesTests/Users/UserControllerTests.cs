@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Moq;
 using Projeto_SEGUES.Areas.User.Controllers;
 using Projeto_SEGUES.Models.User;
@@ -8,9 +8,9 @@ namespace SeguesTests.User
 {
     public class UserControllerTests
     {
-        private readonly Mock<IAdminService> _mockAdminService;
-        private readonly Mock<UserManager<AppUser>> _mockUserManager;
-        private readonly UserController _controller;
+        private readonly Mock<IAdminService>? _mockAdminService;
+        private readonly Mock<UserManager<AppUser>>? _mockUserManager;
+        private readonly UserController? _controller;
 
         /*
         public UserControllerTests()

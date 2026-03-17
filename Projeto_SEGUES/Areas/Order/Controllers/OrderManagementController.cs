@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Projeto_SEGUES.Models.User;
@@ -95,7 +95,7 @@ public class OrderManagementController : Controller
         var staffMember = await _userManager.GetUserAsync(User);
         var result = await _orderService.ValidateOrderCodeAsync(id, codeEntered, staffMember);
         if (!result.Success) return BadRequest(result);
-        Response.Headers.Add("HX-Trigger", "orderUpdated");
+        Response.Headers.Append("HX-Trigger", "orderUpdated");
         return Ok(new { success = true, message = result.Message });
     }
 }
