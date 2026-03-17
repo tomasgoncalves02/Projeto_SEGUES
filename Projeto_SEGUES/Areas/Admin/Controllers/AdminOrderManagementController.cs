@@ -13,6 +13,13 @@ using QuestPDF.Infrastructure;
 
 namespace Projeto_SEGUES.Areas.Admin;
 
+/// <summary>
+/// Controller responsável pela gestão e monitorização de pedidos (orders) e horários do bar.
+/// </summary>
+/// <remarks>
+/// Este controlador permite aos administradores visualizar o histórico de vendas, configurar o horário 
+/// de funcionamento do bar e exportar relatórios detalhados em formato PDF.
+/// </remarks>
 [Authorize(Roles = "Admin")]
 [Area("Admin")]
 public class AdminOrderManagementController : Controller
@@ -22,6 +29,13 @@ public class AdminOrderManagementController : Controller
     private readonly UserManager<AppUser> _userManager;
     private readonly AppDbContext _context;
 
+    /// <summary>
+    /// Inicializa uma nova instância do controlador com os serviços de administração, pedidos, gestão de utilizadores e contexto de dados.
+    /// </summary>
+    /// <param name="adminService">Serviço de lógica administrativa.</param>
+    /// <param name="orderService">Serviço de gestão de pedidos.</param>
+    /// <param name="userManager">Gestor de utilizadores do Identity.</param>
+    /// <param name="context">Contexto da base de dados Entity Framework.</param>
     public AdminOrderManagementController(IAdminService adminService, IOrderService orderService, UserManager<AppUser> userManager, AppDbContext context)
     {
         _orderService = orderService;
@@ -29,7 +43,11 @@ public class AdminOrderManagementController : Controller
         _adminService = adminService;
         _context = context;
     }
-    
+
+    /// <summary>
+    /// Apresenta a página principal de gestão de pedidos, listando o histórico e horários atuais.
+    /// </summary>
+    /// <returns>A View de índice com a lista de pedidos obtida via serviço.</returns>
     public async Task<IActionResult> Index()
     {
         var userId = _userManager.GetUserId(User);
@@ -38,7 +56,15 @@ public class AdminOrderManagementController : Controller
         return View(await _orderService.GetAdminOrderHistoryAsync());
     }
 
-
+    /// <summary>
+    /// Atualiza as horas de abertura e fecho do bar com validações de consistência.
+    /// </summary>
+    /// <param name="openTime">Nova hora de abertura.</param>
+    /// <param name="closeTime">Nova hora de fecho.</param>
+    /// <returns>Redireciona para o Index com mensagem de sucesso ou erro.</returns>
+    /// <remarks>
+    /// Valida se as horas são iguais, se o fecho é anterior à abertura ou se o intervalo é inferior a uma hora.
+    /// </remarks>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateOpenAndCloseTime(TimeSpan openTime, TimeSpan closeTime)
@@ -61,15 +87,21 @@ public class AdminOrderManagementController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-
-
         await _adminService.UpdateBarScheduleAsync(openTime.ToString(), closeTime.ToString());
         TempData.SetSwalSuccess($"Horario de funcionamento do Bar alterado com sucessso");
         return RedirectToAction(nameof(Index));
-
-
     }
 
+    /// <summary>
+    /// Gera e exporta um documento PDF com o histórico de pedidos filtrado.
+    /// </summary>
+    /// <param name="status">Filtro por estado do pedido.</param>
+    /// <param name="date">Filtro por data específica.</param>
+    /// <param name="search">Termo de pesquisa (nome, email ou código).</param>
+    /// <returns>Um ficheiro PDF gerado dinamicamente com a biblioteca QuestPDF.</returns>
+    /// <remarks>
+    /// O documento inclui logotipo institucional, detalhes de utilizador, produtos comprados e tempos de recolha.
+    /// </remarks>
     [HttpGet]
     public async Task<IActionResult> ExportOrdersPDF(string status, DateTime? date, string search)
     {
@@ -141,12 +173,12 @@ public class AdminOrderManagementController : Controller
                         table.Cell().Element(CellStyle).AlignCenter().Text(o.RedemptionCode).FontSize(7);
                         table.Cell().Element(CellStyle).AlignCenter().Text(o.OrderDate.ToString("dd/MM/yy HH:mm"));
 
-                        // Agendado (DeliveryTime) - Corrigido Format
+                        // Agendado (DeliveryTime)
                         table.Cell().Element(CellStyle).AlignCenter().Text(
                             (o.DeliveryTime.HasValue && o.DeliveryTime.Value != TimeSpan.Zero)
                             ? o.DeliveryTime.Value.ToString(@"hh\:mm")
                             : "Imediato"
-);
+                        );
 
                         // Produtos
                         table.Cell().Element(CellStyle).PaddingLeft(4).Column(c => {
@@ -156,7 +188,7 @@ public class AdminOrderManagementController : Controller
 
                         table.Cell().Element(CellStyle).AlignCenter().Text(o.Status.ToString());
 
-                        // Recolhido em (PickupTime) - Corrigido Format
+                        // Recolhido em (PickupTime)
                         table.Cell().Element(CellStyle).AlignCenter().Text(
                             (o.PickupTime == null || o.PickupTime == TimeSpan.Zero)
                             ? "---"
@@ -176,6 +208,11 @@ public class AdminOrderManagementController : Controller
         return File(document.GeneratePdf(), "application/pdf", "Historico_Pedidos.pdf");
     }
 
+    /// <summary>
+    /// Aplica um estilo padrão às células das tabelas do relatório PDF.
+    /// </summary>
+    /// <param name="container">Contentor de interface da célula.</param>
+    /// <returns>O contentor estilizado com bordas e preenchimento.</returns>
     static IContainer CellStyle(IContainer container) =>
         container
             .BorderBottom(1)

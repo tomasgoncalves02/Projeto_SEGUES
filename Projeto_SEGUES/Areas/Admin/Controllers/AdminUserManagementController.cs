@@ -12,6 +12,13 @@ using Projeto_SEGUES.Services;
 
 namespace Projeto_SEGUES.Areas.Admin;
 
+/// <summary>
+/// Controller responsável pela gestão de utilizadores na área administrativa.
+/// </summary>
+/// <remarks>
+/// Este controlador permite listar, detalhar, editar, ativar e desativar contas de utilizadores, 
+/// além de gerir as permissões (roles), categorias e visualizar logs de auditoria do staff.
+/// </remarks>
 [Area("Admin")]
 [Authorize(Roles = "Admin")]
 public class AdminUserManagementController : Controller
@@ -20,25 +27,46 @@ public class AdminUserManagementController : Controller
     private readonly IAdminService _adminService;
     private readonly AppDbContext _context;
 
+    /// <summary>
+    /// Inicializa uma nova instância do controlador com os serviços de Identity, administração e contexto de dados.
+    /// </summary>
+    /// <param name="userManager">Serviço nativo do ASP.NET Identity para gestão de utilizadores.</param>
+    /// <param name="adminService">Serviço personalizado com lógica de negócio administrativa.</param>
+    /// <param name="context">Contexto da base de dados para consultas diretas (ex: Logs).</param>
     public AdminUserManagementController(UserManager<AppUser> userManager, IAdminService adminService, AppDbContext context)
     {
         _userManager = userManager;
         _adminService = adminService;
         _context = context;
     }
-    
+
+    /// <summary>
+    /// Lista os utilizadores do sistema com suporte a pesquisa e filtros.
+    /// </summary>
+    /// <param name="searchString">Termo de pesquisa (nome ou email).</param>
+    /// <param name="roleFilter">Filtro por tipo de função (Admin, Staff, Client).</param>
+    /// <param name="categoryFilter">Filtro por categoria de utilizador (Aluno, Docente, etc.).</param>
+    /// <returns>A View de índice com a coleção de utilizadores filtrada.</returns>
     public async Task<IActionResult> Index(string? searchString, string? roleFilter, string? categoryFilter)
     {
         var users = await _adminService.GetFilteredUsersAsync(searchString, roleFilter, categoryFilter);
         ViewData["SearchString"] = searchString;
         ViewData["CurrentRole"] = roleFilter;
         ViewData["CurrentCategory"] = categoryFilter;
-        
+
         ViewBag.Roles = await _adminService.GetAllRolesForDropdownAsync();
         ViewBag.Categories = await _adminService.GetAllCategoriesForDropdownAsync();
         return View(users);
     }
 
+    /// <summary>
+    /// Apresenta os detalhes completos de um utilizador específico.
+    /// </summary>
+    /// <param name="id">Identificador único (GUID) do utilizador.</param>
+    /// <returns>A View de detalhes ou NotFound caso o utilizador não exista.</returns>
+    /// <remarks>
+    /// Traduz enums e estados para português e define classes CSS dinâmicas para a interface.
+    /// </remarks>
     public async Task<IActionResult> Details(string id)
     {
         var user = await _userManager.Users
@@ -47,17 +75,13 @@ public class AdminUserManagementController : Controller
 
         if (user == null) return NotFound();
 
-       
         var roles = await _userManager.GetRolesAsync(user);
-        var userRoleRaw = roles.FirstOrDefault() ?? "Client"; 
+        var userRoleRaw = roles.FirstOrDefault() ?? "Client";
         var allRoles = await _adminService.GetAllRolesForDropdownAsync();
 
-       
         ViewBag.UserRole = allRoles.Find(r => r.Value == userRoleRaw)?.Text ?? userRoleRaw;
-       
         ViewBag.UserRoleRaw = userRoleRaw;
 
-       
         ViewBag.GenderPT = user.Gender switch
         {
             Gender.Male => "Masculino",
@@ -66,7 +90,6 @@ public class AdminUserManagementController : Controller
             _ => "Não especificado"
         };
 
-        // 3. Tradução do Estado e Cores
         ViewBag.StatusPT = user.Status == UserStatus.Active ? "ATIVO" : "INATIVO";
         ViewBag.StatusClass = user.Status == UserStatus.Active ? "bg-success" : "bg-danger";
         ViewBag.StatusIcon = user.Status == UserStatus.Active ? "bi-check-circle" : "bi-x-circle";
@@ -74,6 +97,11 @@ public class AdminUserManagementController : Controller
         return View(user);
     }
 
+    /// <summary>
+    /// Apresenta o formulário de edição de um utilizador.
+    /// </summary>
+    /// <param name="id">ID do utilizador a editar.</param>
+    /// <returns>View com o ViewModel preenchido para edição.</returns>
     [HttpGet]
     public async Task<IActionResult> Edit(string id)
     {
@@ -90,13 +118,21 @@ public class AdminUserManagementController : Controller
             FirstName = user.FirstName,
             LastName = user.LastName,
             Gender = user.Gender,
-            BirthDate =  user.BirthDate,
+            BirthDate = user.BirthDate,
             Balance = user.Balance,
             Role = roles.FirstOrDefault() ?? "Client",
             Category = user.UserCategory.Name
         });
     }
 
+    /// <summary>
+    /// Processa as alterações de dados, categoria e função (role) de um utilizador.
+    /// </summary>
+    /// <param name="model">ViewModel com os dados atualizados.</param>
+    /// <returns>Redireciona para o Index em caso de sucesso.</returns>
+    /// <remarks>
+    /// Em caso de alteração de Role, o SecurityStamp é atualizado para forçar o refresh das claims do utilizador.
+    /// </remarks>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(EditUserViewModel model)
@@ -127,8 +163,7 @@ public class AdminUserManagementController : Controller
             await _userManager.AddToRoleAsync(user, model.Role);
 
             TempData.SetSwalSuccess("Utilizador atualizado.");
-            
-            // If the user is currently logged in and their role was changed, sign them out to refresh their claims
+
             await _userManager.UpdateSecurityStampAsync(user);
             return RedirectToAction(nameof(Index));
         }
@@ -139,6 +174,12 @@ public class AdminUserManagementController : Controller
         return View(model);
     }
 
+    /// <summary>
+    /// Desativa um utilizador, impedindo o login através de Lockout permanente.
+    /// </summary>
+    /// <param name="id">ID do utilizador a desativar.</param>
+    /// <returns>Redireciona para o Index com o resultado da operação.</returns>
+    /// <remarks>Impede que o administrador desative a sua própria conta.</remarks>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Deactivate(string id)
@@ -149,19 +190,18 @@ public class AdminUserManagementController : Controller
             TempData.SetSwalError("Utilizador não encontrado.");
             return RedirectToAction(nameof(Index));
         }
-        
+
         if (user.UserName == User.Identity?.Name)
         {
             TempData.SetSwalError("Não podes apagar a tua própria conta.");
             return RedirectToAction(nameof(Index));
         }
-        
+
         user.Status = UserStatus.Inactive;
-        // Lockout the user (prevents login immediately)
         await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.MaxValue);
-        
+
         var result = await _userManager.UpdateAsync(user);
-        
+
         if (result.Succeeded)
         {
             TempData.SetSwalSuccess($"O utilizador {user.FirstName} foi desativado com sucesso.");
@@ -173,6 +213,11 @@ public class AdminUserManagementController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    /// <summary>
+    /// Reativa uma conta de utilizador anteriormente desativada.
+    /// </summary>
+    /// <param name="id">ID do utilizador a ativar.</param>
+    /// <returns>Redireciona para os Detalhes do utilizador.</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Activate(string id)
@@ -185,8 +230,6 @@ public class AdminUserManagementController : Controller
         }
 
         user.Status = UserStatus.Active;
-
-        // Remove o lockout para permitir o login novamente
         await _userManager.SetLockoutEndDateAsync(user, null);
 
         var result = await _userManager.UpdateAsync(user);
@@ -202,31 +245,38 @@ public class AdminUserManagementController : Controller
 
         return RedirectToAction(nameof(Details), new { id });
     }
+
+    /// <summary>
+    /// Apresenta a página de seleção para diferentes tipos de logs.
+    /// </summary>
+    /// <returns>A View de seleção de logs.</returns>
     public IActionResult UserLogSelection()
     {
         return View();
     }
 
+    /// <summary>
+    /// Lista os logs de atividade realizados pelos membros do Staff (auditoria interna).
+    /// </summary>
+    /// <param name="search">Termo de pesquisa (username ou conteúdo da mensagem).</param>
+    /// <param name="date">Filtro por data específica.</param>
+    /// <returns>A View com a lista de logs ordenada por data descendente.</returns>
     public async Task<IActionResult> StaffLog(string search, string date)
     {
-        // 1. Carregar logs incluindo os dados do utilizador
         var query = _context.UserLog
             .Include(l => l.AppUser)
             .AsQueryable();
 
-        // 2. Filtro de pesquisa (Username ou Mensagem)
         if (!string.IsNullOrEmpty(search))
         {
             query = query.Where(l => l.AppUser.UserName.Contains(search) || l.Message.Contains(search));
         }
 
-        // 3. Filtro de data
         if (!string.IsNullOrEmpty(date) && DateTime.TryParse(date, out DateTime parsedDate))
         {
             query = query.Where(l => l.TimeStamp.Date == parsedDate.Date);
         }
 
-        // 4. Ordenar por TimeStamp (conforme o teu modelo .cs)
         var logs = await query.OrderByDescending(l => l.TimeStamp).ToListAsync();
 
         return View(logs);

@@ -12,6 +12,13 @@ using QuestPDF.Previewer;
 
 namespace Projeto_SEGUES.Areas.Admin;
 
+/// <summary>
+/// Controller responsável pela gestão global de senhas (tickets), preçários, validade e auditoria.
+/// </summary>
+/// <remarks>
+/// Este controlador permite aos administradores configurar os preços das refeições, definir horários 
+/// de serviço (almoço/jantar), gerir a validade das senhas e exportar relatórios de auditoria.
+/// </remarks>
 [Area("Admin")]
 [Authorize(Roles = "Admin")]
 public class AdminTicketManagementController : Controller
@@ -20,6 +27,12 @@ public class AdminTicketManagementController : Controller
     private readonly UserManager<AppUser> _userManager;
     private readonly ITicketService _ticketService;
 
+    /// <summary>
+    /// Inicializa uma nova instância do controlador com os serviços de administração, utilizadores e senhas.
+    /// </summary>
+    /// <param name="adminService">Serviço de configuração administrativa.</param>
+    /// <param name="userManager">Gestor de utilizadores Identity.</param>
+    /// <param name="ticketService">Serviço de operações de senhas.</param>
     public AdminTicketManagementController(IAdminService adminService, UserManager<AppUser> userManager, ITicketService ticketService)
     {
         _adminService = adminService;
@@ -27,7 +40,10 @@ public class AdminTicketManagementController : Controller
         _ticketService = ticketService;
     }
 
-    // Displays Prices + Global Ticket History
+    /// <summary>
+    /// Apresenta o painel principal de gestão de senhas, incluindo preçários, horários e histórico.
+    /// </summary>
+    /// <returns>A View de índice com o histórico completo de senhas e dados de configuração no ViewBag.</returns>
     public async Task<IActionResult> Index()
     {
         ViewBag.CurrentUserId = _userManager.GetUserId(User);
@@ -44,16 +60,22 @@ public class AdminTicketManagementController : Controller
         return View(history);
     }
 
+    /// <summary>
+    /// Atualiza os valores do preçário das senhas no sistema.
+    /// </summary>
+    /// <param name="updatedPrices">Lista de modelos TicketPrice com os novos valores.</param>
+    /// <returns>Redireciona para o Index com o resultado da operação via SweetAlert.</returns>
+    /// <remarks>
+    /// Força a cultura Invariante para processamento correto de decimais e limpa o ModelState para evitar conflitos de validação.
+    /// </remarks>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdatePrices(List<TicketPrice> updatedPrices)
     {
         if (updatedPrices == null || !updatedPrices.Any()) return RedirectToAction(nameof(Index));
 
-        // Forçar a cultura Invariante para que 1.50 seja lido como 1 euro e 50 cêntimos
         System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
 
-        // Removemos a validação automática para garantir que o código executa
         foreach (var key in ModelState.Keys.ToList()) ModelState.Remove(key);
 
         try
@@ -69,6 +91,11 @@ public class AdminTicketManagementController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    /// <summary>
+    /// Altera o período de validade global para novas senhas adquiridas.
+    /// </summary>
+    /// <param name="validityDays">Número de dias de validade (mínimo 1).</param>
+    /// <returns>Redireciona para o Index com a confirmação ou erro.</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateValidity(int validityDays)
@@ -85,6 +112,13 @@ public class AdminTicketManagementController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    /// <summary>
+    /// Filtra o histórico de senhas para atualização dinâmica da tabela de auditoria.
+    /// </summary>
+    /// <param name="searchString">Termo de pesquisa (nome do dono ou código de validação).</param>
+    /// <param name="stateFilter">Filtro opcional por estado da senha.</param>
+    /// <param name="dateFilter">Filtro opcional por data de compra.</param>
+    /// <returns>Uma PartialView contendo as linhas filtradas da tabela.</returns>
     [HttpGet]
     public async Task<IActionResult> GetUpdatedAuditTable(string searchString, Projeto_SEGUES.Models.Enums.TicketState? stateFilter, DateTime? dateFilter)
     {
@@ -108,44 +142,51 @@ public class AdminTicketManagementController : Controller
         return PartialView("_AuditTableRows", query.OrderByDescending(t => t.TicketPurchase.TransactionDate).ToList());
     }
 
+    /// <summary>
+    /// Atualiza os horários de funcionamento de um serviço específico (Almoço ou Jantar).
+    /// </summary>
+    /// <param name="serviceName">Nome do serviço a atualizar.</param>
+    /// <param name="openTime">Hora de abertura.</param>
+    /// <param name="closeTime">Hora de fecho.</param>
+    /// <returns>Redireciona para o Index informando o sucesso ou erro de validação.</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateSchedule(string serviceName, TimeSpan openTime, TimeSpan closeTime)
     {
-        // 1. Validação simples
         if (openTime >= closeTime)
         {
             TempData.SetSwalError($"No serviço de {serviceName}, a abertura deve ser antes do fecho.");
             return RedirectToAction(nameof(Index));
         }
 
-        // 2. Chamar o serviço para gravar (precisamos atualizar o IAdminService para aceitar o nome do serviço)
         await _adminService.UpdateBarScheduleAsync(openTime.ToString(), closeTime.ToString(), serviceName);
 
         TempData.SetSwalSuccess($"Horário de {serviceName} atualizado com sucesso!");
         return RedirectToAction(nameof(Index));
     }
 
+    /// <summary>
+    /// Gera um relatório PDF detalhado para auditoria de todas as senhas do sistema.
+    /// </summary>
+    /// <returns>Ficheiro PDF com histórico de propriedade, transferências, utilização e expiração.</returns>
+    /// <remarks>
+    /// Utiliza orientação Landscape para acomodar as 9 colunas de dados e inclui estilização Teal oficial.
+    /// </remarks>
     [HttpGet]
     public async Task<IActionResult> ExportTicketsPDF()
     {
-        // 1. Obter os dados (Garante que o serviço faz Include das relações)
         var history = await _ticketService.GetAllTicketsAsync();
 
-        // Caminho para o logótipo
         var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo-ips.png");
 
-        // 2. Criar o Documento PDF
         var document = Document.Create(container =>
         {
             container.Page(page =>
             {
-                // Definir Paisagem para as 9 colunas caberem
                 page.Size(PageSizes.A4.Landscape());
                 page.Margin(20);
                 page.PageColor(Colors.White);
 
-                // --- CABEÇALHO COM LOGÓTIPO ---
                 page.Header().PaddingBottom(10).Row(row =>
                 {
                     if (System.IO.File.Exists(logoPath))
@@ -160,7 +201,6 @@ public class AdminTicketManagementController : Controller
                     });
                 });
 
-                // --- TABELA DE 9 COLUNAS ---
                 page.Content().Table(table =>
                 {
                     table.ColumnsDefinition(columns =>
@@ -176,18 +216,15 @@ public class AdminTicketManagementController : Controller
                         columns.ConstantColumn(70);   // Expiração
                     });
 
-                    // Cabeçalho da Tabela (Fundo Teal)
                     table.Header(header =>
                     {
                         string[] colNames = { "Dono Atual", "Código", "Estado", "Compra", "Data Transf.", "Enviado Por", "Recebido Por", "Uso", "Expiração" };
                         foreach (var name in colNames)
                         {
-                            // CORREÇÃO: Background aplicado à Cell
                             header.Cell().Background(Color.FromHex("#009697")).Padding(5).AlignCenter().Text(name).FontColor(Colors.White).FontSize(8).SemiBold();
                         }
                     });
 
-                    // Dados
                     foreach (var t in history)
                     {
                         var lastTrans = t.Transfers?.OrderByDescending(x => x.TransferDate).FirstOrDefault();
@@ -197,9 +234,7 @@ public class AdminTicketManagementController : Controller
                             c.Item().Text(t.Owner?.Email).FontSize(7).FontColor(Colors.Grey.Medium);
                         });
 
-                        // Propriedade correta é ValidationCode
                         table.Cell().Element(ContentStyle).Text(t.ValidationCode).FontFamily(Fonts.CourierNew).FontSize(8);
-
                         table.Cell().Element(ContentStyle).Text(t.IsUsed ? "Usada" : (t.ExpirationDate < DateTime.Now ? "Expirada" : "Disponível")).FontSize(8);
                         table.Cell().Element(ContentStyle).Text(t.TicketPurchase?.TransactionDate.ToString("dd/MM/yy HH:mm") ?? "-").FontSize(8);
                         table.Cell().Element(ContentStyle).Text(lastTrans?.TransferDate.ToString("dd/MM/yy") ?? "-").FontSize(8);
@@ -219,6 +254,11 @@ public class AdminTicketManagementController : Controller
         return File(document.GeneratePdf(), "application/pdf", "Auditoria_Senhas_IPS.pdf");
     }
 
+    /// <summary>
+    /// Aplica o estilo de conteúdo visual às células da tabela de auditoria.
+    /// </summary>
+    /// <param name="container">Contentor QuestPDF a estilizar.</param>
+    /// <returns>O contentor com bordas, preenchimento e alinhamento aplicados.</returns>
     static IContainer ContentStyle(IContainer container) =>
         container.PaddingVertical(4).BorderBottom(1).BorderColor(Colors.Grey.Lighten3).AlignCenter();
 }
