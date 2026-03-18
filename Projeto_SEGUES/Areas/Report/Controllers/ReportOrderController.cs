@@ -58,13 +58,13 @@ public class ReportOrderController : Controller
     public async Task<IActionResult> GetOrderDetails(int id)
     {
         var order = await _orderService.GetOrderByIdAsync(id);
-        if (order == null) return NotFound();
+        if (order == null) return NotFound(new { failMessage = "Pedido não encontrado." });
 
         // Security check: if the user is not admin, do not show order info if it does not belong to the user
         if (!User.IsInRole("Admin") && order.AppUser.Id != _userManager.GetUserId(User))
             return Unauthorized();
 
-        return Json(new
+        return Ok(new
         {
             code = order.RedemptionCode,
             products = order.ProductPurchases.Select(p => new

@@ -24,7 +24,7 @@
     @* Contentor que o HTMX vai atualizar *@
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4"
          hx-get="/Ticket/Ticket/GetUpdatedActiveTickets"
-         hx-trigger="every 2s"
+         hx-trigger="every 30s"
          hx-swap="innerHTML">
 
         <partial name="_ActiveTicketsCards" model="Model" />
@@ -32,9 +32,5 @@
 </div>
 
 @section Scripts {
-    <script>
-        document.addEventListener('htmx:afterProcess', function() {
-            console.log("Senhas ativas atualizadas via HTMX.");
-        });
-    </script>
+    <script type="module" src="~/js/ticket/ticket.js"></script>
 }

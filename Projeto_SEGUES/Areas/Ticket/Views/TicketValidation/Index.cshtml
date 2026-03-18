@@ -39,7 +39,7 @@
                     @* Code form *@
                     <form asp-action="Index" method="post" id="validationForm" autocomplete="off">
                         <div class="mb-4">
-                            <input asp-for="Code" id="TicketCodeInput"
+                            <input asp-for="Code" id="ticketCodeInput"
                                    class="form-control form-control-lg text-center code-input py-3"
                                    placeholder="XXXXXXXX" maxlength="8"
                                    autofocus />
@@ -67,12 +67,12 @@
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0 text-center">
                         <thead class="bg-color-ips text-white">
-                            <tr>
-                                <th class="ps-4 py-3">Código</th>
-                                <th class="ps-4 py-3">Cliente</th>
-                                <th class="ps-4 py-3">Hora</th>
-                                <th class="ps-4 py-3">Estado</th>
-                            </tr>
+                        <tr>
+                            <th class="ps-4 py-3">Código</th>
+                            <th class="ps-4 py-3">Cliente</th>
+                            <th class="ps-4 py-3">Hora</th>
+                            <th class="ps-4 py-3">Estado</th>
+                        </tr>
                         </thead>
                         <tbody>
                         @if (Model.RecentTickets.Any())
@@ -124,51 +124,8 @@
         </div>
     </div>
 </div>
+
 @section Scripts {
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-
-            const qrContainerId = "qr-reader";
-            const html5QrCode = new Html5Qrcode(qrContainerId);
-
-            function onScanSuccess(decodedText, decodedResult) {
-                document.getElementById('TicketCodeInput').value = decodedText;
-
-                html5QrCode.stop().then(() => {
-                    document.getElementById('validationForm').querySelector('button[type="submit"]').focus();
-                }).catch((err) => {
-                    console.error("Erro ao parar a câmara.", err);
-                });
-            }
-
-            html5QrCode.start(
-                { facingMode: "environment" },
-                {
-                    fps: 10,
-                    qrbox: { width: 200, height: 200 }
-                },
-                onScanSuccess,
-                (errorMessage) => {
-                    // Ignorar erros de procura de foco
-                }
-            ).catch((err) => {
-                console.error("Erro ao iniciar a câmara:", err);
-
-                const qrContainer = document.getElementById(qrContainerId);
-                qrContainer.innerHTML = `
-                    <div class="alert alert-warning d-flex align-items-center text-start m-0 border-0 shadow-sm" role="alert" style="border-radius: 8px;">
-                        <i class="bi bi-exclamation-triangle-fill fs-3 me-3 text-warning"></i>
-                        <div>
-                            <strong>Câmara Inacessível</strong><br>
-                            <small class="text-muted">Verifique as permissões do navegador ou insira o código manualmente.</small>
-                        </div>
-                    </div>
-                `;
-
-                
-            });
-        });
-    </script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script type="module" src="~/js/ticket/ticketValidation.js"></script>
 }

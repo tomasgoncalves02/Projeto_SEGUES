@@ -13,7 +13,7 @@ namespace Projeto_SEGUES.Areas.Order;
 /// Este controlador permite ao staff monitorizar pedidos pendentes, atualizar estados de produção 
 /// e validar códigos de levantamento para finalizar o ciclo de entrega ao utilizador.
 /// </remarks>
-[Authorize(Roles = "Admin,Employee")]
+[Authorize(Roles = "Admin, Employee")]
 [Area("Order")]
 public class OrderManagementController : Controller
 {
@@ -74,28 +74,35 @@ public class OrderManagementController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateStatus(int id, int newStatus)
     {
+        if (!User.IsInRole("Admin") && !User.IsInRole("Employee")) return Unauthorized();
         var staffMember = await _userManager.GetUserAsync(User);
+        if (staffMember == null) return Unauthorized();
+        
         var result = await _orderService.UpdateOrderStatusAsync(id, newStatus, staffMember);
-        if (!result.Success) return BadRequest(result.Message);
-        return Ok();
+        if (!result.Success) return NotFound(new { failMessage = result.Message });
+        
+        return Ok(new { successMessage = result.Message });
     }
 
     /// <summary>
     /// Valida o código de redenção inserido pelo funcionário para confirmar a entrega do pedido.
     /// </summary>
     /// <param name="id">ID do pedido a validar.</param>
-    /// <param name="codeEntered">Código alfanumérico fornecido pelo cliente.</param>
+    /// <param name="enteredCode">Código alfanumérico fornecido pelo cliente.</param>
     /// <returns>Resultado da operação em formato JSON.</returns>
     /// <remarks>
     /// Adiciona o Header "HX-Trigger" para notificar o frontend (via HTMX) de que o pedido foi atualizado com sucesso.
     /// </remarks>
     [HttpPost]
-    public async Task<IActionResult> ValidateOrderCode(int id, string codeEntered)
+    public async Task<IActionResult> ValidateOrderCode(int id, string enteredCode)
     {
+        if (!User.IsInRole("Admin") && !User.IsInRole("Employee")) return Unauthorized();
         var staffMember = await _userManager.GetUserAsync(User);
-        var result = await _orderService.ValidateOrderCodeAsync(id, codeEntered, staffMember);
-        if (!result.Success) return BadRequest(result);
-        Response.Headers.Append("HX-Trigger", "orderUpdated");
-        return Ok(new { success = true, message = result.Message });
+        if (staffMember == null) return Unauthorized();
+        
+        var result = await _orderService.ValidateOrderCodeAsync(id, enteredCode, staffMember);
+        if (!result.Success) return NotFound(new { failMessage = result.Message });
+        
+        return Ok(new { successMessage = result.Message });
     }
 }

@@ -14,10 +14,12 @@ const DOM = {
     byName(name, root = document) {
         return root.getElementsByName(name);
     },
-    bySelector(selector, root = document) {
+    bySelector(selector, root) {
+        if (!root) root = document;
         return root.querySelector(selector);
     },
-    bySelectorAll(selector, root = document) {
+    bySelectorAll(selector, root) {
+        if (!root) root = document;
         return root.querySelectorAll(selector);
     },
     bindDocumentLoad(fn) {

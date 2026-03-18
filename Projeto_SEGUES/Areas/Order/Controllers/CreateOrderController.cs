@@ -66,10 +66,14 @@ public class CreateOrderController : Controller
     [HttpPost]
     public async Task<IActionResult> AddToCart(int id, int qty)
     {
-        var userId = _userManager.GetUserId(User)!;
+        var userId = _userManager.GetUserId(User);
+        if (userId == null) return Unauthorized();
+        
         var result = await _orderService.AddToCartAsync(userId, id, qty);
-        OrderTotalViewModel orderTotal = (OrderTotalViewModel)result.Data!;
-        return Json(new { success = result.Success, message = result.Message, count = orderTotal.TotalQuantity, value = orderTotal.TotalValue });
+        if (!result.Success) return NotFound(new { failMessage = result.Message});
+        
+        OrderTotalViewModel orderTotal = (OrderTotalViewModel) result.Data!;
+        return Ok(new { successMessage = result.Message, count = orderTotal.TotalQuantity, value = orderTotal.TotalValue });
     }
 
     /// <summary>
@@ -81,9 +85,13 @@ public class CreateOrderController : Controller
     public async Task<IActionResult> RemoveFromCart(int id)
     {
         var userId = _userManager.GetUserId(User);
-        var result = await _orderService.RemoveFromCartAsync(userId!, id);
-        OrderTotalViewModel orderTotal = (OrderTotalViewModel)result.Data!;
-        return Json(new { success = result.Success, message = result.Message, count = orderTotal.TotalQuantity, value = orderTotal.TotalValue });
+        if (userId == null) return Unauthorized();
+        
+        var result = await _orderService.RemoveFromCartAsync(userId, id);
+        if (!result.Success) return NotFound(new { failMessage = result.Message});
+        
+        OrderTotalViewModel orderTotal = (OrderTotalViewModel) result.Data!;
+        return Ok(new { successMessage = result.Message, count = orderTotal.TotalQuantity, value = orderTotal.TotalValue });
     }
 
     /// <summary>

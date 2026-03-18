@@ -20,7 +20,9 @@
                     <td>
                         <button class="btn btn-sm btn-ips shadow-sm"
                                 hx-get="/Order/OrderManagement/GetOrderDetailsSide/@order.Id"
-                                hx-target="#side-panel-target">
+                                hx-target="#side-panel-target"
+                                hx-swap="outerHTML"
+                                >
                             <i class="bi bi-arrow-up-left"></i>
                         </button>
                     </td>
@@ -37,14 +39,12 @@
                     <td class="align-middle">
                         @if (order.DeliveryTime.HasValue)
                         {
-                                <span class="fw-bold">
-                                    @string.Format("{0:hh\\:mm}", order.DeliveryTime.Value)
-                                </span>
+                            <span class="fw-bold">@string.Format("{0:hh\\:mm}", order.DeliveryTime.Value)</span>
                         }
                         else
                         {
                             /* If DeliveryTime is null, the order is for immediate delivery */
-                                <span class="rounded-pill fw-bold px-3 py-2 bg-color-ips text-white d-inline-block" style="font-size: 0.75em;">
+                            <span class="badge p-2 bg-color-ips text-white fs-7" style="min-width: fit-content;">
                                 AGORA
                             </span>
                         }

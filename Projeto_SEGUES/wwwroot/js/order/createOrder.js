@@ -16,34 +16,28 @@ async function addToCart(id, name) {
         Notifications.error("Quantidade inválida.");
         return;
     }
-    try {
-        const data = await Api.post(`/Order/CreateOrder/AddToCart?id=${id}&qty=${qty}`);
-        if (!data.success) {
-            Notifications.error(`Erro ao adicionar ${qty}x ${name} ao carrinho: ${data.message}`);
-            return;
-        }
-        updateCartElement('cartCount', data.count);
-        updateCartElement('cartTotal', MathUtils.numberToCurrencyString(data.value));
-        Notifications.success(`${qty}x ${name} adicionado ao carrinho!`);
-    } catch (e) { 
-        Notifications.error(`Erro ao adicionar ${qty}x ${name} ao carrinho: ${e.message}`);
+    const data = await Api.post(`/Order/CreateOrder/AddToCart?id=${id}&qty=${qty}`);
+    if (!data || data.errorMessage) return;
+    if (data.failMessage) {
+        Notifications.error(data.failMessage);
+        return;
     }
+    updateCartElement('cartCount', data.count);
+    updateCartElement('cartTotal', MathUtils.numberToCurrencyString(data.value));
+    Notifications.success(data.successMessage);
 }
 
 async function removeFromCart(id, name) {
     Notifications.confirm(`Desejas remover ${name} do carrinho?`).then(async res => {
         if (res.isConfirmed) {
-            try {
-                const data = await Api.post(`/Order/CreateOrder/RemoveFromCart?id=${id}`);
-
-                if (data.success) {
-                    location.reload();
-                } else {
-                    Notifications.error(`Erro ao remover ${name} do carrinho: ${data.message}`);
-                }
-            } catch (err) {
-                Notifications.error(`Erro ao remover ${name} do carrinho: ${e.message}`);
+            const data = await Api.post(`/Order/CreateOrder/RemoveFromCart?id=${id}`);
+            if (!data || data.errorMessage) return;
+            if (data.failMessage) {
+                Notifications.error(data.failMessage);
+                return;
             }
+            Notifications.success(data.successMessage);
+            location.reload();
         }
     });
 }

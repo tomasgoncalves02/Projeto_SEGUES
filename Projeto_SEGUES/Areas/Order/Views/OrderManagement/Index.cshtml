@@ -34,7 +34,7 @@
             <h5 class="fw-bold"><i class="bi bi-clock-history me-2 text-color-ips"></i> Histórico Recente</h5>
             <div
                 hx-get="/Order/OrderManagement/GetOrdersTable"
-                hx-trigger="every 30s"
+                hx-trigger="orderUpdated from:body, every 30s"
                 hx-swap="innerHTML">
                 <partial name="_ManageOrdersTablePartial" model="Model"/>
             </div>
@@ -44,4 +44,5 @@
 
 @section Scripts {
     <script type="module" src="~/js/inventory/inventory.js"></script>
+    <script type="module" src="~/js/order/order.js"></script>
 }

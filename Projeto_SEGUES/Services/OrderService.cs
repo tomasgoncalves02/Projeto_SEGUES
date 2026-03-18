@@ -335,7 +335,7 @@ public class OrderService : IOrderService
             return ServiceResult.Fail("Não é possível mudar para este estado.");
         }
 
-        if (newStatus != order.Status + 1)
+        if (newStatus != order.Status + 1 && newStatus != order.Status - 1)
             return ServiceResult.Fail("Transição de status inválida.");
 
         if (newStatus == OrderStatus.Cancelled)
@@ -374,18 +374,16 @@ public class OrderService : IOrderService
         }
     }
 
-    public async Task<ServiceResult> ValidateOrderCodeAsync(int id, string codeEntered, AppUser staffMember)
+    public async Task<ServiceResult> ValidateOrderCodeAsync(int id, string enteredCode, AppUser staffMember)
     {
-        if (string.IsNullOrWhiteSpace(codeEntered))
+        enteredCode = enteredCode.Trim();
+        if (string.IsNullOrWhiteSpace(enteredCode))
             return ServiceResult.Fail("Por favor, insira o código de levantamento.");
 
         var order = await GetOrderByIdAsync(id);
         if (order == null) return ServiceResult.Fail("Pedido não encontrado.");
-
-        var storedCode = order.RedemptionCode?.Trim();
-        var enteredCode = codeEntered.Trim();
-
-        if (!string.Equals(order.RedemptionCode!.Trim(), codeEntered.Trim(), StringComparison.CurrentCultureIgnoreCase))
+        
+        if (!string.Equals(order.RedemptionCode, enteredCode, StringComparison.CurrentCultureIgnoreCase))
             return ServiceResult.Fail("Código inválido!");
 
         try

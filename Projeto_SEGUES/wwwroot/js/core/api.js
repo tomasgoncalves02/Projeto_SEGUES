@@ -2,7 +2,7 @@
  * API helper functions.
  * Fetch and Send data logic with anti-forgery token.
  */
-import { DOM } from "./dom.js";
+import { DOM, Notifications } from "./core.js";
 
 function getToken() {
     return DOM.byName('__RequestVerificationToken')[0]?.value || '';
@@ -32,13 +32,22 @@ async function request(method, url, params = {}) {
         }
 
         const response = await fetch(url, options);
-
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        if (!response.ok) {
+            // Handle unauthorized access by redirecting to login
+            if (response.status === 401) {
+                Notifications.error("Sessão inválida. Redirecionando para a página de login...");
+                window.location.href = '/Identity/Account/Login';
+                return null;
+            }
+        }
+        // Ok returns the result object requested
+        // NotFound returns .message
+        // BadRequest returns .error
         return await response.json();
     }
     catch (error) {
-        console.error(`Api Error [${method} ${url}]:`, error);
-        throw error;
+        Notifications.error(`Erro na comunicação com o servidor: [${method} ${url}] ` + error.message);
+        return null;
     }
 }
 

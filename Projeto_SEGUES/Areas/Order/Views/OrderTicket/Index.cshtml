@@ -1,4 +1,5 @@
-﻿@model IEnumerable<Projeto_SEGUES.Models.Ticket.Ticket>
+﻿@using System.Globalization
+@model IEnumerable<Projeto_SEGUES.Models.Ticket.Ticket>
 
 @{
     ViewData["Title"] = "Gestão de Senhas - SEGUES";
@@ -11,7 +12,7 @@
     <div class="row mb-4 align-items-center">
         <div class="col-md-5">
             <h2 class="fw-bold title-underline mb-2">
-                <i class="bi bi-ticket-detailed-fill me-2 text-color-ips"></i>
+                <i class="bi bi-ticket-detailed me-2 text-color-ips"></i>
                 Comprar Senhas
             </h2>
             <p class="text-muted small">Senhas de Refeições - SEGUES</p>
@@ -43,10 +44,9 @@
                         Preço para o seu perfil: <strong class="text-color-ips fs-5">@price.ToString("C")</strong>
                     </div>
                     <form asp-area="Order" asp-controller="OrderTicket" asp-action="BuyTicket" method="post" id="purchaseTicketForm">
-                        <div id="unitPrice" class="d-none">@price.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)</div>
                         <div class="mb-4">
                             <label class="form-label small fw-bold">Quantidade:</label>
-                            <input type="number" name="quantity" id="quantityInput" class="form-control border-2" min="1" value="1" step="1" @(balance < price ? "disabled" : "")/>
+                            <input type="number" name="quantity" id="quantityInput" data-unitprice="@price.ToString("F2", CultureInfo.InvariantCulture)" class="form-control border-2" min="1" value="1" step="1" @(balance < price ? "disabled" : "")/>
                         </div>
                         <div class="mb-3 small text-muted">
                             Total: <strong id="totalValue">@price.ToString("C")</strong>
@@ -79,7 +79,7 @@
                         </thead>
                         <tbody id="ticket-history-body"
                                hx-get="/Ticket/Ticket/GetUpdatedTickets"
-                               hx-trigger="every 2s"
+                               hx-trigger="every 30s"
                                hx-swap="innerHTML">
                         <partial name="_TicketTable" model="Model" />
                         </tbody>
@@ -91,37 +91,6 @@
 </div>
 
 @section Scripts {
-    <script src="~/js/order/createOrderTicket.js"></script>
-    <script>
-        // Referência ao formulário
-        const purchaseTicketForm = document.getElementById('purchaseTicketForm');
-
-        if (purchaseTicketForm) {
-            const quantityInput = document.getElementById('quantityInput');
-
-            // Atualiza o total usando a função calculateTotal do teu ficheiro original
-            quantityInput.addEventListener('input', function() {
-                const totalDisplay = document.getElementById('totalValue');
-                const unitPrice = document.getElementById('unitPrice')?.textContent;
-                if (totalDisplay) {
-                    totalDisplay.textContent = calculateTotal(this.value, unitPrice);
-                }
-            });
-
-            // Submissão usando o Notifications.confirm do teu ficheiro original
-            purchaseTicketForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const quantity = quantityInput.value;
-                const totalValue = document.getElementById('totalValue')?.textContent;
-
-                Notifications.confirm(null,
-                    `Deseja comprar <b>${quantity}</b> senha(s)?<br>Total a descontar: <b>${totalValue}</b>`
-                ).then((result) => {
-                    if (result.isConfirmed) {
-                        purchaseTicketForm.submit();
-                    }
-                });
-            });
-        }
-    </script>
+    <script type="module" src="~/js/order/createOrderTicket.js"></script>
+    <script type="module" src="~/js/ticket/ticket.js"></script>
 }

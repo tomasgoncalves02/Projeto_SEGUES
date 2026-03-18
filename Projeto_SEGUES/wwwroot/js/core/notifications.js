@@ -31,6 +31,15 @@ const Notifications = {
             showCloseButton: options.showCloseButton ?? false,
             backdrop: options.backdrop || "var(--ips-shadow-soft)",
             didOpen: options.didOpen,
+            preConfirm: options.preConfirm,
+            showLoaderOnConfirm: options.showLoaderOnConfirm ?? false,
+            customClass: options.customClass,
+            // Input
+            input: options.input,
+            inputLabel: options.inputLabel,
+            inputAttributes: options.inputAttributes,
+            inputPlaceholder: options.inputPlaceholder,
+            inputValidator: options.inputValidator,
             // Confirm Button
             showConfirmButton: options.showConfirmButton ?? true,
             confirmButtonText: options.confirmButtonText || 'OK',
