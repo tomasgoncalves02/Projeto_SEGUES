@@ -15,18 +15,26 @@ namespace Projeto_SEGUES.Controllers
         private readonly IStringLocalizer<AppErrors> _localizer;
         private readonly UserManager<AppUser> _userManager;
         private readonly IAdminService _adminService;
-        public HomeController(ILogger<HomeController> logger, IStringLocalizer<AppErrors> localizer, UserManager<AppUser> userManager, IAdminService adminService)
+        private readonly IOrderService _orderService;
+        public HomeController(
+            ILogger<HomeController> logger, 
+            IStringLocalizer<AppErrors> localizer, 
+            UserManager<AppUser> userManager, 
+            IAdminService adminService,
+            IOrderService orderService)
         {
             _logger = logger;
             _localizer = localizer;
             _adminService = adminService;
             _userManager = userManager;
+            _orderService = orderService;
         }
 
         public async Task<IActionResult> Index()
         {
             ViewBag.CanteenLink = await _adminService.GetCanteenMenuLinkAsync();
             ViewBag.BarLink = await _adminService.GetBarMenuLinkAsync();
+            
             // Check if logged
             if (User.Identity is not { IsAuthenticated: true }) return View();
 
@@ -39,6 +47,11 @@ namespace Projeto_SEGUES.Controllers
                 ViewBag.FirstName = user.FirstName;
                 var roles = await _userManager.GetRolesAsync(user);
                 ViewBag.UserRole = roles.FirstOrDefault();
+                var cart = await _orderService.GetCartAsync(user.Id, false);
+                if (cart != null)
+                {
+                    ViewBag.CartTotal = _orderService.GetOrderTotal(cart);
+                }
             }
             else
             {

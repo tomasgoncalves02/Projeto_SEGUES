@@ -14,6 +14,7 @@ namespace SeguesTests.Orders
     {
         private readonly Mock<UserManager<AppUser>> _mockUserManager;
         private readonly Mock<IAdminService> _mockAdminService;
+        private readonly Mock<IOrderService> _mockOrderService;
         private readonly OrderController _controller;
 
         public OrderControllerTests()
@@ -21,8 +22,9 @@ namespace SeguesTests.Orders
             var store = new Mock<IUserStore<AppUser>>();
             _mockUserManager = new Mock<UserManager<AppUser>>(store.Object, null, null, null, null, null, null, null, null);
             _mockAdminService = new Mock<IAdminService>();
+            _mockOrderService = new Mock<IOrderService>();
 
-            _controller = new OrderController(_mockUserManager.Object, _mockAdminService.Object);
+            _controller = new OrderController(_mockUserManager.Object, _mockAdminService.Object, _mockOrderService.Object);
 
             var httpContext = new DefaultHttpContext();
             _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };

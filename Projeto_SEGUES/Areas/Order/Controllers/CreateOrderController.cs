@@ -52,7 +52,10 @@ public class CreateOrderController : Controller
     {
         var userId = _userManager.GetUserId(User)!;
         var cart = await _orderService.GetCartAsync(userId);
-        ViewBag.CartTotal = _orderService.GetOrderTotal(cart);
+        if (cart != null)
+        {
+            ViewBag.CartTotal = _orderService.GetOrderTotal(cart);
+        }
         ViewBag.Categories = await _inventoryService.GetAllCategoriesForDropdownAsync();
         return View(await _inventoryService.GetAvailableProductsAsync());
     }

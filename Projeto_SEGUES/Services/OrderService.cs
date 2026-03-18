@@ -25,13 +25,13 @@ public class OrderService : IOrderService
         _emailSender = emailSender;
     }
 
-    public async Task<Order> GetCartAsync(string userId)
+    public async Task<Order?> GetCartAsync(string userId, bool createIfNotFound = true)
     {
         var cart = await _context.Order
             .Include(o => o.ProductPurchases)
             .ThenInclude(ol => ol.Product)
             .FirstOrDefaultAsync(o => o.AppUser.Id == userId && o.Status == OrderStatus.Cart);
-        if (cart != null) return cart;
+        if (cart != null || !createIfNotFound) return cart;
 
         var user = await _context.Users.FindAsync(userId);
         cart = new Order

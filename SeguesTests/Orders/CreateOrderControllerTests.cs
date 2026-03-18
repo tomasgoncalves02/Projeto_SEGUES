@@ -60,7 +60,7 @@ namespace SeguesTests.Orders
             var cart = new Projeto_SEGUES.Models.Order.Order { AppUser = user, OrderDate = DateTime.Now };
 
             _mockUserManager.Setup(u => u.GetUserId(It.IsAny<ClaimsPrincipal>())).Returns(user.Id);
-            _mockOrderService.Setup(s => s.GetCartAsync(user.Id)).ReturnsAsync(cart);
+            _mockOrderService.Setup(s => s.GetCartAsync(user.Id, true)).ReturnsAsync(cart);
             _mockOrderService.Setup(s => s.GetOrderTotal(cart)).Returns(new OrderTotalViewModel());
             _mockInventoryService.Setup(s => s.GetAvailableProductsAsync()).ReturnsAsync(new List<Projeto_SEGUES.Models.Inventory.Product>());
 
@@ -101,7 +101,7 @@ namespace SeguesTests.Orders
             var cart = new Projeto_SEGUES.Models.Order.Order { AppUser = user, OrderDate = DateTime.Now };
 
             _mockUserManager.Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(user);
-            _mockOrderService.Setup(s => s.GetCartAsync(user.Id)).ReturnsAsync(cart);
+            _mockOrderService.Setup(s => s.GetCartAsync(user.Id, true)).ReturnsAsync(cart);
             _mockOrderService.Setup(s => s.GetOrderTotal(cart)).Returns(new OrderTotalViewModel());
 
             var result = await _controller.Checkout();

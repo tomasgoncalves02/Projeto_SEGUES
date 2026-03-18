@@ -19,6 +19,7 @@ namespace SeguesTests
         private readonly Mock<IStringLocalizer<AppErrors>> _mockLocalizer;
         private readonly Mock<UserManager<AppUser>> _mockUserManager;
         private readonly Mock<IAdminService> _mockAdminService;
+        private readonly Mock<IOrderService> _mockOrderService;
         private readonly HomeController _controller;
 
         public HomeControllerTests()
@@ -26,11 +27,12 @@ namespace SeguesTests
             _mockLogger = new Mock<ILogger<HomeController>>();
             _mockLocalizer = new Mock<IStringLocalizer<AppErrors>>();
             _mockAdminService = new Mock<IAdminService>();
+            _mockOrderService = new Mock<IOrderService>();
 
             var store = new Mock<IUserStore<AppUser>>();
             _mockUserManager = new Mock<UserManager<AppUser>>(store.Object, null, null, null, null, null, null, null, null);
 
-            _controller = new HomeController(_mockLogger.Object, _mockLocalizer.Object, _mockUserManager.Object, _mockAdminService.Object);
+            _controller = new HomeController(_mockLogger.Object, _mockLocalizer.Object, _mockUserManager.Object, _mockAdminService.Object, _mockOrderService.Object);
 
             var httpContext = new DefaultHttpContext();
             _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };

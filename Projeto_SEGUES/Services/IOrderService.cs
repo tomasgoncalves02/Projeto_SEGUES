@@ -6,7 +6,7 @@ namespace Projeto_SEGUES.Services;
 
 public interface IOrderService
 {
-    Task<Order> GetCartAsync(string userId);
+    Task<Order?> GetCartAsync(string userId, bool createIfNotFound = true);
     decimal ApplyDiscount(decimal price, Discount? discount);
     OrderTotalViewModel GetOrderTotal(Order cart);
     Task<ServiceResult> AddToCartAsync(string userId, int productId, int quantity);
