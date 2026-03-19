@@ -1,24 +1,24 @@
-using Microsoft.AspNetCore.Authorization;
+ï»¿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Projeto_SEGUES.Areas.Admin;
 
 /// <summary>
-/// Controller responsável pela gestão da barra administrativa e navegação do back-office.
+/// Controller responsible for managing the administrative bar and back-office navigation.
 /// </summary>
 /// <remarks>
-/// Este controlador está restrito a utilizadores com a role "Admin".
-/// Faz parte da Área administrativa do projeto SEGUES.
+/// Access to this controller is restricted to users with the "Admin" role. 
+/// It is a core component of the SEGUES project's administrative area.
 /// </remarks>
 [Authorize(Roles = "Admin")]
 [Area("Admin")]
 public class AdminBarManagementController : Controller
 {
     /// <summary>
-    /// Apresenta a página principal da gestão da barra administrativa.
+    /// Displays the main management page for the administrative bar.
     /// </summary>
     /// <returns>
-    /// Devolve a View correspondente ao painel de controlo da barra de administração.
+    /// Returns the View corresponding to the administrative bar control panel.
     /// </returns>
     public IActionResult Index()
     {

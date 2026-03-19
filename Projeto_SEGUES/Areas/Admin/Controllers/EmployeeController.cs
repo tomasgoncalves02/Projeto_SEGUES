@@ -1,23 +1,23 @@
-using Microsoft.AspNetCore.Authorization;
+ï»¿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Projeto_SEGUES.Areas.Admin;
 
 /// <summary>
-/// Controller responsável pela interface principal dos funcionários (Employees).
+/// Controller responsible for the primary interface for Employees.
 /// </summary>
 /// <remarks>
-/// Este controlador serve como ponto de entrada para utilizadores com as funções de "Admin" ou "Employee",
-/// fornecendo acesso às ferramentas de gestão diária dentro da área administrativa.
+/// This controller serves as the entry point for users with "Admin" or "Employee" roles,
+/// providing access to daily management tools within the administrative area.
 /// </remarks>
 [Authorize(Roles = "Admin,Employee")]
 [Area("Admin")]
 public class EmployeeController : Controller
 {
     /// <summary>
-    /// Apresenta a página inicial ou o dashboard do funcionário.
+    /// Displays the employee's home page or dashboard.
     /// </summary>
-    /// <returns>A View correspondente ao índice da área do funcionário.</returns>
+    /// <returns>The View corresponding to the employee area index.</returns>
     public IActionResult Index()
     {
         return View();

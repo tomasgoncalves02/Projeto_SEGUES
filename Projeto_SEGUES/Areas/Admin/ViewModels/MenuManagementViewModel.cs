@@ -3,26 +3,26 @@
 namespace Projeto_SEGUES.Areas.Admin.ViewModels
 {
     /// <summary>
-    /// ViewModel responsável pelo transporte e validação dos links das ementas na área administrativa.
+    /// ViewModel responsible for carrying and validating menu links within the administrative area.
     /// </summary>
     /// <remarks>
-    /// Este modelo assegura que os URLs introduzidos para o refeitório e bar cumprem os requisitos 
-    /// de formatação necessários para serem apresentados corretamente aos utilizadores finais.
+    /// This model ensures that the URLs entered for the canteen and bar meet the formatting 
+    /// requirements necessary to be correctly displayed to end users.
     /// </remarks>
     public class MenuManagementViewModel
     {
         /// <summary>
-        /// Obtém ou define o endereço URL da ementa do refeitório (Cantina).
+        /// Gets or sets the URL address for the canteen menu.
         /// </summary>
-        /// <value>Deve ser um URL válido (ex: https://dominio.com/ementa.pdf). Admite valores nulos.</value>
+        /// <value>Must be a valid URL (e.g., https://domain.com/menu.pdf). Supports null values.</value>
         [Url(ErrorMessage = "Introduza um URL válido (ex: https://...)")]
         [Display(Name = "Link da Ementa do Refeitório")]
         public string? CanteenUrl { get; set; }
 
         /// <summary>
-        /// Obtém ou define o endereço URL da ementa do bar.
+        /// Gets or sets the URL address for the bar menu.
         /// </summary>
-        /// <value>Deve ser um URL válido (ex: https://dominio.com/bar.pdf). Admite valores nulos.</value>
+        /// <value>Must be a valid URL (e.g., https://domain.com/bar.pdf). Supports null values.</value>
         [Url(ErrorMessage = "Introduza um URL válido (ex: https://...)")]
         [Display(Name = "Link da Ementa do Bar")]
         public string? BarUrl { get; set; }

@@ -6,11 +6,11 @@ using Projeto_SEGUES.Services;
 namespace Projeto_SEGUES.Areas.Admin.Controllers;
 
 /// <summary>
-/// Controller responsável pela gestão administrativa dos links das ementas do refeitório e do bar.
+/// Controller responsible for the administrative management of canteen and bar menu links.
 /// </summary>
 /// <remarks>
-/// Este controlador permite que a administração atualize dinamicamente os URLs que apontam para as ementas semanais,
-/// garantindo que os utilizadores tenham sempre acesso à informação mais recente sem necessidade de alterações no código.
+/// This controller allows the administration to dynamically update URLs pointing to weekly menus,
+/// ensuring that users always have access to the latest information without requiring code changes.
 /// </remarks>
 [Area("Admin")]
 public class AdminMenuManagementController : Controller
@@ -18,18 +18,18 @@ public class AdminMenuManagementController : Controller
     private readonly IAdminService _adminService;
 
     /// <summary>
-    /// Inicializa uma nova instância do controlador com o serviço administrativo.
+    /// Initializes a new instance of the controller with the administrative service.
     /// </summary>
-    /// <param name="adminService">Serviço que gere as configurações globais e persistência de links do sistema.</param>
+    /// <param name="adminService">Service managing global settings and system link persistence.</param>
     public AdminMenuManagementController(IAdminService adminService)
     {
         _adminService = adminService;
     }
 
     /// <summary>
-    /// Apresenta a página de gestão de ementas com os links atualmente configurados.
+    /// Displays the menu management page with the currently configured links.
     /// </summary>
-    /// <returns>A View de índice populada com o <see cref="MenuManagementViewModel"/> contendo os URLs atuais.</returns>
+    /// <returns>The index View populated with <see cref="MenuManagementViewModel"/> containing the current URLs.</returns>
     public async Task<IActionResult> Index()
     {
         var model = new MenuManagementViewModel
@@ -41,15 +41,15 @@ public class AdminMenuManagementController : Controller
     }
 
     /// <summary>
-    /// Processa a submissão dos novos URLs das ementas.
+    /// Processes the submission of new menu URLs.
     /// </summary>
-    /// <param name="model">Modelo contendo os novos links validados.</param>
+    /// <param name="model">Model containing the validated new links.</param>
     /// <returns>
-    /// Redireciona para o índice com uma mensagem de sucesso (SweetAlert) ou 
-    /// retorna a View com erros de validação caso o modelo seja inválido.
+    /// Redirects to the index with a success message (SweetAlert) or 
+    /// returns the View with validation errors if the model is invalid.
     /// </returns>
     /// <remarks>
-    /// O método utiliza o <see cref="IAdminService.UpdateMenuLinksAsync"/> para persistir as alterações na base de dados.
+    /// This method uses <see cref="IAdminService.UpdateMenuLinksAsync"/> to persist changes in the database.
     /// </remarks>
     [HttpPost]
     public async Task<IActionResult> SaveLinks(MenuManagementViewModel model)

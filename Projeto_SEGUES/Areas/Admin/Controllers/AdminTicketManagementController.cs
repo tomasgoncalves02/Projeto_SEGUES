@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Projeto_SEGUES.Extensions;
@@ -12,11 +12,11 @@ using QuestPDF.Infrastructure;
 namespace Projeto_SEGUES.Areas.Admin;
 
 /// <summary>
-/// Controller responsável pela gestão global de senhas (tickets), preçários, validade e auditoria.
+/// Controller responsible for global management of tickets, pricing, validity, and auditing.
 /// </summary>
 /// <remarks>
-/// Este controlador permite aos administradores configurar os preços das refeições, definir horários 
-/// de serviço (almoço/jantar), gerir a validade das senhas e exportar relatórios de auditoria.
+/// This controller allows administrators to configure meal prices, define service hours 
+/// (lunch/dinner), manage ticket validity, and export audit reports.
 /// </remarks>
 [Area("Admin")]
 [Authorize(Roles = "Admin")]
@@ -27,11 +27,11 @@ public class AdminTicketManagementController : Controller
     private readonly ITicketService _ticketService;
 
     /// <summary>
-    /// Inicializa uma nova instância do controlador com os serviços de administração, utilizadores e senhas.
+    /// Initializes a new instance of the controller with administration, user, and ticket services.
     /// </summary>
-    /// <param name="adminService">Serviço de configuração administrativa.</param>
-    /// <param name="userManager">Gestor de utilizadores Identity.</param>
-    /// <param name="ticketService">Serviço de operações de senhas.</param>
+    /// <param name="adminService">Administrative configuration service.</param>
+    /// <param name="userManager">Identity user manager.</param>
+    /// <param name="ticketService">Ticket operations service.</param>
     public AdminTicketManagementController(IAdminService adminService, UserManager<AppUser> userManager, ITicketService ticketService)
     {
         _adminService = adminService;
@@ -40,9 +40,9 @@ public class AdminTicketManagementController : Controller
     }
 
     /// <summary>
-    /// Apresenta o painel principal de gestão de senhas, incluindo preçários, horários e histórico.
+    /// Displays the main ticket management dashboard, including pricing, schedules, and history.
     /// </summary>
-    /// <returns>A View de índice com o histórico completo de senhas e dados de configuração no ViewBag.</returns>
+    /// <returns>The index View with the complete ticket history and configuration data in the ViewBag.</returns>
     public async Task<IActionResult> Index()
     {
         ViewBag.CurrentUserId = _userManager.GetUserId(User);
@@ -60,12 +60,12 @@ public class AdminTicketManagementController : Controller
     }
 
     /// <summary>
-    /// Atualiza os valores do preçário das senhas no sistema.
+    /// Updates the ticket pricing values in the system.
     /// </summary>
-    /// <param name="updatedPrices">Lista de modelos TicketPrice com os novos valores.</param>
-    /// <returns>Redireciona para o Index com o resultado da operação via SweetAlert.</returns>
+    /// <param name="updatedPrices">List of TicketPrice models with the new values.</param>
+    /// <returns>Redirects to Index with the result of the operation via SweetAlert.</returns>
     /// <remarks>
-    /// Força a cultura Invariante para processamento correto de decimais e limpa o ModelState para evitar conflitos de validação.
+    /// Forces the Invariant culture for correct decimal processing and clears the ModelState to avoid validation conflicts.
     /// </remarks>
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -91,10 +91,10 @@ public class AdminTicketManagementController : Controller
     }
 
     /// <summary>
-    /// Altera o período de validade global para novas senhas adquiridas.
+    /// Changes the global validity period for newly purchased tickets.
     /// </summary>
-    /// <param name="validityDays">Número de dias de validade (mínimo 1).</param>
-    /// <returns>Redireciona para o Index com a confirmação ou erro.</returns>
+    /// <param name="validityDays">Number of validity days (minimum 1).</param>
+    /// <returns>Redirects to Index with confirmation or error.</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateValidity(int validityDays)
@@ -112,12 +112,12 @@ public class AdminTicketManagementController : Controller
     }
 
     /// <summary>
-    /// Filtra o histórico de senhas para atualização dinâmica da tabela de auditoria.
+    /// Filters the ticket history for dynamic updates of the audit table.
     /// </summary>
-    /// <param name="searchString">Termo de pesquisa (nome do dono ou código de validação).</param>
-    /// <param name="stateFilter">Filtro opcional por estado da senha.</param>
-    /// <param name="dateFilter">Filtro opcional por data de compra.</param>
-    /// <returns>Uma PartialView contendo as linhas filtradas da tabela.</returns>
+    /// <param name="searchString">Search term (owner name or validation code).</param>
+    /// <param name="stateFilter">Optional filter by ticket state.</param>
+    /// <param name="dateFilter">Optional filter by purchase date.</param>
+    /// <returns>A PartialView containing the filtered table rows.</returns>
     [HttpGet]
     public async Task<IActionResult> GetUpdatedAuditTable(string searchString, Projeto_SEGUES.Models.Enums.TicketState? stateFilter, DateTime? dateFilter)
     {
@@ -142,12 +142,12 @@ public class AdminTicketManagementController : Controller
     }
 
     /// <summary>
-    /// Atualiza os horários de funcionamento de um serviço específico (Almoço ou Jantar).
+    /// Updates the operating hours of a specific service (Lunch or Dinner).
     /// </summary>
-    /// <param name="serviceName">Nome do serviço a atualizar.</param>
-    /// <param name="openTime">Hora de abertura.</param>
-    /// <param name="closeTime">Hora de fecho.</param>
-    /// <returns>Redireciona para o Index informando o sucesso ou erro de validação.</returns>
+    /// <param name="serviceName">Name of the service to update.</param>
+    /// <param name="openTime">Opening hour.</param>
+    /// <param name="closeTime">Closing hour.</param>
+    /// <returns>Redirects to Index informing success or validation error.</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateSchedule(string serviceName, TimeSpan openTime, TimeSpan closeTime)
@@ -165,11 +165,11 @@ public class AdminTicketManagementController : Controller
     }
 
     /// <summary>
-    /// Gera um relatório PDF detalhado para auditoria de todas as senhas do sistema.
+    /// Generates a detailed PDF report for auditing all tickets in the system.
     /// </summary>
-    /// <returns>Ficheiro PDF com histórico de propriedade, transferências, utilização e expiração.</returns>
+    /// <returns>PDF file with ownership history, transfers, usage, and expiration.</returns>
     /// <remarks>
-    /// Utiliza orientação Landscape para acomodar as 9 colunas de dados e inclui estilização Teal oficial.
+    /// Uses Landscape orientation to accommodate 9 data columns and includes official Teal styling.
     /// </remarks>
     [HttpGet]
     public async Task<IActionResult> ExportTicketsPDF()
@@ -256,10 +256,10 @@ public class AdminTicketManagementController : Controller
     }
 
     /// <summary>
-    /// Aplica o estilo de conteúdo visual às células da tabela de auditoria.
+    /// Applies visual content styling to audit table cells.
     /// </summary>
-    /// <param name="container">Contentor QuestPDF a estilizar.</param>
-    /// <returns>O contentor com bordas, preenchimento e alinhamento aplicados.</returns>
+    /// <param name="container">QuestPDF container to style.</param>
+    /// <returns>The container with applied borders, padding, and alignment.</returns>
     static IContainer ContentStyle(IContainer container) =>
         container.PaddingVertical(4).BorderBottom(1).BorderColor(Colors.Grey.Lighten3).AlignCenter();
 }

@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Extensions;
@@ -7,11 +7,11 @@ using Projeto_SEGUES.Services;
 namespace Projeto_SEGUES.Areas.Admin;
 
 /// <summary>
-/// Controller responsável pela criação de contas internas (funcionários/administradores) no sistema.
+/// Controller responsible for creating internal accounts (staff/administrators) in the system.
 /// </summary>
 /// <remarks>
-/// Este controlador gere o processo de registo de novos utilizadores que não são clientes, 
-/// incluindo a atribuição de permissões e o envio de e-mails de ativação.
+/// This controller manages the registration process for users who are not clients, 
+/// including role assignment and activation email dispatch.
 /// </remarks>
 [Authorize(Roles = "Admin")]
 [Area("Admin")]
@@ -20,18 +20,18 @@ public class AdminCreateInternalAccountController : Controller
     private readonly IAdminService _adminService;
 
     /// <summary>
-    /// Inicializa uma nova instância do controlador com o serviço de administração.
+    /// Initializes a new instance of the controller with the administration service.
     /// </summary>
-    /// <param name="adminService">Interface do serviço que contém a lógica de gestão de utilizadores.</param>
+    /// <param name="adminService">Service interface containing user management logic.</param>
     public AdminCreateInternalAccountController(IAdminService adminService)
     {
         _adminService = adminService;
     }
 
     /// <summary>
-    /// Apresenta o formulário de criação de conta interna.
+    /// Displays the internal account creation form.
     /// </summary>
-    /// <returns>A View de índice com a lista de funções (roles) disponíveis no ViewBag.</returns>
+    /// <returns>The index View with the list of available roles in the ViewBag.</returns>
     [HttpGet]
     public async Task<IActionResult> Index()
     {
@@ -40,14 +40,14 @@ public class AdminCreateInternalAccountController : Controller
     }
 
     /// <summary>
-    /// Processa a submissão do formulário para criar um novo utilizador interno.
+    /// Processes the form submission to create a new internal user.
     /// </summary>
-    /// <param name="model">Modelo de dados contendo as informações do novo utilizador.</param>
+    /// <param name="model">Data model containing the new user's information.</param>
     /// <returns>
-    /// Redireciona para o Index em caso de sucesso ou devolve a View com mensagens de erro em caso de falha.
+    /// Redirects to Index on success or returns the View with error messages on failure.
     /// </returns>
     /// <remarks>
-    /// Valida o estado do modelo, tenta criar o utilizador via serviço e gere exceções relacionadas com o envio de e-mails.
+    /// Validates the model state, attempts user creation via the service, and handles exceptions related to email sending.
     /// </remarks>
     [HttpPost]
     [ValidateAntiForgeryToken]

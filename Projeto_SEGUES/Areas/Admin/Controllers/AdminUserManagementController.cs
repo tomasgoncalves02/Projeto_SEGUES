@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,11 +12,11 @@ using Projeto_SEGUES.Services;
 namespace Projeto_SEGUES.Areas.Admin;
 
 /// <summary>
-/// Controller responsável pela gestão de utilizadores na área administrativa.
+/// Controller responsible for user management within the administrative area.
 /// </summary>
 /// <remarks>
-/// Este controlador permite listar, detalhar, editar, ativar e desativar contas de utilizadores, 
-/// além de gerir as permissões (roles), categorias e visualizar logs de auditoria do staff.
+/// This controller allows listing, detailing, editing, activating, and deactivating user accounts, 
+/// in addition to managing permissions (roles), categories, and viewing staff audit logs.
 /// </remarks>
 [Area("Admin")]
 [Authorize(Roles = "Admin")]
@@ -27,11 +27,11 @@ public class AdminUserManagementController : Controller
     private readonly AppDbContext _context;
 
     /// <summary>
-    /// Inicializa uma nova instância do controlador com os serviços de Identity, administração e contexto de dados.
+    /// Initializes a new instance of the controller with Identity, administration, and data context services.
     /// </summary>
-    /// <param name="userManager">Serviço nativo do ASP.NET Identity para gestão de utilizadores.</param>
-    /// <param name="adminService">Serviço personalizado com lógica de negócio administrativa.</param>
-    /// <param name="context">Contexto da base de dados para consultas diretas (ex: Logs).</param>
+    /// <param name="userManager">Native ASP.NET Identity service for user management.</param>
+    /// <param name="adminService">Custom service containing administrative business logic.</param>
+    /// <param name="context">Database context for direct queries (e.g., Logs).</param>
     public AdminUserManagementController(UserManager<AppUser> userManager, IAdminService adminService, AppDbContext context)
     {
         _userManager = userManager;
@@ -40,12 +40,12 @@ public class AdminUserManagementController : Controller
     }
 
     /// <summary>
-    /// Lista os utilizadores do sistema com suporte a pesquisa e filtros.
+    /// Lists the system users with support for search and filters.
     /// </summary>
-    /// <param name="searchString">Termo de pesquisa (nome ou email).</param>
-    /// <param name="roleFilter">Filtro por tipo de função (Admin, Staff, Client).</param>
-    /// <param name="categoryFilter">Filtro por categoria de utilizador (Aluno, Docente, etc.).</param>
-    /// <returns>A View de índice com a coleção de utilizadores filtrada.</returns>
+    /// <param name="searchString">Search term (name or email).</param>
+    /// <param name="roleFilter">Filter by role type (Admin, Staff, Client).</param>
+    /// <param name="categoryFilter">Filter by user category (Student, Faculty, etc.).</param>
+    /// <returns>The index View with the filtered collection of users.</returns>
     public async Task<IActionResult> Index(string? searchString, string? roleFilter, string? categoryFilter)
     {
         var users = await _adminService.GetFilteredUsersAsync(searchString, roleFilter, categoryFilter);
@@ -59,12 +59,12 @@ public class AdminUserManagementController : Controller
     }
 
     /// <summary>
-    /// Apresenta os detalhes completos de um utilizador específico.
+    /// Displays the complete details of a specific user.
     /// </summary>
-    /// <param name="id">Identificador único (GUID) do utilizador.</param>
-    /// <returns>A View de detalhes ou NotFound caso o utilizador não exista.</returns>
+    /// <param name="id">The unique identifier (GUID) of the user.</param>
+    /// <returns>The details View or NotFound if the user does not exist.</returns>
     /// <remarks>
-    /// Traduz enums e estados para português e define classes CSS dinâmicas para a interface.
+    /// Translates enums and states to Portuguese and defines dynamic CSS classes for the interface.
     /// </remarks>
     public async Task<IActionResult> Details(string id)
     {
@@ -97,10 +97,10 @@ public class AdminUserManagementController : Controller
     }
 
     /// <summary>
-    /// Apresenta o formulário de edição de um utilizador.
+    /// Displays the user edit form.
     /// </summary>
-    /// <param name="id">ID do utilizador a editar.</param>
-    /// <returns>View com o ViewModel preenchido para edição.</returns>
+    /// <param name="id">The ID of the user to edit.</param>
+    /// <returns>View with the pre-filled ViewModel for editing.</returns>
     [HttpGet]
     public async Task<IActionResult> Edit(string id)
     {
@@ -125,12 +125,12 @@ public class AdminUserManagementController : Controller
     }
 
     /// <summary>
-    /// Processa as alterações de dados, categoria e função (role) de um utilizador.
+    /// Processes changes to a user's data, category, and role.
     /// </summary>
-    /// <param name="model">ViewModel com os dados atualizados.</param>
-    /// <returns>Redireciona para o Index em caso de sucesso.</returns>
+    /// <param name="model">ViewModel with updated data.</param>
+    /// <returns>Redirects to Index upon success.</returns>
     /// <remarks>
-    /// Em caso de alteração de Role, o SecurityStamp é atualizado para forçar o refresh das claims do utilizador.
+    /// If the Role is changed, the SecurityStamp is updated to force a refresh of the user's claims.
     /// </remarks>
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -174,11 +174,11 @@ public class AdminUserManagementController : Controller
     }
 
     /// <summary>
-    /// Desativa um utilizador, impedindo o login através de Lockout permanente.
+    /// Deactivates a user, preventing login through permanent Lockout.
     /// </summary>
-    /// <param name="id">ID do utilizador a desativar.</param>
-    /// <returns>Redireciona para o Index com o resultado da operação.</returns>
-    /// <remarks>Impede que o administrador desative a sua própria conta.</remarks>
+    /// <param name="id">The ID of the user to deactivate.</param>
+    /// <returns>Redirects to Index with the result of the operation.</returns>
+    /// <remarks>Prevents the administrator from deactivating their own account.</remarks>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Deactivate(string id)
@@ -213,10 +213,10 @@ public class AdminUserManagementController : Controller
     }
 
     /// <summary>
-    /// Reativa uma conta de utilizador anteriormente desativada.
+    /// Reactivates a previously deactivated user account.
     /// </summary>
-    /// <param name="id">ID do utilizador a ativar.</param>
-    /// <returns>Redireciona para os Detalhes do utilizador.</returns>
+    /// <param name="id">The ID of the user to activate.</param>
+    /// <returns>Redirects to the user's Details View.</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Activate(string id)
@@ -246,20 +246,20 @@ public class AdminUserManagementController : Controller
     }
 
     /// <summary>
-    /// Apresenta a página de seleção para diferentes tipos de logs.
+    /// Displays the selection page for different types of logs.
     /// </summary>
-    /// <returns>A View de seleção de logs.</returns>
+    /// <returns>The log selection View.</returns>
     public IActionResult UserLogSelection()
     {
         return View();
     }
 
     /// <summary>
-    /// Lista os logs de atividade realizados pelos membros do Staff (auditoria interna).
+    /// Lists the activity logs performed by Staff members (internal audit).
     /// </summary>
-    /// <param name="search">Termo de pesquisa (username ou conteúdo da mensagem).</param>
-    /// <param name="date">Filtro por data específica.</param>
-    /// <returns>A View com a lista de logs ordenada por data descendente.</returns>
+    /// <param name="search">Search term (username or message content).</param>
+    /// <param name="date">Filter by a specific date.</param>
+    /// <returns>The View with the list of logs sorted by descending date.</returns>
     public async Task<IActionResult> StaffLog(string search, string date)
     {
         var query = _context.UserLog

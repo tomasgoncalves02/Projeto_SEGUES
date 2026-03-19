@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Projeto_SEGUES.Areas.Inventory.ViewModels;
 using Projeto_SEGUES.Extensions;
@@ -7,11 +7,11 @@ using Projeto_SEGUES.Services;
 namespace Projeto_SEGUES.Areas.Admin;
 
 /// <summary>
-/// Controller responsável pela gestão do inventário de produtos na área administrativa.
+/// Controller responsible for managing product inventory within the administrative area.
 /// </summary>
 /// <remarks>
-/// Permite aos administradores realizar operações de CRUD (Criar, Ler, Atualizar, Eliminar) em produtos, 
-/// além de gerir stocks e categorias associadas.
+/// Allows administrators to perform CRUD operations (Create, Read, Update, Delete) on products, 
+/// as well as manage stock levels and associated categories.
 /// </remarks>
 [Authorize(Roles = "Admin")]
 [Area("Admin")]
@@ -20,18 +20,18 @@ public class AdminInventoryManagementController : Controller
     private readonly IInventoryService _inventoryService;
 
     /// <summary>
-    /// Inicializa uma nova instância do controlador com o serviço de inventário.
+    /// Initializes a new instance of the controller with the inventory service.
     /// </summary>
-    /// <param name="inventoryService">Interface do serviço que contém a lógica de negócio do inventário.</param>
+    /// <param name="inventoryService">Service interface containing the inventory business logic.</param>
     public AdminInventoryManagementController(IInventoryService inventoryService)
     {
         _inventoryService = inventoryService;
     }
 
     /// <summary>
-    /// Lista todos os produtos e categorias disponíveis no sistema.
+    /// Lists all products and categories available in the system.
     /// </summary>
-    /// <returns>A View de índice populada com as categorias e produtos atuais.</returns>
+    /// <returns>The index View populated with current categories and products.</returns>
     public async Task<IActionResult> Index()
     {
         ViewBag.Categories = await _inventoryService.GetAllCategoriesForDropdownAsync();
@@ -40,9 +40,9 @@ public class AdminInventoryManagementController : Controller
     }
 
     /// <summary>
-    /// Obtém a lista de produtos formatada para uma atualização parcial da interface.
+    /// Retrieves the product list formatted for a partial interface update.
     /// </summary>
-    /// <returns>Uma PartialView contendo a tabela ou lista de produtos.</returns>
+    /// <returns>A PartialView containing the products table or list.</returns>
     public async Task<IActionResult> GetProducts()
     {
         var products = await _inventoryService.GetAllProductsAsync();
@@ -50,10 +50,10 @@ public class AdminInventoryManagementController : Controller
     }
 
     /// <summary>
-    /// Processa o registo de um novo produto no inventário.
+    /// Processes the registration of a new product in the inventory.
     /// </summary>
-    /// <param name="productViewModel">Modelo de dados contendo os detalhes do produto a criar.</param>
-    /// <returns>Redireciona para o Index com uma mensagem de sucesso ou erro via SweetAlert.</returns>
+    /// <param name="productViewModel">Data model containing the details of the product to be created.</param>
+    /// <returns>Redirects to Index with a success or error message via SweetAlert.</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(ProductViewModel productViewModel)
@@ -76,10 +76,10 @@ public class AdminInventoryManagementController : Controller
     }
 
     /// <summary>
-    /// Remove um produto do sistema com base no identificador fornecido.
+    /// Removes a product from the system based on the provided identifier.
     /// </summary>
-    /// <param name="id">Identificador único do produto.</param>
-    /// <returns>Redireciona para o Index informando o resultado da operação.</returns>
+    /// <param name="id">The unique identifier of the product.</param>
+    /// <returns>Redirects to Index reporting the result of the operation.</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id)
@@ -97,10 +97,10 @@ public class AdminInventoryManagementController : Controller
     }
 
     /// <summary>
-    /// Apresenta o formulário de edição para um produto específico.
+    /// Displays the edit form for a specific product.
     /// </summary>
-    /// <param name="id">Identificador único do produto a editar.</param>
-    /// <returns>A View de edição preenchida com os dados atuais ou NotFound caso o produto não exista.</returns>
+    /// <param name="id">The unique identifier of the product to edit.</param>
+    /// <returns>The edit View filled with current data or NotFound if the product does not exist.</returns>
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
@@ -122,10 +122,10 @@ public class AdminInventoryManagementController : Controller
     }
 
     /// <summary>
-    /// Processa as alterações efetuadas num produto existente.
+    /// Processes the changes made to an existing product.
     /// </summary>
-    /// <param name="productViewModel">Modelo de dados com as informações atualizadas.</param>
-    /// <returns>A mesma View de edição com o resultado da operação.</returns>
+    /// <param name="productViewModel">Data model with the updated information.</param>
+    /// <returns>The same edit View with the result of the operation.</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(ProductViewModel productViewModel)

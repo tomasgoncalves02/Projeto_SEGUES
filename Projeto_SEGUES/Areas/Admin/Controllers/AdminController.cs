@@ -1,24 +1,23 @@
-using Microsoft.AspNetCore.Authorization;
+ï»¿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
 
 namespace Projeto_SEGUES.Areas.Admin;
 
 /// <summary>
-/// Controller principal da área administrativa do sistema.
+/// Primary controller for the system's administrative area.
 /// </summary>
 /// <remarks>
-/// Este controlador serve como ponto de entrada para as funcionalidades de gestão global,
-/// acessível apenas por utilizadores com privilégios de Administrador.
+/// This controller serves as the entry point for global management functionalities.
+/// Access is restricted exclusively to users with Administrator privileges.
 /// </remarks>
 [Authorize(Roles = "Admin")]
 [Area("Admin")]
 public class AdminController : Controller
 {
     /// <summary>
-    /// Apresenta o dashboard ou a página inicial do painel administrativo.
+    /// Displays the administrative dashboard or the main landing page of the admin panel.
     /// </summary>
-    /// <returns>A View principal do índice administrativo.</returns>
+    /// <returns>The main administrative index View.</returns>
     public IActionResult Index()
     {
         return View();

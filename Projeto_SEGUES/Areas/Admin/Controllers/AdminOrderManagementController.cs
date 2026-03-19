@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,11 +14,11 @@ using QuestPDF.Infrastructure;
 namespace Projeto_SEGUES.Areas.Admin;
 
 /// <summary>
-/// Controller responsável pela gestão e monitorização de pedidos (orders) e horários do bar.
+/// Controller responsible for managing and monitoring orders and bar operating schedules.
 /// </summary>
 /// <remarks>
-/// Este controlador permite aos administradores visualizar o histórico de vendas, configurar o horário 
-/// de funcionamento do bar e exportar relatórios detalhados em formato PDF.
+/// This controller allows administrators to view sales history, configure the bar's 
+/// opening/closing times, and export detailed reports in PDF format.
 /// </remarks>
 [Authorize(Roles = "Admin")]
 [Area("Admin")]
@@ -30,12 +30,12 @@ public class AdminOrderManagementController : Controller
     private readonly AppDbContext _context;
 
     /// <summary>
-    /// Inicializa uma nova instância do controlador com os serviços de administração, pedidos, gestão de utilizadores e contexto de dados.
+    /// Initializes a new instance of the controller with admin, order, user management services, and the data context.
     /// </summary>
-    /// <param name="adminService">Serviço de lógica administrativa.</param>
-    /// <param name="orderService">Serviço de gestão de pedidos.</param>
-    /// <param name="userManager">Gestor de utilizadores do Identity.</param>
-    /// <param name="context">Contexto da base de dados Entity Framework.</param>
+    /// <param name="adminService">Administrative logic service.</param>
+    /// <param name="orderService">Order management service.</param>
+    /// <param name="userManager">Identity user manager.</param>
+    /// <param name="context">Entity Framework database context.</param>
     public AdminOrderManagementController(IAdminService adminService, IOrderService orderService, UserManager<AppUser> userManager, AppDbContext context)
     {
         _orderService = orderService;
@@ -45,9 +45,9 @@ public class AdminOrderManagementController : Controller
     }
 
     /// <summary>
-    /// Apresenta a página principal de gestão de pedidos, listando o histórico e horários atuais.
+    /// Displays the main order management page, listing history and current schedules.
     /// </summary>
-    /// <returns>A View de índice com a lista de pedidos obtida via serviço.</returns>
+    /// <returns>The index View with the list of orders obtained via the service.</returns>
     public async Task<IActionResult> Index()
     {
         var userId = _userManager.GetUserId(User);
@@ -57,13 +57,13 @@ public class AdminOrderManagementController : Controller
     }
 
     /// <summary>
-    /// Atualiza as horas de abertura e fecho do bar com validações de consistência.
+    /// Updates the bar's opening and closing hours with consistency validations.
     /// </summary>
-    /// <param name="openTime">Nova hora de abertura.</param>
-    /// <param name="closeTime">Nova hora de fecho.</param>
-    /// <returns>Redireciona para o Index com mensagem de sucesso ou erro.</returns>
+    /// <param name="openTime">New opening time.</param>
+    /// <param name="closeTime">New closing time.</param>
+    /// <returns>Redirects to Index with a success or error message.</returns>
     /// <remarks>
-    /// Valida se as horas são iguais, se o fecho é anterior à abertura ou se o intervalo é inferior a uma hora.
+    /// Validates if hours are equal, if closing time is before opening time, or if the interval is less than one hour.
     /// </remarks>
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -93,14 +93,14 @@ public class AdminOrderManagementController : Controller
     }
 
     /// <summary>
-    /// Gera e exporta um documento PDF com o histórico de pedidos filtrado.
+    /// Generates and exports a PDF document with the filtered order history.
     /// </summary>
-    /// <param name="status">Filtro por estado do pedido.</param>
-    /// <param name="date">Filtro por data específica.</param>
-    /// <param name="search">Termo de pesquisa (nome, email ou código).</param>
-    /// <returns>Um ficheiro PDF gerado dinamicamente com a biblioteca QuestPDF.</returns>
+    /// <param name="status">Filter by order status.</param>
+    /// <param name="date">Filter by specific date.</param>
+    /// <param name="search">Search term (name, email, or code).</param>
+    /// <returns>A dynamically generated PDF file using the QuestPDF library.</returns>
     /// <remarks>
-    /// O documento inclui logotipo institucional, detalhes de utilizador, produtos comprados e tempos de recolha.
+    /// The document includes the institutional logo, user details, purchased products, and pickup times.
     /// </remarks>
     [HttpGet]
     public async Task<IActionResult> ExportOrdersPDF(string status, DateTime? date, string search)
@@ -112,7 +112,7 @@ public class AdminOrderManagementController : Controller
             .Where(o => o.Status != OrderStatus.Cart)
             .AsQueryable();
 
-        // Filtros
+        // Filters
         if (!string.IsNullOrEmpty(status)) query = query.Where(o => ((int)o.Status).ToString() == status);
         if (date.HasValue) query = query.Where(o => o.OrderDate.Date == date.Value.Date);
         if (!string.IsNullOrEmpty(search))
@@ -217,10 +217,10 @@ public class AdminOrderManagementController : Controller
     }
 
     /// <summary>
-    /// Aplica um estilo padrão às células das tabelas do relatório PDF.
+    /// Applies a default style to table cells in the PDF report.
     /// </summary>
-    /// <param name="container">Contentor de interface da célula.</param>
-    /// <returns>O contentor estilizado com bordas e preenchimento.</returns>
+    /// <param name="container">Cell interface container.</param>
+    /// <returns>The styled container with borders and padding.</returns>
     static IContainer CellStyle(IContainer container) =>
         container
             .BorderBottom(1)
