@@ -1,18 +1,15 @@
 ﻿@{
     ViewData["Title"] = "Estatisticas do Bar - Admin"; 
-    @section Scripts {
-        <script src="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.umd.min.js"></script>
-    }
 }
 
 <div class="container mt-5">
-@* Cabeçalho *@
+@* Header *@
     <div class="row mb-5 align-items-center">
         <div class="col-md-6">
-            <h2 class="fw-bold title-underline mb-0">Estatísticas Bar</h2>
+            <h2 class="fw-bold title-underline mb-0">Estatísticas do Bar</h2>
         </div>
         <div class="col-md-6 text-end">
-            <a asp-area="Statistics" asp-controller="StatisticsPage" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4">
+            <a asp-area="Statistics" asp-controller="Statistics" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4">
                 <i class="bi bi-arrow-left me-2"></i>Voltar
             </a>
         </div>
@@ -42,7 +39,7 @@
             <div class="card card-ips shadow-sm border-0 rounded-3 h-100">
                 <div class="card-body p-4">
                     <p class="small fw-semibold text-muted mb-1">Total de Pedidos</p>
-                    <h3 class="fw-bold mb-1" style="color: darkcyan;" id="idConsumptionB">—</h3>
+                    <h3 class="fw-bold mb-1" style="color: darkcyan;" id="totalOrderBar">—</h3>
                 </div>
             </div>
         </div>
@@ -51,7 +48,7 @@
             <div class="card card-ips shadow-sm border-0 rounded-3 h-100">
                 <div class="card-body p-4">
                     <p class="small fw-semibold text-muted mb-1">Receita Total</p>
-                    <h3 class="fw-bold mb-1" style="color: darkcyan;" id="idMoneyB">—</h3>
+                    <h3 class="fw-bold mb-1" style="color: darkcyan;" id="totalIncomeBar">—</h3>
                 </div>
             </div>
         </div>
@@ -60,7 +57,7 @@
             <div class="card card-ips shadow-sm border-0 rounded-3 h-100">
                 <div class="card-body p-4">
                     <p class="small fw-semibold text-muted mb-1">Compra Media</p>
-                    <h3 class="fw-bold mb-1" style="color: darkcyan;" id="idAverageB">—</h3>
+                    <h3 class="fw-bold mb-1" style="color: darkcyan;" id="averageIncomeBar">—</h3>
                 </div>
             </div>
         </div>
@@ -68,8 +65,8 @@
         <div class="col-md-3">
             <div class="card card-ips shadow-sm border-0 rounded-3 h-100">
                 <div class="card-body p-4">
-                    <p class="small fw-semibold text-muted mb-1">Novos Utilizadores</p>
-                    <h3 class="fw-bold mb-1" style="color: darkcyan;" id="idBuyersB">—</h3>
+                    <p class="small fw-semibold text-muted mb-1">Total de Clientes</p>
+                    <h3 class="fw-bold mb-1" style="color: darkcyan;" id="totalBuyersBar">—</h3>
                 </div>
             </div>
         </div>
@@ -82,9 +79,9 @@
             <div class="card card-ips shadow-sm border-0 rounded-3 h-100">
                 <div class="card-body p-4">
                     <h6 class="fw-bold mb-1" style="color: darkcyan;">Pedidos ao longo do tempo</h6>
-                    <p class="text-muted small mb-3" id="chartSubtitleB">Pedidos por hora hoje</p>
+                    <p class="text-muted small mb-3" id="orderChartSubtitle">Pedidos por hora hoje</p>
                     <div style="position: relative; height: 260px;">
-                        <canvas id="categoryChartB"></canvas>
+                        <canvas id="orderChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -97,7 +94,7 @@
                     <h6 class="fw-bold mb-1" style="color: darkcyan;">Por categoria</h6>
                     <p class="text-muted small mb-4">Distribuição de produtos</p>
                     <div style="position: relative; height: 240px;">
-                        <canvas id="productCategoryChart"></canvas>
+                        <canvas id="productCategoriesChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -127,12 +124,9 @@
             </div>
         </div>
     </div>
-
-
-
-
-
-
-
-
 </div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.umd.min.js"></script>
+    <script type="module" src="~/js/report/statistics.js"></script>
+}

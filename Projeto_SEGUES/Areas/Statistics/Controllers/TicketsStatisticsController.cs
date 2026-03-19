@@ -6,11 +6,11 @@ namespace Projeto_SEGUES.Areas.Statistics.Controllers
 {
     [Area("Statistics")]
     [Authorize(Roles = "Admin")]
-    public class StatisticsTicketController : Controller
+    public class TicketsStatisticsController : Controller
     {
         private readonly IStatisticsService _statisticsService;
 
-        public StatisticsTicketController(IStatisticsService statisticsService)
+        public TicketsStatisticsController(IStatisticsService statisticsService)
         {
             _statisticsService = statisticsService;
         }

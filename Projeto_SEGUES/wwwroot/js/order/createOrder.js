@@ -5,7 +5,7 @@ function updateCartElement(id, value) {
     const el = DOM.byId(id);
     if (el) {
         el.innerText = value;
-        el.style.display = parseFloat(value) > 0 ? "inline-block" : "none";
+        el.style.display = parseFloat(value) > 0.0 ? "inline-block" : "none";
     }
 }
 

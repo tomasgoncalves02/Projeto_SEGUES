@@ -67,7 +67,7 @@ namespace SeguesTests.Services
             );
             await context.SaveChangesAsync();
 
-            var result = await service.GetBarStats(1);
+            var result = await service.GetOrdersStats(1);
 
             var totalConsumptions = (int)GetPropValue(result, "totalConsumptions");
             var totalRevenue = (decimal)GetPropValue(result, "totalRevenue");
@@ -93,7 +93,7 @@ namespace SeguesTests.Services
             context.Order.Add(order);
             await context.SaveChangesAsync();
 
-            var result = await service.GetBarStats(1);
+            var result = await service.GetOrdersStats(1);
 
             var topProducts = GetPropValue(result, "topProducts") as IEnumerable<object>;
 
@@ -164,7 +164,7 @@ namespace SeguesTests.Services
             );
             await context.SaveChangesAsync();
 
-            var result = await service.GetBarStats(1);
+            var result = await service.GetOrdersStats(1);
             var totalConsumptions = (int)GetPropValue(result, "totalConsumptions");
 
             Assert.Equal(1, totalConsumptions);
@@ -178,7 +178,7 @@ namespace SeguesTests.Services
             var context = GetDatabaseContext();
             var service = new StatisticsService(context);
 
-            var result = await service.GetBarStats(1);
+            var result = await service.GetOrdersStats(1);
             var totalRevenue = (decimal)GetPropValue(result, "totalRevenue");
             var topProducts = GetPropValue(result, "topProducts") as IEnumerable<object>;
 

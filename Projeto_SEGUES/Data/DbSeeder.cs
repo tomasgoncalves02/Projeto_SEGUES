@@ -242,16 +242,21 @@ namespace Projeto_SEGUES.Data
                 Value = 220m,
                 AppUser = employeeUser!
             };
-            await context.TicketPurchase.AddAsync(ticketPurchase);
+            if (!await context.TicketPurchase.AnyAsync(tp => tp.AppUser.Id == employeeUser!.Id))
+            {
+                await context.TicketPurchase.AddAsync(ticketPurchase);
+            }
             await context.SaveChangesAsync();
 
             var tickets = new List<Ticket>();
             var now = DateTime.Now;
 
             /* 10 tickets same day different hours */
+            var hourRange = Math.Max(1, now.Hour - 8 + 1);
             for (int i = 0; i < 10; i++)
             {
-                var usedDate = now.Date.AddHours(i + 8); // 08h–17h
+                var hour = 8 + (i % hourRange); // Start at 8h, end at current hour, loop if more than available hours
+                var usedDate = now.Date.AddHours(hour); // 08h–17h but no future time
                 tickets.Add(new Ticket
                 {
                     ExpirationDate = now.AddDays(365),
@@ -265,10 +270,13 @@ namespace Projeto_SEGUES.Data
                 });
             }
             /* 10 tickets in the same week but different days */
-            var startOfWeek = now.Date.AddDays(-(int)now.DayOfWeek + (int)DayOfWeek.Monday);
+            var startOfWeek = now.Date.AddDays(-(int)now.DayOfWeek + (int)DayOfWeek.Sunday);
+            var dayOfWeekRange = Math.Max(1, (now.Date - startOfWeek).Days + 1);
             for (int i = 0; i < 10; i++)
             {
-                var usedDate = startOfWeek.AddDays(i % 7).AddHours(9 + i);
+                var day = (i % dayOfWeekRange) + 1; // Start at Sunday, end at current day, loop if more than available days
+                var usedDate = startOfWeek.AddDays(day).AddHours(8 + (i % 8));
+                if (usedDate > now) usedDate = usedDate.Date.AddHours(8 + (i % hourRange)); // If future time, set to current day with hour loop
                 tickets.Add(new Ticket
                 {
                     ExpirationDate = now.AddDays(365),
@@ -283,9 +291,12 @@ namespace Projeto_SEGUES.Data
             }
             /* 10 tickets in the same month spread out by days */
             var startOfMonth = new DateTime(now.Year, now.Month, 1);
+            var dayOfMonthRange = Math.Max(1, (now.Date - startOfMonth).Days + 1);
             for (int i = 0; i < 10; i++)
             {
-                var usedDate = startOfMonth.AddDays(i * 3).AddHours(10);
+                var day = ((i * 3) % dayOfMonthRange) + 1; // Start at 1st, end at current day, loop if more than available days
+                var usedDate = startOfMonth.AddDays(day).AddHours(8 + (i % 8));
+                if (usedDate > now) usedDate = usedDate.Date.AddHours(8 + (i % hourRange)); // If future time, set to current day with hour loop
                 tickets.Add(new Ticket
                 {
                     ExpirationDate = now.AddDays(365),
@@ -301,7 +312,7 @@ namespace Projeto_SEGUES.Data
             /* 10 tickets in the same year spread by months */
             for (int i = 0; i < 10; i++)
             {
-                var usedDate = new DateTime(now.Year, (i % 12) + 1, 15).AddHours(11);
+                var usedDate = new DateTime(now.Year, (i % now.Month) + 1, now.Day).AddHours((i + 8) % now.Hour);
                 tickets.Add(new Ticket
                 {
                     ExpirationDate = now.AddDays(365),
@@ -315,7 +326,10 @@ namespace Projeto_SEGUES.Data
                 });
             }
 
-            await context.Ticket.AddRangeAsync(tickets);
+            if (!context.Ticket.Any(t => t.Owner.Id == employeeUser!.Id))
+            {
+                await context.Ticket.AddRangeAsync(tickets);
+            }
             await context.SaveChangesAsync();
 
             // Create Orders
@@ -364,31 +378,41 @@ namespace Projeto_SEGUES.Data
             /* 10 orders in the same day with different time */
             for (int i = 0; i < 10; i++)
             {
-                var date = now.Date.AddHours(8 + i);
+                var hour = 8 + (i % hourRange); // Start at 8h, end at current hour, loop if more than available hours
+                var date = now.Date.AddHours(hour); // 08h–17h but no future time
                 orders.Add(CreateOrder(date));
             }
+            
             /* 10 orders in the same week, in different days */
-            startOfWeek = now.Date.AddDays(-(int)now.DayOfWeek + (int)DayOfWeek.Monday);
+            
             for (int i = 0; i < 10; i++)
             {
-                var date = startOfWeek.AddDays(i % 7).AddHours(9 + i);
+                var day = (i % dayOfWeekRange) + 1; // Start at Sunday, end at current day, loop if more than available days
+                var date = startOfWeek.AddDays(day).AddHours(8 + (i % 8));
+                if (date > now) date = date.Date.AddHours(8 + (i % hourRange)); // If future time, set to current day with hour loop
                 orders.Add(CreateOrder(date));
             }
+            
             /* 10 orders in the same month in different days */
-            startOfMonth = new DateTime(now.Year, now.Month, 1);
             for (int i = 0; i < 10; i++)
             {
-                var date = startOfMonth.AddDays(i * 3).AddHours(12);
+                var day = ((i * 3) % dayOfMonthRange) + 1; // Start at 1st, end at current day, loop if more than available days
+                var date = startOfMonth.AddDays(day).AddHours(8 + (i % 8));
+                if (date > now) date = date.Date.AddHours(8 + (i % hourRange)); // If future time, set to current day with hour loop
                 orders.Add(CreateOrder(date));
             }
+            
             /* 10 orders in the same year in different months */
             for (int i = 0; i < 10; i++)
             {
-                var date = new DateTime(now.Year, (i % 12) + 1, 15).AddHours(13);
+                var date = new DateTime(now.Year, (i % now.Month) + 1, now.Day).AddHours((i + 8) % now.Hour);
                 orders.Add(CreateOrder(date));
             }
 
-            await context.Order.AddRangeAsync(orders);
+            if (!context.Order.Any(o => o.AppUser.Id == employeeUser!.Id))
+            {
+                await context.Order.AddRangeAsync(orders);
+            }
             await context.SaveChangesAsync();
         }
     }

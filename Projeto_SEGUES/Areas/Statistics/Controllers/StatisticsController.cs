@@ -3,7 +3,7 @@
 namespace Projeto_SEGUES.Areas.Statistics.Controllers
 {
     [Area("Statistics")]
-    public class StatisticsPageController : Controller
+    public class StatisticsController : Controller
     {
         public IActionResult Index()
         {

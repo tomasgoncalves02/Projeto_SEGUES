@@ -6,12 +6,12 @@ namespace Projeto_SEGUES.Areas.Statistics.Controllers
 {
     [Area("Statistics")]
     [Authorize(Roles = "Admin")]
-    public class StatisticsBarController : Controller
+    public class OrdersStatisticsController : Controller
     {
         private readonly IStatisticsService _statisticsService;
 
 
-        public StatisticsBarController(IStatisticsService statisticsService)
+        public OrdersStatisticsController(IStatisticsService statisticsService)
         {
             _statisticsService = statisticsService;
         }
@@ -22,9 +22,9 @@ namespace Projeto_SEGUES.Areas.Statistics.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetBarStats(int period = 1)
+        public async Task<IActionResult> GetOrdersStats(int period = 1)
         {
-            var result = await _statisticsService.GetBarStats(period);
+            var result = await _statisticsService.GetOrdersStats(period);
             return Json(result);
         }
 
