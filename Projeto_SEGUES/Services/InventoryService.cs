@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Areas.Inventory.ViewModels;
 using Projeto_SEGUES.Data;
@@ -112,5 +112,17 @@ public class InventoryService : IInventoryService
         {
             return ServiceResult.Fail("Ocorreu um erro ao eliminar o produto.");
         }
+    }
+
+    public async Task<ServiceResult> ReactivateProductAsync(int id)
+    {
+        var product = await _context.Product.FindAsync(id);
+        if (product == null)
+            return ServiceResult.Fail("Produto não encontrado.");
+
+        product.IsActive = true;
+        await _context.SaveChangesAsync();
+
+        return ServiceResult.Ok($"Produto \"{product.Name}\" reativado com sucesso.");
     }
 }

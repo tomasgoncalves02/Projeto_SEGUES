@@ -1,5 +1,6 @@
 ﻿@model IEnumerable<Projeto_SEGUES.Models.Ticket.Ticket>
 @using Projeto_SEGUES.Models.Ticket
+@using Projeto_SEGUES.Models.Enums
 
 @{
     ViewData["Title"] = "Gestão de Senhas - SEGUES";
@@ -167,11 +168,9 @@
 
                 <div class="col-md-4 col-xl-2">
                     <label class="form-label small fw-bold">Fluxo</label>
-                    <select name="flowFilter" class="form-select form-select-sm">
-                        <option value="">Todas</option>
-                        <option value="Compradas">Compradas</option>
-                        <option value="Enviadas">Enviadas</option>
-                        <option value="Recebidas">Recebidas</option>
+                    <select name="flowFilter"
+                            class="form-select form-select-sm"
+                            asp-items="Html.GetEnumSelectList<Projeto_SEGUES.Models.Enums.TicketFlow>()">
                     </select>
                 </div>
 
@@ -237,27 +236,5 @@
 </div>
 
 @section Scripts {
-    <script>
-        // Reset de filtros HTMX
-        function resetFilters() {
-            const form = document.getElementById('filterForm');
-            form.reset();
-            htmx.trigger(form, 'change');
-        }
-
-        // Exportação de PDF com filtros da URL
-        function exportPdfWithFilters() {
-            const form = document.getElementById('filterForm');
-            const formData = new FormData(form);
-            const params = new URLSearchParams(formData).toString();
-            window.location.href = `/Admin/AdminTicketManagement/ExportTicketsPDF?${params}`;
-        }
-
-        // Formatação decimal para preçário
-        document.querySelector('form')?.addEventListener('submit', function (e) {
-            document.querySelectorAll('.decimal-input').forEach(function (input) {
-                input.value = input.value.replace(',', '.');
-            });
-        });
-    </script>
+    <script type="module" src="~/js/admin/adminTicket.js"></script>
 }

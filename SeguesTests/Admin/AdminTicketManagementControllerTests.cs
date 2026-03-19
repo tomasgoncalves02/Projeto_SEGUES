@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
@@ -195,14 +195,21 @@ namespace SeguesTests.Admin
         [Fact]
         public async Task GetUpdatedAuditTable_ReturnsPartialView()
         {
+            // Arrange
             var history = new List<Ticket>();
             _mockTicketService.Setup(s => s.GetAllTicketsAsync()).ReturnsAsync(history);
 
-            var result = await _controller.GetUpdatedAuditTable("", null, null);
+            // Act
+            // Adicionamos o quarto parâmetro (null) correspondente ao flowFilter
+            var result = await _controller.GetUpdatedAuditTable(string.Empty, null, null, null);
 
+            // Assert
             var partialViewResult = Assert.IsType<PartialViewResult>(result);
             Assert.Equal("_AuditTableRows", partialViewResult.ViewName);
-            Assert.Equal(history, partialViewResult.Model);
+
+            // Verificamos se o modelo retornado é a lista (o Controller faz .ToList() no final)
+            var model = Assert.IsAssignableFrom<IEnumerable<Ticket>>(partialViewResult.Model);
+            Assert.Equal(history.Count, model.Count());
         }
 
         // Redirects to index when no prices are provided for update
@@ -245,19 +252,24 @@ namespace SeguesTests.Admin
         [Fact]
         public async Task GetUpdatedAuditTable_WithSearchFilter_ReturnsFilteredResults()
         {
+            // Arrange
             var user = CreateValidTestUser();
             var purchase = CreateValidPurchase(user);
             var history = new List<Ticket>
-            {
-                new Ticket { ValidationCode = "MATCH123", Owner = user, TicketPurchase = purchase }, // Fixed: Added TicketPurchase
-                new Ticket { ValidationCode = "OTHER", Owner = user, TicketPurchase = purchase }   // Fixed: Added TicketPurchase
-            };
+    {
+        new Ticket { ValidationCode = "MATCH123", Owner = user, TicketPurchase = purchase },
+        new Ticket { ValidationCode = "OTHER", Owner = user, TicketPurchase = purchase }
+    };
             _mockTicketService.Setup(s => s.GetAllTicketsAsync()).ReturnsAsync(history);
 
-            var result = await _controller.GetUpdatedAuditTable("MATCH", null, null);
+            // Act
+            // Adicionamos o 4º parâmetro como null para ignorar o filtro de fluxo neste teste
+            var result = await _controller.GetUpdatedAuditTable("MATCH", null, null, null);
 
+            // Assert
             var partialViewResult = Assert.IsType<PartialViewResult>(result);
             var model = Assert.IsAssignableFrom<List<Ticket>>(partialViewResult.Model);
+
             Assert.Single(model);
             Assert.Equal("MATCH123", model[0].ValidationCode);
         }

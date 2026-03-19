@@ -147,4 +147,27 @@ public class AdminInventoryManagementController : Controller
         }
         return View(productViewModel);
     }
+
+    /// <summary>
+    /// Reactivates a previously disabled product.
+    /// </summary>
+    /// <param name="id">The unique identifier of the product.</param>
+    /// <returns>Redirects to Index reporting the result.</returns>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Reactivate(int id)
+    {
+        // O serviço deve ter uma lógica para definir IsActive = true
+        var result = await _inventoryService.ReactivateProductAsync(id);
+
+        if (!result.Success)
+        {
+            TempData.SetSwalError(result.Message);
+        }
+        else
+        {
+            TempData.SetSwalSuccess(result.Message);
+        }
+        return RedirectToAction(nameof(Index));
+    }
 }

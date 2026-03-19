@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Projeto_SEGUES.Areas.Inventory.ViewModels;
 using Projeto_SEGUES.Models.Inventory;
 
@@ -13,4 +13,5 @@ public interface IInventoryService
     Task<ServiceResult> CreateProductAsync(ProductViewModel productViewModel);
     Task<ServiceResult> EditProductAsync(ProductViewModel productViewModel);
     Task<ServiceResult> DeleteProductAsync(int id);
+    Task<ServiceResult> ReactivateProductAsync(int id);
 }

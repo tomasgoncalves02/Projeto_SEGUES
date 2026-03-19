@@ -1,4 +1,4 @@
-import { DOM, Notifications } from "../core/core.js";
+﻿import { DOM, Notifications } from "../core/core.js";
 
 function showProductDetails() {
     let product = JSON.parse(this.dataset.product);
@@ -75,13 +75,42 @@ function clearProductsTableFilters() {
     filterProductsTable();
 }
 
-function confirmDeleteProduct() {
-    Notifications.confirm(`Tem a certeza que deseja eliminar o produto "${this.dataset.name}"?`)
-        .then((result) => {
+function confirmDeleteProduct(e) {
+    const btn = e.currentTarget;
+    const { id, name } = btn.dataset;
+
+    Notifications.confirm(`Tem a certeza que deseja eliminar o produto "${name}"?`)
+        .then((result) => {           
             if (result.isConfirmed) {
-                DOM.byId('delete-form-' + this.dataset.id).submit();
+                DOM.byId(`delete-form-${id}`)?.submit();
             }
         });
+}
+
+function confirmReactivateProduct(e) {
+    const { id, name } = e.currentTarget.dataset;
+
+    Notifications.confirm(
+        'Reativar Produto',
+        `Deseja reativar o produto "<b>${name}</b>"? Ele voltará a ficar disponível.`
+    ).then((result) => {
+        if (result.isConfirmed) {
+            DOM.byId(`reactivate-form-${id}`)?.submit();
+        }
+    });
+}
+function handleEditFormSubmit(e) {
+    e.preventDefault();
+    const form = this;
+
+    Notifications.confirm(
+        '',
+        'Deseja guardar as alterações efetuadas neste produto?'
+    ).then((result) => {
+        if (result.isConfirmed) {
+            form.submit();
+        }
+    });
 }
 
 const Inventory = {
@@ -91,6 +120,11 @@ const Inventory = {
         DOM.bind('nameFilter', 'keyup', filterProductsTable);
         DOM.bind('clearProductsTableFilters', 'click', clearProductsTableFilters);
         DOM.bindAll('confirmDeleteProduct', 'click', confirmDeleteProduct);
+        DOM.bindAll('confirmReactivateProduct', 'click', confirmReactivateProduct);
+        const editForm = DOM.byId('editForm');
+        if (editForm) {
+            editForm.addEventListener('submit', handleEditFormSubmit);
+        }
     }
 };
 

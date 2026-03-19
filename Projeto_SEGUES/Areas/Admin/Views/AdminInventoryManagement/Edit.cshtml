@@ -87,19 +87,5 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script>
-        document.getElementById('editForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-            const form = this;
-
-            Notifications.confirm(
-                '',
-                'Deseja guardar as alterações efetuadas neste produto?',
-            ).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            });
-        });
-    </script>
+    <script type="module" src="~/js/inventory/inventory.js"></script>
 }

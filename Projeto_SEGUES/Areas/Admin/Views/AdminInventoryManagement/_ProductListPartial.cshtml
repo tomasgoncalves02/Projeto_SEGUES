@@ -1,4 +1,4 @@
-@using System.Text.Json
+﻿@using System.Text.Json
 @model IEnumerable<Projeto_SEGUES.Models.Inventory.Product>
 
 @if (Model == null || !Model.Any())
@@ -45,9 +45,23 @@ else
                     </a>
                     @if (p.IsActive)
                     {
+                        @* Botão Desativar *@
                         <form asp-action="Delete" asp-route-id="@p.Id" method="post" id="delete-form-@p.Id" class="d-inline">
-                            <button id="confirmDeleteProduct" type="button" class="btn btn-sm btn-outline-danger" title="Eliminar" data-id="@p.Id" data-name="@p.Name">
+                            @Html.AntiForgeryToken()
+                            <button type="button" class="btn btn-sm btn-outline-danger confirmDeleteProduct"
+                                    data-id="@p.Id" data-name="@p.Name" title="Desativar">
                                 <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        @* Botão Reativar *@
+                        <form asp-action="Reactivate" asp-route-id="@p.Id" method="post" id="reactivate-form-@p.Id" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="button" class="btn btn-sm btn-outline-success confirmReactivateProduct"
+                                    data-id="@p.Id" data-name="@p.Name" title="Reativar">
+                                <i class="bi bi-arrow-counterclockwise"></i>
                             </button>
                         </form>
                     }

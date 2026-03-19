@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Projeto_SEGUES.Extensions;
+using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
@@ -117,12 +118,12 @@ public class AdminTicketManagementController : Controller
     /// <param name="searchString">Search term (owner name or validation code).</param>
     /// <param name="stateFilter">Optional filter by ticket state.</param>
     /// <param name="dateFilter">Optional filter by purchase date.</param>
+    /// <param name="flowFilter">Optional filter by ticket flow (Bought, Sent, Received).</param>
     /// <returns>A PartialView containing the filtered table rows.</returns>
     [HttpGet]
-    public async Task<IActionResult> GetUpdatedAuditTable(string searchString, Projeto_SEGUES.Models.Enums.TicketState? stateFilter, DateTime? dateFilter)
+    public async Task<IActionResult> GetUpdatedAuditTable(string searchString, TicketState? stateFilter, DateTime? dateFilter, TicketFlow? flowFilter)
     {
         var history = await _ticketService.GetAllTicketsAsync();
-
         var query = history.AsQueryable();
 
         if (stateFilter.HasValue)
@@ -130,6 +131,17 @@ public class AdminTicketManagementController : Controller
 
         if (dateFilter.HasValue)
             query = query.Where(t => t.TicketPurchase.TransactionDate.Date >= dateFilter.Value.Date);
+
+        if (flowFilter.HasValue && flowFilter != TicketFlow.All)
+        {
+            query = flowFilter.Value switch
+            {
+                TicketFlow.Bought => query.Where(t => !t.Transfers.Any()),
+                TicketFlow.Sent => query.Where(t => t.Transfers.Any()),
+                TicketFlow.Received => query.Where(t => t.Transfers.Any()),
+                _ => query
+            };
+        }
 
         if (!string.IsNullOrEmpty(searchString))
         {

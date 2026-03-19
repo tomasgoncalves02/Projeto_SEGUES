@@ -1,11 +1,17 @@
-import { Notifications, Api, DOM } from "../core/core.js";
+﻿import { Notifications, Api, DOM } from "../core/core.js";
 import { MathUtils } from "../core/mathUtils.js";
 
 function updateCartElement(id, value) {
     const el = DOM.byId(id);
     if (el) {
         el.innerText = value;
-        el.style.display = parseFloat(value) > 0.0 ? "inline-block" : "none";
+        const cleanValue = String(value).replace(',', '.').replace(/[^0-9.]/g, '');
+        const numericValue = parseFloat(cleanValue);
+        if (!isNaN(numericValue) && numericValue > 0) {
+            el.style.setProperty("display", "inline-block", "important");
+        } else {
+            el.style.setProperty("display", "none", "important");
+        }
     }
 }
 
