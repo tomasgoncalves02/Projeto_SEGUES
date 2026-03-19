@@ -37,6 +37,7 @@ function updateChart(id, type, data, options)
     
     chart.data.labels = data.labels;
     chart.data.datasets = data.datasets;
+    chart.options.scales.x.title.text = options.scales.x.title.text;
     chart.update();
 }
 

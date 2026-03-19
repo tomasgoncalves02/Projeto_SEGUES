@@ -15,9 +15,19 @@
     string dinnerClose = ViewBag.DinnerCloseTime is TimeSpan dc ? dc.ToString(@"hh\:mm") : "21:30";
 }
 
-<div class="container d-flex align-items-center justify-content-center py-5" style="min-height: 80vh;">
+<div class="container d-flex flex-column justify-content-center py-5" style="min-height: 80vh;">
+    @* Top row *@
+    <div class="row mb-4">
+        <div class="col-md-7">
+            <h1 class="title-underline">@ViewData["Title"]</h1>
+        </div>
+        <div class="col-md-5 text-end">
+            <a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4">
+                <i class="bi bi-arrow-left me-2"></i>Voltar
+            </a>
+        </div>
+    </div>
     <div class="row w-100 justify-content-center g-4">
-
         @* Card do Bar *@
         <div class="col-12 col-md-6 col-lg-5">
             <div class="card shadow-lg border-0 h-100 card-ips" style="border-radius: 10px; overflow: hidden;">
@@ -75,13 +85,5 @@
                 </div>
             </div>
         </div>
-
-        @* Botão Voltar *@
-        <div class="col-12 text-center mt-4">
-            <a asp-controller="Home" asp-action="Index" class="fw-bold text-color-ips text-decoration-none border-bottom border-2 border-color-ips pb-1">
-                Voltar
-            </a>
-        </div>
-
     </div>
 </div>

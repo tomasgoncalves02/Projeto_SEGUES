@@ -1,17 +1,11 @@
 ﻿import { Notifications, Api, DOM } from "../core/core.js";
 import { MathUtils } from "../core/mathUtils.js";
 
-function updateCartElement(id, value) {
+function updateCartElement(id, value, isCurrency = false) {
     const el = DOM.byId(id);
     if (el) {
-        el.innerText = value;
-        const cleanValue = String(value).replace(',', '.').replace(/[^0-9.]/g, '');
-        const numericValue = parseFloat(cleanValue);
-        if (!isNaN(numericValue) && numericValue > 0) {
-            el.style.setProperty("display", "inline-block", "important");
-        } else {
-            el.style.setProperty("display", "none", "important");
-        }
+        el.innerText = isCurrency ? MathUtils.numberToCurrencyString(value) : value;
+        el.style.display = parseFloat(value) > 0 ? "inline-block" : "none";
     }
 }
 
@@ -29,7 +23,7 @@ async function addToCart(id, name) {
         return;
     }
     updateCartElement('cartCount', data.count);
-    updateCartElement('cartTotal', MathUtils.numberToCurrencyString(data.value));
+    updateCartElement('cartTotal', data.value, true);
     Notifications.success(data.successMessage);
 }
 
