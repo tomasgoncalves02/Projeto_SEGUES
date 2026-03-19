@@ -94,7 +94,8 @@
                                             <span class="input-group-text">€</span>
                                             <input type="text" name="updatedPrices[@i].Price" class="form-control fw-bold decimal-input"
                                                    value="@prices[i].Price.ToString("N2", new System.Globalization.CultureInfo("pt-PT"))"
-                                                   oninput="this.value = this.value.replace('.', ',')" />
+                                                   oninput="this.value = this.value.replace('.', ',')" min="0"
+                                                   max="100" />
                                         </div>
                                     </div>
                                 }
