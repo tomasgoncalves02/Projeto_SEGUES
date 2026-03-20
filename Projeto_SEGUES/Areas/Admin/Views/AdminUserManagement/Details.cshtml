@@ -91,18 +91,22 @@
                 {
                     if (Model.Status == Projeto_SEGUES.Models.Enums.UserStatus.Inactive)
                     {
-                        <form asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Activate" asp-route-id="@Model.Id" method="post" id="activate-form" style="display:inline;">
-                            <button type="button" class="btn btn-success fw-bold px-4 py-2" style="border-radius: 8px;"
-                                    onclick="confirmAction('activate', '@Model.FirstName @Model.LastName')">
+                        <form asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Activate" asp-route-id="@Model.Id" method="post" id="activate-form-@Model.Id" style="display:inline;">
+                            @Html.AntiForgeryToken()
+                            <button type="button" class="btn btn-success fw-bold px-4 py-2 confirmActivateUser"
+                                    style="border-radius: 8px;"
+                                    data-id="@Model.Id" data-name="@Model.FirstName @Model.LastName">
                                 <i class="bi bi-person-check me-2"></i>Ativar Conta
                             </button>
                         </form>
                     }
                     else
                     {
-                        <form asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Deactivate" asp-route-id="@Model.Id" method="post" id="deactivate-form" style="display:inline;">
-                            <button type="button" class="btn btn-outline-danger fw-bold px-4 py-2" style="border-radius: 8px;"
-                                    onclick="confirmAction('deactivate', '@Model.FirstName @Model.LastName')">
+                        <form asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Deactivate" asp-route-id="@Model.Id" method="post" id="deactivate-form-@Model.Id" style="display:inline;">
+                            @Html.AntiForgeryToken()
+                            <button type="button" class="btn btn-outline-danger fw-bold px-4 py-2 confirmDeactivateUser"
+                                    style="border-radius: 8px;"
+                                    data-id="@Model.Id" data-name="@Model.FirstName @Model.LastName">
                                 <i class="bi bi-person-x me-2"></i>Desativar Conta
                             </button>
                         </form>
@@ -114,19 +118,5 @@
 </div>
 
 @section Scripts {
-    <script>
-        function confirmAction(type, userName) {
-            const isActivate = type === 'activate';
-            const message = isActivate
-                ? `Deseja devolver o acesso à plataforma ao utilizador ${userName}?`
-                : `Tem a certeza que deseja desativar o utilizador ${userName}? O utilizador deixará de conseguir entrar no sistema.`;
-
-            Notifications.confirm(message, undefined).then((result) => {
-                if (result.isConfirmed) {
-                    const formId = isActivate ? 'activate-form' : 'deactivate-form';
-                    document.getElementById(formId).submit();
-                }
-            });
-        }
-    </script>
+    <script type="module" src="~/js/admin/userManagement.js"></script>
 }

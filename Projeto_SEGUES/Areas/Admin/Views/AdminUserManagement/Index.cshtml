@@ -159,22 +159,24 @@
                                     if (user.Status == UserStatus.Inactive)
                                     {
                                         @* Botão Ativar *@
-                                        <form asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Activate" asp-route-id="@user.Id" method="post" style="display:inline;">
-                                            <button type="submit" class="btn btn-sm btn-outline-success rounded-0 rounded-end" title="Ativar Conta">
-                                                <i class="bi bi-person-check"></i>
-                                            </button>
-                                        </form>
+                                            <form asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Activate" asp-route-id="@user.Id" method="post" id="activate-form-@user.Id" style="display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <button type="button" class="btn btn-sm btn-outline-success rounded-0 rounded-end confirmActivateUser"
+                                                        data-id="@user.Id" data-name="@user.FirstName @user.LastName" title="Ativar Conta">
+                                                    <i class="bi bi-person-check"></i>
+                                                </button>
+                                            </form>
                                     }
                                     else
                                     {
                                         @* Botão Desativar *@
-                                        <form asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Deactivate" asp-route-id="@user.Id" method="post" id="deactivate-form-@user.Id" style="display:inline;">
-                                            <button type="button" class="btn btn-sm btn-outline-danger rounded-0 rounded-end"
-                                                    onclick="confirmDeactivate('@user.Id', '@user.FirstName @user.LastName')"
-                                                    title="Desativar Conta">
-                                                <i class="bi bi-person-x"></i>
-                                            </button>
-                                        </form>
+                                            <form asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Deactivate" asp-route-id="@user.Id" method="post" id="deactivate-form-@user.Id" style="display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <button type="button" class="btn btn-sm btn-outline-danger rounded-0 rounded-end confirmDeactivateUser"
+                                                        data-id="@user.Id" data-name="@user.FirstName @user.LastName" title="Desativar Conta">
+                                                    <i class="bi bi-person-x"></i>
+                                                </button>
+                                            </form>
                                     }
                                 }
                             </div>
@@ -188,18 +190,5 @@
 </div>
 
 @section Scripts {
-    <script>
-        function confirmDeactivate(userId, userName) {
-            Notifications.confirm(
-                '',
-                `Tem a certeza que deseja desativar o utilizador <b>${userName}</b>?<br>
-                 <small class='text-muted'>O utilizador deixará de ter acesso à plataforma.</small>`,
-            ).then((result) => {
-                if (result.isConfirmed) {
-                    // Submit the specific form for this user
-                    document.getElementById('deactivate-form-' + userId).submit();
-                }
-            });
-        }
-    </script>
+    <script type="module" src="~/js/admin/userManagement.js"></script>
 }
