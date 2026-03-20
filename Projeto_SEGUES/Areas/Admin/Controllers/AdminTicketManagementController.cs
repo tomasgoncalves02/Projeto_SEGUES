@@ -51,15 +51,14 @@ public class AdminTicketManagementController : Controller
 
         ViewBag.Prices = await _adminService.GetTicketPricesAsync();
         ViewBag.CurrentValidityDays = await _adminService.GetTicketValidityDaysAsync();
+        
         BarCanteenConfigViewModel barCanteenConfig = await _adminService.GetScheduleAsync();
-        ViewBag.LunchOpenTime = barCanteenConfig.CanteenLunchOpeningTimeString;
-        ViewBag.LunchCloseTime = barCanteenConfig.CanteenLunchClosingTimeString;
-        ViewBag.DinnerOpenTime = barCanteenConfig.CanteenDinnerOpeningTimeString;
-        ViewBag.DinnerCloseTime = barCanteenConfig.CanteenDinnerClosingTimeString;
-        // TODO: get time and string to view, fix view
-
+        ViewBag.CanteenLunchOpeningTimeString = barCanteenConfig.CanteenLunchOpeningTimeString;
+        ViewBag.CanteenLunchClosingTimeString = barCanteenConfig.CanteenLunchClosingTimeString;
+        ViewBag.CanteenDinnerOpeningTimeString = barCanteenConfig.CanteenDinnerOpeningTimeString;
+        ViewBag.CanteenDinnerClosingTimeString = barCanteenConfig.CanteenDinnerClosingTimeString;
+        
         var history = await _ticketService.GetAllTicketsAsync();
-
         return View(history);
     }
 

@@ -53,9 +53,8 @@ public class AdminOrderManagementController : Controller
     {
         var userId = _userManager.GetUserId(User);
         BarCanteenConfigViewModel barCanteenConfig =  await _adminService.GetScheduleAsync();
-        ViewBag.OpenBarTime = barCanteenConfig.BarOpeningTimeString;
-        ViewBag.CloseBarTime = barCanteenConfig.BarClosingTimeString;
-        //TODO fix view get string and time
+        ViewBag.BarOpeningTimeString = barCanteenConfig.BarOpeningTimeString;
+        ViewBag.BarClosingTimeString = barCanteenConfig.BarClosingTimeString;
         return View(await _orderService.GetAdminOrderHistoryAsync());
     }
 

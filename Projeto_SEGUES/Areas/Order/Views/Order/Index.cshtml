@@ -1,9 +1,7 @@
-﻿@{
+﻿@using Projeto_SEGUES.Areas.Order.ViewModels
+@{
     ViewData["Title"] = "Bar - SEGUES";
-    decimal balance = ViewBag.UserBalance;
-    var barOpen = ViewBag.OpeningTime ?? "08:30";
-    var barClose = ViewBag.ClosingTime ?? "23:50";
-    var cartTotal = ViewBag.CartTotal;
+    OrderTotalViewModel cartTotal = ViewBag.CartTotal;
 }
 
 <div class="container mt-5 text-start">
@@ -11,7 +9,7 @@
     <div class="flex-column mb-3 align-items-center">
         <div class="flex-column flex-sm-row d-flex justify-content-between align-items-center">
             <h3 class="fw-bold display-5 title-underline mb-2">Bar</h3>
-            @if (cartTotal != null && cartTotal?.TotalQuantity > 0)
+            @if (cartTotal != null && cartTotal.TotalQuantity > 0)
             {
                 <div class="d-flex align-items-center bg-light p-2 px-3 rounded-3 shadow-sm border">
                     <div class="text-center me-3 border-end pe-3">
@@ -20,13 +18,13 @@
                             <i class="bi bi-cart-check fs-2 text-color-ips"></i>
                             <span id="cartCount" class="position-absolute badge rounded-pill bg-danger fs-7"
                                   style="top: -2px; right: -5px; padding: 0.35em 0.5em; border: 2px solid white;">
-                                @cartTotal?.TotalQuantity
+                                @cartTotal.TotalQuantity
                             </span>
                         </a>
                     </div>
                     <div class="text-center">
                         <span class="fw-bold small d-block text-uppercase text-muted">Total</span>
-                        <span id="cartTotal" class="fw-bold text-color-ips fs-5">@cartTotal?.TotalValue.ToString("C")</span>
+                        <span id="cartTotal" class="fw-bold text-color-ips fs-5">@cartTotal.TotalValue.ToString("C")</span>
                     </div>
                 </div>
             }
@@ -47,7 +45,7 @@
                     </div>
                     <div class="d-flex align-items-center">
                         <span class="badge bg-color-ips text-white me-2">Bar</span>
-                        <span class="fw-bold text-color-ips">@barOpen - @barClose</span>
+                        <span class="fw-bold text-color-ips">@ViewBag.BarOpeningTimeString - @ViewBag.BarClosingTimeString</span>
                     </div>
                 </div>
             </div>
@@ -60,7 +58,7 @@
             <div class="card h-100 shadow-sm card-ips bg-color-ips text-white hover-translate d-flex flex-column">
                 <div class="card-body text-center d-flex flex-column p-4">
                     <small class="d-block opacity-75 fw-bold mb-2 fs-4">Saldo Disponível</small>
-                    <h2 class="display-6 fw-bold my-auto">@balance.ToString("C")</h2>
+                    <h2 class="display-6 fw-bold my-auto">@ViewBag.UserBalance.ToString("C")</h2>
                     <div class="mt-auto">
                         <a asp-area="Payment" asp-controller="Payment" asp-action="Deposit" class="btn btn-ips fw-bold w-100 py-2" style="border: 1px solid white !important">Carregar Saldo</a>
                     </div>
@@ -105,7 +103,7 @@
                     <h5 class="fw-bold">Ementa</h5>
                     <p class="text-muted small mb-4">Consulta o que há para o almoço esta semana.</p>
                     <div class="mt-auto">
-                        <a href="@ViewBag.BarLink" target="_blank" class="btn w-100 py-2 fw-bold btn-ips">Ver Ementa</a>
+                        <a href="@ViewBag.BarMenuLink" target="_blank" class="btn w-100 py-2 fw-bold btn-ips">Ver Ementa</a>
                     </div>
                 </div>
             </div>

@@ -258,7 +258,7 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        var localizer = services.GetService<IStringLocalizer<AppErrors>>() ?? throw new InvalidOperationException("Localization service not found");
+        var localizer = services.GetService<IStringLocalizer<Errors>>() ?? throw new InvalidOperationException("Localization service not found");
         app.Logger.LogError(ex, localizer[nameof(AppErrors.InternalServerError)], "Error", TableName.All, AppOperation.DatabaseInitialization);
     }
 }

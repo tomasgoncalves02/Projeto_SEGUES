@@ -11,13 +11,14 @@ using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using System.Security.Claims;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
+using Projeto_SEGUES.Resources;
 
 namespace SeguesTests
 {
     public class HomeControllerTests
     {
         private readonly Mock<ILogger<HomeController>> _mockLogger;
-        private readonly Mock<IStringLocalizer<AppErrors>> _mockLocalizer;
+        private readonly Mock<IStringLocalizer<Errors>> _mockLocalizer;
         private readonly Mock<UserManager<AppUser>> _mockUserManager;
         private readonly Mock<IAdminService> _mockAdminService;
         private readonly Mock<IOrderService> _mockOrderService;
@@ -26,7 +27,7 @@ namespace SeguesTests
         public HomeControllerTests()
         {
             _mockLogger = new Mock<ILogger<HomeController>>();
-            _mockLocalizer = new Mock<IStringLocalizer<AppErrors>>();
+            _mockLocalizer = new Mock<IStringLocalizer<Errors>>();
             _mockAdminService = new Mock<IAdminService>();
             _mockOrderService = new Mock<IOrderService>();
 

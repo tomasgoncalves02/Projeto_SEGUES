@@ -7,19 +7,20 @@ using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using System.Diagnostics;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
+using Projeto_SEGUES.Resources;
 
 namespace Projeto_SEGUES.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly IStringLocalizer<AppErrors> _localizer;
+        private readonly IStringLocalizer<Errors> _localizer;
         private readonly UserManager<AppUser> _userManager;
         private readonly IAdminService _adminService;
         private readonly IOrderService _orderService;
         public HomeController(
             ILogger<HomeController> logger, 
-            IStringLocalizer<AppErrors> localizer, 
+            IStringLocalizer<Errors> localizer, 
             UserManager<AppUser> userManager, 
             IAdminService adminService,
             IOrderService orderService)
@@ -71,16 +72,7 @@ namespace Projeto_SEGUES.Controllers
         public async Task<IActionResult> Schedule()
         {
             BarCanteenConfigViewModel barCanteenConfig = await _adminService.GetScheduleAsync();
-
-            ViewBag.OpeningTime = barCanteenConfig.BarOpeningTime;
-            ViewBag.ClosingTime = barCanteenConfig.BarClosingTime;
-
-            ViewBag.LunchOpenTime = barCanteenConfig.CanteenLunchOpeningTime;
-            ViewBag.LunchCloseTime = barCanteenConfig.CanteenLunchClosingTime;
-            ViewBag.DinnerOpenTime = barCanteenConfig.CanteenDinnerOpeningTime;
-            ViewBag.DinnerCloseTime = barCanteenConfig.CanteenDinnerClosingTime;
-
-            return View();
+            return View(barCanteenConfig);
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

@@ -11,6 +11,7 @@ using Projeto_SEGUES.Models.Admin;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.User;
+using Projeto_SEGUES.Resources;
 using Projeto_SEGUES.Services;
 
 namespace SeguesTests.Services
@@ -54,7 +55,7 @@ namespace SeguesTests.Services
                 mockRoleMgr.Object, 
                 new Mock<IEmailSender>().Object,
                 new Mock<ILogger<AdminService>>().Object,
-                new Mock<IStringLocalizer<AppErrors>>().Object);
+                new Mock<IStringLocalizer<Errors>>().Object);
             
             mockRoleMgr.Setup(m => m.FindByNameAsync("NonExistent")).ReturnsAsync((Role)null!);
 
@@ -88,7 +89,7 @@ namespace SeguesTests.Services
 
             var service = new AdminService(context, mockUserMgr.Object, mockRoleMgr.Object, mockEmailSender.Object,
                 new Mock<ILogger<AdminService>>().Object,
-                new Mock<IStringLocalizer<AppErrors>>().Object);
+                new Mock<IStringLocalizer<Errors>>().Object);
 
             mockRoleMgr.Setup(m => m.FindByNameAsync(It.IsAny<string>())).ReturnsAsync(new Role { Name = "Admin", DisplayName = "Administrador" });
             mockUserMgr.Setup(m => m.CreateAsync(It.IsAny<AppUser>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Success);
@@ -118,7 +119,7 @@ namespace SeguesTests.Services
         {
             var context = GetDatabaseContext();
             var mockUserMgr = GetMockUserManager(context);
-            var service = new AdminService(context, mockUserMgr.Object, GetMockRoleManager().Object, new Mock<IEmailSender>().Object, new Mock<ILogger<AdminService>>().Object, new Mock<IStringLocalizer<AppErrors>>().Object);
+            var service = new AdminService(context, mockUserMgr.Object, GetMockRoleManager().Object, new Mock<IEmailSender>().Object, new Mock<ILogger<AdminService>>().Object, new Mock<IStringLocalizer<Errors>>().Object);
 
             var cat = new UserCategory { Id = 1, Name = "Student" };
 
@@ -145,7 +146,7 @@ namespace SeguesTests.Services
         public async Task UpdateTicketPricesAsync_UpdatesPriceAndDate()
         {
             var context = GetDatabaseContext();
-            var service = new AdminService(context, GetMockUserManager(context).Object, GetMockRoleManager().Object, new Mock<IEmailSender>().Object, new Mock<ILogger<AdminService>>().Object, new Mock<IStringLocalizer<AppErrors>>().Object);
+            var service = new AdminService(context, GetMockUserManager(context).Object, GetMockRoleManager().Object, new Mock<IEmailSender>().Object, new Mock<ILogger<AdminService>>().Object, new Mock<IStringLocalizer<Errors>>().Object);
 
             var cat = new UserCategory { Id = 1, Name = "Estudante" };
             var price = new TicketPrice
@@ -179,7 +180,7 @@ namespace SeguesTests.Services
             context.AppConfig.Add(new AppConfig { BarOpeningTime = new TimeSpan(8, 0, 0), BarClosingTime = new TimeSpan(18, 0, 0) });
             await context.SaveChangesAsync();
 
-            var service = new AdminService(context, GetMockUserManager(context).Object, GetMockRoleManager().Object, new Mock<IEmailSender>().Object, new Mock<ILogger<AdminService>>().Object, new Mock<IStringLocalizer<AppErrors>>().Object);
+            var service = new AdminService(context, GetMockUserManager(context).Object, GetMockRoleManager().Object, new Mock<IEmailSender>().Object, new Mock<ILogger<AdminService>>().Object, new Mock<IStringLocalizer<Errors>>().Object);
 
             Assert.True(await service.IsBarOpenAsync(new TimeSpan(10, 0, 0)));
             Assert.False(await service.IsBarOpenAsync(new TimeSpan(20, 0, 0)));
@@ -195,7 +196,7 @@ namespace SeguesTests.Services
             context.AppConfig.Add(new AppConfig { CanteenLunchOpeningTime = new TimeSpan(11, 0, 0), CanteenLunchClosingTime = new TimeSpan(14, 0, 0) });
             await context.SaveChangesAsync();
 
-            var service = new AdminService(context, GetMockUserManager(context).Object, GetMockRoleManager().Object, new Mock<IEmailSender>().Object, new Mock<ILogger<AdminService>>().Object, new Mock<IStringLocalizer<AppErrors>>().Object);
+            var service = new AdminService(context, GetMockUserManager(context).Object, GetMockRoleManager().Object, new Mock<IEmailSender>().Object, new Mock<ILogger<AdminService>>().Object, new Mock<IStringLocalizer<Errors>>().Object);
 
             //await service.UpdateBarScheduleAsync("12:00", "15:00", "Almoço");
 

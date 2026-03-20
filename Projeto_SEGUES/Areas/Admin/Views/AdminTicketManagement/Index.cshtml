@@ -1,16 +1,10 @@
 ﻿@model IEnumerable<Projeto_SEGUES.Models.Ticket.Ticket>
 @using Projeto_SEGUES.Models.Ticket
-@using Projeto_SEGUES.Models.Enums
 
 @{
     ViewData["Title"] = "Gestão de Senhas - SEGUES";
     bool isAdmin = User.IsInRole("Admin");
-    var prices = ViewBag.Prices as List<TicketPrice>;
-    int currentValidityDays = ViewBag.CurrentValidityDays ?? 365;
-    TimeSpan LunchOpen = ViewBag.LunchOpenTime != null ? (TimeSpan)ViewBag.LunchOpenTime : new TimeSpan(12, 0, 0);
-    TimeSpan LunchClose = ViewBag.LunchCloseTime != null ? (TimeSpan)ViewBag.LunchCloseTime : new TimeSpan(14, 30, 0);
-    TimeSpan DinnerOpen = ViewBag.DinnerOpenTime != null ? (TimeSpan)ViewBag.DinnerOpenTime : new TimeSpan(19, 0, 0);
-    TimeSpan DinnerClose = ViewBag.DinnerCloseTime != null ? (TimeSpan)ViewBag.DinnerCloseTime : new TimeSpan(21, 30, 0);
+    List<TicketPrice> prices = ViewBag.Prices;
 }
 
 <div class="container mt-5">
@@ -46,14 +40,14 @@
                                 <div class="col-auto">
                                     <label class="form-label fw-semibold small mb-1">Início</label>
                                     <input type="time" name="openTime" class="form-control shadow-none"
-                                           value="@(servico == "Almoço" ? LunchOpen.ToString(@"hh\:mm") : DinnerOpen.ToString(@"hh\:mm"))"
+                                           value="@(servico == "Almoço" ? ViewBag.CanteenLunchOpeningTimeString : ViewBag.CanteenDinnerOpeningTimeString)"
                                            style="width: 140px;" />
                                 </div>
 
                                 <div class="col-auto">
                                     <label class="form-label fw-semibold small mb-1">Fecho</label>
                                     <input type="time" name="closeTime" class="form-control shadow-none"
-                                           value="@(servico == "Almoço" ? LunchClose.ToString(@"hh\:mm") : DinnerClose.ToString(@"hh\:mm"))"
+                                           value="@(servico == "Almoço" ? ViewBag.CanteenLunchClosingTimeString : ViewBag.CanteenDinnerClosingTimeString)"
                                            style="width: 140px;" />
                                 </div>
 
@@ -125,7 +119,7 @@
                                 <div class="col">
                                     <label class="form-label small fw-bold text-muted text-uppercase mb-1">Dias de Validade</label>
                                     <div class="input-group">
-                                        <input type="number" name="validityDays" class="form-control fw-bold" value="@currentValidityDays" min="1" />
+                                        <input type="number" name="validityDays" class="form-control fw-bold" value="@ViewBag.CurrentValidityDays" min="1" />
                                         <span class="input-group-text bg-white text-muted small fw-bold">Dias</span>
                                     </div>
                                 </div>

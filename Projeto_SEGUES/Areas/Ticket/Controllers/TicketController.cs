@@ -35,14 +35,8 @@ public class TicketController : Controller
         if (user == null) return Challenge();
 
         BarCanteenConfigViewModel barCanteenConfig = await _adminService.GetScheduleAsync();
-
         ViewBag.UserBalance = user.Balance;
-        ViewBag.LunchOpenTime = barCanteenConfig.CanteenLunchOpeningTime;
-        ViewBag.LunchCloseTime = barCanteenConfig.CanteenLunchClosingTime;
-        ViewBag.DinnerOpenTime = barCanteenConfig.CanteenDinnerOpeningTime;
-        ViewBag.DinnerCloseTime = barCanteenConfig.CanteenDinnerClosingTime;
-        ViewBag.CanteenLink = barCanteenConfig.CanteenMenuLink;
-        return View();
+        return View(barCanteenConfig);
     }
 
     public async Task<IActionResult> ActiveTickets()

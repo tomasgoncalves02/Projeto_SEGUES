@@ -24,7 +24,7 @@ public class AdminService : IAdminService
     private readonly RoleManager<Role> _roleManager;
     private readonly IEmailSender _emailSender;
     private readonly ILogger<AdminService> _logger;
-    private readonly IStringLocalizer<AppErrors> _localizer;
+    private readonly IStringLocalizer<Errors> _localizer;
     private const string _defaultLink = "https://www.ips.pt";
 
     public AdminService(
@@ -33,7 +33,7 @@ public class AdminService : IAdminService
         RoleManager<Role> roleManager,
         IEmailSender emailSender,
         ILogger<AdminService> logger,
-        IStringLocalizer<AppErrors> localizer)
+        IStringLocalizer<Errors> localizer)
     {
         _context = context;
         _userManager = userManager;
@@ -276,6 +276,7 @@ public class AdminService : IAdminService
             BarOpeningTimeString = config.BarOpeningTime.ToString(@"hh\:mm"),
             BarClosingTime = config.BarClosingTime,
             BarClosingTimeString = config.BarClosingTime.ToString(@"hh\:mm"),
+            BarMenuLink = config.BarLink ?? _defaultLink,
             CanteenLunchOpeningTime = config.CanteenLunchOpeningTime,
             CanteenLunchOpeningTimeString = config.CanteenLunchOpeningTime.ToString(@"hh\:mm"),
             CanteenLunchClosingTime = config.CanteenLunchClosingTime,
@@ -283,7 +284,8 @@ public class AdminService : IAdminService
             CanteenDinnerOpeningTime = config.CanteenDinnerOpeningTime,
             CanteenDinnerOpeningTimeString = config.CanteenDinnerOpeningTime.ToString(@"hh\:mm"),
             CanteenDinnerClosingTime = config.CanteenDinnerClosingTime,
-            CanteenDinnerClosingTimeString = config.CanteenDinnerClosingTime.ToString(@"hh\:mm")
+            CanteenDinnerClosingTimeString = config.CanteenDinnerClosingTime.ToString(@"hh\:mm"),
+            CanteenMenuLink = config.CanteenLink ?? _defaultLink
         };
     }
     

@@ -1,18 +1,7 @@
-﻿@{
+﻿@model Projeto_SEGUES.Areas.Admin.ViewModels.BarCanteenConfigViewModel
+
+@{
     ViewData["Title"] = "Horários de Funcionamento";
-
-    // --- BAR ---
-    // Vai buscar as strings formatadas que enviamos do HomeController
-    var barOpen = ViewBag.OpeningTime ?? "08:30";
-    var barClose = ViewBag.ClosingTime ?? "23:50";
-
-    // --- REFEITÓRIO ---
-    // Converte os TimeSpan para o formato HH:mm. Se nulos, usa os valores padrão.
-    string lunchOpen = ViewBag.LunchOpenTime is TimeSpan lo ? lo.ToString(@"hh\:mm") : "12:00";
-    string lunchClose = ViewBag.LunchCloseTime is TimeSpan lc ? lc.ToString(@"hh\:mm") : "14:30";
-
-    string dinnerOpen = ViewBag.DinnerOpenTime is TimeSpan doTime ? doTime.ToString(@"hh\:mm") : "19:00";
-    string dinnerClose = ViewBag.DinnerCloseTime is TimeSpan dc ? dc.ToString(@"hh\:mm") : "21:30";
 }
 
 <div class="container d-flex flex-column justify-content-center py-5" style="min-height: 80vh;">
@@ -40,12 +29,12 @@
                 <div class="card-body p-4 p-md-5">
                     <div class="bg-color-ips-light d-flex justify-content-between align-items-center p-3 mb-3" style="border-radius: 5px;">
                         <span class="text-color-ips fw-bold fs-4">Abertura</span>
-                        <span class="text-color-ips fw-bold fs-2">@barOpen</span>
+                        <span class="text-color-ips fw-bold fs-2">@Model.BarOpeningTimeString</span>
                     </div>
 
                     <div class="bg-color-ips-light d-flex justify-content-between align-items-center p-3" style="border-radius: 5px;">
                         <span class="text-color-ips fw-bold fs-4">Fecho</span>
-                        <span class="text-color-ips fw-bold fs-2">@barClose</span>
+                        <span class="text-color-ips fw-bold fs-2">@Model.BarClosingTimeString</span>
                     </div>
                 </div>
             </div>
@@ -68,7 +57,7 @@
                         </h5>
                         <div class="bg-color-ips-light d-flex justify-content-between align-items-center p-3" style="border-radius: 5px;">
                             <span class="text-color-ips fw-bold fs-5">Horário</span>
-                            <span class="text-color-ips fw-bold fs-3">@lunchOpen - @lunchClose</span>
+                            <span class="text-color-ips fw-bold fs-3">@Model.CanteenLunchOpeningTimeString - @Model.CanteenLunchClosingTimeString</span>
                         </div>
                     </div>
 
@@ -79,7 +68,7 @@
                         </h5>
                         <div class="bg-color-ips-light d-flex justify-content-between align-items-center p-3" style="border-radius: 5px;">
                             <span class="text-color-ips fw-bold fs-5">Horário</span>
-                            <span class="text-color-ips fw-bold fs-3">@dinnerOpen - @dinnerClose</span>
+                            <span class="text-color-ips fw-bold fs-3">@Model.CanteenDinnerOpeningTimeString - @Model.CanteenDinnerClosingTimeString</span>
                         </div>
                     </div>
                 </div>

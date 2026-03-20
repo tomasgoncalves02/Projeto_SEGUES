@@ -16,6 +16,7 @@ using System.Security.Claims;
 using System.Security.Principal;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
+using Projeto_SEGUES.Resources;
 
 namespace SeguesTests.Admin
 {
@@ -26,7 +27,7 @@ namespace SeguesTests.Admin
         private readonly AdminUserManagementController _controller;
         private readonly AppDbContext _context;
         private readonly Mock<ILogger<AdminUserManagementController>> _mockLogger;
-        private readonly Mock<IStringLocalizer<AppErrors>> _mockLocalizer;
+        private readonly Mock<IStringLocalizer<Errors>> _mockLocalizer;
 
         public AdminUserManagementControllerTests()
         {

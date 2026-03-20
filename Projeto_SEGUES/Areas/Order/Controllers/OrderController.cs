@@ -56,11 +56,10 @@ public class OrderController : Controller
             ViewBag.CartTotal = _orderService.GetOrderTotal(cart);
         }
         BarCanteenConfigViewModel barCanteenConfig = await _adminService.GetScheduleAsync();
-        ViewBag.OpeningTime = barCanteenConfig.BarOpeningTimeString;
-        ViewBag.ClosingTime = barCanteenConfig.BarClosingTimeString;
+        ViewBag.BarOpeningTimeString = barCanteenConfig.BarOpeningTimeString;
+        ViewBag.BarClosingTimeString = barCanteenConfig.BarClosingTimeString;
 
-        ViewBag.BarLink = barCanteenConfig.BarMenuLink;
-
+        ViewBag.BarMenuLink = barCanteenConfig.BarMenuLink;
         return View();
     }
 }

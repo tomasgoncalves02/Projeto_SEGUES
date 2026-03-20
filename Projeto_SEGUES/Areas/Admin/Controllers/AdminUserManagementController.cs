@@ -10,6 +10,7 @@ using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Resources;
 using Projeto_SEGUES.Services;
+using AppErrors = Projeto_SEGUES.Models.Enums.AppErrors;
 
 namespace Projeto_SEGUES.Areas.Admin;
 
@@ -28,7 +29,7 @@ public class AdminUserManagementController : Controller
     private readonly IAdminService _adminService;
     private readonly AppDbContext _context;
     private readonly ILogger<AdminUserManagementController> _logger;
-    private readonly IStringLocalizer<AppErrors> _localizer;
+    private readonly IStringLocalizer<Errors> _localizer;
 
     /// <summary>
     /// Initializes a new instance of the controller with Identity, administration, and data context services.
@@ -36,7 +37,7 @@ public class AdminUserManagementController : Controller
     /// <param name="userManager">Native ASP.NET Identity service for user management.</param>
     /// <param name="adminService">Custom service containing administrative business logic.</param>
     /// <param name="context">Database context for direct queries (e.g., Logs).</param>
-    public AdminUserManagementController(UserManager<AppUser> userManager, IAdminService adminService, AppDbContext context, ILogger<AdminUserManagementController> logger, IStringLocalizer<AppErrors> localizer)
+    public AdminUserManagementController(UserManager<AppUser> userManager, IAdminService adminService, AppDbContext context, ILogger<AdminUserManagementController> logger, IStringLocalizer<Errors> localizer)
     {
         _userManager = userManager;
         _adminService = adminService;
@@ -196,7 +197,6 @@ public class AdminUserManagementController : Controller
                 }
                 catch (Exception ex)
                 {
-                    // TODO: not save data if fail to send email. use commit transaction
                     _logger.LogError(ex,
                         Errors.ResourceManager.GetString(nameof(AppErrors.EmailSenderError), System.Globalization.CultureInfo.InvariantCulture),
                         "Error", TableName.All, AppOperation.Other);

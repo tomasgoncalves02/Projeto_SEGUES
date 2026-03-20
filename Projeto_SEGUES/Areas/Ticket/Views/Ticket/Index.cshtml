@@ -1,10 +1,7 @@
-﻿@{
+﻿@model Projeto_SEGUES.Areas.Admin.ViewModels.BarCanteenConfigViewModel
+
+@{
     ViewData["Title"] = "Refeitório - SEGUES";
-    var balance = ViewBag.UserBalance ?? 0m;
-    string lunchOpen = ViewBag.LunchOpenTime is TimeSpan lo ? lo.ToString(@"hh\:mm") : "12:00";
-    string lunchClose = ViewBag.LunchCloseTime is TimeSpan lc ? lc.ToString(@"hh\:mm") : "14:30";
-    string dinnerOpen = ViewBag.DinnerOpenTime is TimeSpan dot ? dot.ToString(@"hh\:mm") : "19:00";
-    string dinnerClose = ViewBag.DinnerCloseTime is TimeSpan dct ? dct.ToString(@"hh\:mm") : "21:30";
 }
 
 <div class="container mt-5">
@@ -26,11 +23,11 @@
                     <div class="d-flex gap-4">
                         <div class="d-flex align-items-center">
                             <span class="badge bg-color-ips text-white me-2">Almoço</span>
-                            <span class="fw-bold text-color-ips">@lunchOpen - @lunchClose</span>
+                            <span class="fw-bold text-color-ips">@Model.CanteenLunchOpeningTimeString - @Model.CanteenLunchClosingTimeString</span>
                         </div>
                         <div class="d-flex align-items-center">
                             <span class="badge bg-color-ips text-white me-2">Jantar</span>
-                            <span class="fw-bold text-color-ips">@dinnerOpen - @dinnerClose</span>
+                            <span class="fw-bold text-color-ips">@Model.CanteenDinnerOpeningTimeString - @Model.CanteenDinnerClosingTimeString</span>
                         </div>
                     </div>
                 </div>
@@ -45,7 +42,7 @@
             <div class="card h-100 shadow-sm card-ips bg-color-ips text-white hover-translate d-flex flex-column">
                 <div class="card-body text-center d-flex flex-column p-4">
                     <small class="d-block opacity-75 fw-bold mb-2 fs-4">Saldo Disponível</small>
-                    <h2 class="display-6 fw-bold my-auto">@balance.ToString("C")</h2>
+                    <h2 class="display-6 fw-bold my-auto">@ViewBag.UserBalance.ToString("C")</h2>
                     <div class="mt-auto">
                         <a asp-area="Payment" asp-controller="Payment" asp-action="Deposit" class="btn btn-ips fw-bold w-100 py-2" style="border: 1px solid var(--ips-border) !important">Carregar Saldo</a>
                     </div>
@@ -100,7 +97,7 @@
                     <h5 class="fw-bold">Ementa</h5>
                     <p class="text-muted small mb-4">Consulta o que há para o almoço esta semana.</p>
                     <div class="mt-auto">
-                        <a href="@ViewBag.CanteenLink" target="_blank" class="btn w-100 py-2 fw-bold btn-ips">
+                        <a href="@Model.CanteenMenuLink" target="_blank" class="btn w-100 py-2 fw-bold btn-ips">
                             Ver Ementa
                         </a>
                     </div>

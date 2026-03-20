@@ -17,7 +17,7 @@
     <None Remove="NovaPasta1\**" />
     <None Remove="NovaPasta\**" />
     <EmbeddedResource Update="Resources\Errors.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
+      <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Errors.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <Compile Update="Resources\Errors.Designer.cs">
@@ -26,7 +26,7 @@
       <DependentUpon>Errors.resx</DependentUpon>
     </Compile>
     <EmbeddedResource Update="Resources\Errors.pt.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
+      <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Errors.pt.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <Compile Update="Resources\Errors.pt.Designer.cs">

@@ -10,12 +10,12 @@ public class GlobalExceptionMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<GlobalExceptionMiddleware> _logger;
-    private readonly IStringLocalizer<AppErrors> _localizer;
+    private readonly IStringLocalizer<Errors> _localizer;
 
     public GlobalExceptionMiddleware(
         RequestDelegate next, 
         ILogger<GlobalExceptionMiddleware> logger, 
-        IStringLocalizer<AppErrors> localizer)
+        IStringLocalizer<Errors> localizer)
     {
         _next = next;
         _logger = logger;
