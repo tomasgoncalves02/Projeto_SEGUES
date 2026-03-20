@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Projeto_SEGUES.Areas.User.ViewModels;
 
-public class EditUserViewModel
+public class EditUserViewModelAdmin
 {
     public required string Id { get; init; }
 

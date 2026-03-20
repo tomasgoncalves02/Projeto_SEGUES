@@ -111,7 +111,7 @@ public class AdminUserManagementController : Controller
         ViewBag.Roles = await _adminService.GetAllRolesForDropdownAsync();
         ViewBag.Categories = await _adminService.GetAllCategoriesForDropdownAsync();
 
-        return View(new EditUserViewModel
+        return View(new EditUserViewModelAdmin
         {
             Id = user.Id,
             FirstName = user.FirstName,
@@ -135,7 +135,7 @@ public class AdminUserManagementController : Controller
     /// </remarks>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(EditUserViewModel model)
+    public async Task<IActionResult> Edit(EditUserViewModelAdmin model)
     {
         if (!ModelState.IsValid)
         {

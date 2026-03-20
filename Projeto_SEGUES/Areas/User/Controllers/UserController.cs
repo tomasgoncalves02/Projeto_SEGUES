@@ -30,7 +30,7 @@ public class UserController : Controller
         var roles = await _userManager.GetRolesAsync(user);
         var userRole = roles.FirstOrDefault() ?? "Client";
 
-        var editUserViewModel = new EditUserViewModel
+        var editUserViewModel = new EditUserViewModelAdmin
         {
             Id = user.Id,
             FirstName = user.FirstName,
@@ -50,51 +50,30 @@ public class UserController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> UpdateProfile(EditUserViewModel model)
+    public async Task<IActionResult> UpdateProfile(UpdateProfileViewModel model)
     {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
-        {
-            TempData.SetSwalError("Utilizador não encontrado.");
-            return NotFound();
-        }
-
         if (!ModelState.IsValid)
         {
-            var errors = string.Join("<br>", ModelState.Values
-                .SelectMany(v => v.Errors)
-                .Select(e => e.ErrorMessage));
-
-            return BadRequest(new { success = false, message = errors });
+            TempData.SetSwalError("Dados inválidos.");
+            return RedirectToAction(nameof(Index));
         }
 
-        // Update AppUser general fields
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return NotFound();
+
         user.FirstName = model.FirstName;
         user.LastName = model.LastName;
-        user.BirthDate = model.BirthDate;
         user.Gender = model.Gender;
-        user.FiscalNumber = model.FiscalNumber;
-        user.Address = model.Address;
-        user.City = model.City;
-
-        // Update specific fields based on user type
-        if (user is Student student)
-        {
-            student.StudentNumber = model.StudentNumber;
-        }
-        else if (user is Employee employee)
-        {
-            employee.RoleDescription = model.RoleDescription;
-        }
+        user.BirthDate = model.BirthDate;
 
         var result = await _userManager.UpdateAsync(user);
-        if (!result.Succeeded)
+        if (result.Succeeded)
         {
-            var identityErrors = string.Join("<br>", result.Errors.Select(e => e.Description));
-            return BadRequest(new { success = false, message = $"Erro ao atualizar perfil: {identityErrors}" });
+            TempData.SetSwalSuccess("Perfil atualizado com sucesso!");
+            return RedirectToAction(nameof(Index));
         }
 
-        TempData.SetSwalSuccess("Perfil atualizado com sucesso!");
-        return Ok(new { success = true, message = "Perfil atualizado com sucesso!" });
+        TempData.SetSwalError("Erro ao gravar.");
+        return RedirectToAction(nameof(Index));
     }
 }

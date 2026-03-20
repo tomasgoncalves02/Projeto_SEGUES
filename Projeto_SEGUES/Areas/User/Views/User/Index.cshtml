@@ -1,5 +1,5 @@
 ﻿@using Projeto_SEGUES.Models.Enums
-@model Projeto_SEGUES.Areas.User.ViewModels.EditUserViewModel
+@model Projeto_SEGUES.Areas.User.ViewModels.EditUserViewModelAdmin
 
 @{
     ViewData["Title"] = "Perfil - SEGUES";
@@ -30,8 +30,8 @@
                 <span class="badge @Model.Role.ToBadgeClass() fw-semibold fs-5 px-3">@Model.Role.ToUpper()</span>
             </div>
             <hr class="mb-4" style="border-color: #ddd; border-width: 2px;">
-
-            <form id="profileForm" method="post">
+          
+            <form id="profileForm" method="post" asp-area="User" asp-controller="User" asp-action="UpdateProfile">
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
                 <input type="hidden" asp-for="Id"/>
                 @Html.AntiForgeryToken()
@@ -58,7 +58,9 @@
                     </div>
                     <div class="col-md-6">
                         <label asp-for="BirthDate" class="form-label fw-bold"></label>
-                        <input asp-for="BirthDate" type="date" class="form-control" />
+                        <input asp-for="BirthDate" type="date" class="form-control" 
+                               min="@DateTime.Now.AddYears(-120).ToString("yyyy-MM-dd")"
+                               max="@DateTime.Now.ToString("yyyy-MM-dd")" />
                         <span asp-validation-for="BirthDate" class="text-danger small"></span>
                     </div>                                                                       
                     <div class="col-12 mt-4">

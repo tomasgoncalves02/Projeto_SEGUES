@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -84,7 +84,7 @@ namespace SeguesTests.Admin
             var result = await _controller.Edit("1");
 
             var viewResult = Assert.IsType<ViewResult>(result);
-            var model = Assert.IsType<EditUserViewModel>(viewResult.Model);
+            var model = Assert.IsType<EditUserViewModelAdmin>(viewResult.Model);
             Assert.Equal(user.Id, model.Id);
         }
 
@@ -93,7 +93,7 @@ namespace SeguesTests.Admin
         [Fact]
         public async Task Edit_Post_ValidModel_RedirectsToIndex()
         {
-            var model = new EditUserViewModel
+            var model = new EditUserViewModelAdmin
             {
                 Id = "1",
                 FirstName = "New",
