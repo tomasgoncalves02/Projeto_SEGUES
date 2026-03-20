@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Models.Admin;
 using Projeto_SEGUES.Models.Enums;
@@ -92,14 +92,13 @@ namespace Projeto_SEGUES.Data
                 });
             }
             await context.SaveChangesAsync();
-
-            // Create Admin
-            var adminEmail = "admin@admin.com";
-            var adminUser = await userManager.FindByEmailAsync(adminEmail);
+  
+            var admins = await userManager.GetUsersInRoleAsync("Admin");
             var adminCategory = await context.UserCategory.FirstOrDefaultAsync(uc => uc.Name == "Externo");
 
-            if (adminUser == null)
+            if (!admins.Any())
             {
+                var adminEmail = "admin@admin.com";
                 var newAdmin = new AppUser
                 {
                     UserName = adminEmail,
@@ -150,13 +149,14 @@ namespace Projeto_SEGUES.Data
             var context = serviceProvider.GetRequiredService<AppDbContext>();
             var userManager = serviceProvider.GetRequiredService<UserManager<AppUser>>();
 
-            // Create employee
-            var employeeEmail = "employee@employee.com";
-            var employeeUser = await userManager.FindByEmailAsync(employeeEmail);
+            var employees = await userManager.GetUsersInRoleAsync("Employee");
+            AppUser? employeeUser = employees.FirstOrDefault();
+
             if (employeeUser == null)
             {
+                var employeeEmail = "employee@employee.com";
                 var employeeCategory = await context.UserCategory.FirstOrDefaultAsync(uc => uc.Name == "Externo");
-                var newEmployee = new AppUser
+                employeeUser = new AppUser
                 {
                     UserName = employeeEmail,
                     Email = employeeEmail,
@@ -170,11 +170,11 @@ namespace Projeto_SEGUES.Data
                     Status = UserStatus.Active,
                     UserCategory = employeeCategory!
                 };
-                var createEmployee = await userManager.CreateAsync(newEmployee, "AdminSEGUES123!");
+                var createEmployee = await userManager.CreateAsync(employeeUser, "AdminSEGUES123!");
 
                 if (createEmployee.Succeeded)
                 {
-                    await userManager.AddToRoleAsync(newEmployee, "Employee");
+                    await userManager.AddToRoleAsync(employeeUser, "Employee");
                 }
             }
             await context.SaveChangesAsync();
@@ -234,7 +234,7 @@ namespace Projeto_SEGUES.Data
 
             // Create tickets
             var adminUser = await userManager.FindByEmailAsync("admin@admin.com");
-            employeeUser = await userManager.FindByEmailAsync(employeeEmail);
+            //employeeUser = await userManager.FindByEmailAsync(employeeEmail);
             var ticketPurchase = new TicketPurchase
             {
                 Quantity = 40,
