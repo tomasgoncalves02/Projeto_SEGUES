@@ -1,4 +1,4 @@
-using Projeto_SEGUES.Attributes;
+﻿using Projeto_SEGUES.Attributes;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Validators;
@@ -21,6 +21,11 @@ public class EditUserViewModel
     [RegularExpression(@"^[a-zA-Z\u00C0-\u00FF\s]*$", ErrorMessage = "O sobrenome não pode conter números nem símbolos.")]
     [Display(Name = "Sobrenome")]
     public required string LastName { get; set; }
+
+    [Required(ErrorMessage = "O email é obrigatório.")]
+    [EmailAddress(ErrorMessage = "Email inválido.")]
+    [Display(Name = "Endereço de Email")]
+    public string Email { get; set; }
 
     [Required(ErrorMessage = "O género é obrigatório.")]
     [Display(Name = "Género")]

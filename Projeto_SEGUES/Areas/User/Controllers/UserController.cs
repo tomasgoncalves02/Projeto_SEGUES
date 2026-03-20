@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Projeto_SEGUES.Areas.User.ViewModels;
@@ -37,12 +37,12 @@ public class UserController : Controller
             LastName = user.LastName,
             BirthDate = user.BirthDate,
             Gender = user.Gender,
-            FiscalNumber = user.FiscalNumber,
+            /*FiscalNumber = user.FiscalNumber,
             Address = user.Address,
-            City = user.City,
+            City = user.City,*/
             Role = userRole,
-            Category = user.UserCategory.Name,
-            StudentNumber = user is Student student ? student.StudentNumber : null,
+            Category = user.UserCategory?.Name ?? "Sem Categoria",
+            //StudentNumber = user is Student student ? student.StudentNumber : null,
             RoleDescription = user is Employee employee ? employee.RoleDescription : null
         };
         return View(editUserViewModel);

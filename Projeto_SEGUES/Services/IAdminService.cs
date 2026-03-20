@@ -1,4 +1,5 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Models.Ticket;
@@ -38,6 +39,7 @@ public interface IAdminService
     Task<string> GetBarMenuLinkAsync();
     Task<string> GetCanteenMenuLinkAsync();
     Task UpdateMenuLinksAsync(string canteenLink, string barLink);
+    Task RequestEmailChangeAsync(AppUser user, string newEmail, IUrlHelper urlHelper, string scheme);
 
 
 

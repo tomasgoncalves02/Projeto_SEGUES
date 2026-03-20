@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using Microsoft.AspNetCore.Identity;
@@ -53,35 +53,41 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
-                return NotFound("Não foi possível alterar o email. Tente novamente mais tarde ou contacte o suporte.");
+                return NotFound("Utilizador não encontrado.");
             }
 
-            // Descodifica o token de segurança recebido no URL
-            code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
-            var currentEmail = (await _userManager.GetEmailAsync(user))!;
+            string decodedCode;
+            try
+            {
+                decodedCode = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
+            }
+            catch
+            {
+                TempData.SetSwalError("O link de confirmação parece estar corrompido.");
+                return RedirectToAction("Index", "User", new { area = "User" });
+            }
 
-            // Tenta efetuar a alteração do email no Identity
-            var result = await _userManager.ChangeEmailAsync(user, email, code);
+            var result = await _userManager.ChangeEmailAsync(user, email, decodedCode);
+
             if (!result.Succeeded)
             {
-                TempData.SetSwalError("Erro ao alterar email. Tente novamente mais tarde ou contacte o suporte.");
+                TempData.SetSwalError("O link de confirmação expirou ou já foi utilizado.");
                 return RedirectToAction("Index", "User", new { area = "User" });
             }
 
-            // Atualiza o UserName para manter a consistência (Username = Email)
             var setUserNameResult = await _userManager.SetUserNameAsync(user, email);
+
             if (!setUserNameResult.Succeeded)
             {
-                // Rollback: se falhar a atualização do Username, reverte o email para o anterior
-                await _userManager.ChangeEmailAsync(user, currentEmail, code);
-
-                TempData.SetSwalError("Erro ao alterar email. Tente novamente mais tarde ou contacte o suporte.");
-                return RedirectToAction("Index", "User", new { area = "User" });
+                TempData.SetSwalWarning("O email foi alterado, mas houve um erro ao sincronizar o nome de utilizador. Contacte o suporte.");
+            }
+            else
+            {
+                TempData.SetSwalSuccess("Email e Login atualizados com sucesso.");
             }
 
-            // Atualiza o cookie de autenticação para refletir as novas credenciais
             await _signInManager.RefreshSignInAsync(user);
-            TempData.SetSwalSuccess("Email alterado com sucesso.");
+
             return RedirectToAction("Index", "User", new { area = "User" });
         }
     }

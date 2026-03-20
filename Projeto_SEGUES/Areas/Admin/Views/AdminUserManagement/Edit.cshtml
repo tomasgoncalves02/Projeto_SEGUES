@@ -32,6 +32,15 @@
                                 <span asp-validation-for="LastName" class="text-danger small"></span>
                             </div>
                         </div>
+                        @* Email Field *@
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label fw-bold small"></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                <input asp-for="Email" class="form-control" placeholder="exemplo@ips.pt" />
+                            </div>
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
                         @* Gender and BirthDate *@
                         <div class="row mb-4">
                             <div class="col-md-6">

@@ -116,6 +116,7 @@ public class AdminUserManagementController : Controller
             Id = user.Id,
             FirstName = user.FirstName,
             LastName = user.LastName,
+            Email = user.Email,
             Gender = user.Gender,
             BirthDate = user.BirthDate,
             Balance = user.Balance,
@@ -146,6 +147,20 @@ public class AdminUserManagementController : Controller
         var user = await _userManager.FindByIdAsync(model.Id);
         if (user == null) return NotFound();
 
+        string? pendingEmail = null;
+        if (model.Email != user.Email)
+        {
+            var emailExists = await _userManager.FindByEmailAsync(model.Email);
+            if (emailExists != null)
+            {
+                ModelState.AddModelError("Email", "Este email já está em uso.");
+                ViewBag.Roles = await _adminService.GetAllRolesForDropdownAsync();
+                ViewBag.Categories = await _adminService.GetAllCategoriesForDropdownAsync();
+                return View(model);
+            }
+            pendingEmail = model.Email;
+        }
+
         user.FirstName = model.FirstName;
         user.LastName = model.LastName;
         user.Balance = model.Balance;
@@ -161,12 +176,37 @@ public class AdminUserManagementController : Controller
             await _userManager.RemoveFromRolesAsync(user, oldRoles);
             await _userManager.AddToRoleAsync(user, model.Role);
 
-            TempData.SetSwalSuccess("Utilizador atualizado.");
 
             await _userManager.UpdateSecurityStampAsync(user);
+
+            bool emailSentSuccessfully = false;
+
+            if (!string.IsNullOrEmpty(pendingEmail))
+            {
+                try
+                {
+                    await _adminService.RequestEmailChangeAsync(user, pendingEmail, Url, Request.Scheme);
+                    emailSentSuccessfully = true;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Erro SMTP: {ex.Message}");
+                    TempData.SetSwalWarning("Dados gravados, mas não foi possível enviar o email de confirmação. Verifique o servidor SMTP.");
+                    return RedirectToAction(nameof(Index));
+                }
+            }
+
+            if (emailSentSuccessfully)
+            {
+                TempData.SetSwalInfo("Utilizador atualizado! Foi enviado um link de confirmação para o novo email.");
+            }
+            else
+            {
+                TempData.SetSwalSuccess("Utilizador atualizado com sucesso.");
+            }
+
             return RedirectToAction(nameof(Index));
         }
-
         foreach (var error in result.Errors) ModelState.AddModelError("", error.Description);
         ViewBag.Roles = await _adminService.GetNonClientRolesForDropdownAsync();
         ViewBag.Categories = await _adminService.GetAllCategoriesForDropdownAsync();

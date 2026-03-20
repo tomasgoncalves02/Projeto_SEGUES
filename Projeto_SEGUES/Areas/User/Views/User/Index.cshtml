@@ -60,49 +60,7 @@
                         <label asp-for="BirthDate" class="form-label fw-bold"></label>
                         <input asp-for="BirthDate" type="date" class="form-control" />
                         <span asp-validation-for="BirthDate" class="text-danger small"></span>
-                    </div>
-                    <div class="col-md-6">
-                        <label asp-for="FiscalNumber" class="form-label fw-bold small"></label>
-                        <input asp-for="FiscalNumber" class="form-control" />
-                        <span asp-validation-for="FiscalNumber" class="text-danger small"></span>
-                    </div>
-                    
-                    <h4 class="fw-bold text-dark mt-4 mb-2">Localização</h4>
-                    <div class="col-md-8">
-                        <label asp-for="Address" class="form-label fw-bold small"></label>
-                        <input asp-for="Address" class="form-control" />
-                        <span asp-validation-for="Address" class="text-danger small"></span>
-                    </div>
-                    <div class="col-md-4">
-                        <label asp-for="PostalCode" class="form-label fw-bold small"></label>
-                        <input asp-for="PostalCode" class="form-control" />
-                        <span asp-validation-for="PostalCode" class="text-danger small"></span>
-                    </div>
-                    <div class="col-md-4">
-                        <label asp-for="City" class="form-label fw-bold small"></label>
-                        <input asp-for="City" class="form-control" />
-                        <span asp-validation-for="City" class="text-danger small"></span>
-                    </div>
-                    
-                    @if (Model.Category == "Student")
-                    {
-                        <h4 class="fw-bold text-dark mt-4 mb-2">Dados Académicos</h4>
-                        <div class="col-md-6">
-                            <label asp-for="StudentNumber" class="form-label fw-bold small"></label>
-                            <input asp-for="StudentNumber" class="form-control" />
-                            <span asp-validation-for="StudentNumber" class="text-danger small"></span>
-                        </div>
-                    }
-                    else if (Model.Category == "Employee")
-                    {
-                        <h4 class="fw-bold text-dark mt-4 mb-2">Dados Profissionais</h4>
-                        <div class="col-md-6">
-                            <label asp-for="RoleDescription" class="form-label fw-bold small"></label>
-                            <input asp-for="RoleDescription" class="form-control" />
-                            <span asp-validation-for="RoleDescription" class="text-danger small"></span>
-                        </div>
-                    }
-                    
+                    </div>                                                                       
                     <div class="col-12 mt-4">
                         <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center">
                             <div class="d-flex gap-2">

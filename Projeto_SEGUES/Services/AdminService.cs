@@ -1,6 +1,8 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Data;
@@ -9,6 +11,7 @@ using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.User;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace Projeto_SEGUES.Services;
 
@@ -339,6 +342,36 @@ public class AdminService : IAdminService
         }
 
         return timeToCheck >= config.OpenBarTime || timeToCheck <= config.CloseBarTime;
+    }
+
+    public async Task RequestEmailChangeAsync(AppUser user, string newEmail, IUrlHelper urlHelper, string scheme)
+    {
+        // 1. Gerar e codificar o Token
+        var code = await _userManager.GenerateChangeEmailTokenAsync(user, newEmail);
+        var codeEncoded = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
+        // 2. Gerar o Link de Confirmação
+        var callbackUrl = urlHelper.Page(
+            "/Account/ConfirmEmailChange",
+            pageHandler: null,
+            values: new { area = "Identity", userId = user.Id, email = newEmail, code = codeEncoded },
+            protocol: scheme)!;
+
+        // 3. Preparar o HTML usando o teu template
+        string title = "Alteração de Email - SEGUES";
+        string content = $"""
+        <p>Foi solicitada uma alteração do endereço de email da sua conta para: <strong>{newEmail}</strong>.</p>
+        <p>Para confirmar esta alteração, clique no botão abaixo:</p>
+        <div style='text-align: center; margin: 30px 0;'>
+            <a href='{callbackUrl}' style='background-color: #009697; color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;'>Confirmar Novo Email</a>
+        </div>
+        """;
+
+        var emailSenderService = _emailSender as EmailSender;
+        string finalBody = emailSenderService?.GetEmailBody(title, user.FirstName, content) ?? content;
+
+        // 4. Enviar
+        await _emailSender.SendEmailAsync(newEmail, "SEGUES - Confirmação de Email", finalBody);
     }
 
 
