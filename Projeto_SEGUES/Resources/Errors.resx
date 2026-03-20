@@ -96,37 +96,145 @@
     <value>{LogType} Authentication failed for user during {Operation}.</value>
   </data>
 <data name="UserNotFound" xml:space="preserve">
-    <value>{LogType} User not found during {Operation}.</value>
-  </data>
+    <value>{LogType} User not found in {Table} during {Operation}.</value>
+</data>
 <data name="InvalidToken" xml:space="preserve">
-    <value>{LogType} Invalid or expired token during {Operation}.</value>
-  </data>
+    <value>{LogType} Invalid or expired token in {Table} during {Operation}.</value>
+</data>
 <data name="UnauthorizedAccess" xml:space="preserve">
-    <value>{LogType} Unauthorized access to {Table} during {Operation}.</value>
-  </data>
+    <value>{LogType} Unauthorized access attempt to {Table} during {Operation}.</value>
+</data>
 <data name="AccountLocked" xml:space="preserve">
     <value>{LogType} Account locked for user during {Operation}.</value>
   </data>
 <data name="UserAlreadyRegistered" xml:space="preserve">
-    <value>{LogType} Registration failed: User already exists during {Operation}.</value>
-  </data>
+    <value>{LogType} Registration failed: User already exists in {Table} during {Operation}.</value>
+</data>
 
 <!-- Business Logic Errors -->
 <data name="InvalidOperation" xml:space="preserve">
     <value>{LogType} Invalid operation on {Table} during {Operation}.</value>
   </data>
 <data name="ValidationError" xml:space="preserve">
-    <value>{LogType} Validation failed for {Table} during {Operation}.</value>
-  </data>
+    <value>{LogType} Validation failed in {Table} during {Operation}.</value>
+</data>
 <data name="InsufficientFunds" xml:space="preserve">
     <value>{LogType} Insufficient funds for transaction in {Table} during {Operation}.</value>
   </data>
 <data name="EmailSenderError" xml:space="preserve">
-    <value>{LogType} Failed to send email during {Operation}.</value>
-  </data>
+    <value>{LogType} Failed to send email in {Table} during {Operation}.</value>
+</data>
 
 <!-- Generic -->
 <data name="UnexpectedError" xml:space="preserve">
     <value>{LogType} An unexpected error occurred in {Table} during {Operation}.</value>
   </data>
+<data name="InvalidQuantity" xml:space="preserve">
+    <value>{LogType} Invalid quantity in {Table} during {Operation}.</value>
+</data>
+<data name="PricingNotAvailable" xml:space="preserve">
+    <value>{LogType} Pricing not available in {Table} during {Operation}.</value>
+</data>
+<data name="TicketNotFound" xml:space="preserve">
+    <value>{LogType} Ticket not found in {Table} during {Operation}.</value>
+</data>
+<data name="TicketAlreadyUsed" xml:space="preserve">
+    <value>{LogType} Ticket already used in {0} in {Table} during {Operation}.</value>
+</data>
+<data name="TicketExpired" xml:space="preserve">
+    <value>{LogType} Ticket expired in {Table} during {Operation}.</value>
+</data>
+<data name="TicketNotAvailable" xml:space="preserve">
+    <value>{LogType} Ticket not available (cancelled or pending) in {Table} during {Operation}.</value>
+</data>
+<data name="SenderNotFound" xml:space="preserve">
+    <value>{LogType} Sender not found in {Table} during {Operation}.</value>
+</data>
+<data name="RecipientNotFound" xml:space="preserve">
+    <value>{LogType} Recipient not found with the given email in {Table} during {Operation}.</value>
+</data>
+<data name="TransferToSelf" xml:space="preserve">
+    <value>{LogType} Cannot transfer tickets to self in {Table} during {Operation}.</value>
+</data>
+<data name="CategoryMismatch" xml:space="preserve">
+    <value>{LogType} Transfer recused. Can only send tickets to users of category {0} in {Table} during {Operation}.</value>
+</data>
+<data name="TicketsNotOwned" xml:space="preserve">
+    <value>{LogType} Tickets not owned in {Table} during {Operation}.</value>
+</data>
+<data name="ProductCategoryNotFound" xml:space="preserve">
+    <value>{LogType} Product category not found in {Table} during {Operation}.</value>
+</data>
+<data name="ProductAlreadyExists" xml:space="preserve">
+    <value>{LogType} Product with this name already exists in {Table} during {Operation}.</value>
+</data>
+<data name="ProductCreateError" xml:space="preserve">
+    <value>{LogType} Error during product creation in {Table} during {Operation}.</value>
+</data>
+<data name="ProductNotFound" xml:space="preserve">
+    <value>{LogType} Product not found in {Table} during {Operation}.</value>
+</data>
+<data name="ProductEditError" xml:space="preserve">
+    <value>{LogType} Error during product update in {Table} during {Operation}.</value>
+</data>
+<data name="ProductDeleteError" xml:space="preserve">
+    <value>{LogType} Error during product inactivation in {Table} during {Operation}.</value>
+</data>
+<data name="CartEmpty" xml:space="preserve">
+    <value>{LogType} Cart is empty in {Table} during {Operation}.</value>
+</data>
+<data name="SchedulePast" xml:space="preserve">
+    <value>{LogType} Cannot schedule to the past in {Table} during {Operation}.</value>
+</data>
+<data name="InvalidPickupTime" xml:space="preserve">
+    <value>{LogType} Invalid pickup time in {Table} during {Operation}.</value>
+</data>
+<data name="BarClosed" xml:space="preserve">
+    <value>{LogType} Bar is closed. Schedule is {0} to {1}. In {Table} during {Operation}.</value>
+</data>
+<data name="InsufficientStock" xml:space="preserve">
+    <value>{LogType} Insufficient stock for product {0} in {Table} during {Operation}.</value>
+</data>
+<data name="OrderProcessingError" xml:space="preserve">
+    <value>{LogType} Error processing order in {Table} during {Operation}.</value>
+</data>
+<data name="OrderCannotCancel" xml:space="preserve">
+    <value>{LogType} Cannot cancel order in {Table} during {Operation}.</value>
+</data>
+<data name="OrderCancelError" xml:space="preserve">
+    <value>{LogType} Error cancelling order in {Table} during {Operation}.</value>
+</data>
+<data name="InvalidStatusTransition" xml:space="preserve">
+    <value>{LogType} Invalid order status transition in {Table} during {Operation}.</value>
+</data>
+<data name="UseCancelFunction" xml:space="preserve">
+    <value>{LogType} Must use the cancel order function in {Table} during {Operation}.</value>
+</data>
+<data name="DatabaseUpdateError" xml:space="preserve">
+    <value>{LogType} Error updating {0} in database in {Table} during {Operation}.</value>
+</data>
+<data name="RedemptionCodeRequired" xml:space="preserve">
+    <value>{LogType} Redemption code required in {Table} during {Operation}.</value>
+</data>
+<data name="InvalidRedemptionCode" xml:space="preserve">
+    <value>{LogType} Invalid redemption code in {Table} during {Operation}.</value>
+</data>
+<data name="CodeExpired" xml:space="preserve">
+    <value>{LogType} Code expired (5min limit), must register again in {Table} during {Operation}.</value>
+</data>
+<data name="IncorrectCode" xml:space="preserve">
+    <value>{LogType} Incorrect code in {Table} during {Operation}.</value>
+</data>
+<data name="ResendEmailError" xml:space="preserve">
+    <value>{LogType} Error resending email in {Table} during {Operation}.</value>
+</data>
+<data name="EmailAlreadyRegistered" xml:space="preserve">
+    <value>{LogType} Email already registered in {Table} during {Operation}.</value>
+</data>
+<data name="SendActivationEmailError" xml:space="preserve">
+    <value>{LogType} Error sending activation email in {Table} during {Operation}.</value>
+</data>
+<data name="InvalidTimeFormat" xml:space="preserve">
+    <value>{LogType} Invalid time format in {Table} during {Operation}.</value>
+</data>
 </root>

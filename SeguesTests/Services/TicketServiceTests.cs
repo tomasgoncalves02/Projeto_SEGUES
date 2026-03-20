@@ -75,12 +75,12 @@ namespace SeguesTests.Services
             {
                 Id = 1,
                 TicketValidityDays = 30,
-                OpenBarTime = TimeSpan.Zero,
-                CloseBarTime = TimeSpan.Zero,
-                OpenLunchTime = TimeSpan.Zero,
-                CloseLunchTime = TimeSpan.Zero,
-                OpenDinnerTime = TimeSpan.Zero,
-                CloseDinnerTime = TimeSpan.Zero
+                BarOpeningTime = TimeSpan.Zero,
+                BarClosingTime = TimeSpan.Zero,
+                CanteenLunchOpeningTime = TimeSpan.Zero,
+                CanteenLunchClosingTime = TimeSpan.Zero,
+                CanteenDinnerOpeningTime = TimeSpan.Zero,
+                CanteenDinnerClosingTime = TimeSpan.Zero
             };
 
             context.UserCategory.Add(cat);

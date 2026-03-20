@@ -17,6 +17,7 @@ using Stripe;
 using System.Collections.ObjectModel;
 using System.Data;
 using System.Security.Claims;
+using Projeto_SEGUES.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -216,6 +217,7 @@ localizationOptions.RequestCultureProviders.Clear();
 app.UseRequestLocalization(localizationOptions);
 // Rest of pipeline after localization!
 
+// Logging
 app.UseSerilogRequestLogging();
 app.Use(async (context, next) =>
 {
@@ -231,6 +233,18 @@ app.Use(async (context, next) =>
     }
 });
 
+// Handle Internal Server Errors
+if (app.Environment.IsDevelopment())
+{
+    // app.UseDeveloperExceptionPage(); TODO: Remove when done testing
+    app.UseMiddleware<GlobalExceptionMiddleware>();
+}
+else
+{
+    app.UseMiddleware<GlobalExceptionMiddleware>();
+    app.UseHsts();
+}
+
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -244,18 +258,12 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        var localizer = services.GetService<IStringLocalizer<Errors>>() ?? throw new InvalidOperationException("Localization service not found");
+        var localizer = services.GetService<IStringLocalizer<AppErrors>>() ?? throw new InvalidOperationException("Localization service not found");
         app.Logger.LogError(ex, localizer[nameof(AppErrors.InternalServerError)], "Error", TableName.All, AppOperation.DatabaseInitialization);
     }
 }
 
-// Errors and Security
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
-}
-
+// Security
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 

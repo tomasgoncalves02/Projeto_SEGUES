@@ -78,8 +78,8 @@ namespace SeguesTests.Orders
             var totals = new OrderTotalViewModel { TotalQuantity = 2, TotalValue = 5.50m };
 
             _mockUserManager.Setup(u => u.GetUserId(It.IsAny<ClaimsPrincipal>())).Returns(userId);
-            _mockOrderService.Setup(s => s.AddToCartAsync(userId, 1, 1))
-                .ReturnsAsync(ServiceResult.Ok("Added", totals));
+            // _mockOrderService.Setup(s => s.AddToCartAsync(userId, 1, 1))
+            //     .ReturnsAsync(ServiceResult.Ok("Added", totals));
 
             var result = await _controller.AddToCart(1, 1);
 

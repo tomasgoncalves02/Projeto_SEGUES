@@ -7,6 +7,7 @@ using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using System.Security.Claims;
+using Projeto_SEGUES.Areas.Admin.ViewModels;
 
 namespace Projeto_SEGUES.Areas.Ticket;
 
@@ -33,12 +34,14 @@ public class TicketController : Controller
         var user = await _userManager.GetUserAsync(User);
         if (user == null) return Challenge();
 
+        BarCanteenConfigViewModel barCanteenConfig = await _adminService.GetScheduleAsync();
+
         ViewBag.UserBalance = user.Balance;
-        ViewBag.LunchOpenTime = await _adminService.GetOpenLunchTimeAsync();
-        ViewBag.LunchCloseTime = await _adminService.GetCloseLunchTimeAsync();
-        ViewBag.DinnerOpenTime = await _adminService.GetOpenDinnerTimeAsync();
-        ViewBag.DinnerCloseTime = await _adminService.GetCloseDinnerTimeAsync();
-        ViewBag.CanteenLink = await _adminService.GetCanteenMenuLinkAsync();
+        ViewBag.LunchOpenTime = barCanteenConfig.CanteenLunchOpeningTime;
+        ViewBag.LunchCloseTime = barCanteenConfig.CanteenLunchClosingTime;
+        ViewBag.DinnerOpenTime = barCanteenConfig.CanteenDinnerOpeningTime;
+        ViewBag.DinnerCloseTime = barCanteenConfig.CanteenDinnerClosingTime;
+        ViewBag.CanteenLink = barCanteenConfig.CanteenMenuLink;
         return View();
     }
 

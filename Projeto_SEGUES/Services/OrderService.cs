@@ -8,6 +8,7 @@ using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Order;
 using Projeto_SEGUES.Models.User;
 using System.ComponentModel.DataAnnotations;
+using Projeto_SEGUES.Areas.Admin.ViewModels;
 
 namespace Projeto_SEGUES.Services;
 
@@ -62,11 +63,11 @@ public class OrderService : IOrderService
         };
     }
 
-    public async Task<ServiceResult> AddToCartAsync(string userId, int productId, int quantity)
+    public async Task<ServiceResult<OrderTotalViewModel>> AddToCartAsync(string userId, int productId, int quantity)
     {
         var cart = await GetCartAsync(userId);
         var product = await _context.Product.FindAsync(productId);
-        if (product == null) return ServiceResult.Fail("Produto não encontrado.", GetOrderTotal(cart));
+        if (product == null) return ServiceResult<OrderTotalViewModel>.Fail("Produto não encontrado.", GetOrderTotal(cart));
 
         var line = await _context.OrderLine.FirstOrDefaultAsync(ol => ol.Order.Id == cart.Id && ol.ProductId == productId);
         if (line != null)
@@ -95,16 +96,16 @@ public class OrderService : IOrderService
         }
 
         await _context.SaveChangesAsync();
-        return ServiceResult.Ok("Produto adicionado ao carrinho.", GetOrderTotal(cart));
+        return ServiceResult<OrderTotalViewModel>.Ok("Produto adicionado ao carrinho.", GetOrderTotal(cart));
     }
 
-    public async Task<ServiceResult> RemoveFromCartAsync(string userId, int productId)
+    public async Task<ServiceResult<OrderTotalViewModel>> RemoveFromCartAsync(string userId, int productId)
     {
         var cart = await GetCartAsync(userId);
         var line = await _context.OrderLine
             .FirstOrDefaultAsync(ol => ol.Order.Id == cart.Id && ol.ProductId == productId);
 
-        if (line == null) return ServiceResult.Fail("Produto não encontrado no carrinho.");
+        if (line == null) return ServiceResult<OrderTotalViewModel>.Fail("Produto não encontrado no carrinho.");
         cart.TotalValue -= (line.Quantity * line.ProductValue);
         if (cart.TotalValue < 0) cart.TotalValue = 0;
 
@@ -112,7 +113,7 @@ public class OrderService : IOrderService
 
         await _context.SaveChangesAsync();
 
-        return ServiceResult.Ok("Produto removido do carrinho.", GetOrderTotal(cart));
+        return ServiceResult<OrderTotalViewModel>.Ok("Produto removido do carrinho.", GetOrderTotal(cart));
     }
 
     public async Task<ServiceResult> SubmitOrderAsync(AppUser user, bool receiveNow, string? pickupTime)
@@ -145,9 +146,8 @@ public class OrderService : IOrderService
 
         if (!await _adminService.IsBarOpenAsync(timeToValidate))
         {
-            var open = await _adminService.GetOpenBarTimeAsync();
-            var close = await _adminService.GetCloseBarTimesAsync();
-            return ServiceResult.Fail($"O Bar encontra-se encerrado para o horário selecionado. Funcionamento: {open:hh\\:mm} às {close:hh\\:mm}.");
+            BarCanteenConfigViewModel barCanteenConfig = await _adminService.GetScheduleAsync();
+            return ServiceResult.Fail($"O Bar encontra-se encerrado para o horário selecionado. Funcionamento: {barCanteenConfig.BarOpeningTime} às {barCanteenConfig.BarClosingTime}.");
         }
 
         decimal total = ApplyDiscount(cart.TotalValue, cart.Discount);

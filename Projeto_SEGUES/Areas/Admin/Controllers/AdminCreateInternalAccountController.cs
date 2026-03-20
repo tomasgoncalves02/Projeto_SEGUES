@@ -63,14 +63,15 @@ public class AdminCreateInternalAccountController : Controller
         {
             var result = await _adminService.CreateInternalUserAsync(model);
 
-            if (result.Succeeded)
+            if (result.Success)
             {
                 TempData.SetSwalSuccess($"Conta criada para {model.FirstName}!");
                 return RedirectToAction(nameof(Index));
             }
-
-            foreach (var error in result.Errors)
-                ModelState.AddModelError("", error.Description);
+            
+            var errors = result.Message.Split("; ");
+            foreach (var error in errors)
+                ModelState.AddModelError("", error);
         }
         catch (Exception)
         {

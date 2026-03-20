@@ -63,17 +63,17 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         public class InputModel
         {
             /// <summary>Identificador único de email do utilizador.</summary>
-            [Required]
-            [EmailAddress]
+            [Required(ErrorMessage = "O campo {0} é obrigatório.")]
+            [EmailAddress(ErrorMessage = "Endereço de email inválido.")]
             [Display(Name = "Endereço de email")]
             public required string Email { get; init; }
-
+        
             /// <summary>Palavra-passe de acesso.</summary>
-            [Required]
+            [Required(ErrorMessage = "O campo {0} é obrigatório.")]
             [DataType(DataType.Password)]
-            [Display(Name = "Password")]
+            [Display(Name = "Palavra-passe")]
             public required string Password { get; init; }
-
+        
             /// <summary>Define se o cookie de autenticação deve persistir após fechar o navegador.</summary>
             [Display(Name = "Lembrar-me")]
             public bool RememberMe { get; init; }
@@ -112,50 +112,58 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         {
             returnUrl ??= Url.Content("~/");
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
-
-            if (ModelState.IsValid)
+            
+            if (!ModelState.IsValid)
             {
-                // Verificação de segurança personalizada: impede login de contas desativadas
-                var user = await _userManager.FindByEmailAsync(Input.Email);
-
-                if (user != null)
+                var fieldErrors = ModelState
+                    .Where(kv => kv.Value.Errors.Count > 0)
+                    .SelectMany(kv => kv.Value.Errors.Select(err => new { Field = kv.Key, Error = err.ErrorMessage }))
+                    .ToList();
+        
+                foreach (var fe in fieldErrors)
                 {
-                    if (user.Status == Projeto_SEGUES.Models.Enums.UserStatus.Inactive)
-                    {
-                        _logger.LogWarning("Tentativa de login em conta desativada: {Email}", Input.Email);
-                        TempData.SetSwalError("A sua conta foi desativada pela administração.");
-                        return Page();
-                    }
+                    _logger.LogWarning("Validation error on field {Field}: {Error}", fe.Field, fe.Error);
                 }
+        
+                TempData.SetSwalError("Por favor corrija os erros no formulário.");
+                return Page();
+            }
+            
+            // Verificação de segurança personalizada: impede login de contas desativadas
+            var user = await _userManager.FindByEmailAsync(Input.Email);
 
-                // Tenta autenticação padrão do Identity
-                var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: true);
-
-                if (result.Succeeded)
+            if (user != null)
+            {
+                if (user.Status == UserStatus.Inactive)
                 {
-                    _logger.LogInformation("Utilizador {Email} autenticado com sucesso.", Input.Email);
-                    TempData.SetSwalSuccess("Login efetuado com sucesso!");
-                    return LocalRedirect(returnUrl);
-                }
-
-                if (result.RequiresTwoFactor)
-                {
-                    return RedirectToPage("./LoginWith2fa", new { ReturnUrl = "/", RememberMe = Input.RememberMe });
-                }
-
-                if (result.IsLockedOut)
-                {
-                    _logger.LogWarning("Conta {Email} bloqueada por excesso de tentativas falhadas.", Input.Email);
-                    return RedirectToPage("./Lockout");
-                }
-                else
-                {
-                    _logger.LogWarning("Falha no login para {Email}: Credenciais inválidas.", Input.Email);
-                    TempData.SetSwalError("Tentativa de login inválida.");
+                    _logger.LogWarning("Tentativa de login em conta desativada: {Email}", Input.Email);
+                    TempData.SetSwalError("A sua conta foi desativada pela administração.");
                     return Page();
                 }
             }
 
+            // Tenta autenticação padrão do Identity
+            var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: true);
+
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("Utilizador {Email} autenticado com sucesso.", Input.Email);
+                TempData.SetSwalSuccess("Login efetuado com sucesso!");
+                return LocalRedirect(returnUrl);
+            }
+
+            if (result.RequiresTwoFactor)
+            {
+                return RedirectToPage("./LoginWith2fa", new { ReturnUrl = "/", RememberMe = Input.RememberMe });
+            }
+
+            if (result.IsLockedOut)
+            {
+                _logger.LogWarning("Conta {Email} bloqueada por excesso de tentativas falhadas.", Input.Email);
+                return RedirectToPage("./Lockout");
+            }
+            _logger.LogWarning("Falha no login para {Email}: Credenciais inválidas.", Input.Email);
+            TempData.SetSwalError("Tentativa de login inválida.");
             return Page();
         }
     }

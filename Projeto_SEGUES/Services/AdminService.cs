@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.Admin;
@@ -12,6 +13,7 @@ using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.User;
 using System.Security.Cryptography;
 using System.Text;
+using Projeto_SEGUES.Resources;
 
 namespace Projeto_SEGUES.Services;
 
@@ -21,137 +23,89 @@ public class AdminService : IAdminService
     private readonly UserManager<AppUser> _userManager;
     private readonly RoleManager<Role> _roleManager;
     private readonly IEmailSender _emailSender;
+    private readonly ILogger<AdminService> _logger;
+    private readonly IStringLocalizer<AppErrors> _localizer;
+    private const string _defaultLink = "https://www.ips.pt";
 
     public AdminService(
         AppDbContext context,
         UserManager<AppUser> userManager,
         RoleManager<Role> roleManager,
-        IEmailSender emailSender)
+        IEmailSender emailSender,
+        ILogger<AdminService> logger,
+        IStringLocalizer<AppErrors> localizer)
     {
         _context = context;
         _userManager = userManager;
         _roleManager = roleManager;
         _emailSender = emailSender;
+        _logger = logger;
+        _localizer = localizer;
     }
-
-    /*
-     * Create Internal Account
-     */
-    public async Task<IdentityResult> CreateInternalUserAsync(CreateInternalUserViewModel model)
+    
+    #region General
+    
+    private async Task<AppConfig> GetAppConfigAsync()
+    {
+        return await _context.AppConfig.FirstAsync();
+    }
+    
+    #endregion
+    
+    #region Internal User Creation
+    
+    public async Task<ServiceResult> CreateInternalUserAsync(CreateInternalUserViewModel model)
     {
         // Validate role exists
         if (await _roleManager.FindByNameAsync(model.AccountType) == null)
         {
-            return IdentityResult.Failed(new IdentityError { Description = "Dados inválidos, tente novamente." });
+            _logger.LogError(
+                Errors.ResourceManager.GetString(nameof(AppErrors.DataNotFoundError), System.Globalization.CultureInfo.InvariantCulture)
+                , "Error", TableName.Identity, AppOperation.Create);
+            return ServiceResult.Fail(_localizer[nameof(AppErrors.DataNotFoundError)].Value);
         }
-        using var transaction = await _context.Database.BeginTransactionAsync();
+
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+        var category = await _context.UserCategory.FirstAsync(c => c.Name == "Externo");
+        var user = new AppUser
+        {
+            UserName = model.Email,
+            Email = model.Email,
+            FirstName = model.FirstName,
+            LastName = model.LastName,
+            Gender = model.Gender,
+            BirthDate = model.BirthDate,
+            Balance = 0m,
+            CreationDate = DateTime.Now,
+            EmailConfirmed = true,
+            Status = UserStatus.Active,
+            UserCategory = category
+        };
+
+        string password = GenerateSecurePassword();
+        var result = await _userManager.CreateAsync(user, password);
+        if (!result.Succeeded) return ServiceResult.Fail(string.Join("; ", result.Errors.Select(e => e.Description)));
+        
+        await _userManager.AddToRoleAsync(user, model.AccountType);
+
         try
         {
-            var category = await _context.UserCategory.FirstAsync(c => c.Name == "Externo");
-            var user = new AppUser
-            {
-                UserName = model.Email,
-                Email = model.Email,
-                FirstName = model.FirstName,
-                LastName = model.LastName,
-                Gender = model.Gender,
-                BirthDate = model.BirthDate,
-                Balance = 0m,
-                CreationDate = DateTime.Now,
-                EmailConfirmed = true,
-                Status = UserStatus.Active,
-                UserCategory = category
-            };
-
-            string password = GenerateSecurePassword();
-            var result = await _userManager.CreateAsync(user, password);
-
-            if (!result.Succeeded) return result;
-
-            // Adicionar Role
-            await _userManager.AddToRoleAsync(user, model.AccountType);
-
-            // Se a net falhar aqui, o código salta para o catch
+            // If net fails, throws exception
             await SendWelcomeEmailAsync(model.Email, model.FirstName, model.AccountType, password);
-
-            // Só chegamos aqui se o email foi enviado com sucesso
-            await transaction.CommitAsync();
-
-            return IdentityResult.Success;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Se houve erro de rede no email, desfazemos TUDO o que foi feito na BD
             await transaction.RollbackAsync();
-
-            return IdentityResult.Failed(new IdentityError
-            {
-                Description = "Erro de conexão: Não foi possível enviar o e-mail de ativação. A conta não foi criada. Verifique a sua ligação à internet."
-            });
+            _logger.LogError(ex,
+                Errors.ResourceManager.GetString(nameof(AppErrors.SendActivationEmailError),
+                    System.Globalization.CultureInfo.InvariantCulture),
+                "Error", TableName.All, AppOperation.Other);
+            return ServiceResult.Fail(_localizer[nameof(AppErrors.SendActivationEmailError)].Value);
         }
+        await transaction.CommitAsync();
+        return ServiceResult.Ok();
     }
-    public async Task<string> GetBarMenuLinkAsync()
-    {
-        var config = await _context.AppConfig.FirstOrDefaultAsync();
-        return config?.BarLink ?? "https://www.ips.pt";
-    }
-
-    public async Task<string> GetCanteenMenuLinkAsync()
-    {
-        var config = await _context.AppConfig.FirstOrDefaultAsync();
-        return config?.CanteenLink ?? "https://www.ips.pt";
-    }
-
-    public async Task UpdateMenuLinksAsync(string canteenLink, string barLink)
-    {
-        var config = await _context.AppConfig.FirstOrDefaultAsync();
-
-        if (config == null)
-        {
-            config = new AppConfig();
-            _context.AppConfig.Add(config);
-        }
-
-        config.CanteenLink = canteenLink;
-        config.BarLink = barLink;
-
-        await _context.SaveChangesAsync();
-    }
-
-    // Substitui o teu método UpdateBarScheduleAsync por este mais completo:
-    public async Task UpdateBarScheduleAsync(string open, string close, string serviceName = "Bar")
-    {
-        if (!TimeSpan.TryParse(open, out var openTime) || !TimeSpan.TryParse(close, out var closeTime))
-        {
-            throw new ArgumentException("Formato de hora inválido.");
-        }
-
-        var config = await _context.AppConfig.FirstAsync();
-
-        switch (serviceName)
-        {
-            case "Almoço":
-                config.OpenLunchTime = openTime;
-                config.CloseLunchTime = closeTime;
-                break;
-            case "Jantar":
-                config.OpenDinnerTime = openTime;
-                config.CloseDinnerTime = closeTime;
-                break;
-            default: // "Bar"
-                config.OpenBarTime = openTime;
-                config.CloseBarTime = closeTime;
-                break;
-        }
-
-        await _context.SaveChangesAsync();
-    }
-
-    public async Task<TimeSpan> GetOpenLunchTimeAsync() => (await _context.AppConfig.FirstAsync()).OpenLunchTime;
-    public async Task<TimeSpan> GetCloseLunchTimeAsync() => (await _context.AppConfig.FirstAsync()).CloseLunchTime;
-    public async Task<TimeSpan> GetOpenDinnerTimeAsync() => (await _context.AppConfig.FirstAsync()).OpenDinnerTime;
-    public async Task<TimeSpan> GetCloseDinnerTimeAsync() => (await _context.AppConfig.FirstAsync()).CloseDinnerTime;
-
+    
     private static string GenerateSecurePassword(int length = 12)
     {
         const string lowercase = "abcdefghijklmnopqrstuvwxyz";
@@ -177,29 +131,11 @@ public class AdminService : IAdminService
         // Shuffle the password to randomize position of required characters
         return new string(password.OrderBy(_ => RandomNumberGenerator.GetInt32(length)).ToArray());
     }
-
-    public async Task<List<SelectListItem>> GetNonClientRolesForDropdownAsync()
-    {
-        var roles = await _roleManager.Roles.Where(r => r.Name != "Client").ToListAsync();
-        return roles.Select(r => new SelectListItem { Value = r.Name, Text = r.DisplayName }).ToList();
-    }
-
-    public async Task<List<SelectListItem>> GetAllRolesForDropdownAsync()
-    {
-        var roles = await _roleManager.Roles.ToListAsync();
-        return roles.Select(r => new SelectListItem { Value = r.Name, Text = r.DisplayName }).ToList();
-    }
-
-    public async Task<List<SelectListItem>> GetAllCategoriesForDropdownAsync()
-    {
-        var categories = await _context.UserCategory.ToListAsync();
-        return categories.Select(c => new SelectListItem { Value = c.Name, Text = c.Name }).ToList();
-    }
-
+    
     private async Task SendWelcomeEmailAsync(string email, string name, string type, string password)
     {
         var roleDisplay = (await _roleManager.FindByNameAsync(type))!.DisplayName;
-        string emailBody = ((EmailSender)_emailSender).GetEmailBody(
+        string emailBody = ((EmailSender) _emailSender).GetEmailBody(
             "Conta Interna - SEGUES",
             name,
             $"""
@@ -210,22 +146,15 @@ public class AdminService : IAdminService
                  <p>Faça login e altere sua senha o mais breve possível.</p>
              </div>
              """);
-
-        try
-        {
-            await _emailSender.SendEmailAsync(email, "SEGUES - Bem-vindo", emailBody);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Erro crítico de rede no envio de email para {email}: {ex.Message}");
-            throw new Exception($"Failed to send welcome email to: {email} after multiple attempts.");
-        }
-
+        
+        // Throws exception if email fails to send
+        await _emailSender.SendEmailAsync(email, "SEGUES - Bem-vindo", emailBody);
     }
-
-    /*
-     * User Management
-     */
+    
+    #endregion
+    
+    #region User Management
+    
     public async Task<List<AppUser>> GetFilteredUsersAsync(string? searchString, string? roleFilter, string? categoryFilter)
     {
         // All users
@@ -243,138 +172,208 @@ public class AdminService : IAdminService
         // Role
         if (!string.IsNullOrEmpty(roleFilter))
         {
-            roleFilter = roleFilter.Trim();
-            var role = await _roleManager.FindByNameAsync(roleFilter);
-            if (role == null) return await query.ToListAsync();
-
-            var userIdsInRole = _context.UserRoles
-                .Where(ur => ur.RoleId == role.Id)
-                .Select(ur => ur.UserId);
-
-            query = query.Where(u => userIdsInRole.Contains(u.Id));
+            var role = await _roleManager.FindByNameAsync(roleFilter.Trim());
+            if (role != null)
+            {
+                var userIdsInRole = _context.UserRoles
+                    .Where(ur => ur.RoleId == role.Id)
+                    .Select(ur => ur.UserId);
+                query = query.Where(u => userIdsInRole.Contains(u.Id));
+            }
         }
 
-        if (string.IsNullOrEmpty(categoryFilter)) return await query.ToListAsync();
-
         // Category
-        categoryFilter = categoryFilter.Trim();
-        query = query.Where(u => u.UserCategory.Name == categoryFilter);
+        if (!string.IsNullOrEmpty(categoryFilter))
+        {
+            query = query.Where(u => u.UserCategory.Name == categoryFilter.Trim());
+        }
+        
         return await query.ToListAsync();
     }
 
-    public Task<UserCategory> GetCategoryByNameAsync(string modelCategory)
+    public Task<UserCategory?> GetCategoryByNameAsync(string modelCategory)
     {
-        return _context.UserCategory.FirstAsync(c => c.Name == modelCategory);
+        return _context.UserCategory.FirstOrDefaultAsync(c => c.Name == modelCategory);
     }
-
-    /*
-     * Ticket Management
-     */
-    public async Task<List<TicketPrice>> GetTicketPricesAsync()
-    {
-        return await _context.TicketPrice.Include(tp => tp.UserCategory).ToListAsync();
-    }
-
-    public async Task UpdateTicketPricesAsync(List<TicketPrice> prices)
-    {
-        foreach (var p in prices)
-        {
-            var dbPrice = await _context.TicketPrice.FindAsync(p.Id);
-            if (dbPrice != null)
-            {
-                if (p.Price > 0)
-                {
-                    dbPrice.Price = p.Price;
-                    dbPrice.EndDatePrice = DateTime.Today.AddDays(1).AddTicks(-1);
-                }
-            }
-        }
-        await _context.SaveChangesAsync();
-    }
-
-    public async Task<int> GetTicketValidityDaysAsync()
-    {
-        int days = (await _context.AppConfig.FirstAsync()).TicketValidityDays;
-        return days > 0 ? days : 365;
-    }
-
-    public async Task UpdateTicketValidityDaysAsync(int days)
-    {
-        var config = await _context.AppConfig.FirstAsync();
-        config.TicketValidityDays = days;
-        await _context.SaveChangesAsync();
-    }
-
-
-
-    public async Task<TimeSpan> GetOpenBarTimeAsync()
-    {
-        TimeSpan time = (await _context.AppConfig.FirstAsync()).OpenBarTime;
-        return time;
-    }
-
-    public async Task<TimeSpan> GetCloseBarTimesAsync()
-    {
-        TimeSpan time = (await _context.AppConfig.FirstAsync()).CloseBarTime;
-        return time;
-    }
-
-    public async Task UpdateBarScheduleAsync(string openBarTime, string closeBarTime)
-    {
-        if (!TimeSpan.TryParse(openBarTime, out var open) || !TimeSpan.TryParse(closeBarTime, out var close))
-        {
-            throw new ArgumentException("Formato de hora inválido.");
-        }
-        var config = await _context.AppConfig.FirstAsync();
-        config.OpenBarTime = open;
-        config.CloseBarTime = close;
-        await _context.SaveChangesAsync();
-    }
-
-    public async Task<bool> IsBarOpenAsync(TimeSpan? requestedTime = null)
-    {
-        var config = await _context.AppConfig.FirstAsync();
-        var timeToCheck = requestedTime ?? DateTime.Now.TimeOfDay;
-
-        if (config.OpenBarTime <= config.CloseBarTime)
-        {
-            return timeToCheck >= config.OpenBarTime && timeToCheck <= config.CloseBarTime;
-        }
-
-        return timeToCheck >= config.OpenBarTime || timeToCheck <= config.CloseBarTime;
-    }
-
+    
     public async Task RequestEmailChangeAsync(AppUser user, string newEmail, IUrlHelper urlHelper, string scheme)
     {
-        // 1. Gerar e codificar o Token
+        // Create token
         var code = await _userManager.GenerateChangeEmailTokenAsync(user, newEmail);
         var codeEncoded = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
-        // 2. Gerar o Link de Confirmação
+        // Create the confirmation link
         var callbackUrl = urlHelper.Page(
             "/Account/ConfirmEmailChange",
             pageHandler: null,
             values: new { area = "Identity", userId = user.Id, email = newEmail, code = codeEncoded },
             protocol: scheme)!;
 
-        // 3. Preparar o HTML usando o teu template
+        // Template
         string title = "Alteração de Email - SEGUES";
         string content = $"""
-        <p>Foi solicitada uma alteração do endereço de email da sua conta para: <strong>{newEmail}</strong>.</p>
-        <p>Para confirmar esta alteração, clique no botão abaixo:</p>
-        <div style='text-align: center; margin: 30px 0;'>
-            <a href='{callbackUrl}' style='background-color: #009697; color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;'>Confirmar Novo Email</a>
-        </div>
+            <p>Foi solicitada uma alteração do endereço de email da sua conta para: <strong>{newEmail}</strong>.</p>
+            <p>Para confirmar esta alteração, clique no botão abaixo:</p>
+            <div style='text-align: center; margin: 30px 0;'>
+                <a href='{callbackUrl}' style='background-color: #009697; color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;'>Confirmar Novo Email</a>
+            </div>
         """;
-
+        
         var emailSenderService = _emailSender as EmailSender;
         string finalBody = emailSenderService?.GetEmailBody(title, user.FirstName, content) ?? content;
-
-        // 4. Enviar
+        
+        // Throws exception if email fails to send
         await _emailSender.SendEmailAsync(newEmail, "SEGUES - Confirmação de Email", finalBody);
     }
+    
+    // Dropdowns
+    
+    public async Task<List<SelectListItem>> GetNonClientRolesForDropdownAsync()
+    {
+        var roles = await _roleManager.Roles.Where(r => r.Name != "Client").ToListAsync();
+        return roles.Select(r => new SelectListItem { Value = r.Name, Text = r.DisplayName }).ToList();
+    }
 
+    public async Task<List<SelectListItem>> GetAllRolesForDropdownAsync()
+    {
+        var roles = await _roleManager.Roles.ToListAsync();
+        return roles.Select(r => new SelectListItem { Value = r.Name, Text = r.DisplayName }).ToList();
+    }
 
+    public async Task<List<SelectListItem>> GetAllCategoriesForDropdownAsync()
+    {
+        var categories = await _context.UserCategory.ToListAsync();
+        return categories.Select(c => new SelectListItem { Value = c.Name, Text = c.Name }).ToList();
+    }
+    
+    #endregion
+    
+    #region Bar and Canteen Configuration
 
-
+    public async Task<BarCanteenConfigViewModel> GetMenuLinksAsync()
+    {
+        var config = await GetAppConfigAsync();
+        return new BarCanteenConfigViewModel
+        {
+            BarMenuLink = config.BarLink ?? _defaultLink,
+            CanteenMenuLink = config.CanteenLink ?? _defaultLink
+        };
+    }
+    
+    public async Task UpdateMenuLinksAsync(string? canteenLink, string? barLink)
+    {
+        var config = await GetAppConfigAsync();
+        config.CanteenLink = canteenLink ?? config.CanteenLink ?? _defaultLink;
+        config.BarLink = barLink ?? config.BarLink ?? _defaultLink;
+        await _context.SaveChangesAsync();
+    }
+    
+    public async Task<BarCanteenConfigViewModel> GetScheduleAsync()
+    {
+        var config = await GetAppConfigAsync();
+        return new BarCanteenConfigViewModel {
+            BarOpeningTime = config.BarOpeningTime,
+            BarOpeningTimeString = config.BarOpeningTime.ToString(@"hh\:mm"),
+            BarClosingTime = config.BarClosingTime,
+            BarClosingTimeString = config.BarClosingTime.ToString(@"hh\:mm"),
+            CanteenLunchOpeningTime = config.CanteenLunchOpeningTime,
+            CanteenLunchOpeningTimeString = config.CanteenLunchOpeningTime.ToString(@"hh\:mm"),
+            CanteenLunchClosingTime = config.CanteenLunchClosingTime,
+            CanteenLunchClosingTimeString = config.CanteenLunchClosingTime.ToString(@"hh\:mm"),
+            CanteenDinnerOpeningTime = config.CanteenDinnerOpeningTime,
+            CanteenDinnerOpeningTimeString = config.CanteenDinnerOpeningTime.ToString(@"hh\:mm"),
+            CanteenDinnerClosingTime = config.CanteenDinnerClosingTime,
+            CanteenDinnerClosingTimeString = config.CanteenDinnerClosingTime.ToString(@"hh\:mm")
+        };
+    }
+    
+    public async Task<ServiceResult> UpdateScheduleAsync(BarCanteenConfigViewModel model)
+    {
+        var config = await GetAppConfigAsync();
+        
+        if (model is { BarOpeningTime: not null, BarClosingTime: not null })
+        {
+            if (model.BarOpeningTime == model.BarClosingTime)
+                return ServiceResult.Fail("A hora de abertura e de fecho não podem ser iguais.");
+            if (model.BarOpeningTime > model.BarClosingTime)
+                return ServiceResult.Fail("A hora de fecho não pode ser anterior à hora de abertura.");
+            if (model.BarClosingTime - model.BarOpeningTime < TimeSpan.FromHours(1))
+                return ServiceResult.Fail("O bar deve estar aberto pelo menos 1 hora.");
+        }
+        else if (model is { CanteenLunchOpeningTime: not null, CanteenLunchClosingTime: not null })
+        {
+            if (model.CanteenLunchOpeningTime == model.CanteenLunchClosingTime)
+                return ServiceResult.Fail("A hora de abertura e de fecho não podem ser iguais.");
+            if (model.CanteenLunchOpeningTime > model.CanteenLunchClosingTime)
+                return ServiceResult.Fail("A hora de fecho não pode ser anterior à hora de abertura.");
+            if (model.CanteenLunchClosingTime - model.CanteenLunchOpeningTime < TimeSpan.FromHours(1))
+                return ServiceResult.Fail("A cantina deve estar aberta pelo menos 1 hora para almoço.");
+        }
+        else if (model is { CanteenDinnerOpeningTime: not null, CanteenDinnerClosingTime: not null })
+        {
+            if (model.CanteenDinnerOpeningTime == model.CanteenDinnerClosingTime)
+                return ServiceResult.Fail("A hora de abertura e de fecho não podem ser iguais.");
+            if (model.CanteenDinnerOpeningTime > model.CanteenDinnerClosingTime)
+                return ServiceResult.Fail("A hora de fecho não pode ser anterior à hora de abertura.");
+            if (model.CanteenDinnerClosingTime - model.CanteenDinnerOpeningTime < TimeSpan.FromHours(1))
+                return ServiceResult.Fail("A cantina deve estar aberta pelo menos 1 hora para jantar.");
+        }
+        
+        config.BarOpeningTime = model.BarOpeningTime ?? config.BarOpeningTime;
+        config.BarClosingTime = model.BarClosingTime ?? config.BarClosingTime;
+        config.CanteenLunchOpeningTime = model.CanteenLunchOpeningTime ?? config.CanteenLunchOpeningTime;
+        config.CanteenLunchClosingTime = model.CanteenLunchClosingTime ?? config.CanteenLunchClosingTime;
+        config.CanteenDinnerOpeningTime = model.CanteenDinnerOpeningTime ?? config.CanteenDinnerOpeningTime;
+        config.CanteenDinnerClosingTime = model.CanteenDinnerClosingTime ?? config.CanteenDinnerClosingTime;
+        
+        await _context.SaveChangesAsync();
+        return ServiceResult.Ok("Horario de funcionamento do Bar alterado com sucessso");
+    }
+    
+    public async Task<bool> IsBarOpenAsync(TimeSpan? requestedTime)
+    {
+        if (requestedTime == null) return false;
+        
+        var config = await GetAppConfigAsync();
+        return requestedTime >= config.BarOpeningTime && requestedTime <= config.BarClosingTime;
+    }
+    
+    #endregion
+    
+    #region Ticket Management
+    
+    public async Task<List<TicketPrice>> GetTicketPricesAsync()
+    {
+        return await _context.TicketPrice.Include(tp => tp.UserCategory).ToListAsync();
+    }
+    
+    public async Task UpdateTicketPricesAsync(List<TicketPrice> prices)
+    {
+        foreach (var p in prices)
+        {
+            var dbPrice = await _context.TicketPrice.FindAsync(p.Id);
+            if (dbPrice != null && p.Price > 0)
+            {
+                dbPrice.Price = p.Price;
+                dbPrice.EndDatePrice = DateTime.Today.AddDays(1).AddTicks(-1);
+            }
+        }
+        await _context.SaveChangesAsync();
+    }
+    
+    public async Task<int> GetTicketValidityDaysAsync()
+    {
+        var config = await GetAppConfigAsync();
+        int days = config.TicketValidityDays;
+        return days > 0 ? days : 365;
+    }
+    
+    public async Task UpdateTicketValidityDaysAsync(int days)
+    {
+        var config = await GetAppConfigAsync();
+        config.TicketValidityDays = days;
+        await _context.SaveChangesAsync();
+    }
+    
+    #endregion
 }

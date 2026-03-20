@@ -14,6 +14,8 @@ using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using System.Security.Claims;
 using System.Security.Principal;
+using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging;
 
 namespace SeguesTests.Admin
 {
@@ -23,6 +25,8 @@ namespace SeguesTests.Admin
         private readonly Mock<IAdminService> _mockAdminService;
         private readonly AdminUserManagementController _controller;
         private readonly AppDbContext _context;
+        private readonly Mock<ILogger<AdminUserManagementController>> _mockLogger;
+        private readonly Mock<IStringLocalizer<AppErrors>> _mockLocalizer;
 
         public AdminUserManagementControllerTests()
         {
@@ -36,7 +40,7 @@ namespace SeguesTests.Admin
             _mockAdminService = new Mock<IAdminService>();
 
 
-            _controller = new AdminUserManagementController(_mockUserManager.Object, _mockAdminService.Object, _context);
+            _controller = new AdminUserManagementController(_mockUserManager.Object, _mockAdminService.Object, _context, _mockLogger.Object, _mockLocalizer.Object);
 
             var httpContext = new DefaultHttpContext();
             _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };

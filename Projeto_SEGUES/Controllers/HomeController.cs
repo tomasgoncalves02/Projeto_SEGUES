@@ -6,6 +6,7 @@ using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using System.Diagnostics;
+using Projeto_SEGUES.Areas.Admin.ViewModels;
 
 namespace Projeto_SEGUES.Controllers
 {
@@ -32,8 +33,9 @@ namespace Projeto_SEGUES.Controllers
 
         public async Task<IActionResult> Index()
         {
-            ViewBag.CanteenLink = await _adminService.GetCanteenMenuLinkAsync();
-            ViewBag.BarLink = await _adminService.GetBarMenuLinkAsync();
+            var barCanteenConfigViewModel = await _adminService.GetMenuLinksAsync();
+            ViewBag.CanteenLink = barCanteenConfigViewModel.CanteenMenuLink;
+            ViewBag.BarLink = barCanteenConfigViewModel.BarMenuLink;
             
             // Check if logged
             if (User.Identity is not { IsAuthenticated: true }) return View();
@@ -68,16 +70,15 @@ namespace Projeto_SEGUES.Controllers
 
         public async Task<IActionResult> Schedule()
         {
-            var open = await _adminService.GetOpenBarTimeAsync();
-            var close = await _adminService.GetCloseBarTimesAsync();
+            BarCanteenConfigViewModel barCanteenConfig = await _adminService.GetScheduleAsync();
 
-            ViewBag.OpeningTime = open.ToString(@"hh\:mm");
-            ViewBag.ClosingTime = close.ToString(@"hh\:mm");
+            ViewBag.OpeningTime = barCanteenConfig.BarOpeningTime;
+            ViewBag.ClosingTime = barCanteenConfig.BarClosingTime;
 
-            ViewBag.LunchOpenTime = await _adminService.GetOpenLunchTimeAsync();
-            ViewBag.LunchCloseTime = await _adminService.GetCloseLunchTimeAsync();
-            ViewBag.DinnerOpenTime = await _adminService.GetOpenDinnerTimeAsync();
-            ViewBag.DinnerCloseTime = await _adminService.GetCloseDinnerTimeAsync();
+            ViewBag.LunchOpenTime = barCanteenConfig.CanteenLunchOpeningTime;
+            ViewBag.LunchCloseTime = barCanteenConfig.CanteenLunchClosingTime;
+            ViewBag.DinnerOpenTime = barCanteenConfig.CanteenDinnerOpeningTime;
+            ViewBag.DinnerCloseTime = barCanteenConfig.CanteenDinnerClosingTime;
 
             return View();
         }
@@ -85,7 +86,12 @@ namespace Projeto_SEGUES.Controllers
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return View(new ErrorViewModel
+            {
+                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier,
+                ErrorMessage = _localizer[nameof(AppErrors.InternalServerError)].Value,
+                ErrorCode = AppErrors.InternalServerError
+            });
         }
     }
 }

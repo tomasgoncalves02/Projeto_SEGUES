@@ -2,11 +2,13 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using Projeto_SEGUES.Areas.User.ViewModels;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
+using Projeto_SEGUES.Resources;
 using Projeto_SEGUES.Services;
 
 namespace Projeto_SEGUES.Areas.Admin;
@@ -25,6 +27,8 @@ public class AdminUserManagementController : Controller
     private readonly UserManager<AppUser> _userManager;
     private readonly IAdminService _adminService;
     private readonly AppDbContext _context;
+    private readonly ILogger<AdminUserManagementController> _logger;
+    private readonly IStringLocalizer<AppErrors> _localizer;
 
     /// <summary>
     /// Initializes a new instance of the controller with Identity, administration, and data context services.
@@ -32,11 +36,13 @@ public class AdminUserManagementController : Controller
     /// <param name="userManager">Native ASP.NET Identity service for user management.</param>
     /// <param name="adminService">Custom service containing administrative business logic.</param>
     /// <param name="context">Database context for direct queries (e.g., Logs).</param>
-    public AdminUserManagementController(UserManager<AppUser> userManager, IAdminService adminService, AppDbContext context)
+    public AdminUserManagementController(UserManager<AppUser> userManager, IAdminService adminService, AppDbContext context, ILogger<AdminUserManagementController> logger, IStringLocalizer<AppErrors> localizer)
     {
         _userManager = userManager;
         _adminService = adminService;
         _context = context;
+        _logger = logger;
+        _localizer = localizer;
     }
 
     /// <summary>
@@ -166,7 +172,7 @@ public class AdminUserManagementController : Controller
         user.Balance = model.Balance;
         user.Gender = model.Gender;
         user.BirthDate = model.BirthDate;
-        user.UserCategory = await _adminService.GetCategoryByNameAsync(model.Category);
+        user.UserCategory = (await _adminService.GetCategoryByNameAsync(model.Category)) ?? user.UserCategory;
 
         var result = await _userManager.UpdateAsync(user);
 
@@ -190,8 +196,11 @@ public class AdminUserManagementController : Controller
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Erro SMTP: {ex.Message}");
-                    TempData.SetSwalWarning("Dados gravados, mas não foi possível enviar o email de confirmação. Verifique o servidor SMTP.");
+                    // TODO: not save data if fail to send email. use commit transaction
+                    _logger.LogError(ex,
+                        Errors.ResourceManager.GetString(nameof(AppErrors.EmailSenderError), System.Globalization.CultureInfo.InvariantCulture),
+                        "Error", TableName.All, AppOperation.Other);
+                    TempData.SetSwalError(_localizer[nameof(AppErrors.EmailSenderError)].Value);
                     return RedirectToAction(nameof(Index));
                 }
             }

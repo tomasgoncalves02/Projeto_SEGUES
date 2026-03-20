@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Enums;
@@ -51,8 +52,10 @@ public class AdminOrderManagementController : Controller
     public async Task<IActionResult> Index()
     {
         var userId = _userManager.GetUserId(User);
-        ViewBag.OpenBarTime = await _adminService.GetOpenBarTimeAsync();
-        ViewBag.CloseBarTime = await _adminService.GetCloseBarTimesAsync();
+        BarCanteenConfigViewModel barCanteenConfig =  await _adminService.GetScheduleAsync();
+        ViewBag.OpenBarTime = barCanteenConfig.BarOpeningTimeString;
+        ViewBag.CloseBarTime = barCanteenConfig.BarClosingTimeString;
+        //TODO fix view get string and time
         return View(await _orderService.GetAdminOrderHistoryAsync());
     }
 
@@ -87,7 +90,11 @@ public class AdminOrderManagementController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        await _adminService.UpdateBarScheduleAsync(openTime.ToString(), closeTime.ToString());
+        var result = await _adminService.UpdateScheduleAsync(new BarCanteenConfigViewModel
+        {
+            BarOpeningTime = openTime,
+            BarClosingTime = closeTime
+        });
         TempData.SetSwalSuccess($"Horario de funcionamento do Bar alterado com sucessso");
         return RedirectToAction(nameof(Index));
     }

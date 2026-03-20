@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 
@@ -54,10 +55,11 @@ public class OrderController : Controller
         {
             ViewBag.CartTotal = _orderService.GetOrderTotal(cart);
         }
-        ViewBag.OpeningTime = (await _adminService.GetOpenBarTimeAsync()).ToString(@"hh\:mm");
-        ViewBag.ClosingTime = (await _adminService.GetCloseBarTimesAsync()).ToString(@"hh\:mm");
+        BarCanteenConfigViewModel barCanteenConfig = await _adminService.GetScheduleAsync();
+        ViewBag.OpeningTime = barCanteenConfig.BarOpeningTimeString;
+        ViewBag.ClosingTime = barCanteenConfig.BarClosingTimeString;
 
-        ViewBag.BarLink = await _adminService.GetBarMenuLinkAsync();
+        ViewBag.BarLink = barCanteenConfig.BarMenuLink;
 
         return View();
     }

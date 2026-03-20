@@ -79,7 +79,7 @@ namespace SeguesTests.Admin
         {
             var model = CreateValidModel();
             _mockAdminService.Setup(s => s.CreateInternalUserAsync(model))
-                .ReturnsAsync(IdentityResult.Success);
+                .ReturnsAsync(ServiceResult.Ok());
 
             var result = await _controller.Create(model);
 
@@ -93,10 +93,9 @@ namespace SeguesTests.Admin
         public async Task Create_ServiceFails_ReturnsViewWithErrorsAndPopulatesRoles()
         {
             var model = CreateValidModel();
-            var identityError = new IdentityError { Description = "O e-mail já está em uso." };
 
             _mockAdminService.Setup(s => s.CreateInternalUserAsync(model))
-                .ReturnsAsync(IdentityResult.Failed(identityError));
+                .ReturnsAsync(ServiceResult.Fail("O e-mail já está em uso."));
 
             var roles = new List<SelectListItem> { new SelectListItem { Value = "Admin", Text = "Admin" } };
             _mockAdminService.Setup(s => s.GetNonClientRolesForDropdownAsync())
@@ -140,7 +139,7 @@ namespace SeguesTests.Admin
         {
             var model = CreateValidModel();
             _mockAdminService.Setup(s => s.CreateInternalUserAsync(model))
-                .ReturnsAsync(IdentityResult.Success);
+                .ReturnsAsync(ServiceResult.Ok());
 
             var result = await _controller.Create(model);
 
@@ -158,14 +157,10 @@ namespace SeguesTests.Admin
         public async Task Create_ServiceFailsWithMultipleErrors_AddsAllToModelState()
         {
             var model = CreateValidModel();
-            var errors = new List<IdentityError>
-    {
-        new IdentityError { Description = "Email inválido" },
-        new IdentityError { Description = "Senha fraca" }
-    };
+            var errors = "Email inválido; Senha fraca";
 
             _mockAdminService.Setup(s => s.CreateInternalUserAsync(model))
-                .ReturnsAsync(IdentityResult.Failed(errors.ToArray()));
+                .ReturnsAsync(ServiceResult.Fail(errors));
 
             _mockAdminService.Setup(s => s.GetNonClientRolesForDropdownAsync())
                 .ReturnsAsync(new List<SelectListItem>());
@@ -184,7 +179,7 @@ namespace SeguesTests.Admin
 
             var model = CreateValidModel();
             _mockAdminService.Setup(s => s.CreateInternalUserAsync(model))
-                .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Erro" }));
+                .ReturnsAsync(ServiceResult.Fail("Erro"));
 
             var result = await _controller.Create(model);
 

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Ticket;
@@ -50,10 +51,12 @@ public class AdminTicketManagementController : Controller
 
         ViewBag.Prices = await _adminService.GetTicketPricesAsync();
         ViewBag.CurrentValidityDays = await _adminService.GetTicketValidityDaysAsync();
-        ViewBag.LunchOpenTime = await _adminService.GetOpenLunchTimeAsync();
-        ViewBag.LunchCloseTime = await _adminService.GetCloseLunchTimeAsync();
-        ViewBag.DinnerOpenTime = await _adminService.GetOpenDinnerTimeAsync();
-        ViewBag.DinnerCloseTime = await _adminService.GetCloseDinnerTimeAsync();
+        BarCanteenConfigViewModel barCanteenConfig = await _adminService.GetScheduleAsync();
+        ViewBag.LunchOpenTime = barCanteenConfig.CanteenLunchOpeningTimeString;
+        ViewBag.LunchCloseTime = barCanteenConfig.CanteenLunchClosingTimeString;
+        ViewBag.DinnerOpenTime = barCanteenConfig.CanteenDinnerOpeningTimeString;
+        ViewBag.DinnerCloseTime = barCanteenConfig.CanteenDinnerClosingTimeString;
+        // TODO: get time and string to view, fix view
 
         var history = await _ticketService.GetAllTicketsAsync();
 
@@ -170,8 +173,25 @@ public class AdminTicketManagementController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        await _adminService.UpdateBarScheduleAsync(openTime.ToString(), closeTime.ToString(), serviceName);
+        BarCanteenConfigViewModel vm;
+        if (serviceName == "Almoço")
+        {
+            vm = new BarCanteenConfigViewModel
+            {
+                CanteenLunchOpeningTime = openTime,
+                CanteenLunchClosingTime = closeTime
+            };
+        }
+        else
+        {
+            vm = new BarCanteenConfigViewModel
+            {
+                CanteenDinnerOpeningTime = openTime,
+                CanteenDinnerClosingTime = closeTime
+            };
+        }
 
+        var result = await _adminService.UpdateScheduleAsync(vm);
         TempData.SetSwalSuccess($"Horário de {serviceName} atualizado com sucesso!");
         return RedirectToAction(nameof(Index));
     }

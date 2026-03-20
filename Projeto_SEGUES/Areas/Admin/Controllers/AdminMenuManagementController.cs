@@ -32,10 +32,11 @@ public class AdminMenuManagementController : Controller
     /// <returns>The index View populated with <see cref="MenuManagementViewModel"/> containing the current URLs.</returns>
     public async Task<IActionResult> Index()
     {
+        var barCanteenConfigViewModel = await _adminService.GetMenuLinksAsync();
         var model = new MenuManagementViewModel
         {
-            CanteenUrl = await _adminService.GetCanteenMenuLinkAsync(),
-            BarUrl = await _adminService.GetBarMenuLinkAsync()
+            CanteenUrl = barCanteenConfigViewModel.CanteenMenuLink,
+            BarUrl = barCanteenConfigViewModel.BarMenuLink
         };
         return View(model);
     }
