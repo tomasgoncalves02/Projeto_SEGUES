@@ -1,4 +1,4 @@
-//using Castle.Core.Smtp;
+﻿//using Castle.Core.Smtp;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Areas.Order.ViewModels;
@@ -433,7 +433,7 @@ public class OrderService : IOrderService
                 .FirstOrDefault()?.Name ?? order.Status.ToString();
 
             string title = "Atualização do Pedido";
-            string name = order.AppUser.UserName ?? "Cliente";
+            string name = order.AppUser.FirstName ?? "Cliente";
 
             // Mensagem personalizada conforme o estado
             string customMessage = order.Status switch

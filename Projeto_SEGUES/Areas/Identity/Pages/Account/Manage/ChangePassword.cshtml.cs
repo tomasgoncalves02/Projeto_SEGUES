@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using Microsoft.AspNetCore.Identity;
@@ -77,7 +77,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account.Manage
             /// </summary>
             [DataType(DataType.Password)]
             [Display(Name = "Confirmar password")]
-            [Compare("Password", ErrorMessage = "A password e a confirmação não coincidem.")]
+            [Compare("NewPassword", ErrorMessage = "A password e a confirmação não coincidem.")]
             public required string ConfirmPassword { get; init; }
         }
 
