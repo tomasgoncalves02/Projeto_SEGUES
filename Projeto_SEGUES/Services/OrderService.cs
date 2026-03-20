@@ -200,7 +200,7 @@ public class OrderService : IOrderService
             {
                 await SendStatusUpdateEmailAsync(cart);
                 // Se correr bem, mensagem normal de sucesso
-                return ServiceResult.Ok("Encomenda realizada com sucesso!");
+                return ServiceResult.Ok("Encomenda realizada com sucesso! Acompanhe o estado do pedido no seu email");
             }
             catch (Exception)
             {
