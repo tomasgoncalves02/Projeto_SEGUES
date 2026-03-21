@@ -134,6 +134,13 @@ html {
     box-shadow: 0 1rem 3rem var(--ips-shadow-heavy) !important;
 }
 
+/* Remove the top border if the card has a colored header to prevent the 'line' seam */
+.card-ips.no-border-top,
+.card-ips:has(.card-header),
+.card-ips:has(.bg-color-ips) {
+    border-top: none !important;
+}
+
 .card-ips-icon {
     width: 80px;
     height: 80px;

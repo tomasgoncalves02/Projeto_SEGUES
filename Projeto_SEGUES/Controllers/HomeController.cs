@@ -62,6 +62,7 @@ namespace Projeto_SEGUES.Controllers
                 _logger.LogAppError(
                     Errors.ResourceManager.GetString(nameof(AppErrors.UserNotFound), System.Globalization.CultureInfo.InvariantCulture),
                     TableName.Identity, AppOperation.Read);
+                return RedirectToAction("Error", "Home", new { errorCode = AppErrors.UserNotFound });
             }
 
             return View();
@@ -79,14 +80,15 @@ namespace Projeto_SEGUES.Controllers
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error(AppErrors? errorCode = null)
+        public IActionResult Error(AppErrors? errorCode = null, params object[] args)
         {
             AppErrors code = errorCode ?? AppErrors.InternalServerError;
+            var errorMessage = _localizer[nameof(code), args].Value;
             return View(new ErrorViewModel
             {
                 RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier,
                 ErrorCode = code,
-                ErrorMessage =  _localizer[nameof(code)].Value,
+                ErrorMessage =  errorMessage
             });
         }
     }

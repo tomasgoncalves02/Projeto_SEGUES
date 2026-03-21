@@ -4,13 +4,13 @@
     ViewData["Title"] = "Horários de Funcionamento";
 }
 
-<div class="container d-flex flex-column justify-content-center py-5" style="min-height: 80vh;">
+<div class="container d-flex flex-column justify-content-center py-4" style="min-height: 80vh;">
     @* Top row *@
-    <div class="row mb-4">
-        <div class="col-md-7">
+    <div class="row mb-4 align-items-center">
+        <div class="col-7">
             <h1 class="title-underline">@ViewData["Title"]</h1>
         </div>
-        <div class="col-md-5 text-end">
+        <div class="col-5 text-end">
             <a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4">
                 <i class="bi bi-arrow-left me-2"></i>Voltar
             </a>
@@ -19,10 +19,10 @@
     <div class="row w-100 justify-content-center g-4">
         @* Card do Bar *@
         <div class="col-12 col-md-6 col-lg-5">
-            <div class="card shadow-lg border-0 h-100 card-ips" style="border-radius: 10px; overflow: hidden;">
-                <div class="bg-color-ips py-4 text-center">
+            <div class="card card-ips shadow-lg border-0 rounded-3">
+                <div class="card-header bg-color-ips py-4 text-center border-0">
                     <h2 class="text-white fw-bold mb-0">
-                        <i class="bi bi-cup-hot-fill me-2"></i>Horário do Bar
+                        <i class="bi bi-cup-hot me-2"></i>Horário do Bar
                     </h2>
                 </div>
 
