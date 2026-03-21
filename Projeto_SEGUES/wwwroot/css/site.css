@@ -253,6 +253,31 @@ html {
     background-color: var(--ips-shadow-soft);
 }
 
+/* ============================================================
+   Global Table Header Styles (Força o Verde IPS em todas)
+   ============================================================ */
+
+/* Alvo direto nas células do cabeçalho quando o thead tem a tua classe */
+.table thead.bg-color-ips th {
+    background-color: var(--ips) !important;
+    color: white !important;
+    border-bottom: none !important;
+    padding-top: 15px !important;
+    padding-bottom: 15px !important;
+    font-weight: 600;
+}
+
+/* Garante que o cabeçalho fixo (sticky) não fique transparente ao fazer scroll */
+.table thead.position-sticky th {
+    top: 0;
+    z-index: 10;
+    background-color: var(--ips) !important;
+}
+
+/* Ajuste opcional: efeito hover nas linhas usando a tua variável de sombra */
+.table-hover tbody tr:hover {
+    background-color: var(--ips-shadow-soft) !important;
+}
 /* ========== 
    Responsive Design
    ========== */

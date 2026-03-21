@@ -36,20 +36,25 @@
         @* Purchase form *@
         <div class="col-lg-4">
             <div class="card shadow-sm card-ips mb-4">
-                <div class="card-header bg-white py-3 text-color-ips">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-cart-plus me-2"></i>Nova Compra</h5>
-                </div>
-                <div class="card-body">
-                    <div class="alert alert-light border-0 small mb-4" style="background-color: var(--ips-shadow-soft);">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-color-ips mb-4">
+                        <i class="bi bi-cart-plus me-2"></i>Nova Compra
+                    </h5>
+                    <hr class="opacity-75 mb-4">
+
+                    <div class="alert border-0 small mb-4" style="background-color: var(--ips-shadow-soft);">
                         Preço para o seu perfil: <strong class="text-color-ips fs-5">@price.ToString("C")</strong>
                     </div>
                     <form asp-area="Order" asp-controller="OrderTicket" asp-action="BuyTicket" method="post" id="purchaseTicketForm">
                         <div class="mb-4">
                             <label class="form-label small fw-bold">Quantidade:</label>
-                            <input type="number" name="quantity" id="quantityInput" data-unitprice="@price.ToString("F2", CultureInfo.InvariantCulture)" class="form-control border-2" min="1" value="1" step="1" @(balance < price ? "disabled" : "")/>
+                            <input type="number" name="quantity" id="quantityInput"
+                                   data-unitprice="@price.ToString("F2", CultureInfo.InvariantCulture)"
+                                   class="form-control border-secondary-subtle" min="1" value="1" step="1"
+                                   @(balance < price ? "disabled" : "") />
                         </div>
                         <div class="mb-3 small text-muted">
-                            Total: <strong id="totalValue">@price.ToString("C")</strong>
+                            Total: <strong id="totalValue" class="text-dark">@price.ToString("C")</strong>
                         </div>
                         <button type="submit" class="btn btn-ips w-100 py-2 fw-bold shadow-sm" id="submitPurchase"
                                 @(balance < price ? "disabled" : "")>
