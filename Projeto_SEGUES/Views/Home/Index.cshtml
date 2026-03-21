@@ -88,7 +88,7 @@ else
         <div class="row g-4">
             @* Balance Card *@
             <div class="col-md-6 col-lg-3">
-                <div class="card h-100 shadow-sm card-ips bg-color-ips text-white hover-translate d-flex flex-column">
+                <div class="card h-100 shadow-sm card-ips hover-shadow-ips bg-color-ips text-white hover-translate d-flex flex-column">
                     <div class="card-body text-center d-flex flex-column p-4">
                         <small class="d-block opacity-75 fw-bold mb-2 fs-4">Saldo Disponível</small>
                         <h2 class="display-6 fw-bold my-auto">@balance.ToString("C")</h2>
@@ -101,7 +101,7 @@ else
 
             @* Ticket Card *@
             <div class="col-md-6 col-lg-3">
-                <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
+                <div class="card h-100 shadow-sm card-ips hover-shadow-ips hover-translate d-flex flex-column">
                     <div class="card-body text-center d-flex flex-column p-4">
                         <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-cart-plus"></i></div>
                         <h5 class="fw-bold">Refeitório</h5>
@@ -115,7 +115,7 @@ else
 
             @* Bar Card *@
             <div class="col-md-6 col-lg-3">
-                <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
+                <div class="card h-100 shadow-sm card-ips hover-shadow-ips hover-translate d-flex flex-column">
                     <div class="card-body text-center d-flex flex-column p-4">
                         <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-cup-straw"></i></div>
                         <h5 class="fw-bold">Bar</h5>
@@ -129,7 +129,7 @@ else
 
             @* History Card *@
             <div class="col-md-6 col-lg-3">
-                <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
+                <div class="card h-100 shadow-sm card-ips hover-shadow-ips hover-translate d-flex flex-column">
                     <div class="card-body text-center d-flex flex-column p-4">
                         <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-clock-history"></i></div>
                         <h5 class="fw-bold">Histórico</h5>
@@ -145,7 +145,7 @@ else
             @if (User.IsInRole("Employee"))
             {
                 <div class="col-md-6 col-lg-3">
-                    <div class="card h-100 shadow-sm card-ips p-4 hover-translate">
+                    <div class="card h-100 shadow-sm card-ips hover-shadow-ips p-4 hover-translate">
                         <div class="card-body text-center d-flex flex-column p-0">
                             <div class="mb-3 text-color-ips" style="color: #009697; font-size: 2.5rem;">
                                 <i class="bi bi-person-badge"></i>
@@ -163,7 +163,7 @@ else
             @if (User.IsInRole("Admin"))
             {
                 <div class="col-12 mt-4">
-                    <div class="card shadow-lg card-admin p-4 hover-translate">
+                    <div class="card shadow-lg card-admin hover-shadow-ips p-4 hover-translate">
                         <div class="row align-items-center">
                             <div class="col-md-8">
                                 <h4 class="fw-bold mb-1"><i class="bi bi-shield-lock me-2"></i>Painel de Administração</h4>

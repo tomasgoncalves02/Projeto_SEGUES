@@ -58,6 +58,18 @@ button:hover {
 .input-group .form-floating {
     flex: 1 1 auto; /* Fill available space */
 }
+
+/* Table */
+
+.table>thead>tr>* {
+    color: white;
+    background-color: var(--ips);
+}
+
+.table-hover>tbody>tr:hover>* {
+    background-color: var(--ips-shadow-soft);
+}
+
 .table-responsive {
     overflow-y: auto !important;
 }
@@ -68,13 +80,16 @@ button:hover {
 ::-webkit-scrollbar {
     width: 0.7em;
 }
+
 ::-webkit-scrollbar-track {
     background-color: var(--ips-bg-light);
 }
+
 ::-webkit-scrollbar-thumb {
     background-color: var(--ips);
     border-radius: 5px;
 }
+
 html {
     scrollbar-width: auto;
     scrollbar-color: var(--ips) var(--ips-bg-light);
@@ -127,11 +142,6 @@ html {
 .card-ips {
     border: none !important;
     border-top: 6px solid var(--ips) !important;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.card-ips:hover, .card-admin:hover {
-    box-shadow: 0 1rem 3rem var(--ips-shadow-heavy) !important;
 }
 
 .card-ips-icon {
@@ -156,8 +166,20 @@ html {
     width: fit-content;
 }
 
+.hover-translate {
+    transition: transform 0.3s ease;
+}
+
 .hover-translate:hover {
     transform: translateY(-5px);
+}
+
+.hover-shadow-ips {
+    transition: box-shadow 0.3s ease;
+}
+
+.hover-shadow-ips:hover {
+    box-shadow: 0 1rem 3rem var(--ips-shadow-heavy) !important;
 }
 
 .card-admin {

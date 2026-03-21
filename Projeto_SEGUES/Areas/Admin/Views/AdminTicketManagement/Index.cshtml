@@ -26,7 +26,7 @@
         @foreach (var servico in new[] { "Almoço", "Jantar" })
         {
             <div class="col-lg-6">
-                <div class="card card-ips shadow-sm border-0 rounded-3 h-100">
+                <div class="card card-ips hover-shadow-ips shadow-sm border-0 rounded-3 h-100">
                     <div class="card-body p-4">
                         <h6 class="fw-bold mb-3 d-flex align-items-center" style="color: darkcyan;">
                             <i class="bi bi-clock me-2"></i> Definição de Horário: @servico
@@ -69,7 +69,7 @@
         <div class="row g-4 mb-4">
             @* Tabela de Preços *@
             <div class="col-lg-8">
-                <div class="card shadow-sm card-ips h-100">
+                <div class="card shadow-sm card-ips hover-shadow-ips h-100">
                     <div class="card-header bg-white py-3 border-bottom-0">
                         <h6 class="mb-0 fw-bold text-color-ips">
                             <i class="bi bi-currency-euro me-2"></i>Definição de Preçário
@@ -107,7 +107,7 @@
 
             @* Validade Global *@
             <div class="col-lg-4">
-                <div class="card shadow-sm card-ips h-100">
+                <div class="card shadow-sm card-ips hover-shadow-ips h-100">
                     <div class="card-header bg-white py-3 border-bottom-0">
                         <h6 class="mb-0 fw-bold text-color-ips">
                             <i class="bi bi-calendar-check me-2"></i>Validade Global
@@ -136,7 +136,7 @@
         </div>
     }
     @* --- SECÇÃO DE FILTROS DE AUDITORIA --- *@
-    <div class="card card-ips shadow-sm mb-4 border-0 rounded-3">
+    <div class="card card-ips hover-shadow-ips shadow-sm mb-4 border-0 rounded-3">
         <div class="card-body p-4">
             <form id="filterForm"
                   hx-get="/Admin/AdminTicketManagement/GetUpdatedAuditTable"
