@@ -7,10 +7,11 @@ namespace Projeto_SEGUES.Models.Audit
     public class UserLog
     {
         public int Id { get; init; }
-
-        [Required]
+        
+        public byte Level { get; set; }
+        
         [Display(Name = "Acção")]
-        public required UserAction UserAction { get; set; }
+        public UserAction? UserAction { get; set; }
 
         [Required]
         [MaxLength(250)]
@@ -20,12 +21,18 @@ namespace Projeto_SEGUES.Models.Audit
         [MaxLength(250)]
         [Display(Name = "Origem do pedido")]
         public string? RequestPath { get; set; }
+        
+        [MaxLength(250)]
+        [Display(Name = "Exceção")]
+        public string? Exception { get; set; }
 
         [DataType(DataType.DateTime)]
         [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
         [Display(Name = "Data")]
         public DateTime TimeStamp { get; set; }
 
-        public required AppUser AppUser { get; set; } // FK
+        public string? AppUserId { get; set; }
+        
+        public AppUser? AppUser { get; set; } // FK
     }
 }

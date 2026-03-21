@@ -151,7 +151,7 @@ namespace SeguesTests.Tickets
             var result = await controller.GetUpdatedActiveTickets();
 
             var partial = Assert.IsType<PartialViewResult>(result);
-            Assert.Equal("_ActiveTicketsCards", partial.ViewName);
+            Assert.Equal("_ActiveTicketsPartial", partial.ViewName);
         }
 
         // Returns a ChallengeResult if the user session is lost or invalid when accessing the canteen index
@@ -221,7 +221,7 @@ namespace SeguesTests.Tickets
             var result = await controller.GetUpdatedTickets();
 
             var partial = Assert.IsType<PartialViewResult>(result);
-            Assert.Equal("_TicketTable", partial.ViewName);
+            Assert.Equal("_TicketTablePartial", partial.ViewName);
         }
     }
 }

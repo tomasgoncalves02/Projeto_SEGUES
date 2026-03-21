@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.Localization;
 using Projeto_SEGUES.Models.Enums;
-using System.Net;
-using System.Text.Json;
 using Projeto_SEGUES.Resources;
 
 namespace Projeto_SEGUES.Middlewares;
@@ -10,16 +8,13 @@ public class GlobalExceptionMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<GlobalExceptionMiddleware> _logger;
-    private readonly IStringLocalizer<Errors> _localizer;
 
     public GlobalExceptionMiddleware(
         RequestDelegate next, 
-        ILogger<GlobalExceptionMiddleware> logger, 
-        IStringLocalizer<Errors> localizer)
+        ILogger<GlobalExceptionMiddleware> logger)
     {
         _next = next;
         _logger = logger;
-        _localizer = localizer;
     }
 
     public async Task InvokeAsync(HttpContext context)

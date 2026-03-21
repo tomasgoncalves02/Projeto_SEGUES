@@ -25,7 +25,7 @@ namespace Projeto_SEGUES.Resources {
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static System.Resources.ResourceManager ResourceManager {
+        public static System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.Equals(null, resourceMan)) {
                     System.Resources.ResourceManager temp = new System.Resources.ResourceManager("Projeto_SEGUES.Resources.Errors", typeof(Errors).Assembly);
@@ -36,7 +36,7 @@ namespace Projeto_SEGUES.Resources {
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static System.Globalization.CultureInfo Culture {
+        public static System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -45,337 +45,331 @@ namespace Projeto_SEGUES.Resources {
             }
         }
         
-        internal static string BadRequest {
+        public static string BadRequest {
             get {
                 return ResourceManager.GetString("BadRequest", resourceCulture);
             }
         }
         
-        internal static string Unauthorized {
+        public static string Unauthorized {
             get {
                 return ResourceManager.GetString("Unauthorized", resourceCulture);
             }
         }
         
-        internal static string Forbidden {
+        public static string Forbidden {
             get {
                 return ResourceManager.GetString("Forbidden", resourceCulture);
             }
         }
         
-        internal static string NotFound {
+        public static string NotFound {
             get {
                 return ResourceManager.GetString("NotFound", resourceCulture);
             }
         }
         
-        internal static string InternalServerError {
+        public static string InternalServerError {
             get {
                 return ResourceManager.GetString("InternalServerError", resourceCulture);
             }
         }
         
-        internal static string DatabaseConnectionError {
+        public static string DatabaseConnectionError {
             get {
                 return ResourceManager.GetString("DatabaseConnectionError", resourceCulture);
             }
         }
         
-        internal static string DatabaseQueryError {
+        public static string DatabaseQueryError {
             get {
                 return ResourceManager.GetString("DatabaseQueryError", resourceCulture);
             }
         }
         
-        internal static string DataNotFoundError {
+        public static string DataNotFoundError {
             get {
                 return ResourceManager.GetString("DataNotFoundError", resourceCulture);
             }
         }
         
-        internal static string ConcurrencyError {
+        public static string ConcurrencyError {
             get {
                 return ResourceManager.GetString("ConcurrencyError", resourceCulture);
             }
         }
         
-        internal static string InvalidCredentials {
+        public static string InvalidCredentials {
             get {
                 return ResourceManager.GetString("InvalidCredentials", resourceCulture);
             }
         }
         
-        internal static string UserNotFound {
+        public static string UserNotFound {
             get {
                 return ResourceManager.GetString("UserNotFound", resourceCulture);
             }
         }
         
-        internal static string InvalidToken {
+        public static string InvalidToken {
             get {
                 return ResourceManager.GetString("InvalidToken", resourceCulture);
             }
         }
         
-        internal static string UnauthorizedAccess {
-            get {
-                return ResourceManager.GetString("UnauthorizedAccess", resourceCulture);
-            }
-        }
-        
-        internal static string AccountLocked {
+        public static string AccountLocked {
             get {
                 return ResourceManager.GetString("AccountLocked", resourceCulture);
             }
         }
         
-        internal static string UserAlreadyRegistered {
+        public static string UserAlreadyRegistered {
             get {
                 return ResourceManager.GetString("UserAlreadyRegistered", resourceCulture);
             }
         }
         
-        internal static string InvalidOperation {
+        public static string InvalidOperation {
             get {
                 return ResourceManager.GetString("InvalidOperation", resourceCulture);
             }
         }
         
-        internal static string ValidationError {
+        public static string ValidationError {
             get {
                 return ResourceManager.GetString("ValidationError", resourceCulture);
             }
         }
         
-        internal static string InsufficientFunds {
+        public static string InsufficientFunds {
             get {
                 return ResourceManager.GetString("InsufficientFunds", resourceCulture);
             }
         }
         
-        internal static string EmailSenderError {
+        public static string EmailSenderError {
             get {
                 return ResourceManager.GetString("EmailSenderError", resourceCulture);
             }
         }
         
-        internal static string UnexpectedError {
+        public static string UnexpectedError {
             get {
                 return ResourceManager.GetString("UnexpectedError", resourceCulture);
             }
         }
         
-        internal static string InvalidQuantity {
+        public static string InvalidQuantity {
             get {
                 return ResourceManager.GetString("InvalidQuantity", resourceCulture);
             }
         }
         
-        internal static string PricingNotAvailable {
+        public static string PricingNotAvailable {
             get {
                 return ResourceManager.GetString("PricingNotAvailable", resourceCulture);
             }
         }
         
-        internal static string TicketNotFound {
+        public static string TicketNotFound {
             get {
                 return ResourceManager.GetString("TicketNotFound", resourceCulture);
             }
         }
         
-        internal static string TicketAlreadyUsed {
+        public static string TicketAlreadyUsed {
             get {
                 return ResourceManager.GetString("TicketAlreadyUsed", resourceCulture);
             }
         }
         
-        internal static string TicketExpired {
+        public static string TicketExpired {
             get {
                 return ResourceManager.GetString("TicketExpired", resourceCulture);
             }
         }
         
-        internal static string TicketNotAvailable {
+        public static string TicketNotAvailable {
             get {
                 return ResourceManager.GetString("TicketNotAvailable", resourceCulture);
             }
         }
         
-        internal static string SenderNotFound {
+        public static string SenderNotFound {
             get {
                 return ResourceManager.GetString("SenderNotFound", resourceCulture);
             }
         }
         
-        internal static string RecipientNotFound {
+        public static string RecipientNotFound {
             get {
                 return ResourceManager.GetString("RecipientNotFound", resourceCulture);
             }
         }
         
-        internal static string TransferToSelf {
+        public static string TransferToSelf {
             get {
                 return ResourceManager.GetString("TransferToSelf", resourceCulture);
             }
         }
         
-        internal static string CategoryMismatch {
+        public static string CategoryMismatch {
             get {
                 return ResourceManager.GetString("CategoryMismatch", resourceCulture);
             }
         }
         
-        internal static string TicketsNotOwned {
+        public static string TicketsNotOwned {
             get {
                 return ResourceManager.GetString("TicketsNotOwned", resourceCulture);
             }
         }
         
-        internal static string ProductCategoryNotFound {
+        public static string ProductCategoryNotFound {
             get {
                 return ResourceManager.GetString("ProductCategoryNotFound", resourceCulture);
             }
         }
         
-        internal static string ProductAlreadyExists {
+        public static string ProductAlreadyExists {
             get {
                 return ResourceManager.GetString("ProductAlreadyExists", resourceCulture);
             }
         }
         
-        internal static string ProductCreateError {
+        public static string ProductCreateError {
             get {
                 return ResourceManager.GetString("ProductCreateError", resourceCulture);
             }
         }
         
-        internal static string ProductNotFound {
+        public static string ProductNotFound {
             get {
                 return ResourceManager.GetString("ProductNotFound", resourceCulture);
             }
         }
         
-        internal static string ProductEditError {
+        public static string ProductEditError {
             get {
                 return ResourceManager.GetString("ProductEditError", resourceCulture);
             }
         }
         
-        internal static string ProductDeleteError {
+        public static string ProductDeleteError {
             get {
                 return ResourceManager.GetString("ProductDeleteError", resourceCulture);
             }
         }
         
-        internal static string CartEmpty {
+        public static string CartEmpty {
             get {
                 return ResourceManager.GetString("CartEmpty", resourceCulture);
             }
         }
         
-        internal static string SchedulePast {
+        public static string SchedulePast {
             get {
                 return ResourceManager.GetString("SchedulePast", resourceCulture);
             }
         }
         
-        internal static string InvalidPickupTime {
+        public static string InvalidPickupTime {
             get {
                 return ResourceManager.GetString("InvalidPickupTime", resourceCulture);
             }
         }
         
-        internal static string BarClosed {
+        public static string BarClosed {
             get {
                 return ResourceManager.GetString("BarClosed", resourceCulture);
             }
         }
         
-        internal static string InsufficientStock {
+        public static string InsufficientStock {
             get {
                 return ResourceManager.GetString("InsufficientStock", resourceCulture);
             }
         }
         
-        internal static string OrderProcessingError {
+        public static string OrderProcessingError {
             get {
                 return ResourceManager.GetString("OrderProcessingError", resourceCulture);
             }
         }
         
-        internal static string OrderCannotCancel {
+        public static string OrderCannotCancel {
             get {
                 return ResourceManager.GetString("OrderCannotCancel", resourceCulture);
             }
         }
         
-        internal static string OrderCancelError {
+        public static string OrderCancelError {
             get {
                 return ResourceManager.GetString("OrderCancelError", resourceCulture);
             }
         }
         
-        internal static string InvalidStatusTransition {
+        public static string InvalidStatusTransition {
             get {
                 return ResourceManager.GetString("InvalidStatusTransition", resourceCulture);
             }
         }
         
-        internal static string UseCancelFunction {
+        public static string UseCancelFunction {
             get {
                 return ResourceManager.GetString("UseCancelFunction", resourceCulture);
             }
         }
         
-        internal static string DatabaseUpdateError {
+        public static string DatabaseUpdateError {
             get {
                 return ResourceManager.GetString("DatabaseUpdateError", resourceCulture);
             }
         }
         
-        internal static string RedemptionCodeRequired {
+        public static string RedemptionCodeRequired {
             get {
                 return ResourceManager.GetString("RedemptionCodeRequired", resourceCulture);
             }
         }
         
-        internal static string InvalidRedemptionCode {
+        public static string InvalidRedemptionCode {
             get {
                 return ResourceManager.GetString("InvalidRedemptionCode", resourceCulture);
             }
         }
         
-        internal static string CodeExpired {
+        public static string CodeExpired {
             get {
                 return ResourceManager.GetString("CodeExpired", resourceCulture);
             }
         }
         
-        internal static string IncorrectCode {
+        public static string IncorrectCode {
             get {
                 return ResourceManager.GetString("IncorrectCode", resourceCulture);
             }
         }
         
-        internal static string ResendEmailError {
+        public static string ResendEmailError {
             get {
                 return ResourceManager.GetString("ResendEmailError", resourceCulture);
             }
         }
         
-        internal static string EmailAlreadyRegistered {
+        public static string EmailAlreadyRegistered {
             get {
                 return ResourceManager.GetString("EmailAlreadyRegistered", resourceCulture);
             }
         }
         
-        internal static string SendActivationEmailError {
+        public static string SendActivationEmailError {
             get {
                 return ResourceManager.GetString("SendActivationEmailError", resourceCulture);
             }
         }
         
-        internal static string InvalidTimeFormat {
+        public static string InvalidTimeFormat {
             get {
                 return ResourceManager.GetString("InvalidTimeFormat", resourceCulture);
             }

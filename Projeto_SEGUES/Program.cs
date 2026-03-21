@@ -64,21 +64,32 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Update global config for Identity
 builder.Configuration[$"ConnectionStrings:{connectionName}"] = connectionString;
 
-var columnOptions = new ColumnOptions
+var commonColumns = new Collection<SqlColumn>
 {
-    AdditionalColumns = new Collection<SqlColumn>
-    {
-        // Common
-        new() { ColumnName = "AppUserId", DataType = SqlDbType.NVarChar, DataLength = 450, AllowNull = true },
-        new() { ColumnName = "RequestPath", DataType = SqlDbType.NVarChar, DataLength = 250, AllowNull = true },
-        // UserLog
-        new() { ColumnName = "UserAction", DataType = SqlDbType.TinyInt, AllowNull = false },
-        // ErrorLog
-        new() { ColumnName = "Table", DataType = SqlDbType.TinyInt, AllowNull = false },
-        new() { ColumnName = "Operation", DataType = SqlDbType.TinyInt, AllowNull = false }
-    }
+    new() { ColumnName = "AppUserId", DataType = SqlDbType.NVarChar, DataLength = 450, AllowNull = true },
+    new() { ColumnName = "RequestPath", DataType = SqlDbType.NVarChar, DataLength = 250, AllowNull = true }
 };
-columnOptions.Level.StoreAsEnum = true;
+
+void ConfigureBaseOptions(ColumnOptions options) {
+    options.Level.StoreAsEnum = true;
+    options.Store.Remove(StandardColumn.MessageTemplate);
+    options.Store.Remove(StandardColumn.Properties);
+    options.TimeStamp.DataType = SqlDbType.DateTime2;
+}
+
+var errorColumnOptions = new ColumnOptions();
+errorColumnOptions.AdditionalColumns = new Collection<SqlColumn>(commonColumns.ToList());
+errorColumnOptions.AdditionalColumns.Add(new()
+    { ColumnName = "DbTable", DataType = SqlDbType.TinyInt, AllowNull = true });
+errorColumnOptions.AdditionalColumns.Add(new()
+    { ColumnName = "Operation", DataType = SqlDbType.TinyInt, AllowNull = true });
+ConfigureBaseOptions(errorColumnOptions);
+
+var userColumnOptions = new ColumnOptions();
+userColumnOptions.AdditionalColumns = new Collection<SqlColumn>(commonColumns.ToList());
+userColumnOptions.AdditionalColumns.Add(new()
+    { ColumnName = "UserAction", DataType = SqlDbType.TinyInt, AllowNull = true });
+ConfigureBaseOptions(userColumnOptions);
 
 builder.Host.UseSerilog((ctx, configuration) =>
     configuration.ReadFrom.Configuration(ctx.Configuration)
@@ -90,7 +101,7 @@ builder.Host.UseSerilog((ctx, configuration) =>
             .WriteTo.MSSqlServer(
                 connectionString: connectionString,
                 sinkOptions: new MSSqlServerSinkOptions { TableName = "UserLog", AutoCreateSqlTable = false },
-                columnOptions: columnOptions
+                columnOptions: userColumnOptions
             )
         )
         // ErrorLog: Capture exceptions and database errors
@@ -99,16 +110,7 @@ builder.Host.UseSerilog((ctx, configuration) =>
             .WriteTo.MSSqlServer(
                 connectionString: connectionString,
                 sinkOptions: new MSSqlServerSinkOptions { TableName = "ErrorLog", AutoCreateSqlTable = false },
-                columnOptions: columnOptions
-            )
-        )
-        // DbStats: Logging performance and storage metrics
-        .WriteTo.Logger(lc => lc
-            .Filter.ByIncludingOnly(Matching.WithProperty("LogType", "DbStats"))
-            .WriteTo.MSSqlServer(
-                connectionString: connectionString,
-                sinkOptions: new MSSqlServerSinkOptions { TableName = "DbStats", AutoCreateSqlTable = false },
-                columnOptions: columnOptions
+                columnOptions: errorColumnOptions
             )
         )
         // Default System Logs
@@ -117,10 +119,11 @@ builder.Host.UseSerilog((ctx, configuration) =>
             .WriteTo.MSSqlServer(
                 connectionString: connectionString,
                 sinkOptions: new MSSqlServerSinkOptions { TableName = "ErrorLog", AutoCreateSqlTable = false },
-                columnOptions: columnOptions
+                columnOptions: errorColumnOptions
             )
         )
 );
+Serilog.Debugging.SelfLog.Enable(Console.Error);
 
 // Identity
 builder.Services.AddIdentity<AppUser, Role>(options =>
@@ -217,27 +220,10 @@ localizationOptions.RequestCultureProviders.Clear();
 app.UseRequestLocalization(localizationOptions);
 // Rest of pipeline after localization!
 
-// Logging
-app.UseSerilogRequestLogging();
-app.Use(async (context, next) =>
-{
-    // Grab the user identity (or set to Anonymous if not logged in)
-    string userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "Anonymous";
-    string requestPath = context.Request.Path;
-
-    // Push these properties to Serilog's context for the duration of the request
-    using (LogContext.PushProperty("UserId", userId))
-    using (LogContext.PushProperty("RequestPath", requestPath))
-    {
-        await next();
-    }
-});
-
 // Handle Internal Server Errors
 if (app.Environment.IsDevelopment())
 {
-    // app.UseDeveloperExceptionPage(); TODO: Remove when done testing
-    app.UseMiddleware<GlobalExceptionMiddleware>();
+    app.UseDeveloperExceptionPage();
 }
 else
 {
@@ -271,6 +257,10 @@ app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Logging
+app.UseSerilogRequestLogging();
+app.UseMiddleware<RequestLoggingMiddleware>();
 
 // Routing
 app.MapControllerRoute(

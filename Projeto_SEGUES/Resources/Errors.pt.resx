@@ -102,7 +102,7 @@
         <value>Token inválido ou expirado.</value>
     </data>
     <data name="AccountLocked" xml:space="preserve">
-        <value>Conta bloqueada para o utilizador durante {Operation}.</value>
+        <value>Conta bloqueada para o utilizador.</value>
     </data>
     <data name="UserAlreadyRegistered" xml:space="preserve">
         <value>Falha no registo: O utilizador já existe.</value>

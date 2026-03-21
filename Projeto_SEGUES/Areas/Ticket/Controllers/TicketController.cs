@@ -75,7 +75,7 @@ public class TicketController : Controller
         var tickets = await _ticketService.GetUserTicketsAsync(userId);
 
         // Certifica-te que a vista está em Views/Shared/ para ser encontrada aqui
-        return PartialView("_TicketTable", tickets);
+        return PartialView("_TicketTablePartial", tickets);
     }
 
     [HttpGet]
@@ -88,7 +88,7 @@ public class TicketController : Controller
         var activeTickets = await _ticketService.GetActiveTicketsAsync(user.Id);
 
         // Retorna apenas a Partial View para o htmx atualizar os cartões
-        return PartialView("_ActiveTicketsCards", activeTickets);
+        return PartialView("_ActiveTicketsPartial", activeTickets);
     }
 
 

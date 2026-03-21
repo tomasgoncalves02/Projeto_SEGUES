@@ -7,6 +7,7 @@ using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using System.Diagnostics;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
+using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Resources;
 
 namespace Projeto_SEGUES.Controllers
@@ -41,7 +42,7 @@ namespace Projeto_SEGUES.Controllers
             // Check if logged
             if (User.Identity is not { IsAuthenticated: true }) return View();
 
-            // If logged load data for view
+            // If logged, load data for view
             var user = await _userManager.GetUserAsync(User);
 
             if (user != null)
@@ -58,7 +59,9 @@ namespace Projeto_SEGUES.Controllers
             }
             else
             {
-                _logger.LogError(null, _localizer[nameof(AppErrors.UserNotFound)], "Error", TableName.Identity, AppOperation.Read);
+                _logger.LogAppError(
+                    Errors.ResourceManager.GetString(nameof(AppErrors.UserNotFound), System.Globalization.CultureInfo.InvariantCulture),
+                    TableName.Identity, AppOperation.Read);
             }
 
             return View();
@@ -76,13 +79,14 @@ namespace Projeto_SEGUES.Controllers
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
+        public IActionResult Error(AppErrors? errorCode = null)
         {
+            AppErrors code = errorCode ?? AppErrors.InternalServerError;
             return View(new ErrorViewModel
             {
                 RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier,
-                ErrorMessage = _localizer[nameof(AppErrors.InternalServerError)].Value,
-                ErrorCode = AppErrors.InternalServerError
+                ErrorCode = code,
+                ErrorMessage =  _localizer[nameof(code)].Value,
             });
         }
     }

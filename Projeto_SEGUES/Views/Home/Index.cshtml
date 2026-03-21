@@ -1,9 +1,10 @@
 ﻿@using Microsoft.AspNetCore.Identity
+@using Projeto_SEGUES.Areas.Order.ViewModels
 @inject SignInManager<Projeto_SEGUES.Models.User.AppUser> SignInManager
 
 @{
     ViewData["Title"] = "Página Inicial - SEGUES";
-    var cartTotal = ViewBag.CartTotal;
+    OrderTotalViewModel cartTotal = ViewBag.CartTotal;
 }
 
 @if (!SignInManager.IsSignedIn(User))

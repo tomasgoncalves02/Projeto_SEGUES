@@ -81,7 +81,7 @@
                                hx-get="/Ticket/Ticket/GetUpdatedTickets"
                                hx-trigger="every 30s"
                                hx-swap="innerHTML">
-                        <partial name="_TicketTable" model="Model" />
+                        <partial name="~/Areas/Ticket/Views/Ticket/_TicketTablePartial.cshtml" model="Model" />
                         </tbody>
                     </table>
                 </div>

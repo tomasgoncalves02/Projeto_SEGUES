@@ -1,6 +1,6 @@
 namespace Projeto_SEGUES.Models.Enums;
 
-public enum AppOperation
+public enum AppOperation : byte
 {
     Create,
     Read,

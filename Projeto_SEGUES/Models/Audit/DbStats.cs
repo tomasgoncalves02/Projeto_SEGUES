@@ -9,7 +9,7 @@ namespace Projeto_SEGUES.Models.Audit
         [Required]
         [MaxLength(100)]
         [Display(Name = "Tabela")]
-        public required string Table { get; set; }
+        public required string DbTable { get; set; }
 
         [Range(0, int.MaxValue)]
         [Display(Name = "Linhas")]

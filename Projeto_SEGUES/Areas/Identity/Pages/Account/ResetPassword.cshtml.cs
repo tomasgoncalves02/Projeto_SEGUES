@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Projeto_SEGUES.Models.User;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
+using Projeto_SEGUES.Extensions;
 
 namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 {
@@ -73,7 +74,8 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         {
             if (email == null || code == null)
             {
-                return BadRequest("Um código deve ser fornecido para redefinir a senha.");
+                TempData.SetSwalError("Um código deve ser fornecido para redefinir a senha.");
+                return RedirectToAction("Error", "Home", new { area = "" });
             }
             Input = new InputModel
             {
