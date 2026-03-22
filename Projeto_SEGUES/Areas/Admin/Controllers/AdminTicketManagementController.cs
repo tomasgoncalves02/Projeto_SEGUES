@@ -219,7 +219,6 @@ public class AdminTicketManagementController : Controller
 
         try
         {
-            throw new Exception("Falha simulada na base de dados");
             BarCanteenConfigViewModel vm = serviceName == "Almoço"
                 ? new() { CanteenLunchOpeningTime = openTime, CanteenLunchClosingTime = closeTime }
                 : new() { CanteenDinnerOpeningTime = openTime, CanteenDinnerClosingTime = closeTime };
@@ -251,7 +250,6 @@ public class AdminTicketManagementController : Controller
     {
         try
         {
-            throw new Exception();
             var history = await _ticketService.GetAllTicketsAsync();
             var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo-ips.png");
 
