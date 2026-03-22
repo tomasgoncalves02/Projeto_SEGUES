@@ -1,19 +1,21 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
+using Projeto_SEGUES.Resources;
 using Projeto_SEGUES.Services;
 
 namespace Projeto_SEGUES.Areas.Order;
 
 /// <summary>
-/// Controller responsável pela gestão e visualização dos pedidos ativos do utilizador autenticado.
+/// Controller responsible for managing and viewing the authenticated user's active orders.
 /// </summary>
 /// <remarks>
-/// Este controlador permite que os utilizadores consultem o estado dos seus pedidos em curso, 
-/// visualizem detalhes específicos e realizem o cancelamento de pedidos, desde que as regras de negócio o permitam.
+/// This controller allows users to check the status of their ongoing orders, 
+/// view specific details, and perform order cancellations when permitted by business rules.
 /// </remarks>
 [Area("Order")]
 [Authorize]
@@ -21,81 +23,125 @@ public class ActiveOrderController : Controller
 {
     private readonly UserManager<AppUser> _userManager;
     private readonly IOrderService _orderService;
+    private readonly ILogger<ActiveOrderController> _logger;
+    private readonly IStringLocalizer<Errors> _localizer;
 
     /// <summary>
-    /// Inicializa uma nova instância do controlador com os serviços de utilizador e pedidos.
+    /// Initializes a new instance of the controller with user, order, logging, and localization services.
     /// </summary>
-    /// <param name="userManager">Gestor de utilizadores do ASP.NET Core Identity.</param>
-    /// <param name="orderService">Serviço de lógica de negócio para operações de encomendas.</param>
-    public ActiveOrderController(UserManager<AppUser> userManager, IOrderService orderService)
+    public ActiveOrderController(
+        UserManager<AppUser> userManager,
+        IOrderService orderService,
+        ILogger<ActiveOrderController> logger,
+        IStringLocalizer<Errors> localizer)
     {
         _userManager = userManager;
         _orderService = orderService;
+        _logger = logger;
+        _localizer = localizer;
     }
 
     /// <summary>
-    /// Apresenta a lista de pedidos ativos (em processamento ou prontos) do utilizador.
+    /// Displays the list of active orders (processing or ready) for the current user.
     /// </summary>
-    /// <returns>A View principal com a coleção de pedidos ativos filtrada pelo ID do utilizador logado.</returns>
+    /// <returns>The Index View with the active orders collection. Redirects to error on query failure.</returns>
     public async Task<IActionResult> Index()
     {
-        var userId = _userManager.GetUserId(User);
-        return View(await _orderService.GetActiveOrdersAsync(userId!));
+        try
+        {
+            var userId = _userManager.GetUserId(User);
+            if (string.IsNullOrEmpty(userId)) return Challenge();
+
+            var orders = await _orderService.GetActiveOrdersAsync(userId);
+            return View(orders);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro fatal ao carregar Index de Pedidos Ativos.");
+            return RedirectToAction("Error", "Home", new { area = "", errorCode = (int)AppErrors.DatabaseQueryError });
+        }
     }
 
     /// <summary>
-    /// Endpoint otimizado para HTMX que devolve apenas os cartões de pedidos ativos.
+    /// Optimized endpoint for HTMX that returns only the active order cards for UI updates.
     /// </summary>
-    /// <returns>Uma PartialView contendo a representação visual atualizada das encomendas.</returns>
-    /// <remarks>
-    /// Utilizado para polling ou atualizações em tempo real na interface sem necessidade de recarregar a página completa.
-    /// </remarks>
+    /// <returns>A PartialView with updated cards or 500 status on failure.</returns>
     [HttpGet]
     public async Task<IActionResult> GetUpdatedActiveOrders()
     {
-        var userId = _userManager.GetUserId(User);
-        return PartialView("_ActiveOrdersCards", await _orderService.GetActiveOrdersAsync(userId!));
+        try
+        {
+            var userId = _userManager.GetUserId(User);
+            var orders = await _orderService.GetActiveOrdersAsync(userId!);
+            return PartialView("_ActiveOrdersCards", orders);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogAppError($"Erro AJAX em ActiveOrders: {ex.Message}", TableName.Order, AppOperation.Read);
+            return StatusCode(500);
+        }
     }
 
     /// <summary>
-    /// Apresenta os detalhes detalhados de uma encomenda específica.
+    /// Displays detailed information for a specific order with ownership validation.
     /// </summary>
-    /// <param name="id">Identificador único da encomenda.</param>
-    /// <returns>A View de detalhes, ou redirecionamento com erro caso a encomenda não exista ou não pertença ao utilizador.</returns>
-    /// <remarks>
-    /// Inclui validação de segurança para garantir que um utilizador não acede a detalhes de pedidos de terceiros.
-    /// </remarks>
+    /// <param name="id">Unique order identifier.</param>
+    /// <returns>Details View or redirect if the order is not found or doesn't belong to the user.</returns>
     [HttpGet]
     public async Task<IActionResult> OrderDetails(int id)
     {
-        var order = await _orderService.GetOrderByIdAsync(id);
-        if (order == null || !order.Status.IsActive() || order.AppUser.Id != _userManager.GetUserId(User))
+        try
         {
-            TempData.SetSwalError("Pedido não encontrado.");
-            return RedirectToAction(nameof(Index));
+            var order = await _orderService.GetOrderByIdAsync(id);
+            var currentUserId = _userManager.GetUserId(User);
+
+            if (order == null || !order.Status.IsActive() || order.AppUser.Id != currentUserId)
+            {
+                TempData.SetSwalError("O pedido solicitado não foi encontrado ou não tem permissão para o ver.");
+                return RedirectToAction(nameof(Index));
+            }
+
+            ViewBag.TotalQuantity = _orderService.GetOrderTotal(order).TotalQuantity;
+            return View(order);
         }
-        ViewBag.TotalQuantity = _orderService.GetOrderTotal(order).TotalQuantity;
-        return View(order);
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Erro ao carregar detalhes do pedido {id}.");
+            return RedirectToAction("Error", "Home", new { area = "", errorCode = (int)AppErrors.DatabaseQueryError });
+        }
     }
 
     /// <summary>
-    /// Processa o pedido de cancelamento de uma encomenda ativa.
+    /// Processes the cancellation request for an active order based on time and status rules.
     /// </summary>
-    /// <param name="id">ID da encomenda a cancelar.</param>
-    /// <returns>Redireciona para o índice com mensagem de sucesso ou erro (via SweetAlert).</returns>
-    /// <remarks>
-    /// O cancelamento depende das regras implementadas no <see cref="IOrderService"/> (ex: tempo limite ou estado atual).
-    /// </remarks>
+    /// <param name="id">ID of the order to cancel.</param>
+    /// <returns>Redirects to index with a success or error SweetAlert.</returns>
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> CancelOrder(int id)
     {
-        var result = await _orderService.CancelOrderAsync(id);
-        if (!result.Success)
+        try
         {
-            TempData.SetSwalError(result.Message);
+            var result = await _orderService.CancelOrderAsync(id);
+
+            if (!result.Success)
+            {
+                TempData.SetSwalError(result.Message);
+                return RedirectToAction(nameof(Index));
+            }
+
+            TempData.SetSwalSuccess(result.Message);
             return RedirectToAction(nameof(Index));
         }
-        TempData.SetSwalSuccess(result.Message);
-        return RedirectToAction(nameof(Index));
+        catch (Exception ex)
+        {
+            _logger.LogAppError($"Erro ao cancelar pedido {id}: {ex.Message}", TableName.Order, AppOperation.Update);
+
+            var erroEnum = AppErrors.OrderCancelError;
+            var msg = $"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";
+
+            TempData.SetSwalError(msg);
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

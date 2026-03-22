@@ -1,45 +1,53 @@
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Extensions;
+using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Payment;
 using Projeto_SEGUES.Models.User;
+using Projeto_SEGUES.Resources;
 using Stripe.Checkout;
 
 namespace Projeto_SEGUES.Areas.Payment
 {
     /// <summary>
-    /// Controller responsável por gerir os pagamentos e carregamentos de saldo via Stripe.
+    /// Controller responsible for managing payments and balance top-ups via Stripe.
     /// </summary>
     /// <remarks>
-    /// Este controlador lida com a criação de sessões de checkout, processamento de confirmações 
-    /// de sucesso e gestão de transações pendentes na base de dados.
+    /// This controller handles checkout session creation, success confirmation processing, 
+    /// and management of pending transactions in the database.
     /// </remarks>
     [Area("Payment")]
+    [Authorize]
     public class PaymentController : Controller
     {
         private readonly AppDbContext _context;
-        private readonly IHttpClientFactory _clientFactory;
         private readonly UserManager<AppUser> _userManager;
+        private readonly ILogger<PaymentController> _logger;
+        private readonly IStringLocalizer<Errors> _localizer;
 
         /// <summary>
-        /// Inicializa uma nova instância do controlador de pagamentos.
+        /// Initializes a new instance of the payment controller with database context, identity, logging, and localization.
         /// </summary>
-        /// <param name="context">Contexto da base de dados para registo de transações.</param>
-        /// <param name="clientFactory">Fábrica de clientes HTTP.</param>
-        /// <param name="userManager">Gestor de utilizadores para identificação do cliente e atualização de saldo.</param>
-        public PaymentController(AppDbContext context, IHttpClientFactory clientFactory, UserManager<AppUser> userManager)
+        public PaymentController(
+            AppDbContext context,
+            UserManager<AppUser> userManager,
+            ILogger<PaymentController> logger,
+            IStringLocalizer<Errors> localizer)
         {
             _context = context;
-            _clientFactory = clientFactory;
             _userManager = userManager;
+            _logger = logger;
+            _localizer = localizer;
         }
 
         /// <summary>
-        /// Apresenta a página inicial para escolha do valor de carregamento.
+        /// Displays the initial page for choosing the top-up amount.
         /// </summary>
-        /// <returns>A View de depósito.</returns>
+        /// <returns>The Deposit View.</returns>
         [HttpGet]
         public IActionResult Deposit()
         {
@@ -47,109 +55,128 @@ namespace Projeto_SEGUES.Areas.Payment
         }
 
         /// <summary>
-        /// Cria uma sessão de Checkout no Stripe e regista uma transação pendente no sistema.
+        /// Creates a Stripe Checkout session and records a pending transaction in the system.
         /// </summary>
-        /// <param name="amount">Valor monetário a carregar na conta.</param>
-        /// <returns>Redirecionamento para o formulário de pagamento seguro do Stripe.</returns>
-        /// <remarks>
-        /// Gera uma referência única para a transação e define os URLs de retorno para sucesso ou cancelamento.
-        /// </remarks>
+        /// <param name="amount">Monetary value to charge to the account.</param>
+        /// <returns>Redirect to Stripe's secure payment form or an error page on failure.</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateCheckoutSession(decimal amount)
         {
             if (amount <= 0)
-                return BadRequest("Dados inválidos.");
-
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-                return Challenge();
-
-            var currency = "eur";
-
-            var transaction = new Transaction
             {
-                User = user,
-                Amount = Convert.ToDecimal(amount),
-                Reference = Guid.NewGuid().ToString().Substring(0, 8).ToUpper(),
-                IsPaid = false
-            };
+                TempData.SetSwalError("O valor de carregamento deve ser superior a zero.");
+                return RedirectToAction(nameof(Deposit));
+            }
 
-            _context.Set<Transaction>().Add(transaction);
-            await _context.SaveChangesAsync();
-
-            var options = new SessionCreateOptions
+            try
             {
-                PaymentMethodTypes = new List<string> { "card" },
-                LineItems = new List<SessionLineItemOptions>
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null) return Challenge();
+
+                var transaction = new Transaction
                 {
-                new SessionLineItemOptions
+                    User = user,
+                    Amount = amount,
+                    Reference = Guid.NewGuid().ToString().Substring(0, 8).ToUpper(),
+                    IsPaid = false,
+                    CreatedAt = DateTime.Now // Assumindo que tens este campo para auditoria
+                };
+
+                _context.Set<Transaction>().Add(transaction);
+                await _context.SaveChangesAsync();
+
+                var options = new SessionCreateOptions
                 {
-                    PriceData = new SessionLineItemPriceDataOptions
+                    PaymentMethodTypes = new List<string> { "card" },
+                    LineItems = new List<SessionLineItemOptions>
                     {
-                        Currency = currency,
-                        UnitAmount = (long)(Convert.ToDecimal(amount) * 100), // Stripe usa cêntimos
-                        ProductData = new SessionLineItemPriceDataProductDataOptions
+                        new SessionLineItemOptions
                         {
-                            Name = "Carregar Saldo",
-                            Description = $"Carregamento de saldo no valor de {amount:C2} para a conta SEGUES."
+                            PriceData = new SessionLineItemPriceDataOptions
+                            {
+                                Currency = "eur", 
+                                UnitAmount = (long)(amount * 100),
+                                ProductData = new SessionLineItemPriceDataProductDataOptions
+                                {
+                                    Name = "Carregar Saldo - SEGUES",
+                                    Description = $"Carregamento de conta no valor de {amount:C2}"
+                                }
+                            },
+                            Quantity = 1
                         }
                     },
-                    Quantity = 1
-                }
-                },
-                Mode = "payment",
-                SuccessUrl = Url.Action("SuccessPayment", "Payment", new { reference = transaction.Reference }, Request.Scheme),
-                CancelUrl = Url.Action("CancelPayment", "Payment", null, Request.Scheme)
-            };
+                    Mode = "payment",
+                    SuccessUrl = Url.Action("SuccessPayment", "Payment", new { reference = transaction.Reference }, Request.Scheme),
+                    CancelUrl = Url.Action("CancelPayment", "Payment", null, Request.Scheme)
+                };
 
-            var service = new SessionService();
-            var session = service.Create(options);
+                var service = new SessionService();
+                var session = await service.CreateAsync(options);
 
-            return Redirect(session.Url);
+                return Redirect(session.Url);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogAppError($"Erro ao criar sessão Stripe: {ex.Message}", TableName.Payment, AppOperation.Create);
+
+                var erroEnum = AppErrors.InternalServerError;
+                var msg = $"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";
+
+                TempData.SetSwalError(msg);
+                return RedirectToAction(nameof(Deposit));
+            }
         }
 
         /// <summary>
-        /// Processa a confirmação de pagamento bem-sucedido vinda do Stripe.
+        /// Processes the success confirmation from Stripe and updates user balance.
         /// </summary>
-        /// <param name="reference">Referência interna da transação gerada no início do processo.</param>
-        /// <returns>Redireciona para a Home com mensagem de sucesso e saldo atualizado.</returns>
-        /// <remarks>
-        /// Este método valida a transação, marca-a como paga e incrementa o saldo (Balance) do utilizador.
-        /// </remarks>
+        /// <param name="reference">Internal transaction reference generated at the start.</param>
+        /// <returns>Redirect to Home with success notification or error message.</returns>
         [HttpGet]
         public async Task<IActionResult> SuccessPayment(string reference)
         {
-            var transaction = await _context.Transaction
-                .Include(t => t.User)
-                .FirstOrDefaultAsync(t => t.Reference == reference && !t.IsPaid);
-
-            if (transaction != null)
+            try
             {
-                var user = transaction.User;
-                user.Balance += transaction.Amount;
-                transaction.IsPaid = true;
+                var transaction = await _context.Transaction
+                    .Include(t => t.User)
+                    .FirstOrDefaultAsync(t => t.Reference == reference && !t.IsPaid);
 
-                _context.Users.Update(user);
-                await _context.SaveChangesAsync();
+                if (transaction != null)
+                {
+                    var user = transaction.User;
+                    user.Balance += transaction.Amount;
+                    transaction.IsPaid = true;
 
-                TempData.SetSwalSuccess($"Foram carregados {transaction.Amount:C2} com sucesso!");
+                    _context.Users.Update(user);
+                    await _context.SaveChangesAsync();
 
+                    TempData.SetSwalSuccess($"Foram carregados {transaction.Amount:C2} com sucesso!");
+                    return RedirectToAction("Index", "Home", new { area = "" });
+                }
+
+                TempData.SetSwalError("Transação não encontrada ou já processada.");
                 return RedirectToAction("Index", "Home", new { area = "" });
             }
+            catch (Exception ex)
+            {
+                _logger.LogAppError($"Erro crítico ao confirmar pagamento {reference}: {ex.Message}", TableName.Payment, AppOperation.Update);
 
-            TempData.SetSwalError("Pagamento não encontrado ou já processado.");
-            return RedirectToAction("Index", "Home", new { area = "" });
+                var erroEnum = AppErrors.DatabaseUpdateError;
+                var msg = $"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";
+
+                TempData.SetSwalError(msg);
+                return RedirectToAction("Index", "Home", new { area = "" });
+            }
         }
 
         /// <summary>
-        /// Gere o retorno do utilizador quando o pagamento é cancelado ou interrompido.
+        /// Handles the return when a payment is canceled or interrupted.
         /// </summary>
-        /// <returns>Redireciona para a Home com uma notificação de cancelamento.</returns>
         [HttpGet]
         public IActionResult CancelPayment()
         {
-            TempData.SetSwalError("Pagamento cancelado.");
+            TempData.SetSwalInfo("O processo de pagamento foi cancelado pelo utilizador.");
             return RedirectToAction("Index", "Home", new { area = "" });
         }
     }

@@ -1,18 +1,21 @@
-using Microsoft.AspNetCore.Authorization;
+ï»¿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using Projeto_SEGUES.Extensions;
+using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
+using Projeto_SEGUES.Resources;
 using Projeto_SEGUES.Services;
 
 namespace Projeto_SEGUES.Areas.Order;
 
 /// <summary>
-/// Controller responsável pela aquisição e visualização de senhas (tickets) de refeição.
+/// Controller responsible for acquiring and viewing meal tickets (senhas).
 /// </summary>
 /// <remarks>
-/// Este controlador gere o inventário pessoal de senhas do utilizador e o processo de compra,
-/// interagindo com o serviço de tickets para validar preços e saldos.
+/// This controller manages the user's personal ticket inventory and the purchase process,
+/// interacting with the ticket service to validate prices and user balances.
 /// </remarks>
 [Authorize]
 [Area("Order")]
@@ -20,53 +23,67 @@ public class OrderTicketController : Controller
 {
     private readonly ITicketService _ticketService;
     private readonly UserManager<AppUser> _userManager;
+    private readonly ILogger<OrderTicketController> _logger;
+    private readonly IStringLocalizer<Errors> _localizer;
 
     /// <summary>
-    /// Inicializa uma nova instância do controlador com os serviços de senhas e utilizadores.
+    /// Initializes a new instance of the controller with ticket, user, logging, and localization services.
     /// </summary>
-    /// <param name="ticketService">Serviço de lógica de negócio para gestão de senhas.</param>
-    /// <param name="userManager">Gestor de utilizadores para acesso ao perfil e categoria do utilizador.</param>
-    public OrderTicketController(ITicketService ticketService, UserManager<AppUser> userManager)
+    public OrderTicketController(
+        ITicketService ticketService,
+        UserManager<AppUser> userManager,
+        ILogger<OrderTicketController> logger,
+        IStringLocalizer<Errors> localizer)
     {
         _ticketService = ticketService;
         _userManager = userManager;
+        _logger = logger;
+        _localizer = localizer;
     }
 
     /// <summary>
-    /// Apresenta a página de gestão de senhas do utilizador autenticado.
+    /// Displays the ticket management page for the authenticated user.
     /// </summary>
     /// <returns>
-    /// A View com a lista de senhas pertencentes ao utilizador e informações de preço/saldo no ViewBag.
-    /// Devolve um desafio de autenticação (Challenge) caso o utilizador não seja encontrado.
+    /// A View with the user's tickets and price/balance info. 
+    /// Redirects to the error page if data retrieval fails.
     /// </returns>
-    /// <remarks>
-    /// O preço da senha é determinado dinamicamente com base na categoria do utilizador (Aluno, Docente, Funcionário).
-    /// </remarks>
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null) return Challenge();
+        try
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
 
-        // Obter o preço atual para a categoria deste utilizador
-        decimal currentPrice = await _ticketService.GetCurrentPriceForUserAsync(user);
+            // Obter o preÃ§o atual para a categoria deste utilizador
+            decimal currentPrice = await _ticketService.GetCurrentPriceForUserAsync(user);
 
-        ViewBag.UserBalance = user.Balance;
-        ViewBag.CurrentPrice = currentPrice;
+            ViewBag.UserBalance = user.Balance;
+            ViewBag.CurrentPrice = currentPrice;
 
-        // Obter a lista de senhas deste utilizador
-        var myTickets = await _ticketService.GetUserTicketsAsync(user.Id);
-        return View(myTickets);
+            // Obter a lista de senhas deste utilizador
+            var myTickets = await _ticketService.GetUserTicketsAsync(user.Id);
+            return View(myTickets);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro fatal ao carregar o inventÃ¡rio de senhas.");
+
+            // 1001 - DatabaseQueryError
+            return RedirectToAction("Error", "Home", new
+            {
+                area = "",
+                errorCode = (int)AppErrors.DatabaseQueryError
+            });
+        }
     }
 
     /// <summary>
-    /// Processa a compra de uma ou mais senhas de refeição.
+    /// Processes the purchase of one or more meal tickets.
     /// </summary>
-    /// <param name="quantity">Quantidade de senhas a adquirir (por defeito 1).</param>
-    /// <returns>Redireciona para o índice com a mensagem de sucesso ou erro (via SweetAlert).</returns>
-    /// <remarks>
-    /// A lógica de transação, incluindo o abate no saldo e a geração das senhas, é delegada ao serviço <see cref="ITicketService"/>.
-    /// </remarks>
+    /// <param name="quantity">Number of tickets to purchase (default is 1).</param>
+    /// <returns>Redirects to Index with a success or error message via SweetAlert.</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> BuyTicket(int quantity = 1)
@@ -74,13 +91,31 @@ public class OrderTicketController : Controller
         var userId = _userManager.GetUserId(User);
         if (string.IsNullOrEmpty(userId)) return Challenge();
 
-        var result = await _ticketService.BuyTicketsAsync(userId, quantity);
+        try
+        {
+            var result = await _ticketService.BuyTicketsAsync(userId, quantity);
 
-        if (result.Success)
-            TempData.SetSwalSuccess(result.Message);
-        else
-            TempData.SetSwalError(result.Message);
+            if (result.Success)
+            {
+                TempData.SetSwalSuccess(result.Message);
+            }
+            else
+            {
+                TempData.SetSwalError(result.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogAppError($"Erro crÃ­tico na compra de senhas para o utilizador {userId}: {ex.Message}",
+                                TableName.Ticket,
+                                AppOperation.Create);
 
+            // 1004 - DatabaseUpdateError
+            var erroEnum = AppErrors.DatabaseUpdateError;
+            var msg = $"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";
+
+            TempData.SetSwalError(msg);
+        }
         return RedirectToAction(nameof(Index));
     }
 }

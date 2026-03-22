@@ -23,5 +23,6 @@ public enum TableName : byte
     Transaction,
     User,
     UserCategory,
-    UserLog
+    UserLog,
+    Payment
 }
