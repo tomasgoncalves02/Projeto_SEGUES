@@ -1,18 +1,21 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Data;
+using Projeto_SEGUES.Extensions;
+using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
+using Projeto_SEGUES.Resources;
 
 namespace Projeto_SEGUES.Areas.Report.Controllers;
 
 /// <summary>
-/// Controller responsável pela geração de relatórios de movimentos financeiros do utilizador.
+/// Controller responsible for generating user financial movement reports.
 /// </summary>
 /// <remarks>
-/// Este controlador gere a consulta e filtragem do histórico de transações, permitindo ao utilizador
-/// auditar os seus carregamentos de saldo e débitos efetuados no sistema SEGUES.
+/// This controller manages the query and filtering of transaction history, allowing users
+/// to audit their top-ups and debits performed within the SEGUES system.
 /// </remarks>
 [Authorize]
 [Area("Report")]
@@ -20,85 +23,103 @@ public class ReportTransactionController : Controller
 {
     private readonly UserManager<AppUser> _userManager;
     private readonly AppDbContext _context;
+    private readonly ILogger<ReportTransactionController> _logger;
 
     /// <summary>
-    /// Inicializa uma nova instância do controlador de relatórios de transações.
+    /// Initializes a new instance of the transaction report controller.
     /// </summary>
-    /// <param name="userManager">Gestor de utilizadores para obter o contexto do utilizador autenticado.</param>
-    /// <param name="context">Contexto da base de dados para acesso à tabela de transações.</param>
-    public ReportTransactionController(UserManager<AppUser> userManager, AppDbContext context)
+    public ReportTransactionController(
+        UserManager<AppUser> userManager,
+        AppDbContext context,
+        ILogger<ReportTransactionController> logger)
     {
         _userManager = userManager;
         _context = context;
+        _logger = logger;
     }
 
     /// <summary>
-    /// Apresenta a página principal do histórico de movimentos financeiros.
+    /// Displays the main page for financial movement history.
     /// </summary>
-    /// <returns>A View de índice populada com a lista de transações do utilizador logado.</returns>
-    /// <remarks>
-    /// As transações são carregadas com Eager Loading para a entidade <see cref="AppUser"/> 
-    /// e ordenadas por data de criação descendente.
-    /// </remarks>
+    /// <returns>
+    /// The Index View populated with the logged-in user's transaction list.
+    /// Redirects to a global error page if the database query fails.
+    /// </returns>
     public async Task<IActionResult> Index()
     {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null) return Challenge();
-        var transactions = await _context.Transaction
-            .Include(t => t.User)
-            .Where(t => t.User.Id == user.Id)
-            .OrderByDescending(t => t.CreatedAt)
-            .ToListAsync();
+        try
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
 
-        return View(transactions);
+            var transactions = await _context.Transaction
+                .Include(t => t.User)
+                .Where(t => t.User.Id == user.Id)
+                .OrderByDescending(t => t.CreatedAt)
+                .ToListAsync();
+
+            return View(transactions);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro fatal ao carregar o histórico de transações.");
+
+            return RedirectToAction("Error", "Home", new
+            {
+                area = "",
+                errorCode = (int)AppErrors.DatabaseQueryError
+            });
+        }
     }
 
     /// <summary>
-    /// Filtra o histórico de transações com base em critérios de pesquisa, tipo e data.
+    /// Filters the transaction history based on search criteria, type, and date.
     /// </summary>
-    /// <param name="searchString">Termo de pesquisa para a descrição ou referência da transação.</param>
-    /// <param name="typeFilter">Filtro para movimentos de "Entrada" (positivos) ou "Saida" (negativos).</param>
-    /// <param name="dateFilter">Data mínima para a inclusão de resultados no relatório.</param>
-    /// <returns>Uma PartialView contendo as linhas da tabela filtradas.</returns>
-    /// <remarks>
-    /// Este método utiliza <see cref="IQueryable"/> para construir a consulta de forma eficiente 
-    /// antes da execução na base de dados. É ideal para integração com componentes HTMX.
-    /// </remarks>
+    /// <param name="searchString">Search term for transaction description or reference.</param>
+    /// <param name="typeFilter">Filter for "In" (positive) or "Out" (negative) movements.</param>
+    /// <param name="dateFilter">Minimum date for inclusion in the report.</param>
+    /// <returns>A PartialView containing the filtered table rows, or 500 status on error.</returns>
     [HttpGet]
-    public async Task<IActionResult> GetFilteredBalance(string searchString, string typeFilter, DateTime? dateFilter)
+    public async Task<IActionResult> GetFilteredBalance(string? searchString, string? typeFilter, DateTime? dateFilter)
     {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null) return Unauthorized();
-
-        // Inicialização da Query base associada ao utilizador
-        var query = _context.Transaction
-            .Include(t => t.User)
-            .Where(t => t.User.Id == user.Id)
-            .AsQueryable();
-
-        // Filtragem por texto (Case-insensitive)
-        if (!string.IsNullOrEmpty(searchString))
+        try
         {
-            var search = searchString.ToLower();
-            query = query.Where(t => t.Description!.ToLower().Contains(search) ||
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var query = _context.Transaction
+                .Include(t => t.User)
+                .Where(t => t.User.Id == user.Id)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                var search = searchString.ToLower();
+                query = query.Where(t => t.Description!.ToLower().Contains(search) ||
                                      t.Reference.ToLower().Contains(search));
-        }
+            }
 
-        // Filtragem por fluxo financeiro
-        if (!string.IsNullOrEmpty(typeFilter))
+            if (!string.IsNullOrEmpty(typeFilter))
+            {
+                if (typeFilter == "Entrada") query = query.Where(t => t.Amount > 0);
+                else if (typeFilter == "Saida") query = query.Where(t => t.Amount < 0);
+            }
+
+            if (dateFilter.HasValue)
+            {
+                query = query.Where(t => t.CreatedAt.Date >= dateFilter.Value.Date);
+            }
+
+            var result = await query.OrderByDescending(t => t.CreatedAt).ToListAsync();
+
+            return PartialView("_BalanceHistoryRows", result);
+        }
+        catch (Exception ex)
         {
-            if (typeFilter == "Entrada") query = query.Where(t => t.Amount > 0);
-            else if (typeFilter == "Saida") query = query.Where(t => t.Amount < 0);
+            _logger.LogAppError($"Erro AJAX na filtragem de balanço: {ex.Message}", TableName.Payment, AppOperation.Read);
+
+            var msg = $"{Errors.DatabaseQueryError} [Erro: {(int)AppErrors.DatabaseQueryError}]";
+            return StatusCode(500, new { failMessage = msg });
         }
-
-        // Filtragem cronológica
-        if (dateFilter.HasValue)
-        {
-            query = query.Where(t => t.CreatedAt.Date >= dateFilter.Value.Date);
-        }
-
-        var result = await query.OrderByDescending(t => t.CreatedAt).ToListAsync();
-
-        return PartialView("_BalanceHistoryRows", result);
     }
 }
