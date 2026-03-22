@@ -295,6 +295,15 @@ namespace Projeto_SEGUES.Resources {
         }
         
         /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a Please select at least one item to proceed..
+        /// </summary>
+        public static string NoItemsSelected {
+            get {
+                return ResourceManager.GetString("NoItemsSelected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Consulta uma cadeia de caracteres localizada semelhante a Resource not found..
         /// </summary>
         public static string NotFound {
@@ -390,6 +399,15 @@ namespace Projeto_SEGUES.Resources {
         public static string ProductNotFound {
             get {
                 return ResourceManager.GetString("ProductNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a The recipient&apos;s email is required.
+        /// </summary>
+        public static string RecipientEmailRequired {
+            get {
+                return ResourceManager.GetString("RecipientEmailRequired", resourceCulture);
             }
         }
         
