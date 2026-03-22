@@ -303,32 +303,36 @@ public class AdminUserManagementController : Controller
     public async Task<IActionResult> StaffLog(string search, string date)
     {
         try
-        {
-            var query = _context.UserLog.Include(l => l.AppUser).AsQueryable();
+        {          
+            var employeeUsers = await _userManager.GetUsersInRoleAsync("Employee");
+            var employeeIds = employeeUsers.Select(u => u.Id).ToList();
+
+            var query = _context.UserLog
+                .Include(l => l.AppUser)
+                .Where(l => l.AppUser != null && employeeIds.Contains(l.AppUser.Id))
+                .AsQueryable();
 
             if (!string.IsNullOrEmpty(search))
-                query = query.Where(l => l.AppUser.UserName.Contains(search) || l.Message.Contains(search));
-
+            {
+                query = query.Where(l => l.AppUser.UserName.Contains(search) ||
+                                         l.Message.Contains(search) ||
+                                         l.AppUser.FirstName.Contains(search));
+            }
             if (!string.IsNullOrEmpty(date) && DateTime.TryParse(date, out DateTime parsedDate))
+            {
                 query = query.Where(l => l.TimeStamp.Date == parsedDate.Date);
+            }
 
             var logs = await query.OrderByDescending(l => l.TimeStamp).ToListAsync();
+
             return View(logs);
         }
         catch (Exception ex)
         {
-            _logger.LogAppError(
-                AppErrors.DatabaseQueryError,
-                TableName.UserLog,
-                AppOperation.Read, 
-                ex
-            );
+            _logger.LogAppError(AppErrors.DatabaseQueryError, TableName.UserLog, AppOperation.Read, ex);
 
-            return RedirectToAction("Error", "Home", new
-            {
-                area = "",
-                errorCode = AppErrors.DatabaseQueryError 
-            });
+            TempData.SetSwalError($"{Errors.DatabaseQueryError} [Erro: {(int)AppErrors.DatabaseQueryError}]");
+            return RedirectToAction("Index", "Admin", new { area = "Admin" });
         }
     }
 }
