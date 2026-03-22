@@ -44,6 +44,7 @@ public class AdminInventoryManagementController : Controller
     /// <returns>The index View populated with current categories and products.</returns>
     public async Task<IActionResult> Index()
     {
+        //throw new Exception("Falha simulada no SQL ao criar produto.");
         try
         {
             ViewBag.Categories = await _inventoryService.GetAllCategoriesForDropdownAsync();
@@ -52,6 +53,7 @@ public class AdminInventoryManagementController : Controller
         }
         catch (Exception ex)
         {
+            // REDIRECT: Se falhar a carregar a lista base, a página é inútil.
             _logger.LogAppError($"Error loading inventory index: {ex.Message}", TableName.Product, AppOperation.Read);
             return RedirectToAction("Error", "Home", new { area = "", errorCode = (int)AppErrors.DatabaseQueryError });
         }
@@ -71,7 +73,7 @@ public class AdminInventoryManagementController : Controller
         catch (Exception ex)
         {
             _logger.LogAppError($"Error retrieving partial product list: {ex.Message}", TableName.Product, AppOperation.Read);
-            return StatusCode(500); // Internal Server Error for AJAX requests
+            return StatusCode(500); // Erro 500 para chamadas AJAX
         }
     }
 
@@ -84,12 +86,13 @@ public class AdminInventoryManagementController : Controller
     {
         if (!ModelState.IsValid)
         {
-            TempData.SetSwalError("Could not register product. Please verify the input fields.");
+            TempData.SetSwalError("Não foi possível registar o produto. Verifique os campos.");
             return RedirectToAction(nameof(Index));
         }
 
         try
         {
+            throw new Exception("Falha simulada no SQL ao criar produto.");
             var result = await _inventoryService.CreateProductAsync(productViewModel);
             if (result.Success)
             {
@@ -99,14 +102,18 @@ public class AdminInventoryManagementController : Controller
             {
                 TempData.SetSwalError(result.Message);
             }
+            return RedirectToAction(nameof(Index));
         }
         catch (Exception ex)
         {
             _logger.LogAppError($"Critical error creating product ({productViewModel.Name}): {ex.Message}", TableName.Product, AppOperation.Create);
-            return RedirectToAction("Error", "Home", new { area = "", errorCode = (int)AppErrors.ProductCreateErrror });
-        }
 
-        return RedirectToAction(nameof(Index));
+            var erroEnum = AppErrors.ProductCreateError;
+            var msg = $"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";
+
+            TempData.SetSwalError(msg);
+            return RedirectToAction(nameof(Index));
+        }
     }
 
     /// <summary>
@@ -149,10 +156,9 @@ public class AdminInventoryManagementController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(ProductViewModel productViewModel)
     {
-        ViewBag.Categories = await _inventoryService.GetAllCategoriesForDropdownAsync();
-
         if (!ModelState.IsValid)
         {
+            ViewBag.Categories = await _inventoryService.GetAllCategoriesForDropdownAsync();
             TempData.SetSwalError("Não foi possível atualizar o produto. Verifique os campos.");
             return View(productViewModel);
         }
@@ -163,19 +169,24 @@ public class AdminInventoryManagementController : Controller
             if (result.Success)
             {
                 TempData.SetSwalSuccess(result.Message);
+                return RedirectToAction(nameof(Index));
             }
-            else
-            {
-                TempData.SetSwalError(result.Message);
-            }
+
+            TempData.SetSwalError(result.Message);
+            ViewBag.Categories = await _inventoryService.GetAllCategoriesForDropdownAsync();
+            return View(productViewModel);
         }
         catch (Exception ex)
         {
             _logger.LogAppError($"Critical error updating product ID {productViewModel.Id}: {ex.Message}", TableName.Product, AppOperation.Update);
-            return RedirectToAction("Error", "Home", new { area = "", errorCode = (int)AppErrors.ProductEditError });
-        }
 
-        return View(productViewModel);
+            var erroEnum = AppErrors.ProductEditError;
+            var msg = $"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";
+
+            TempData.SetSwalError(msg);
+            ViewBag.Categories = await _inventoryService.GetAllCategoriesForDropdownAsync();
+            return View(productViewModel);
+        }
     }
 
     /// <summary>
@@ -196,14 +207,18 @@ public class AdminInventoryManagementController : Controller
             {
                 TempData.SetSwalSuccess(result.Message);
             }
+            return RedirectToAction(nameof(Index));
         }
         catch (Exception ex)
-        {
+        {       
             _logger.LogAppError($"Critical error deleting product ID {id}: {ex.Message}", TableName.Product, AppOperation.Delete);
-            return RedirectToAction("Error", "Home", new { area = "", errorCode = (int)AppErrors.ProductDeleteError });
-        }
 
-        return RedirectToAction(nameof(Index));
+            var erroEnum = AppErrors.ProductDeleteError;
+            var msg = $"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";
+
+            TempData.SetSwalError(msg);
+            return RedirectToAction(nameof(Index));
+        }
     }
 
     /// <summary>
@@ -224,13 +239,17 @@ public class AdminInventoryManagementController : Controller
             {
                 TempData.SetSwalSuccess(result.Message);
             }
+            return RedirectToAction(nameof(Index));
         }
         catch (Exception ex)
         {
             _logger.LogAppError($"Critical error reactivating product ID {id}: {ex.Message}", TableName.Product, AppOperation.Update);
-            return RedirectToAction("Error", "Home", new { area = "", errorCode = (int)AppErrors.DatabaseUpdateError });
-        }
 
-        return RedirectToAction(nameof(Index));
+            var erroEnum = AppErrors.DatabaseUpdateError;
+            var msg = $"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";
+
+            TempData.SetSwalError(msg);
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

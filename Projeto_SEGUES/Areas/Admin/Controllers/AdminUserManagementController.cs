@@ -15,11 +15,13 @@ using AppErrors = Projeto_SEGUES.Models.Enums.AppErrors;
 namespace Projeto_SEGUES.Areas.Admin;
 
 /// <summary>
-/// Controller responsible for user management within the administrative area.
+/// Controlador responsável pela gestão administrativa de utilizadores, permissões e auditoria.
 /// </summary>
 /// <remarks>
-/// This controller allows listing, detailing, editing, activating, and deactivating user accounts, 
-/// in addition to managing permissions (roles), categories, and viewing staff audit logs.
+/// Centraliza operações críticas como edição de perfis, gestão de saldos, alteração de cargos (Roles)
+/// e visualização de logs de sistema. Implementa uma política rigorosa de tratamento de erros:
+/// falhas de carregamento redirecionam para a página de erro global, enquanto falhas de operação 
+/// disparam alertas contextuais (SweetAlert).
 /// </remarks>
 [Area("Admin")]
 [Authorize(Roles = "Admin")]
@@ -32,12 +34,14 @@ public class AdminUserManagementController : Controller
     private readonly IStringLocalizer<Errors> _localizer;
 
     /// <summary>
-    /// Initializes a new instance of the controller with Identity, administration, and data context services.
+    /// Inicializa uma nova instância do controlador injetando serviços de Identity, Auditoria e Localização.
     /// </summary>
-    /// <param name="userManager">Native ASP.NET Identity service for user management.</param>
-    /// <param name="adminService">Custom service containing administrative business logic.</param>
-    /// <param name="context">Database context for direct queries (e.g., Logs).</param>
-    public AdminUserManagementController(UserManager<AppUser> userManager, IAdminService adminService, AppDbContext context, ILogger<AdminUserManagementController> logger, IStringLocalizer<Errors> localizer)
+    public AdminUserManagementController(
+        UserManager<AppUser> userManager,
+        IAdminService adminService,
+        AppDbContext context,
+        ILogger<AdminUserManagementController> logger,
+        IStringLocalizer<Errors> localizer)
     {
         _userManager = userManager;
         _adminService = adminService;
@@ -47,98 +51,118 @@ public class AdminUserManagementController : Controller
     }
 
     /// <summary>
-    /// Lists the system users with support for search and filters.
+    /// Lista os utilizadores do sistema com suporte a pesquisa por texto e filtros de cargo/categoria.
     /// </summary>
-    /// <param name="searchString">Search term (name or email).</param>
-    /// <param name="roleFilter">Filter by role type (Admin, Staff, Client).</param>
-    /// <param name="categoryFilter">Filter by user category (Student, Faculty, etc.).</param>
-    /// <returns>The index View with the filtered collection of users.</returns>
+    /// <param name="searchString">Termo de pesquisa (Nome ou Email).</param>
+    /// <param name="roleFilter">Filtro por cargo (Admin, Staff, Client).</param>
+    /// <param name="categoryFilter">Filtro por categoria (Ex: Aluno, Docente).</param>
+    /// <returns>View Index com a coleção filtrada. Redireciona para Error Home em caso de falha na BD.</returns>
     public async Task<IActionResult> Index(string? searchString, string? roleFilter, string? categoryFilter)
     {
-        var users = await _adminService.GetFilteredUsersAsync(searchString, roleFilter, categoryFilter);
-        ViewData["SearchString"] = searchString;
-        ViewData["CurrentRole"] = roleFilter;
-        ViewData["CurrentCategory"] = categoryFilter;
+        try
+        {           
+            var users = await _adminService.GetFilteredUsersAsync(searchString, roleFilter, categoryFilter);
+            ViewData["SearchString"] = searchString;
+            ViewData["CurrentRole"] = roleFilter;
+            ViewData["CurrentCategory"] = categoryFilter;
 
-        ViewBag.Roles = await _adminService.GetAllRolesForDropdownAsync();
-        ViewBag.Categories = await _adminService.GetAllCategoriesForDropdownAsync();
-        return View(users);
+            ViewBag.Roles = await _adminService.GetAllRolesForDropdownAsync();
+            ViewBag.Categories = await _adminService.GetAllCategoriesForDropdownAsync();
+            return View(users);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Falha ao listar utilizadores no Index.");
+            return RedirectToAction("Error", "Home", new { area = "", errorCode = (int)AppErrors.DatabaseQueryError });
+        }
     }
 
     /// <summary>
-    /// Displays the complete details of a specific user.
+    /// Apresenta o perfil detalhado de um utilizador, incluindo estado de conta e metadados formatados.
     /// </summary>
-    /// <param name="id">The unique identifier (GUID) of the user.</param>
-    /// <returns>The details View or NotFound if the user does not exist.</returns>
-    /// <remarks>
-    /// Translates enums and states to Portuguese and defines dynamic CSS classes for the interface.
-    /// </remarks>
+    /// <param name="id">GUID do utilizador.</param>
+    /// <returns>View de Detalhes ou NotFound. Falhas técnicas redirecionam para a página de erro.</returns>
     public async Task<IActionResult> Details(string id)
     {
-        var user = await _userManager.Users
-            .Include(u => u.UserCategory)
-            .FirstOrDefaultAsync(u => u.Id == id);
-
-        if (user == null) return NotFound();
-
-        var roles = await _userManager.GetRolesAsync(user);
-        var userRoleRaw = roles.FirstOrDefault() ?? "Client";
-        var allRoles = await _adminService.GetAllRolesForDropdownAsync();
-
-        ViewBag.UserRole = allRoles.Find(r => r.Value == userRoleRaw)?.Text ?? userRoleRaw;
-        ViewBag.UserRoleRaw = userRoleRaw;
-
-        ViewBag.GenderPT = user.Gender switch
+        try
         {
-            Gender.Male => "Masculino",
-            Gender.Female => "Feminino",
-            Gender.Other => "Outro",
-            _ => "Não especificado"
-        };
+            var user = await _userManager.Users
+                .Include(u => u.UserCategory)
+                .FirstOrDefaultAsync(u => u.Id == id);
 
-        ViewBag.StatusPT = user.Status == UserStatus.Active ? "ATIVO" : "INATIVO";
-        ViewBag.StatusClass = user.Status == UserStatus.Active ? "bg-success" : "bg-danger";
-        ViewBag.StatusIcon = user.Status == UserStatus.Active ? "bi-check-circle" : "bi-x-circle";
+            if (user == null) return NotFound();
 
-        return View(user);
+            var roles = await _userManager.GetRolesAsync(user);
+            var userRoleRaw = roles.FirstOrDefault() ?? "Client";
+            var allRoles = await _adminService.GetAllRolesForDropdownAsync();
+
+            ViewBag.UserRole = allRoles.Find(r => r.Value == userRoleRaw)?.Text ?? userRoleRaw;
+            ViewBag.UserRoleRaw = userRoleRaw;
+
+            ViewBag.GenderPT = user.Gender switch
+            {
+                Gender.Male => "Masculino",
+                Gender.Female => "Feminino",
+                Gender.Other => "Outro",
+                _ => "Não especificado"
+            };
+
+            ViewBag.StatusPT = user.Status == UserStatus.Active ? "ATIVO" : "INATIVO";
+            ViewBag.StatusClass = user.Status == UserStatus.Active ? "bg-success" : "bg-danger";
+            ViewBag.StatusIcon = user.Status == UserStatus.Active ? "bi-check-circle" : "bi-x-circle";
+
+            return View(user);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Erro ao recuperar detalhes do utilizador {id}.");
+            return RedirectToAction("Error", "Home", new { area = "", errorCode = (int)AppErrors.DatabaseQueryError });
+        }
     }
 
     /// <summary>
-    /// Displays the user edit form.
+    /// Prepara o formulário de edição de utilizador com dados atuais e listas de seleção.
     /// </summary>
-    /// <param name="id">The ID of the user to edit.</param>
-    /// <returns>View with the pre-filled ViewModel for editing.</returns>
+    /// <param name="id">ID do utilizador a editar.</param>
     [HttpGet]
     public async Task<IActionResult> Edit(string id)
     {
-        var user = await _userManager.FindByIdAsync(id);
-        if (user == null) return NotFound();
-
-        var roles = await _userManager.GetRolesAsync(user);
-        ViewBag.Roles = await _adminService.GetAllRolesForDropdownAsync();
-        ViewBag.Categories = await _adminService.GetAllCategoriesForDropdownAsync();
-
-        return View(new EditUserViewModelAdmin
+        try
         {
-            Id = user.Id,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Email = user.Email,
-            Gender = user.Gender,
-            BirthDate = user.BirthDate,
-            Balance = user.Balance,
-            Role = roles.FirstOrDefault() ?? "Client",
-            Category = user.UserCategory.Name
-        });
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            var roles = await _userManager.GetRolesAsync(user);
+            ViewBag.Roles = await _adminService.GetAllRolesForDropdownAsync();
+            ViewBag.Categories = await _adminService.GetAllCategoriesForDropdownAsync();
+
+            return View(new EditUserViewModelAdmin
+            {
+                Id = user.Id,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                Gender = user.Gender,
+                BirthDate = user.BirthDate,
+                Balance = user.Balance,
+                Role = roles.FirstOrDefault() ?? "Client",
+                Category = user.UserCategory?.Name
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Erro ao carregar edição para {id}.");
+            return RedirectToAction("Error", "Home", new { area = "", errorCode = (int)AppErrors.DatabaseQueryError });
+        }
     }
 
     /// <summary>
-    /// Processes changes to a user's data, category, and role.
+    /// Persiste as alterações no utilizador, gere a troca de cargos (Roles) e solicita confirmação se o email mudar.
     /// </summary>
-    /// <param name="model">ViewModel with updated data.</param>
-    /// <returns>Redirects to Index upon success.</returns>
+    /// <param name="model">ViewModel com os dados submetidos para atualização.</param>
     /// <remarks>
-    /// If the Role is changed, the SecurityStamp is updated to force a refresh of the user's claims.
+    /// Implementa uma lógica de e-mail pendente: se o endereço mudar, o sistema não o altera 
+    /// imediatamente na base de dados, mas envia um pedido de confirmação para o novo endereço.
     /// </remarks>
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -146,205 +170,172 @@ public class AdminUserManagementController : Controller
     {
         if (!ModelState.IsValid)
         {
-            ViewBag.Roles = await _adminService.GetNonClientRolesForDropdownAsync();
+            ViewBag.Roles = await _adminService.GetAllRolesForDropdownAsync();
             ViewBag.Categories = await _adminService.GetAllCategoriesForDropdownAsync();
             return View(model);
         }
-
-        var user = await _userManager.FindByIdAsync(model.Id);
-        if (user == null) return NotFound();
-
-        string? pendingEmail = null;
-        if (model.Email != user.Email)
+        try
         {
-            var emailExists = await _userManager.FindByEmailAsync(model.Email);
-            if (emailExists != null)
+            var user = await _userManager.FindByIdAsync(model.Id);
+            if (user == null) return NotFound();
+            string? pendingEmail = null;
+            if (model.Email != user.Email)
             {
-                ModelState.AddModelError("Email", "Este email já está em uso.");
-                ViewBag.Roles = await _adminService.GetAllRolesForDropdownAsync();
-                ViewBag.Categories = await _adminService.GetAllCategoriesForDropdownAsync();
-                return View(model);
+                var emailExists = await _userManager.FindByEmailAsync(model.Email);
+                if (emailExists != null)
+                {
+                    ModelState.AddModelError("Email", "Este email já está em uso por outra conta.");
+                    ViewBag.Roles = await _adminService.GetAllRolesForDropdownAsync();
+                    ViewBag.Categories = await _adminService.GetAllCategoriesForDropdownAsync();
+                    return View(model);
+                }
+                pendingEmail = model.Email;
             }
-            pendingEmail = model.Email;
+            user.FirstName = model.FirstName;
+            user.LastName = model.LastName;
+            user.Balance = model.Balance;
+            user.Gender = model.Gender;
+            user.BirthDate = model.BirthDate;
+            user.UserCategory = (await _adminService.GetCategoryByNameAsync(model.Category)) ?? user.UserCategory;
+
+            var result = await _userManager.UpdateAsync(user);
+
+            if (result.Succeeded)
+            {
+                var oldRoles = await _userManager.GetRolesAsync(user);
+                await _userManager.RemoveFromRolesAsync(user, oldRoles);
+                await _userManager.AddToRoleAsync(user, model.Role);
+                await _userManager.UpdateSecurityStampAsync(user);
+
+                if (!string.IsNullOrEmpty(pendingEmail))
+                {
+                    try
+                    {
+                        await _adminService.RequestEmailChangeAsync(user, pendingEmail, Url, Request.Scheme);
+                        TempData.SetSwalInfo("Utilizador atualizado! O link de confirmação foi enviado para o novo e-mail.");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogAppError($"Erro ao enviar e-mail de confirmação para {pendingEmail}: {ex.Message}", TableName.User, AppOperation.Other);
+
+                        var erroEmail = AppErrors.EmailSenderError;
+                        TempData.SetSwalError($"{_localizer[erroEmail.ToString()].Value} [Erro: {(int)erroEmail}]");
+                        return RedirectToAction(nameof(Index));
+                    }
+                }
+                else
+                {
+                    TempData.SetSwalSuccess("Utilizador atualizado com sucesso.");
+                }
+
+                return RedirectToAction(nameof(Index));
+            }
+            foreach (var error in result.Errors) ModelState.AddModelError("", error.Description);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogAppError($"Erro crítico na edição do utilizador {model.Id}: {ex.Message}", TableName.User, AppOperation.Update);
+
+            var erroEnum = AppErrors.DatabaseUpdateError;
+            TempData.SetSwalError($"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]");
         }
 
-        user.FirstName = model.FirstName;
-        user.LastName = model.LastName;
-        user.Balance = model.Balance;
-        user.Gender = model.Gender;
-        user.BirthDate = model.BirthDate;
-        user.UserCategory = (await _adminService.GetCategoryByNameAsync(model.Category)) ?? user.UserCategory;
-
-        var result = await _userManager.UpdateAsync(user);
-
-        if (result.Succeeded)
-        {
-            var oldRoles = await _userManager.GetRolesAsync(user);
-            await _userManager.RemoveFromRolesAsync(user, oldRoles);
-            await _userManager.AddToRoleAsync(user, model.Role);
-
-
-            await _userManager.UpdateSecurityStampAsync(user);
-
-            bool emailSentSuccessfully = false;
-
-            if (!string.IsNullOrEmpty(pendingEmail))
-            {
-                try
-                {
-                    await _adminService.RequestEmailChangeAsync(user, pendingEmail, Url, Request.Scheme);
-                    emailSentSuccessfully = true;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex,
-                        Errors.ResourceManager.GetString(nameof(AppErrors.EmailSenderError), System.Globalization.CultureInfo.InvariantCulture),
-                        "Error", TableName.All, AppOperation.Other);
-                    TempData.SetSwalError(_localizer[nameof(AppErrors.EmailSenderError)].Value);
-                    return RedirectToAction(nameof(Index));
-                }
-            }
-
-            if (emailSentSuccessfully)
-            {
-                TempData.SetSwalInfo("Utilizador atualizado! Foi enviado um link de confirmação para o novo email.");
-            }
-            else
-            {
-                TempData.SetSwalSuccess("Utilizador atualizado com sucesso.");
-            }
-
-            return RedirectToAction(nameof(Index));
-        }
-        foreach (var error in result.Errors) ModelState.AddModelError("", error.Description);
-        ViewBag.Roles = await _adminService.GetNonClientRolesForDropdownAsync();
+        ViewBag.Roles = await _adminService.GetAllRolesForDropdownAsync();
         ViewBag.Categories = await _adminService.GetAllCategoriesForDropdownAsync();
         return View(model);
     }
 
     /// <summary>
-    /// Deactivates a user, preventing login through permanent Lockout.
+    /// Desativa um utilizador e aplica um Lockout permanente.
     /// </summary>
-    /// <param name="id">The ID of the user to deactivate.</param>
-    /// <returns>Redirects to Index with the result of the operation.</returns>
-    /// <remarks>Prevents the administrator from deactivating their own account.</remarks>
+    /// <remarks>Impede a auto-desativação para evitar perda de acesso administrativo.</remarks>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Deactivate(string id)
     {
-        var user = await _userManager.FindByIdAsync(id);
-        if (user == null)
+        try
         {
-            TempData.SetSwalError("Utilizador não encontrado.");
-            return RedirectToAction(nameof(Index));
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                TempData.SetSwalError("O utilizador indicado não foi encontrado.");
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (user.UserName == User.Identity?.Name)
+            {
+                TempData.SetSwalError("Medida de segurança: Não podes desativar a tua própria conta.");
+                return RedirectToAction(nameof(Index));
+            }
+
+            user.Status = UserStatus.Inactive;
+            await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.MaxValue);
+            await _userManager.UpdateAsync(user);
+
+            TempData.SetSwalSuccess($"A conta de {user.FirstName} foi desativada.");
         }
-
-        if (user.UserName == User.Identity?.Name)
+        catch (Exception ex)
         {
-            TempData.SetSwalError("Não podes apagar a tua própria conta.");
-            return RedirectToAction(nameof(Index));
-        }
-
-        user.Status = UserStatus.Inactive;
-        await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.MaxValue);
-
-        var result = await _userManager.UpdateAsync(user);
-
-        if (result.Succeeded)
-        {
-            TempData.SetSwalSuccess($"O utilizador {user.FirstName} foi desativado com sucesso.");
-        }
-        else
-        {
-            TempData.SetSwalError("Erro ao desativar utilizador.");
+            _logger.LogAppError($"Erro ao desativar ID {id}: {ex.Message}", TableName.User, AppOperation.Update);
+            TempData.SetSwalError("Falha técnica ao desativar o utilizador. [Erro: 1004]");
         }
         return RedirectToAction(nameof(Index));
     }
 
     /// <summary>
-    /// Reactivates a previously deactivated user account.
+    /// Reativa uma conta de utilizador e remove qualquer restrição de Lockout.
     /// </summary>
-    /// <param name="id">The ID of the user to activate.</param>
-    /// <returns>Redirects to the user's Details View.</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Activate(string id)
     {
-        var user = await _userManager.FindByIdAsync(id);
-        if (user == null)
+        try
         {
-            TempData.SetSwalError("Utilizador não encontrado.");
-            return RedirectToAction(nameof(Index));
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                TempData.SetSwalError("Utilizador não encontrado.");
+                return RedirectToAction(nameof(Index));
+            }
+
+            user.Status = UserStatus.Active;
+            await _userManager.SetLockoutEndDateAsync(user, null);
+            await _userManager.UpdateAsync(user);
+
+            TempData.SetSwalSuccess($"A conta de {user.FirstName} está novamente ativa.");
         }
-
-        user.Status = UserStatus.Active;
-        await _userManager.SetLockoutEndDateAsync(user, null);
-
-        var result = await _userManager.UpdateAsync(user);
-
-        if (result.Succeeded)
+        catch (Exception ex)
         {
-            TempData.SetSwalSuccess($"A conta de {user.FirstName} foi reativada.");
+            _logger.LogAppError($"Erro ao reativar ID {id}: {ex.Message}", TableName.User, AppOperation.Update);
+            TempData.SetSwalError("Não foi possível reativar a conta. [Erro: 1004]");
         }
-        else
-        {
-            TempData.SetSwalError("Erro ao reativar utilizador.");
-        }
-
         return RedirectToAction(nameof(Details), new { id });
     }
 
     /// <summary>
-    /// Displays the selection page for different types of logs.
+    /// Consulta os logs de auditoria interna (ações realizadas pela equipa Staff).
     /// </summary>
-    /// <returns>The log selection View.</returns>
-    public IActionResult UserLogSelection()
-    {
-        return View();
-    }
-
-    /// <summary>
-    /// Lists the activity logs performed by Staff members (internal audit).
-    /// </summary>
-    /// <param name="search">Search term (username or message content).</param>
-    /// <param name="date">Filter by a specific date.</param>
-    /// <returns>The View with the list of logs sorted by descending date.</returns>
+    /// <param name="search">Termo de busca nos logs.</param>
+    /// <param name="date">Data específica da ocorrência.</param>
     public async Task<IActionResult> StaffLog(string search, string date)
     {
         try
         {
-            //throw new Exception("Simulação de erro de e-mail");
-            var query = _context.UserLog
-                .Include(l => l.AppUser)
-                .AsQueryable();
+            var query = _context.UserLog.Include(l => l.AppUser).AsQueryable();
 
             if (!string.IsNullOrEmpty(search))
-            {
                 query = query.Where(l => l.AppUser.UserName.Contains(search) || l.Message.Contains(search));
-            }
 
             if (!string.IsNullOrEmpty(date) && DateTime.TryParse(date, out DateTime parsedDate))
-            {
                 query = query.Where(l => l.TimeStamp.Date == parsedDate.Date);
-            }
 
             var logs = await query.OrderByDescending(l => l.TimeStamp).ToListAsync();
-
             return View(logs);
         }
         catch (Exception ex)
         {
-            _logger.LogAppError(
-                "Erro ao consultar os logs do sistema: " + ex.Message,
-                TableName.UserLog,
-                AppOperation.Read
-            );
-
-            return RedirectToAction("Error", "Home", new
-            {
-                area = "",
-                errorCode = (int)AppErrors.DatabaseQueryError 
-            });
+            _logger.LogAppError($"Falha na consulta de auditoria: {ex.Message}", TableName.UserLog, AppOperation.Read);
+            return RedirectToAction("Error", "Home", new { area = "", errorCode = (int)AppErrors.DatabaseQueryError });
         }
     }
 }

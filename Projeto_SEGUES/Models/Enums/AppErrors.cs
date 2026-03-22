@@ -1,4 +1,4 @@
-namespace Projeto_SEGUES.Models.Enums;
+﻿namespace Projeto_SEGUES.Models.Enums;
 
 public enum AppErrors
 {
@@ -58,7 +58,7 @@ public enum AppErrors
     // Inventory errors
     ProductCategoryNotFound = 1400,
     ProductAlreadyExists = 1401,
-    ProductCreateErrror = 1402,
+    ProductCreateError = 1402,
     ProductNotFound = 1403,
     ProductEditError = 1404,
     ProductDeleteError = 1405,

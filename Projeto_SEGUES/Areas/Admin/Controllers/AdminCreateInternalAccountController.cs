@@ -58,7 +58,6 @@ public class AdminCreateInternalAccountController : Controller
 
         try
         {
-            //throw new Exception("Simulação de erro de e-mail");
             var result = await _adminService.CreateInternalUserAsync(model);
 
             if (result.Success)
@@ -69,23 +68,27 @@ public class AdminCreateInternalAccountController : Controller
 
             var errors = result.Message.Split("; ");
             foreach (var error in errors)
+            {
                 ModelState.AddModelError("", error);
+            }
+            ViewBag.Roles = await _adminService.GetNonClientRolesForDropdownAsync();
+            return View("Index", model);
         }
         catch (Exception ex)
         {
             _logger.LogAppError(
-                $"Falha crítica ao criar conta interna ({model?.Email}): {ex.Message}",
+                $"Erro na criação de conta ({model?.Email}): {ex.Message}",
                 TableName.User,
                 AppOperation.Create
             );
-            return RedirectToAction("Error", "Home", new
-            {
-                area = "",
-                errorCode = (int)AppErrors.SendActivationEmailError
-            });
-        }
+            var errorEnum = AppErrors.SendActivationEmailError;
+            var translateMessage = _localizer[errorEnum.ToString()].Value;
+            var finalMessage = $"{translateMessage} [Erro: {(int)errorEnum}]";
 
-        ViewBag.Roles = await _adminService.GetNonClientRolesForDropdownAsync();
-        return View("Index", model);
+            TempData.SetSwalError(finalMessage);
+
+            ViewBag.Roles = await _adminService.GetNonClientRolesForDropdownAsync();
+            return View("Index", model);
+        }
     }
 }

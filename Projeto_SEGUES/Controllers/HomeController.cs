@@ -16,22 +16,20 @@ namespace Projeto_SEGUES.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        //private readonly IStringLocalizer<Errors> _localizer;
+        private readonly IStringLocalizer<Errors> _localizer;
         private readonly UserManager<AppUser> _userManager;
         private readonly IAdminService _adminService;
-        private readonly IOrderService _orderService;
-        private readonly IStringLocalizer _localizer;
+        private readonly IOrderService _orderService;       
         public HomeController(
             ILogger<HomeController> logger, 
-            //IStringLocalizer<Errors> localizer, 
+            IStringLocalizer<Errors> localizer, 
             UserManager<AppUser> userManager, 
             IAdminService adminService,
             IOrderService orderService,
             IStringLocalizerFactory factory)
         {
             _logger = logger;
-            //_localizer = localizer;
-            _localizer = factory.Create(typeof(Projeto_SEGUES.Resources.Errors));
+            _localizer = localizer;            
             _adminService = adminService;
             _userManager = userManager;
             _orderService = orderService;

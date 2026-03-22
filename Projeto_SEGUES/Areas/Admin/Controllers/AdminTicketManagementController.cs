@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.User;
+using Projeto_SEGUES.Resources;
 using Projeto_SEGUES.Services;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -27,18 +29,29 @@ public class AdminTicketManagementController : Controller
     private readonly IAdminService _adminService;
     private readonly UserManager<AppUser> _userManager;
     private readonly ITicketService _ticketService;
+    private readonly ILogger<AdminTicketManagementController> _logger;
+    private readonly IStringLocalizer<Errors> _localizer;
 
     /// <summary>
-    /// Initializes a new instance of the controller with administration, user, and ticket services.
+    /// Initializes a new instance of the controller with administration, user, ticket, logging, and localization services.
     /// </summary>
     /// <param name="adminService">Administrative configuration service.</param>
     /// <param name="userManager">Identity user manager.</param>
     /// <param name="ticketService">Ticket operations service.</param>
-    public AdminTicketManagementController(IAdminService adminService, UserManager<AppUser> userManager, ITicketService ticketService)
+    /// <param name="logger">Logger for error tracking and auditing.</param>
+    /// <param name="localizer">Localizer for translating error messages.</param>
+    public AdminTicketManagementController(
+        IAdminService adminService,
+        UserManager<AppUser> userManager,
+        ITicketService ticketService,
+        ILogger<AdminTicketManagementController> logger,
+        IStringLocalizer<Errors> localizer)
     {
         _adminService = adminService;
         _userManager = userManager;
         _ticketService = ticketService;
+        _logger = logger;
+        _localizer = localizer;
     }
 
     /// <summary>
@@ -47,19 +60,27 @@ public class AdminTicketManagementController : Controller
     /// <returns>The index View with the complete ticket history and configuration data in the ViewBag.</returns>
     public async Task<IActionResult> Index()
     {
-        ViewBag.CurrentUserId = _userManager.GetUserId(User);
+        try
+        {
+            ViewBag.CurrentUserId = _userManager.GetUserId(User);
+            ViewBag.Prices = await _adminService.GetTicketPricesAsync();
+            ViewBag.CurrentValidityDays = await _adminService.GetTicketValidityDaysAsync();
 
-        ViewBag.Prices = await _adminService.GetTicketPricesAsync();
-        ViewBag.CurrentValidityDays = await _adminService.GetTicketValidityDaysAsync();
-        
-        BarCanteenConfigViewModel barCanteenConfig = await _adminService.GetScheduleAsync();
-        ViewBag.CanteenLunchOpeningTimeString = barCanteenConfig.CanteenLunchOpeningTimeString;
-        ViewBag.CanteenLunchClosingTimeString = barCanteenConfig.CanteenLunchClosingTimeString;
-        ViewBag.CanteenDinnerOpeningTimeString = barCanteenConfig.CanteenDinnerOpeningTimeString;
-        ViewBag.CanteenDinnerClosingTimeString = barCanteenConfig.CanteenDinnerClosingTimeString;
-        
-        var history = await _ticketService.GetAllTicketsAsync();
-        return View(history);
+            BarCanteenConfigViewModel barCanteenConfig = await _adminService.GetScheduleAsync();
+            ViewBag.CanteenLunchOpeningTimeString = barCanteenConfig.CanteenLunchOpeningTimeString;
+            ViewBag.CanteenLunchClosingTimeString = barCanteenConfig.CanteenLunchClosingTimeString;
+            ViewBag.CanteenDinnerOpeningTimeString = barCanteenConfig.CanteenDinnerOpeningTimeString;
+            ViewBag.CanteenDinnerClosingTimeString = barCanteenConfig.CanteenDinnerClosingTimeString;
+
+            var history = await _ticketService.GetAllTicketsAsync();
+            return View(history);
+        }
+        catch (Exception ex)
+        {
+            // REDIRECT: Falha fatal no carregamento. Redirecionamos para a página de erro global.
+            _logger.LogError(ex, "Erro fatal ao carregar gestão de senhas.");
+            return RedirectToAction("Error", "Home", new { area = "", errorCode = (int)AppErrors.DatabaseQueryError });
+        }
     }
 
     /// <summary>
@@ -83,11 +104,15 @@ public class AdminTicketManagementController : Controller
         try
         {
             await _adminService.UpdateTicketPricesAsync(updatedPrices);
-            TempData["SwalData"] = "{\"icon\":\"success\",\"title\":\"Sucesso\",\"text\":\"Preçário atualizado!\"}";
+            TempData.SetSwalSuccess("Preçário atualizado com sucesso!");
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            TempData["SwalData"] = "{\"icon\":\"error\",\"title\":\"Erro\",\"text\":\"Falha ao gravar.\"}";
+            _logger.LogAppError($"Erro ao atualizar preçário: {ex.Message}", TableName.TicketPrice, AppOperation.Update);
+
+            var erroEnum = AppErrors.DatabaseUpdateError;
+            var mensagemFinal = $"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";
+            TempData.SetSwalError(mensagemFinal);
         }
 
         return RedirectToAction(nameof(Index));
@@ -108,8 +133,19 @@ public class AdminTicketManagementController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        await _adminService.UpdateTicketValidityDaysAsync(validityDays);
-        TempData.SetSwalSuccess($"Validade global alterada para {validityDays} dias.");
+        try
+        {
+            await _adminService.UpdateTicketValidityDaysAsync(validityDays);
+            TempData.SetSwalSuccess($"Validade global alterada para {validityDays} dias.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogAppError($"Erro ao atualizar validade: {ex.Message}", TableName.AppConfig, AppOperation.Update);
+
+            var erroEnum = AppErrors.DatabaseUpdateError;
+            var mensagemFinal = $"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";
+            TempData.SetSwalError(mensagemFinal);
+        }
 
         return RedirectToAction(nameof(Index));
     }
@@ -125,34 +161,42 @@ public class AdminTicketManagementController : Controller
     [HttpGet]
     public async Task<IActionResult> GetUpdatedAuditTable(string searchString, TicketState? stateFilter, DateTime? dateFilter, TicketFlow? flowFilter)
     {
-        var history = await _ticketService.GetAllTicketsAsync();
-        var query = history.AsQueryable();
-
-        if (stateFilter.HasValue)
-            query = query.Where(t => t.State == stateFilter.Value);
-
-        if (dateFilter.HasValue)
-            query = query.Where(t => t.TicketPurchase.TransactionDate.Date >= dateFilter.Value.Date);
-
-        if (flowFilter.HasValue && flowFilter != TicketFlow.All)
+        try
         {
-            query = flowFilter.Value switch
+            var history = await _ticketService.GetAllTicketsAsync();
+            var query = history.AsQueryable();
+
+            if (stateFilter.HasValue)
+                query = query.Where(t => t.State == stateFilter.Value);
+
+            if (dateFilter.HasValue)
+                query = query.Where(t => t.TicketPurchase.TransactionDate.Date >= dateFilter.Value.Date);
+
+            if (flowFilter.HasValue && flowFilter != TicketFlow.All)
             {
-                TicketFlow.Bought => query.Where(t => !t.Transfers.Any()),
-                TicketFlow.Sent => query.Where(t => t.Transfers.Any()),
-                TicketFlow.Received => query.Where(t => t.Transfers.Any()),
-                _ => query
-            };
-        }
+                query = flowFilter.Value switch
+                {
+                    TicketFlow.Bought => query.Where(t => !t.Transfers.Any()),
+                    TicketFlow.Sent => query.Where(t => t.Transfers.Any()),
+                    TicketFlow.Received => query.Where(t => t.Transfers.Any()),
+                    _ => query
+                };
+            }
 
-        if (!string.IsNullOrEmpty(searchString))
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                query = query.Where(t => t.Owner.FirstName.Contains(searchString, StringComparison.OrdinalIgnoreCase) ||
+                                         t.Owner.LastName.Contains(searchString, StringComparison.OrdinalIgnoreCase) ||
+                                         t.ValidationCode.Contains(searchString.ToUpper()));
+            }
+
+            return PartialView("_AuditTableRows", query.OrderByDescending(t => t.TicketPurchase.TransactionDate).ToList());
+        }
+        catch (Exception ex)
         {
-            query = query.Where(t => t.Owner.FirstName.Contains(searchString, StringComparison.OrdinalIgnoreCase) ||
-                                     t.Owner.LastName.Contains(searchString, StringComparison.OrdinalIgnoreCase) ||
-                                     t.ValidationCode.Contains(searchString.ToUpper()));
+            _logger.LogAppError($"Erro AJAX na auditoria de senhas: {ex.Message}", TableName.Ticket, AppOperation.Read);
+            return StatusCode(500); // Erro para chamadas assíncronas
         }
-
-        return PartialView("_AuditTableRows", query.OrderByDescending(t => t.TicketPurchase.TransactionDate).ToList());
     }
 
     /// <summary>
@@ -172,26 +216,25 @@ public class AdminTicketManagementController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        BarCanteenConfigViewModel vm;
-        if (serviceName == "Almoço")
+        try
         {
-            vm = new BarCanteenConfigViewModel
-            {
-                CanteenLunchOpeningTime = openTime,
-                CanteenLunchClosingTime = closeTime
-            };
+            //throw new Exception("Falha simulada na base de dados");
+            BarCanteenConfigViewModel vm = serviceName == "Almoço"
+                ? new() { CanteenLunchOpeningTime = openTime, CanteenLunchClosingTime = closeTime }
+                : new() { CanteenDinnerOpeningTime = openTime, CanteenDinnerClosingTime = closeTime };
+
+            await _adminService.UpdateScheduleAsync(vm);
+            TempData.SetSwalSuccess($"Horário de {serviceName} atualizado com sucesso!");
         }
-        else
+        catch (Exception ex)
         {
-            vm = new BarCanteenConfigViewModel
-            {
-                CanteenDinnerOpeningTime = openTime,
-                CanteenDinnerClosingTime = closeTime
-            };
+            _logger.LogAppError($"Erro ao atualizar horário {serviceName}: {ex.Message}", TableName.AppConfig, AppOperation.Update);
+
+            var erroEnum = AppErrors.DatabaseUpdateError;
+            var mensagemFinal = $"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";
+            TempData.SetSwalError(mensagemFinal);
         }
 
-        var result = await _adminService.UpdateScheduleAsync(vm);
-        TempData.SetSwalSuccess($"Horário de {serviceName} atualizado com sucesso!");
         return RedirectToAction(nameof(Index));
     }
 
@@ -205,85 +248,97 @@ public class AdminTicketManagementController : Controller
     [HttpGet]
     public async Task<IActionResult> ExportTicketsPDF()
     {
-        var history = await _ticketService.GetAllTicketsAsync();
-
-        var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo-ips.png");
-
-        var document = Document.Create(container =>
+        try
         {
-            container.Page(page =>
+            var history = await _ticketService.GetAllTicketsAsync();
+            var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo-ips.png");
+
+            var document = Document.Create(container =>
             {
-                page.Size(PageSizes.A4.Landscape());
-                page.Margin(20);
-                page.PageColor(Colors.White);
-
-                page.Header().PaddingBottom(10).Row(row =>
+                container.Page(page =>
                 {
-                    if (System.IO.File.Exists(logoPath))
-                    {
-                        row.ConstantItem(150).Image(logoPath);
-                    }
+                    page.Size(PageSizes.A4.Landscape());
+                    page.Margin(20);
+                    page.PageColor(Colors.White);
 
-                    row.RelativeItem().Column(col =>
+                    page.Header().PaddingBottom(10).Row(row =>
                     {
-                        col.Item().AlignRight().Text("Auditoria Geral de Senhas").FontSize(20).SemiBold().FontColor(Color.FromHex("#009697"));
-                        col.Item().AlignRight().Text($"Gerado em: {DateTime.Now:dd/MM/yyyy HH:mm}").FontSize(10).Italic();
-                    });
-                });
-
-                page.Content().Table(table =>
-                {
-                    table.ColumnsDefinition(columns =>
-                    {
-                        columns.RelativeColumn(2.5f); // Dono Atual
-                        columns.ConstantColumn(60);   // Código
-                        columns.ConstantColumn(70);   // Estado
-                        columns.ConstantColumn(80);   // Compra
-                        columns.ConstantColumn(60);   // Data Transf.
-                        columns.RelativeColumn(1.5f); // Enviado Por
-                        columns.RelativeColumn(1.5f); // Recebido Por
-                        columns.ConstantColumn(60);   // Uso
-                        columns.ConstantColumn(70);   // Expiração
-                    });
-
-                    table.Header(header =>
-                    {
-                        string[] colNames = { "Dono Atual", "Código", "Estado", "Compra", "Data Transf.", "Enviado Por", "Recebido Por", "Uso", "Expiração" };
-                        foreach (var name in colNames)
+                        if (System.IO.File.Exists(logoPath))
                         {
-                            header.Cell().Background(Color.FromHex("#009697")).Padding(5).AlignCenter().Text(name).FontColor(Colors.White).FontSize(8).SemiBold();
+                            row.ConstantItem(150).Image(logoPath);
+                        }
+
+                        row.RelativeItem().Column(col =>
+                        {
+                            col.Item().AlignRight().Text("Auditoria Geral de Senhas").FontSize(20).SemiBold().FontColor(Color.FromHex("#009697"));
+                            col.Item().AlignRight().Text($"Gerado em: {DateTime.Now:dd/MM/yyyy HH:mm}").FontSize(10).Italic();
+                        });
+                    });
+
+                    page.Content().Table(table =>
+                    {
+                        table.ColumnsDefinition(columns =>
+                        {
+                            columns.RelativeColumn(2.5f); // Dono Atual
+                            columns.ConstantColumn(60);   // Código
+                            columns.ConstantColumn(70);   // Estado
+                            columns.ConstantColumn(80);   // Compra
+                            columns.ConstantColumn(60);   // Data Transf.
+                            columns.RelativeColumn(1.5f); // Enviado Por
+                            columns.RelativeColumn(1.5f); // Recebido Por
+                            columns.ConstantColumn(60);   // Uso
+                            columns.ConstantColumn(70);   // Expiração
+                        });
+
+                        table.Header(header =>
+                        {
+                            string[] colNames = { "Dono Atual", "Código", "Estado", "Compra", "Data Transf.", "Enviado Por", "Recebido Por", "Uso", "Expiração" };
+                            foreach (var name in colNames)
+                            {
+                                header.Cell().Background(Color.FromHex("#009697")).Padding(5).AlignCenter().Text(name).FontColor(Colors.White).FontSize(8).SemiBold();
+                            }
+                        });
+
+                        foreach (var t in history)
+                        {
+                            var lastTrans = t.Transfers?.OrderByDescending(x => x.TransferDate).FirstOrDefault();
+
+                            table.Cell().Element(ContentStyle).AlignLeft().Column(c =>
+                            {
+                                c.Item().Text($"{t.Owner?.FirstName} {t.Owner?.LastName}").FontSize(8).SemiBold();
+                                c.Item().Text(t.Owner?.Email).FontSize(7).FontColor(Colors.Grey.Medium);
+                            });
+
+                            table.Cell().Element(ContentStyle).Text(t.ValidationCode).FontFamily(Fonts.CourierNew).FontSize(8);
+                            table.Cell().Element(ContentStyle).Text(t.IsUsed ? "Usada" : (t.ExpirationDate < DateTime.Now ? "Expirada" : "Disponível")).FontSize(8);
+                            table.Cell().Element(ContentStyle).Text(t.TicketPurchase?.TransactionDate.ToString("dd/MM/yy HH:mm") ?? "-").FontSize(8);
+                            table.Cell().Element(ContentStyle).Text(lastTrans?.TransferDate.ToString("dd/MM/yy") ?? "-").FontSize(8);
+                            table.Cell().Element(ContentStyle).Text(lastTrans?.Sender?.UserName ?? "-").FontSize(8);
+                            table.Cell().Element(ContentStyle).Text(lastTrans?.Receiver?.UserName ?? "Compra Direta").FontSize(8);
+                            table.Cell().Element(ContentStyle).Text(t.IsUsed ? t.UsedDate?.ToString("dd/MM/yy") : "-").FontSize(8);
+                            table.Cell().Element(ContentStyle).Text(t.ExpirationDate.ToString("dd/MM/yy")).FontSize(8);
                         }
                     });
 
-                    foreach (var t in history)
+                    page.Footer().AlignCenter().Text(x =>
                     {
-                        var lastTrans = t.Transfers?.OrderByDescending(x => x.TransferDate).FirstOrDefault();
-
-                        table.Cell().Element(ContentStyle).AlignLeft().Column(c =>
-                        {
-                            c.Item().Text($"{t.Owner?.FirstName} {t.Owner?.LastName}").FontSize(8).SemiBold();
-                            c.Item().Text(t.Owner?.Email).FontSize(7).FontColor(Colors.Grey.Medium);
-                        });
-
-                        table.Cell().Element(ContentStyle).Text(t.ValidationCode).FontFamily(Fonts.CourierNew).FontSize(8);
-                        table.Cell().Element(ContentStyle).Text(t.IsUsed ? "Usada" : (t.ExpirationDate < DateTime.Now ? "Expirada" : "Disponível")).FontSize(8);
-                        table.Cell().Element(ContentStyle).Text(t.TicketPurchase?.TransactionDate.ToString("dd/MM/yy HH:mm") ?? "-").FontSize(8);
-                        table.Cell().Element(ContentStyle).Text(lastTrans?.TransferDate.ToString("dd/MM/yy") ?? "-").FontSize(8);
-                        table.Cell().Element(ContentStyle).Text(lastTrans?.Sender?.UserName ?? "-").FontSize(8);
-                        table.Cell().Element(ContentStyle).Text(lastTrans?.Receiver?.UserName ?? "Compra Direta").FontSize(8);
-                        table.Cell().Element(ContentStyle).Text(t.IsUsed ? t.UsedDate?.ToString("dd/MM/yy") : "-").FontSize(8);
-                        table.Cell().Element(ContentStyle).Text(t.ExpirationDate.ToString("dd/MM/yy")).FontSize(8);
-                    }
-                });
-
-                page.Footer().AlignCenter().Text(x =>
-                {
-                    x.Span("Página "); x.CurrentPageNumber();
+                        x.Span("Página "); x.CurrentPageNumber();
+                    });
                 });
             });
-        });
 
-        return File(document.GeneratePdf(), "application/pdf", "Auditoria_Senhas_IPS.pdf");
+            return File(document.GeneratePdf(), "application/pdf", "Auditoria_Senhas_IPS.pdf");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao exportar PDF de auditoria de senhas.");
+
+            var erroEnum = AppErrors.InternalServerError;
+            var mensagemFinal = $"Não foi possível gerar o PDF. {_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";
+            TempData.SetSwalError(mensagemFinal);
+
+            return RedirectToAction(nameof(Index));
+        }
     }
 
     /// <summary>
