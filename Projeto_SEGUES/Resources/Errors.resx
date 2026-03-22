@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="BadRequest" xml:space="preserve">
-    <value> Invalid request.</value>
+      <value>Invalid request.</value>
   </data>
   <data name="Unauthorized" xml:space="preserve">
     <value>Unauthorized access attempt.</value>
@@ -184,7 +184,7 @@
     <value>Ticket not found.</value>
   </data>
   <data name="TicketAlreadyUsed" xml:space="preserve">
-    <value>Ticket already used in {0}.</value>
+      <value>Ticket already used.</value>
   </data>
   <data name="TicketExpired" xml:space="preserve">
     <value>Ticket expired.</value>
@@ -202,7 +202,7 @@
     <value>Cannot transfer tickets to self.</value>
   </data>
   <data name="CategoryMismatch" xml:space="preserve">
-    <value>Transfer recused. Can only send tickets to users of category {0}.</value>
+      <value>Transfer recused. Can only send tickets to users of same category.</value>
   </data>
   <data name="TicketsNotOwned" xml:space="preserve">
     <value>Tickets not owned.</value>
@@ -235,10 +235,10 @@
     <value>Invalid pickup time.</value>
   </data>
   <data name="BarClosed" xml:space="preserve">
-    <value>Bar is closed. Schedule is {0} to {1}.</value>
+      <value>Bar is closed.</value>
   </data>
   <data name="InsufficientStock" xml:space="preserve">
-    <value>Insufficient stock for product {0}.</value>
+      <value>Insufficient stock for product.</value>
   </data>
   <data name="OrderProcessingError" xml:space="preserve">
     <value>Error processing order.</value>
@@ -256,7 +256,7 @@
     <value>Must use the cancel order function.</value>
   </data>
   <data name="DatabaseUpdateError" xml:space="preserve">
-    <value>Error updating {0} in database.</value>
+      <value>Error updating data in database.</value>
   </data>
   <data name="RedemptionCodeRequired" xml:space="preserve">
     <value>Redemption code required.</value>

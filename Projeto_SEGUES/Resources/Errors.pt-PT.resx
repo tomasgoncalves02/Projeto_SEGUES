@@ -153,20 +153,8 @@
   <data name="InvalidToken" xml:space="preserve">
     <value>Token inválido ou expirado.</value>
   </data>
-  <data name="AccountLocked" xml:space="preserve">
-    <value>Conta bloqueada para o utilizador.</value>
-  </data>
-  <data name="UserAlreadyRegistered" xml:space="preserve">
-    <value>Falha no registo: O utilizador já existe.</value>
-  </data>
   <data name="InvalidOperation" xml:space="preserve">
     <value>Operação inválida na base de dados.</value>
-  </data>
-  <data name="ValidationError" xml:space="preserve">
-    <value>Falha na validação na base de dados.</value>
-  </data>
-  <data name="InsufficientFunds" xml:space="preserve">
-    <value>Saldo insuficiente para a transação.</value>
   </data>
   <data name="EmailSenderError" xml:space="preserve">
     <value>Falha ao enviar e-mail.</value>
@@ -174,44 +162,11 @@
   <data name="UnexpectedError" xml:space="preserve">
     <value>Ocorreu um erro inesperado na base de dados.</value>
   </data>
-  <data name="InvalidQuantity" xml:space="preserve">
-    <value>Quantidade inválida.</value>
-  </data>
   <data name="PricingNotAvailable" xml:space="preserve">
     <value>Preçário não disponível.</value>
   </data>
-  <data name="TicketNotFound" xml:space="preserve">
-    <value>Bilhete não encontrado.</value>
-  </data>
-  <data name="TicketAlreadyUsed" xml:space="preserve">
-    <value>Bilhete já utilizado em {0}.</value>
-  </data>
-  <data name="TicketExpired" xml:space="preserve">
-    <value>Bilhete expirado.</value>
-  </data>
-  <data name="TicketNotAvailable" xml:space="preserve">
-    <value>Bilhete não está disponível (Cancelado ou Pendente).</value>
-  </data>
-  <data name="SenderNotFound" xml:space="preserve">
-    <value>Utilizador remetente não encontrado.</value>
-  </data>
-  <data name="RecipientNotFound" xml:space="preserve">
-    <value>Não foi encontrado nenhum utilizador com esse e-mail.</value>
-  </data>
-  <data name="TransferToSelf" xml:space="preserve">
-    <value>Não pode transferir senhas para si próprio.</value>
-  </data>
-  <data name="CategoryMismatch" xml:space="preserve">
-    <value>Transferência recusada: Só pode enviar senhas para utilizadores da categoria {0}.</value>
-  </data>
-  <data name="TicketsNotOwned" xml:space="preserve">
-    <value>As senhas selecionadas já não estão disponíveis ou não lhe pertencem.</value>
-  </data>
   <data name="ProductCategoryNotFound" xml:space="preserve">
     <value>Categoria do produto não encontrada.</value>
-  </data>
-  <data name="ProductAlreadyExists" xml:space="preserve">
-    <value>Já existe um produto com esse nome.</value>
   </data>
   <data name="ProductCreateError" xml:space="preserve">
     <value>Ocorreu um erro ao criar o produto.</value>
@@ -225,26 +180,8 @@
   <data name="ProductDeleteError" xml:space="preserve">
     <value>Ocorreu um erro ao eliminar o produto.</value>
   </data>
-  <data name="CartEmpty" xml:space="preserve">
-    <value>O carrinho está vazio.</value>
-  </data>
-  <data name="SchedulePast" xml:space="preserve">
-    <value>Não é possível agendar para o passado.</value>
-  </data>
-  <data name="InvalidPickupTime" xml:space="preserve">
-    <value>Horário de entrega inválido.</value>
-  </data>
-  <data name="BarClosed" xml:space="preserve">
-    <value>O Bar encontra-se encerrado para o horário selecionado. Funcionamento: {0} às {1}.</value>
-  </data>
-  <data name="InsufficientStock" xml:space="preserve">
-    <value>Stock insuficiente para o produto: {0}.</value>
-  </data>
   <data name="OrderProcessingError" xml:space="preserve">
     <value>Ocorreu um erro ao processar a encomenda.</value>
-  </data>
-  <data name="OrderCannotCancel" xml:space="preserve">
-    <value>O pedido já está em processamento ou finalizado e não pode ser cancelado.</value>
   </data>
   <data name="OrderCancelError" xml:space="preserve">
     <value>Ocorreu um erro ao cancelar o pedido.</value>
@@ -252,40 +189,13 @@
   <data name="InvalidStatusTransition" xml:space="preserve">
     <value>Transição de status inválida.</value>
   </data>
-  <data name="UseCancelFunction" xml:space="preserve">
-    <value>Use a função específica para cancelar pedidos.</value>
-  </data>
   <data name="DatabaseUpdateError" xml:space="preserve">
-    <value>Erro ao atualizar {0} na base de dados.</value>
-  </data>
-  <data name="RedemptionCodeRequired" xml:space="preserve">
-    <value>Por favor, insira o código de levantamento.</value>
-  </data>
-  <data name="InvalidRedemptionCode" xml:space="preserve">
-    <value>Código inválido.</value>
-  </data>
-  <data name="CodeExpired" xml:space="preserve">
-    <value>O código expirou (limite de 5 minutos). Por favor registe-se novamente.</value>
-  </data>
-  <data name="IncorrectCode" xml:space="preserve">
-    <value>Código incorreto. Tente novamente.</value>
+      <value>Erro ao atualizar dados na base de dados.</value>
   </data>
   <data name="ResendEmailError" xml:space="preserve">
     <value>Erro ao reenviar o email. Tente mais tarde.</value>
   </data>
-  <data name="EmailAlreadyRegistered" xml:space="preserve">
-    <value>Este email já está em uso.</value>
-  </data>
   <data name="SendActivationEmailError" xml:space="preserve">
     <value>Erro ao enviar e-mail de ativação. Verifique a sua conexão à Internet.</value>
-  </data>
-  <data name="InvalidTimeFormat" xml:space="preserve">
-    <value>Formato de hora inválido.</value>
-  </data>
-  <data name="NoItemsSelected" xml:space="preserve">
-    <value>Por favor, selecione pelo menos um item para continuar.</value>
-  </data>
-  <data name="RecipientEmailRequired" xml:space="preserve">
-    <value>O e-mail do destinatário é obrigatório</value>
   </data>
 </root>

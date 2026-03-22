@@ -24,60 +24,31 @@ public enum AppErrors
 
     // Identity errors
     InvalidCredentials = 1100,
-    UserNotFound = 1102,
-    InvalidToken = 1103,
-    UnauthorizedAccess = 1104,
-    AccountLocked = 1105,
-    UserAlreadyRegistered = 1106,
-    CodeExpired = 1107,
-    IncorrectCode = 1108,
-    ResendEmailError = 1109,
-    EmailAlreadyRegistered = 1110,
-    SendActivationEmailError = 1111,
+    UserNotFound = 1101,
+    InvalidToken = 1102,
+    UnauthorizedAccess = 1103,
+    ResendEmailError = 1104,
+    SendActivationEmailError = 1105,
 
     // Business errors
     InvalidOperation = 1200,
-    ValidationError = 1201,
-    InsufficientFunds = 1202,
-    EmailSenderError = 1203,
-    InvalidTimeFormat = 1204,
+    EmailSenderError = 1201,
     
     // Ticket errors
-    InvalidQuantity = 1300,
     PricingNotAvailable = 1301,
-    TicketNotFound = 1302,
-    TicketAlreadyUsed = 1303,
-    TicketExpired = 1304,
-    TicketNotAvailable = 1305,
-    SenderNotFound = 1306,
-    RecipientNotFound = 1307,
-    TransferToSelf = 1308,
-    CategoryMismatch = 1309,
-    TicketsNotOwned = 1310,
     
     // Inventory errors
     ProductCategoryNotFound = 1400,
-    ProductAlreadyExists = 1401,
-    ProductCreateError = 1402,
-    ProductNotFound = 1403,
-    ProductEditError = 1404,
-    ProductDeleteError = 1405,
+    ProductCreateError = 1401,
+    ProductNotFound = 1402,
+    ProductEditError = 1403,
+    ProductDeleteError = 1404,
     
     // Order errors
-    CartEmpty = 1500,
-    ShedulePast = 1501,
-    InvalidPickupTime = 1502,
-    BarClosed = 1503,
-    InsufficientStock = 1504,
-    OrderProcessingError = 1505,
-    OrderCannotCancel = 1506,
-    OrderCancelError = 1507,
-    InvalidStatusTransition = 1508,
-    UseCancelFunction = 1509,
-    RedemptionCodeRequired = 1510,
-    InvalidRedemptionCode = 1511,
+    OrderProcessingError = 1501,
+    OrderCancelError = 1502,
+    InvalidStatusTransition = 1503,
     
-
     // Generic errors
     UnexpectedError = 9999,
 }

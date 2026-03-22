@@ -6,6 +6,7 @@ using Projeto_SEGUES.Models.User;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using Projeto_SEGUES.Extensions;
+using Projeto_SEGUES.Models.Enums;
 
 namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 {
@@ -19,14 +20,16 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
     public class ResetPasswordModel : PageModel
     {
         private readonly UserManager<AppUser> _userManager;
+        private readonly ILogger<ResetPasswordModel> _logger;
 
         /// <summary>
         /// Inicializa uma nova instância de <see cref="ResetPasswordModel"/>.
         /// </summary>
         /// <param name="userManager">Gestor de utilizadores para validar tokens e atualizar passwords.</param>
-        public ResetPasswordModel(UserManager<AppUser> userManager)
+        public ResetPasswordModel(UserManager<AppUser> userManager, ILogger<ResetPasswordModel> logger)
         {
             _userManager = userManager;
+            _logger = logger;
         }
 
         /// <summary>
@@ -45,8 +48,8 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             public required string Email { get; init; }
 
             /// <summary>Nova password com validação de complexidade forte.</summary>
-            [Required(ErrorMessage = "O campo {0} é obrigatório.")]
-            [StringLength(100, ErrorMessage = "A {0} deve ter pelo menos {2} e no máximo {1} caracteres.", MinimumLength = 12)]
+            [Required(ErrorMessage = "A password é obrigatória.")]
+            [StringLength(100, ErrorMessage = "A password deve ter pelo menos {2} e no máximo {1} caracteres.", MinimumLength = 12)]
             [DataType(DataType.Password)]
             [Display(Name = "Password")]
             [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{12,}$",
@@ -74,8 +77,9 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         {
             if (email == null || code == null)
             {
-                TempData.SetSwalError("Um código deve ser fornecido para redefinir a senha.");
-                return RedirectToAction("Error", "Home", new { area = "" });
+                _logger.LogAppError(AppErrors.InvalidToken, TableName.All, AppOperation.Other);
+                TempData.SetSwalError(AppErrors.InvalidToken.GetViewErrorMessage());
+                return RedirectToAction("Error", "Home", new { area = "", errorCode = AppErrors.InvalidToken });
             }
             Input = new InputModel
             {
@@ -105,27 +109,25 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             var user = await _userManager.FindByEmailAsync(Input.Email);
             if (user == null)
             {
-                // Segurança: não revela se o utilizador existe
+                // For security, doest not reveal that the user does not exist
                 return RedirectToPage("./ResetPasswordConfirmation");
             }
 
-            // Tenta redefinir a password no Identity
+            // Try to reset the password
             var result = await _userManager.ResetPasswordAsync(user, Input.Code, Input.Password);
             if (result.Succeeded)
             {
                 if (user.EmailConfirmed) return RedirectToPage("./ResetPasswordConfirmation");
-
-                // Ativação automática de conta para fluxos administrativos
+                
+                // Confirm email for users created by admins
                 user.EmailConfirmed = true;
                 await _userManager.UpdateAsync(user);
                 return RedirectToPage("./ResetPasswordConfirmation");
             }
-
-            foreach (var error in result.Errors)
-            {
-                ModelState.AddModelError("", error.Description);
-            }
-            return Page();
+            
+            _logger.LogAppError(AppErrors.InvalidToken, TableName.All, AppOperation.Other);
+            TempData.SetSwalError(AppErrors.InvalidToken.GetViewErrorMessage());
+            return RedirectToAction("Error", "Home", new { area = "", errorCode = AppErrors.InvalidToken });
         }
     }
 }

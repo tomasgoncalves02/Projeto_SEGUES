@@ -176,13 +176,13 @@ public class TicketController : Controller
 
         if (selectedTickets == null || !selectedTickets.Any())
         {
-            TempData.SetSwalError(Errors.NoItemsSelected);
+            TempData.SetSwalError("Por favor, selecione pelo menos um item para continuar.");
             return RedirectToAction(nameof(SendTicket));
         }
 
         if (string.IsNullOrWhiteSpace(recipientEmail))
         {
-            TempData.SetSwalError(Errors.RecipientEmailRequired);
+            TempData.SetSwalError("O e-mail do destinatário é obrigatório");
             return RedirectToAction(nameof(SendTicket));
         }
 
@@ -233,9 +233,7 @@ public class TicketController : Controller
 
             if (currentUser.UserCategory.Id != recipient.UserCategory.Id)
             {
-                var msg = string.Format(Errors.CategoryMismatch,
-                                        recipient.UserCategory.Name,
-                                        currentUser.UserCategory.Name);
+                var msg = "Transferência recusada: Só pode enviar senhas para utilizadores da mesma categoria.";
 
                 return Json(new { success = false, message = msg });
             }
