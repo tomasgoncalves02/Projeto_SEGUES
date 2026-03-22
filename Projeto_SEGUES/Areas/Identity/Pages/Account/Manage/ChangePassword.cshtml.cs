@@ -9,11 +9,11 @@ using Projeto_SEGUES.Models.Enums;
 namespace Projeto_SEGUES.Areas.Identity.Pages.Account.Manage;
 
 /// <summary>
-/// Classe de modelo para a página de alteração de palavra-passe do utilizador.
+/// Model class for the user password change page.
 /// </summary>
 /// <remarks>
-/// Esta classe gere a lógica de validação das credenciais atuais e a atualização para uma nova 
-/// palavra-passe no sistema de identidade, garantindo o cumprimento dos requisitos de segurança.
+/// This class manages the validation logic for current credentials and updates to a new 
+/// password within the identity system, ensuring compliance with security requirements.
 /// </remarks>
 public class ChangePasswordModel : PageModel
 {
@@ -22,11 +22,11 @@ public class ChangePasswordModel : PageModel
     private readonly ILogger<ChangePasswordModel> _logger;
 
     /// <summary>
-    /// Inicializa uma nova instância da classe <see cref="ChangePasswordModel"/>.
+    /// Initializes a new instance of the <see cref="ChangePasswordModel"/> class.
     /// </summary>
-    /// <param name="userManager">Serviço para gestão de utilizadores Identity.</param>
-    /// <param name="signInManager">Serviço para gestão de autenticação e sessões.</param>
-    /// <param name="logger">Serviço para registo de eventos e erros.</param>
+    /// <param name="userManager">Service for Identity user management.</param>
+    /// <param name="signInManager">Service for authentication and session management.</param>
+    /// <param name="logger">Service for event and error logging.</param>
     public ChangePasswordModel(
         UserManager<AppUser> userManager,
         SignInManager<AppUser> signInManager,
@@ -38,18 +38,18 @@ public class ChangePasswordModel : PageModel
     }
 
     /// <summary>
-    /// Obtém ou define o modelo de entrada de dados do formulário.
+    /// Gets or sets the data entry model for the form.
     /// </summary>
     [BindProperty]
     public required InputModel Input { get; set; }
 
     /// <summary>
-    /// Define a estrutura de dados e as regras de validação para a alteração de palavra-passe.
+    /// Defines the data structure and validation rules for password changes.
     /// </summary>
     public class InputModel
     {
         /// <summary>
-        /// Palavra-passe atual do utilizador.
+        /// The user's current password.
         /// </summary>
         [Required(ErrorMessage = "O campo {0} é obrigatório.")]
         [StringLength(100, ErrorMessage = "A {0} deve ter pelo menos {2} e no máximo {1} caracteres.", MinimumLength = 12)]
@@ -60,7 +60,7 @@ public class ChangePasswordModel : PageModel
         public required string OldPassword { get; init; }
 
         /// <summary>
-        /// Nova palavra-passe pretendida pelo utilizador.
+        /// The new password desired by the user.
         /// </summary>
         [Required(ErrorMessage = "O campo {0} é obrigatório.")]
         [StringLength(100, ErrorMessage = "A {0} deve ter pelo menos {2} e no máximo {1} caracteres.", MinimumLength = 12)]
@@ -71,7 +71,7 @@ public class ChangePasswordModel : PageModel
         public required string NewPassword { get; init; }
 
         /// <summary>
-        /// Confirmação da nova palavra-passe.
+        /// Confirmation of the new password.
         /// </summary>
         [DataType(DataType.Password)]
         [Display(Name = "Confirmar password")]
@@ -80,9 +80,9 @@ public class ChangePasswordModel : PageModel
     }
 
     /// <summary>
-    /// Processa o pedido GET inicial para a página de alteração de palavra-passe.
+    /// Processes the initial GET request for the password change page.
     /// </summary>
-    /// <returns>A página Razor correspondente ou um erro caso o utilizador não seja encontrado.</returns>
+    /// <returns>The corresponding Razor page or an error if the user is not found.</returns>
     public async Task<IActionResult> OnGetAsync()
     {
         var user = await _userManager.GetUserAsync(User);
@@ -91,7 +91,7 @@ public class ChangePasswordModel : PageModel
             _logger.LogAppError(AppErrors.UserNotFound, TableName.All, AppOperation.Other);
             return RedirectToAction("Error", "Home", new { area = "", errorCode = AppErrors.UserNotFound });
         }
-        
+
         var hasPassword = await _userManager.HasPasswordAsync(user);
         if (!hasPassword)
         {
@@ -103,10 +103,10 @@ public class ChangePasswordModel : PageModel
     }
 
     /// <summary>
-    /// Processa a submissão do formulário de alteração de palavra-passe.
+    /// Processes the submission of the password change form.
     /// </summary>
     /// <returns>
-    /// Redirecionamento para o perfil do utilizador em caso de sucesso ou a página atual com mensagens de erro em caso de falha.
+    /// Redirection to the user profile on success or the current page with error messages on failure.
     /// </returns>
     public async Task<IActionResult> OnPostAsync()
     {
@@ -126,18 +126,18 @@ public class ChangePasswordModel : PageModel
         if (!changePasswordResult.Succeeded)
         {
             _logger.LogAppUser($"Failed attempt to change password for account {user.Email}.", UserAction.Update);
-            
+
             foreach (var error in changePasswordResult.Errors)
             {
                 ModelState.AddModelError("", error.Description);
             }
             return Page();
         }
-        
+
         // Refresh the user's authentication token to ensure they remain logged in after changing their password.
         await _signInManager.RefreshSignInAsync(user);
         _logger.LogAppUser($"User {user.Email} changed his password successfully.", UserAction.Update);
-        
+
         TempData.SetSwalSuccess("A sua password foi alterada com sucesso.");
         return RedirectToAction("Index", "User", new { area = "User" });
     }

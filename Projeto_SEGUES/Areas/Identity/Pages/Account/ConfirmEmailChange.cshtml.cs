@@ -3,18 +3,18 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Projeto_SEGUES.Extensions;
+using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
 using System.Text;
-using Projeto_SEGUES.Models.Enums;
 
 namespace Projeto_SEGUES.Areas.Identity.Pages.Account;
 
 /// <summary>
-/// Modelo responsável pela confirmação da alteração do endereço de email do utilizador.
+/// Model responsible for confirming the change of the user's email address.
 /// </summary>
 /// <remarks>
-/// Esta página é o destino do link de confirmação enviado por email. Ela valida o token de segurança,
-/// atualiza o endereço de email na base de dados e sincroniza o nome de utilizador (Username).
+/// This page is the destination for the confirmation link sent by email. It validates the security token,
+/// updates the email address in the database, and synchronizes the username.
 /// </remarks>
 public class ConfirmEmailChangeModel : PageModel
 {
@@ -23,10 +23,11 @@ public class ConfirmEmailChangeModel : PageModel
     private readonly ILogger<ConfirmEmailChangeModel> _logger;
 
     /// <summary>
-    /// Inicializa uma nova instância de <see cref="ConfirmEmailChangeModel"/>.
+    /// Initializes a new instance of <see cref="ConfirmEmailChangeModel"/>.
     /// </summary>
-    /// <param name="userManager">Gestor de utilizadores para atualização de credenciais.</param>
-    /// <param name="signInManager">Gestor de autenticação para renovar a sessão após a alteração.</param>
+    /// <param name="userManager">User manager for credential updates.</param>
+    /// <param name="signInManager">Sign-in manager to renew the session after the change.</param>
+    /// <param name="logger">Logger service for tracking operations and errors.</param>
     public ConfirmEmailChangeModel(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ILogger<ConfirmEmailChangeModel> logger)
     {
         _userManager = userManager;
@@ -35,13 +36,13 @@ public class ConfirmEmailChangeModel : PageModel
     }
 
     /// <summary>
-    /// Processa a confirmação da alteração de email através dos parâmetros recebidos no URL.
+    /// Processes the email change confirmation through parameters received in the URL.
     /// </summary>
-    /// <param name="userId">O identificador único do utilizador.</param>
-    /// <param name="email">O novo endereço de email a ser confirmado.</param>
-    /// <param name="code">O código (token) de segurança codificado em Base64.</param>
+    /// <param name="userId">The unique identifier of the user.</param>
+    /// <param name="email">The new email address to be confirmed.</param>
+    /// <param name="code">The security code (token) encoded in Base64.</param>
     /// <returns>
-    /// Redireciona para o perfil do utilizador com uma mensagem de sucesso ou erro (SweetAlert).
+    /// Redirects to the user profile with a success or error message (SweetAlert).
     /// </returns>
     public async Task<IActionResult> OnGetAsync(string? userId, string? email, string? code)
     {

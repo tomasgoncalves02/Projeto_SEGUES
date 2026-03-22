@@ -10,11 +10,11 @@ using Projeto_SEGUES.Models.User;
 namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 {
     /// <summary>
-    /// Model responsável por encerrar a sessão autenticada do utilizador.
+    /// Model responsible for terminating the user's authenticated session.
     /// </summary>
     /// <remarks>
-    /// Esta classe utiliza o <see cref="SignInManager{TUser}"/> para limpar os cookies 
-    /// de autenticação e garantir que a identidade do utilizador é removida do contexto da aplicação.
+    /// This class utilizes the <see cref="SignInManager{TUser}"/> to clear authentication 
+    /// cookies and ensure that the user's identity is removed from the application context.
     /// </remarks>
     public class LogoutModel : PageModel
     {
@@ -22,10 +22,10 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         private readonly ILogger<LogoutModel> _logger;
 
         /// <summary>
-        /// Inicializa uma nova instância de <see cref="LogoutModel"/>.
+        /// Initializes a new instance of <see cref="LogoutModel"/>.
         /// </summary>
-        /// <param name="signInManager">Gestor de autenticação para processar o encerramento de sessão.</param>
-        /// <param name="logger">Serviço de logging para registar a saída de utilizadores.</param>
+        /// <param name="signInManager">Authentication manager to process the session termination.</param>
+        /// <param name="logger">Logging service to record user sign-outs.</param>
         public LogoutModel(SignInManager<AppUser> signInManager, ILogger<LogoutModel> logger)
         {
             _signInManager = signInManager;
@@ -33,15 +33,15 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         }
 
         /// <summary>
-        /// Processa o pedido de logout (POST) e redireciona o utilizador.
+        /// Processes the logout request (POST) and redirects the user.
         /// </summary>
-        /// <param name="returnUrl">URL opcional para onde o utilizador deve ser enviado após sair.</param>
+        /// <param name="returnUrl">Optional URL where the user should be sent after signing out.</param>
         /// <returns>
-        /// Um <see cref="LocalRedirect"/> se o URL for local, ou o redirecionamento padrão da página.
+        /// A <see cref="LocalRedirect"/> if the URL is local, or the default page redirection.
         /// </returns>
         /// <remarks>
-        /// O encerramento de sessão é feito de forma assíncrona para garantir que todos os 
-        /// recursos de autenticação são libertados corretamente antes da resposta ao browser.
+        /// The session termination is performed asynchronously to ensure that all 
+        /// authentication resources are correctly released before responding to the browser.
         /// </remarks>
         public async Task<IActionResult> OnPost(string returnUrl = null)
         {
@@ -54,7 +54,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             {
                 return LocalRedirect(returnUrl);
             }
-            
+
             return RedirectToAction("Index", "Home", new { area = "" });
         }
     }

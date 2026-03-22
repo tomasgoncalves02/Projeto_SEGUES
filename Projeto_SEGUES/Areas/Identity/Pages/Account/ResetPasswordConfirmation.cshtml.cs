@@ -7,21 +7,21 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 {
     /// <summary>
-    /// Model da página de confirmação de sucesso na redefinição de password.
+    /// Model for the confirmation page indicating a successful password reset.
     /// </summary>
     /// <remarks>
-    /// Esta página é o destino final do fluxo de "Esqueci-me da senha". 
-    /// Informa o utilizador que a sua nova password foi gravada com sucesso e fornece 
-    /// o link para regressar à página de autenticação.
+    /// This page is the final destination of the "Forgot Password" workflow. 
+    /// It informs the user that their new password has been successfully saved and 
+    /// provides a link to return to the authentication page.
     /// </remarks>
     [AllowAnonymous]
     public class ResetPasswordConfirmationModel : PageModel
     {
         /// <summary>
-        /// Processa o pedido GET para apresentar a mensagem de confirmação de sucesso.
+        /// Processes the GET request to display the success confirmation message.
         /// </summary>
         /// <remarks>
-        /// Não contém lógica de processamento, servindo apenas para renderizar a View estática de feedback.
+        /// Contains no processing logic, serving only to render the static feedback View.
         /// </remarks>
         public void OnGet()
         {

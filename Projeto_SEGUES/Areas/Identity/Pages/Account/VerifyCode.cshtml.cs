@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -15,11 +15,11 @@ using Projeto_SEGUES.Models.Enums;
 namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 {
     /// <summary>
-    /// Model responsável pela validação do código de verificação enviado por email durante o registo.
+    /// Model responsible for validating the verification code sent by email during registration.
     /// </summary>
     /// <remarks>
-    /// Esta classe gere a confirmação final dos dados do utilizador, a atribuição automática 
-    /// de categorias (Estudante/Trabalhador IPS/Externo) e a criação efetiva da conta no Identity.
+    /// This class manages the final confirmation of user data, automatic category assignment 
+    /// (Student/IPS Worker/External), and the effective creation of the account in Identity.
     /// </remarks>
     public class VerifyCodeModel : PageModel
     {
@@ -30,7 +30,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         private readonly ILogger<VerifyCodeModel> _logger;
 
         /// <summary>
-        /// Inicializa uma nova instância de <see cref="VerifyCodeModel"/>.
+        /// Initializes a new instance of <see cref="VerifyCodeModel"/>.
         /// </summary>
         public VerifyCodeModel(
             UserManager<AppUser> userManager,
@@ -47,30 +47,30 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         }
 
         /// <summary>
-        /// Modelo de entrada para o código de 6 dígitos introduzido pelo utilizador.
+        /// Input model for the 6-digit code entered by the user.
         /// </summary>
         [BindProperty]
         public required InputModel Input { get; set; }
 
         /// <summary>
-        /// Email do utilizador a ser exibido na interface para confirmação.
+        /// User's email to be displayed in the interface for confirmation.
         /// </summary>
         public required string UserEmailDisplay { get; set; }
 
         /// <summary>
-        /// Define a estrutura de validação para a introdução do código.
+        /// Defines the validation structure for the code input.
         /// </summary>
         public class InputModel
         {
-            /// <summary>Código numérico de verificação.</summary>
+            /// <summary>Numeric verification code.</summary>
             [Required(ErrorMessage = "Introduza o código.")]
             public required string Code { get; init; }
         }
 
         /// <summary>
-        /// Prepara a página de verificação, recuperando os dados temporários do registo.
+        /// Prepares the verification page, retrieving temporary registration data.
         /// </summary>
-        /// <returns>A página de verificação ou redirecionamento para o Registo se os dados expirarem.</returns>
+        /// <returns>The verification page or redirection to Registration if data expires.</returns>
         public IActionResult OnGet()
         {
             if (TempData["RegistrationData"] is not string) return RedirectToPage("Register");
@@ -78,18 +78,18 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             if (data == null) return RedirectToPage("Register");
 
             UserEmailDisplay = data.Email;
-            
+
             // Keep data in TempData for the next request (POST)
             TempData.Keep("RegistrationData");
             return Page();
         }
 
         /// <summary>
-        /// Valida o código introduzido e cria a conta do utilizador na base de dados.
+        /// Validates the entered code and creates the user account in the database.
         /// </summary>
         /// <remarks>
-        /// Este método realiza a lógica de negócio de classificar o utilizador com base no sufixo do email
-        /// e associa logins externos caso o fluxo tenha sido iniciado por um provider (Google/Facebook).
+        /// This method performs business logic to classify the user based on the email suffix 
+        /// and associates external logins if the flow was initiated by a provider (Google/Facebook).
         /// </remarks>
         public async Task<IActionResult> OnPostAsync()
         {
@@ -106,7 +106,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                 TempData.SetSwalError("Dados de registo expirados. Por favor, registe-se novamente.");
                 return RedirectToPage("Register");
             }
-            
+
             UserEmailDisplay = data.Email;
 
             if (!ModelState.IsValid) return Page();
@@ -163,7 +163,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                     var info = new UserLoginInfo(provider, key, provider);
                     await _userManager.AddLoginAsync(user, info);
                 }
-                
+
                 await _userManager.AddToRoleAsync(user, "Client");
                 await _signInManager.SignInAsync(user, isPersistent: false);
 
@@ -181,9 +181,9 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         }
 
         /// <summary>
-        /// Gera e envia um novo código de verificação para o utilizador.
+        /// Generates and sends a new verification code to the user.
         /// </summary>
-        /// <returns>A página atual com uma mensagem de confirmação de reenvio.</returns>
+        /// <returns>The current page with a resend confirmation message.</returns>
         public async Task<IActionResult> OnPostResendCodeAsync()
         {
             var data = TempData.GetJson<RegisterDataViewModel>("RegistrationData");

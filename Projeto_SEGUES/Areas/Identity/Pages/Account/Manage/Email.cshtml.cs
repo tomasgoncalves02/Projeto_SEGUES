@@ -13,11 +13,11 @@ using Projeto_SEGUES.Models.Enums;
 namespace Projeto_SEGUES.Areas.Identity.Pages.Account.Manage;
 
 /// <summary>
-/// Classe de modelo para a página de gestão de email do utilizador.
+/// Model class for the user's email management page.
 /// </summary>
 /// <remarks>
-/// Esta classe permite ao utilizador visualizar o seu email atual, verificar o estado de confirmação 
-/// e solicitar a alteração do endereço através do envio de tokens de segurança por email.
+/// This class allows the user to view their current email, check the confirmation status, 
+/// and request an address change by sending security tokens via email.
 /// </remarks>
 public class EmailModel : PageModel
 {
@@ -26,10 +26,11 @@ public class EmailModel : PageModel
     private readonly ILogger<EmailModel> _logger;
 
     /// <summary>
-    /// Inicializa uma nova instância de <see cref="EmailModel"/>.
+    /// Initializes a new instance of <see cref="EmailModel"/>.
     /// </summary>
-    /// <param name="userManager">Gestor de utilizadores para operações de conta.</param>
-    /// <param name="emailSender">Serviço de envio de emails para notificações e tokens.</param>
+    /// <param name="userManager">User manager for account operations.</param>
+    /// <param name="emailSender">Email sending service for notifications and tokens.</param>
+    /// <param name="logger">Logger service for auditing and error tracking.</param>
     public EmailModel(
         UserManager<AppUser> userManager,
         IEmailSender emailSender,
@@ -41,28 +42,28 @@ public class EmailModel : PageModel
     }
 
     /// <summary>
-    /// Obtém ou define o email atual do utilizador.
+    /// Gets or sets the user's current email.
     /// </summary>
     public required string Email { get; set; }
 
     /// <summary>
-    /// Indica se o email atual já foi confirmado pelo utilizador.
+    /// Indicates whether the current email has already been confirmed by the user.
     /// </summary>
     public bool IsEmailConfirmed { get; set; }
 
     /// <summary>
-    /// Modelo de entrada de dados para o formulário de alteração de email.
+    /// Data input model for the email change form.
     /// </summary>
     [BindProperty]
     public required InputModel Input { get; set; }
 
     /// <summary>
-    /// Define as propriedades e validações do formulário de entrada para novo email.
+    /// Defines the properties and validations for the new email input form.
     /// </summary>
     public class InputModel
     {
         /// <summary>
-        /// O novo endereço de email pretendido pelo utilizador.
+        /// The new email address desired by the user.
         /// </summary>
         [Required(ErrorMessage = "O email é obrigatório.")]
         [EmailAddress(ErrorMessage = "Endereço de email inválido.")]
@@ -71,9 +72,9 @@ public class EmailModel : PageModel
     }
 
     /// <summary>
-    /// Carrega os dados do utilizador para as propriedades do modelo.
+    /// Loads user data into the model properties.
     /// </summary>
-    /// <param name="user">O utilizador autenticado atual.</param>
+    /// <param name="user">The current authenticated user.</param>
     private async Task LoadAsync(AppUser user)
     {
         var email = (await _userManager.GetEmailAsync(user))!;
@@ -88,9 +89,9 @@ public class EmailModel : PageModel
     }
 
     /// <summary>
-    /// Processa o pedido GET inicial para a página de gestão de email.
+    /// Processes the initial GET request for the email management page.
     /// </summary>
-    /// <returns>A página Razor com os dados carregados.</returns>
+    /// <returns>The Razor page with loaded data.</returns>
     public async Task<IActionResult> OnGetAsync()
     {
         var user = await _userManager.GetUserAsync(User);
@@ -104,9 +105,9 @@ public class EmailModel : PageModel
     }
 
     /// <summary>
-    /// Processa o pedido de alteração de email e envia o link de confirmação para o novo endereço.
+    /// Processes the email change request and sends a confirmation link to the new address.
     /// </summary>
-    /// <returns>Redirecionamento para a mesma página com mensagem de sucesso ou erro.</returns>
+    /// <returns>Redirect to the same page with success or error message.</returns>
     public async Task<IActionResult> OnPostChangeEmailAsync()
     {
         var user = await _userManager.GetUserAsync(User);
@@ -177,9 +178,9 @@ public class EmailModel : PageModel
     }
 
     /// <summary>
-    /// Reenvia o email de confirmação para o endereço de email atual, caso este ainda não esteja confirmado.
+    /// Resends the confirmation email to the current email address if it is not yet confirmed.
     /// </summary>
-    /// <returns>Redirecionamento para a página atual com feedback visual.</returns>
+    /// <returns>Redirect to the current page with visual feedback.</returns>
     public async Task<IActionResult> OnPostSendVerificationEmailAsync()
     {
         var user = await _userManager.GetUserAsync(User);
@@ -203,7 +204,7 @@ public class EmailModel : PageModel
             pageHandler: null,
             values: new { area = "Identity", userId, code },
             protocol: Request.Scheme)!;
-        
+
         const string title = "Verificação de Conta - SEGUES";
         string content = $"""
                               <p>Obrigado por utilizar a plataforma SEGUES.</p>
@@ -212,7 +213,7 @@ public class EmailModel : PageModel
                                   <a href='{callbackUrl}' style='background-color: #009697; color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;'>Confirmar Email</a>
                               </div>
                           """;
-        
+
         var emailSenderService = _emailSender as EmailSender;
         string finalBody = emailSenderService?.GetEmailBody(title, user.FirstName, content) ?? content;
 
@@ -227,7 +228,7 @@ public class EmailModel : PageModel
             _logger.LogAppError(AppErrors.EmailSenderError, TableName.All, AppOperation.Other, ex);
             TempData.SetSwalError("Erro ao enviar email. Por favor, verifique a sua ligação ou tente mais tarde.");
         }
-        
+
         return RedirectToPage();
     }
 }

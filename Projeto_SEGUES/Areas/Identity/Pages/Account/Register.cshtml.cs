@@ -12,11 +12,11 @@ using Projeto_SEGUES.Services;
 namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 {
     /// <summary>
-    /// Model responsável pelo processo de registo de novos utilizadores no sistema SEGUES.
+    /// Model responsible for the registration process of new users in the SEGUES system.
     /// </summary>
     /// <remarks>
-    /// Implementa um fluxo de verificação prévia, onde os dados do utilizador são validados 
-    /// e um código de verificação é enviado por email antes da criação definitiva da conta na base de dados.
+    /// Implements a pre-verification flow where user data is validated 
+    /// and a verification code is sent via email before the final account creation in the database.
     /// </remarks>
     public class RegisterModel : PageModel
     {
@@ -26,7 +26,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         private readonly ILogger<RegisterModel> _logger;
 
         /// <summary>
-        /// Inicializa uma nova instância de <see cref="RegisterModel"/>.
+        /// Initializes a new instance of <see cref="RegisterModel"/>.
         /// </summary>
         public RegisterModel(
             UserManager<AppUser> userManager,
@@ -41,23 +41,23 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         }
 
         /// <summary>
-        /// Modelo de dados que contém as informações de registo (Nome, Email, Password, etc.).
+        /// Data model containing registration information (Name, Email, Password, etc.).
         /// </summary>
         [BindProperty]
         public required RegisterDataViewModel Input { get; set; }
 
         /// <summary>
-        /// URL de destino após a conclusão do registo.
+        /// Target URL after registration completion.
         /// </summary>
         public string? ReturnUrl { get; set; }
 
         /// <summary>
-        /// Lista de fornecedores de autenticação externa disponíveis (ex: Google).
+        /// List of available external authentication providers (e.g., Google).
         /// </summary>
         public IList<AuthenticationScheme>? ExternalLogins { get; set; }
 
         /// <summary>
-        /// Prepara a página de registo e carrega os esquemas de autenticação externa.
+        /// Prepares the registration page and loads external authentication schemes.
         /// </summary>
         public async Task OnGetAsync(string? returnUrl = null)
         {
@@ -66,16 +66,16 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         }
 
         /// <summary>
-        /// Processa a submissão do formulário de registo.
+        /// Processes the registration form submission.
         /// </summary>
-        /// <param name="returnUrl">URL de redirecionamento opcional.</param>
-        /// <returns>Redirecionamento para a página de verificação de código ou a própria página com erros.</returns>
+        /// <param name="returnUrl">Optional redirection URL.</param>
+        /// <returns>Redirection to the code verification page or the page itself with errors.</returns>
         /// <remarks>
-        /// O fluxo consiste em:
-        /// 1. Validar se o email já existe.
-        /// 2. Gerar um código numérico de 6 dígitos.
-        /// 3. Armazenar temporariamente os dados em <see cref="TempData"/> via JSON.
-        /// 4. Enviar o email de boas-vindas com o código de validação.
+        /// The flow consists of:
+        /// 1. Validating if the email already exists.
+        /// 2. Generating a 6-digit numeric code.
+        /// 3. Temporarily storing data in <see cref="TempData"/> via JSON.
+        /// 4. Sending the welcome email with the validation code.
         /// </remarks>
         public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
         {
@@ -107,7 +107,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                 Code = verificationCode,
                 ExpiryTime = DateTime.Now.AddMinutes(5)
             };
-            
+
             // Serializate the data to be stored between requests (multi-step form)
             TempData.SetJson("RegistrationData", registrationData);
 

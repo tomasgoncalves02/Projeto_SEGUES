@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using Microsoft.AspNetCore.Identity;
@@ -17,11 +17,11 @@ using Projeto_SEGUES.Models.Enums;
 namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 {
     /// <summary>
-    /// Model responsável pela lógica de solicitação de recuperação de senha (esqueci-me da senha).
+    /// Model responsible for the password recovery request logic (forgot password).
     /// </summary>
     /// <remarks>
-    /// Esta classe gere o envio de um token de redefinição via email, garantindo que apenas 
-    /// utilizadores com email confirmado possam iniciar o processo de recuperação.
+    /// This class manages the delivery of a reset token via email, ensuring that only 
+    /// users with confirmed emails can initiate the recovery process.
     /// </remarks>
     public class ForgotPasswordModel : PageModel
     {
@@ -30,10 +30,11 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         private readonly ILogger<ForgotPasswordModel> _logger;
 
         /// <summary>
-        /// Inicializa uma nova instância de <see cref="ForgotPasswordModel"/>.
+        /// Initializes a new instance of <see cref="ForgotPasswordModel"/>.
         /// </summary>
-        /// <param name="userManager">Gestor de utilizadores para validação de conta e geração de tokens.</param>
-        /// <param name="emailSender">Serviço de envio de emails para notificação do utilizador.</param>
+        /// <param name="userManager">User manager for account validation and token generation.</param>
+        /// <param name="emailSender">Email sender service for user notification.</param>
+        /// <param name="logger">Logger service for tracking errors and operations.</param>
         public ForgotPasswordModel(UserManager<AppUser> userManager, IEmailSender emailSender, ILogger<ForgotPasswordModel> logger)
         {
             _userManager = userManager;
@@ -42,18 +43,18 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         }
 
         /// <summary>
-        /// Transporta o email do utilizador submetido no formulário.
+        /// Carries the user email submitted in the form.
         /// </summary>
         [BindProperty]
         public required InputModel Input { get; set; }
 
         /// <summary>
-        /// Define as regras de validação para o pedido de recuperação de senha.
+        /// Defines the validation rules for the password recovery request.
         /// </summary>
         public class InputModel
         {
             /// <summary>
-            /// Email associado à conta que pretende recuperar.
+            /// Email associated with the account to be recovered.
             /// </summary>
             [Required(ErrorMessage = "O email é obrigatório.")]
             [EmailAddress(ErrorMessage = "Endereço de email inválido.")]
@@ -62,14 +63,14 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         }
 
         /// <summary>
-        /// Processa o envio do pedido de redefinição de senha.
+        /// Processes the submission of the password reset request.
         /// </summary>
         /// <returns>
-        /// Redireciona sempre para a página de confirmação para evitar a enumeração de contas (segurança).
+        /// Always redirects to the confirmation page to prevent account enumeration (security).
         /// </returns>
         /// <remarks>
-        /// O método gera um token único via <see cref="UserManager{TUser}.GeneratePasswordResetTokenAsync"/>,
-        /// codifica-o em Base64 e envia um email formatado com o link de redefinição.
+        /// The method generates a unique token via <see cref="UserManager{TUser}.GeneratePasswordResetTokenAsync"/>,
+        /// encodes it in Base64, and sends a formatted email with the reset link.
         /// </remarks>
         public async Task<IActionResult> OnPostAsync()
         {

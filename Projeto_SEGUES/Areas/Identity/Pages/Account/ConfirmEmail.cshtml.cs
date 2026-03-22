@@ -10,11 +10,11 @@ using System.Text;
 namespace Projeto_SEGUES.Areas.Identity.Pages.Account;
 
 /// <summary>
-/// Modelo responsável pela confirmação inicial do endereço de email do utilizador.
+/// Model responsible for the initial confirmation of the user's email address.
 /// </summary>
 /// <remarks>
-/// Esta página é o destino do link de verificação enviado após o registo de uma nova conta,
-/// ou quando o utilizador solicita o reenvio do link de confirmação no perfil.
+/// This page is the destination for the verification link sent after registering a new account, 
+/// or when the user requests a resend of the confirmation link from their profile.
 /// </remarks>
 public class ConfirmEmailModel : PageModel
 {
@@ -30,11 +30,11 @@ public class ConfirmEmailModel : PageModel
     }
 
     /// <summary>
-    /// Processa a confirmação do email através dos parâmetros recebidos no URL.
+    /// Processes the email confirmation using parameters received in the URL.
     /// </summary>
-    /// <param name="userId">O identificador único do utilizador.</param>
-    /// <param name="code">O código (token) de segurança codificado em Base64.</param>
-    /// <returns>Redireciona para a página de Login com feedback visual.</returns>
+    /// <param name="userId">The unique identifier of the user.</param>
+    /// <param name="code">The security code (token) encoded in Base64.</param>
+    /// <returns>Redirects to the Login page with visual feedback.</returns>
     public async Task<IActionResult> OnGetAsync(string? userId, string? code)
     {
         if (userId == null || code == null)
@@ -42,7 +42,7 @@ public class ConfirmEmailModel : PageModel
             _logger.LogAppError(AppErrors.BadRequest, TableName.All, AppOperation.Other);
             return RedirectToAction("Error", "Home", new { area = "", errorCode = AppErrors.BadRequest });
         }
-            
+
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
         {
@@ -65,7 +65,7 @@ public class ConfirmEmailModel : PageModel
 
         // Confirm the email
         var result = await _userManager.ConfirmEmailAsync(user, decodedCode);
-            
+
         if (result.Succeeded)
         {
             _logger.LogAppUser($"Email of {user.Email} confirmed successfully.", UserAction.Update);
@@ -77,7 +77,7 @@ public class ConfirmEmailModel : PageModel
             _logger.LogAppUser($"Fail to confirm email {user.Email}: Token used or expired.", UserAction.Update);
             TempData.SetSwalError("Erro ao confirmar o email. O link pode ter expirado ou já foi utilizado.");
         }
-            
+
         return RedirectToPage("/Account/Login", new { area = "Identity" });
     }
 }

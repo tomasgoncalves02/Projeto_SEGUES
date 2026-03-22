@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
@@ -19,11 +19,11 @@ using System.Security.Claims;
 namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 {
     /// <summary>
-    /// Modelo responsável pelo fluxo de autenticação e registo através de fornecedores externos.
+    /// Model responsible for the authentication and registration flow through external providers.
     /// </summary>
     /// <remarks>
-    /// Este modelo gere o callback do fornecedor, a recolha de dados adicionais do utilizador 
-    /// e o fluxo de verificação por código antes da criação definitiva da conta.
+    /// This model manages the provider callback, collection of additional user data, 
+    /// and the code verification flow before the final account creation.
     /// </remarks>
     [AllowAnonymous]
     public class ExternalLoginModel : PageModel
@@ -34,7 +34,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         private readonly ILogger<ExternalLoginModel> _logger;
 
         /// <summary>
-        /// Inicializa uma nova instância de <see cref="ExternalLoginModel"/>.
+        /// Initializes a new instance of <see cref="ExternalLoginModel"/>.
         /// </summary>
         public ExternalLoginModel(
             SignInManager<AppUser> signInManager,
@@ -49,52 +49,52 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         }
 
         /// <summary>
-        /// Dados de entrada para a finalização do registo externo.
+        /// Input data for finalizing external registration.
         /// </summary>
         [BindProperty]
         public required InputModel Input { get; set; }
 
         /// <summary>
-        /// Nome do fornecedor de autenticação (ex: Google).
+        /// Display name of the authentication provider (e.g., Google).
         /// </summary>
         public string ProviderDisplayName { get; set; }
 
         /// <summary>
-        /// URL de redirecionamento após o processo de login.
+        /// Redirect URL after the login process.
         /// </summary>
         public string ReturnUrl { get; set; }
 
         /// <summary>
-        /// Mensagem de erro persistida entre pedidos.
+        /// Error message persisted between requests.
         /// </summary>
         [TempData]
         public string ErrorMessage { get; set; }
 
         /// <summary>
-        /// Define as propriedades necessárias para completar o perfil do utilizador.
+        /// Defines the necessary properties to complete the user profile.
         /// </summary>
         public class InputModel
         {
-            /// <summary>Email do utilizador obtido do fornecedor.</summary>
+            /// <summary>User email obtained from the provider.</summary>
             [Required]
             [EmailAddress]
             public required string Email { get; init; }
 
-            /// <summary>Primeiro nome do utilizador.</summary>
+            /// <summary>User's first name.</summary>
             [Required]
             [Display(Name = "Primeiro Nome")]
             public string FirstName { get; init; }
 
-            /// <summary>Apelido do utilizador.</summary>
+            /// <summary>User's last name.</summary>
             [Required]
             [Display(Name = "Sobrenome")]
             public string LastName { get; init; }
 
-            /// <summary>Género do utilizador (conforme <see cref="Gender"/>).</summary>
+            /// <summary>User's gender (as per <see cref="Gender"/>).</summary>
             [Required]
             public Gender Gender { get; init; }
 
-            /// <summary>Data de nascimento com validação de maioridade.</summary>
+            /// <summary>Date of birth with minimum age validation.</summary>
             [Required]
             [DataType(DataType.Date, ErrorMessage = "A data de nascimento deve ser uma data válida.")]
             [MinimumAge(ErrorMessage = "Deve ter pelo menos 18 anos para se registrar.")]
@@ -103,10 +103,10 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             public DateTime BirthDate { get; init; }
         }
 
-        /// <summary>Redireciona para o login caso o acesso seja direto via GET.</summary>
+        /// <summary>Redirects to login if access is direct via GET.</summary>
         public IActionResult OnGet() => RedirectToPage("./Login");
 
-        /// <summary>Inicia o desafio de autenticação para o fornecedor externo.</summary>
+        /// <summary>Initiates the authentication challenge for the external provider.</summary>
         public IActionResult OnPost(string provider, string returnUrl = null)
         {
             var redirectUrl = Url.Page("./ExternalLogin", pageHandler: "Callback", values: new { returnUrl });
@@ -114,7 +114,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             return new ChallengeResult(provider, properties);
         }
 
-        /// <summary>Processa o retorno do fornecedor externo e verifica se o utilizador já possui conta.</summary>
+        /// <summary>Processes the return from the external provider and checks if the user already has an account.</summary>
         public async Task<IActionResult> OnGetCallbackAsync(string returnUrl = null, string remoteError = null)
         {
             returnUrl ??= Url.Content("~/");
@@ -156,11 +156,11 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         }
 
         /// <summary>
-        /// Valida os dados submetidos e inicia o fluxo de verificação de código por email.
+        /// Validates submitted data and initiates the email code verification flow.
         /// </summary>
         /// <remarks>
-        /// Se o utilizador já existir, apenas vincula o login. Caso contrário, gera um código 
-        /// aleatório e guarda os dados temporariamente em TempData para validação posterior.
+        /// If the user already exists, it simply links the login. Otherwise, it generates a random 
+        /// code and temporarily stores the data in TempData for subsequent validation.
         /// </remarks>
         public async Task<IActionResult> OnPostConfirmationAsync(string returnUrl = null)
         {

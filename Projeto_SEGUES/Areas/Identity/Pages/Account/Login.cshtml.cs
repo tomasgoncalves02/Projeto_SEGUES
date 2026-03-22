@@ -13,11 +13,11 @@ using System.ComponentModel.DataAnnotations;
 namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 {
     /// <summary>
-    /// Model responsável pela lógica de autenticação de utilizadores no sistema SEGUES.
+    /// Model responsible for the user authentication logic in the SEGUES system.
     /// </summary>
     /// <remarks>
-    /// Gere o processo de login local, autenticação externa (OAuth), verificação de estado da conta (Ativo/Inativo)
-    /// e mecanismos de segurança como bloqueio por tentativas falhadas (Lockout) e 2FA.
+    /// Manages the local login process, external authentication (OAuth), account status verification (Active/Inactive), 
+    /// and security mechanisms such as failed attempt lockouts and 2FA.
     /// </remarks>
     public class LoginModel : PageModel
     {
@@ -26,7 +26,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         private readonly UserManager<AppUser> _userManager;
 
         /// <summary>
-        /// Inicializa uma nova instância de <see cref="LoginModel"/>.
+        /// Initializes a new instance of <see cref="LoginModel"/>.
         /// </summary>
         public LoginModel(SignInManager<AppUser> signInManager, ILogger<LoginModel> logger, UserManager<AppUser> userManager)
         {
@@ -36,39 +36,39 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         }
 
         /// <summary>
-        /// Modelo de entrada de dados para as credenciais de login.
+        /// Data input model for login credentials.
         /// </summary>
         [BindProperty]
         public required InputModel Input { get; set; }
 
         /// <summary>
-        /// Lista de fornecedores de autenticação externa configurados (ex: Google).
+        /// List of configured external authentication providers (e.g., Google).
         /// </summary>
         public IList<AuthenticationScheme>? ExternalLogins { get; set; }
 
         /// <summary>
-        /// URL de redirecionamento após o sucesso da autenticação.
+        /// Redirect URL after successful authentication.
         /// </summary>
         public string? ReturnUrl { get; set; }
 
         /// <summary>
-        /// Armazena mensagens de erro temporárias vindas de redirecionamentos.
+        /// Stores temporary error messages from redirects.
         /// </summary>
         [TempData]
         public string? ErrorMessage { get; set; }
 
         /// <summary>
-        /// Define a estrutura e validações do formulário de login.
+        /// Defines the structure and validations of the login form.
         /// </summary>
         public class InputModel
         {
-            /// <summary>Identificador único de email do utilizador.</summary>
+            /// <summary>Unique user email identifier.</summary>
             [Required(ErrorMessage = "O email é obrigatório.")]
             [EmailAddress(ErrorMessage = "Endereço de email inválido.")]
             [Display(Name = "Endereço de email")]
             public required string Email { get; init; }
-        
-            /// <summary>Palavra-passe de acesso.</summary>
+
+            /// <summary>Access password.</summary>
             [Required(ErrorMessage = "A password é obrigatória.")]
             [StringLength(100, ErrorMessage = "A password deve ter pelo menos {2} e no máximo {1} caracteres.", MinimumLength = 12)]
             [DataType(DataType.Password)]
@@ -76,14 +76,14 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                 ErrorMessage = "A password deve ter pelo menos: 1 Minúscula, 1 Maiúscula, 1 Número e 1 Símbolo. E no mínimo 12 caracteres.")]
             [Display(Name = "Password")]
             public required string Password { get; init; }
-        
-            /// <summary>Define se o cookie de autenticação deve persistir após fechar o navegador.</summary>
+
+            /// <summary>Defines if the authentication cookie should persist after closing the browser.</summary>
             [Display(Name = "Lembrar-me")]
             public bool RememberMe { get; init; }
         }
 
         /// <summary>
-        /// Prepara a página de login para apresentação (GET).
+        /// Prepares the login page for display (GET).
         /// </summary>
         public async Task OnGetAsync(string? returnUrl = null)
         {
@@ -93,7 +93,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             }
 
             returnUrl ??= Url.Content("~/");
-            
+
             // Clear the existing external cookie to ensure a clean login process
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
@@ -102,26 +102,26 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         }
 
         /// <summary>
-        /// Processa a tentativa de autenticação do utilizador (POST).
+        /// Processes the user authentication attempt (POST).
         /// </summary>
-        /// <returns>Redirecionamento em caso de sucesso ou a página com erros em caso de falha.</returns>
+        /// <returns>Redirect in case of success or the page with errors in case of failure.</returns>
         /// <remarks>
-        /// O fluxo inclui:
-        /// 1. Verificação da existência do utilizador.
-        /// 2. Validação do estado da conta (bloqueio administrativo se <see cref="UserStatus.Inactive"/>).
-        /// 3. Verificação de credenciais via <see cref="SignInManager{TUser}.PasswordSignInAsync(string, string, bool, bool)"/>.
+        /// The workflow includes:
+        /// 1. Verifying user existence.
+        /// 2. Validating account status (administrative block if <see cref="UserStatus.Inactive"/>).
+        /// 3. Credential verification via <see cref="SignInManager{TUser}.PasswordSignInAsync(string, string, bool, bool)"/>.
         /// </remarks>
         public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
         {
             returnUrl ??= Url.Content("~/");
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
-            
+
             if (!ModelState.IsValid)
             {
                 TempData.SetSwalError("Por favor corrija os erros no formulário.");
                 return Page();
             }
-            
+
             // Not allow login if the user is inactive
             var user = await _userManager.FindByEmailAsync(Input.Email);
 
@@ -152,7 +152,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                 _logger.LogAppUser($"Account {Input.Email} locked out due to failed login attempts.", UserAction.LogIn);
                 return RedirectToPage("./Lockout");
             }
-            
+
             _logger.LogAppUser($"Failed login attempt for {Input.Email}.", UserAction.LogIn);
             TempData.SetSwalError("Tentativa de login inválida.");
             return Page();
