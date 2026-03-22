@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -19,7 +19,7 @@ namespace SeguesTests.Admin
         public AdminCreateInternalAccountControllerTests()
         {
             _mockAdminService = new Mock<IAdminService>();
-            _controller = new AdminCreateInternalAccountController(_mockAdminService.Object);
+           // _controller = new AdminCreateInternalAccountController(_mockAdminService.Object);
 
             var httpContext = new DefaultHttpContext();
             _controller.TempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>());

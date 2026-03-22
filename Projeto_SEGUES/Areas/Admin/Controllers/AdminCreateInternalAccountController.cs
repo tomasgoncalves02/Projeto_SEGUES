@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Extensions;
+using Projeto_SEGUES.Models.Enums;
+using Projeto_SEGUES.Resources;
 using Projeto_SEGUES.Services;
 
 namespace Projeto_SEGUES.Areas.Admin;
@@ -9,29 +12,30 @@ namespace Projeto_SEGUES.Areas.Admin;
 /// <summary>
 /// Controller responsible for creating internal accounts (staff/administrators) in the system.
 /// </summary>
-/// <remarks>
-/// This controller manages the registration process for users who are not clients, 
-/// including role assignment and activation email dispatch.
-/// </remarks>
 [Authorize(Roles = "Admin")]
 [Area("Admin")]
 public class AdminCreateInternalAccountController : Controller
 {
     private readonly IAdminService _adminService;
+    private readonly ILogger<AdminCreateInternalAccountController> _logger;
+    private readonly IStringLocalizer<Errors> _localizer;
 
     /// <summary>
-    /// Initializes a new instance of the controller with the administration service.
+    /// Initializes a new instance of the controller with required services.
     /// </summary>
-    /// <param name="adminService">Service interface containing user management logic.</param>
-    public AdminCreateInternalAccountController(IAdminService adminService)
+    public AdminCreateInternalAccountController(
+        IAdminService adminService,
+        ILogger<AdminCreateInternalAccountController> logger,
+        IStringLocalizer<Errors> localizer)
     {
         _adminService = adminService;
+        _logger = logger;
+        _localizer = localizer;
     }
 
     /// <summary>
     /// Displays the internal account creation form.
     /// </summary>
-    /// <returns>The index View with the list of available roles in the ViewBag.</returns>
     [HttpGet]
     public async Task<IActionResult> Index()
     {
@@ -42,13 +46,6 @@ public class AdminCreateInternalAccountController : Controller
     /// <summary>
     /// Processes the form submission to create a new internal user.
     /// </summary>
-    /// <param name="model">Data model containing the new user's information.</param>
-    /// <returns>
-    /// Redirects to Index on success or returns the View with error messages on failure.
-    /// </returns>
-    /// <remarks>
-    /// Validates the model state, attempts user creation via the service, and handles exceptions related to email sending.
-    /// </remarks>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CreateInternalUserViewModel model)
@@ -61,6 +58,7 @@ public class AdminCreateInternalAccountController : Controller
 
         try
         {
+            //throw new Exception("Simulação de erro de e-mail");
             var result = await _adminService.CreateInternalUserAsync(model);
 
             if (result.Success)
@@ -68,15 +66,23 @@ public class AdminCreateInternalAccountController : Controller
                 TempData.SetSwalSuccess($"Conta criada para {model.FirstName}!");
                 return RedirectToAction(nameof(Index));
             }
-            
+
             var errors = result.Message.Split("; ");
             foreach (var error in errors)
                 ModelState.AddModelError("", error);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            ModelState.AddModelError("", "Erro ao enviar e-mail de ativação. Verifique a sua conexão à Internet.");
-            TempData.SetSwalError("Falha na conexão: O e-mail não pode ser enviado, por isso a conta não foi criada.");
+            _logger.LogAppError(
+                $"Falha crítica ao criar conta interna ({model?.Email}): {ex.Message}",
+                TableName.User,
+                AppOperation.Create
+            );
+            return RedirectToAction("Error", "Home", new
+            {
+                area = "",
+                errorCode = (int)AppErrors.SendActivationEmailError
+            });
         }
 
         ViewBag.Roles = await _adminService.GetNonClientRolesForDropdownAsync();

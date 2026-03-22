@@ -1,4 +1,4 @@
-namespace Projeto_SEGUES.Models.Enums;
+﻿namespace Projeto_SEGUES.Models.Enums;
 
 public enum TableName : byte
 {
@@ -23,4 +23,5 @@ public enum TableName : byte
     Transaction,
     User,
     UserCategory,
+    UserLog
 }

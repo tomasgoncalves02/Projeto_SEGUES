@@ -311,22 +311,40 @@ public class AdminUserManagementController : Controller
     /// <returns>The View with the list of logs sorted by descending date.</returns>
     public async Task<IActionResult> StaffLog(string search, string date)
     {
-        var query = _context.UserLog
-            .Include(l => l.AppUser)
-            .AsQueryable();
-
-        if (!string.IsNullOrEmpty(search))
+        try
         {
-            query = query.Where(l => l.AppUser.UserName.Contains(search) || l.Message.Contains(search));
-        }
+            //throw new Exception("Simulação de erro de e-mail");
+            var query = _context.UserLog
+                .Include(l => l.AppUser)
+                .AsQueryable();
 
-        if (!string.IsNullOrEmpty(date) && DateTime.TryParse(date, out DateTime parsedDate))
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(l => l.AppUser.UserName.Contains(search) || l.Message.Contains(search));
+            }
+
+            if (!string.IsNullOrEmpty(date) && DateTime.TryParse(date, out DateTime parsedDate))
+            {
+                query = query.Where(l => l.TimeStamp.Date == parsedDate.Date);
+            }
+
+            var logs = await query.OrderByDescending(l => l.TimeStamp).ToListAsync();
+
+            return View(logs);
+        }
+        catch (Exception ex)
         {
-            query = query.Where(l => l.TimeStamp.Date == parsedDate.Date);
+            _logger.LogAppError(
+                "Erro ao consultar os logs do sistema: " + ex.Message,
+                TableName.UserLog,
+                AppOperation.Read
+            );
+
+            return RedirectToAction("Error", "Home", new
+            {
+                area = "",
+                errorCode = (int)AppErrors.DatabaseQueryError 
+            });
         }
-
-        var logs = await query.OrderByDescending(l => l.TimeStamp).ToListAsync();
-
-        return View(logs);
     }
 }

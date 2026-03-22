@@ -18,6 +18,7 @@ using System.Collections.ObjectModel;
 using System.Data;
 using System.Security.Claims;
 using Projeto_SEGUES.Middlewares;
+using Microsoft.AspNetCore.Localization;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -196,7 +197,10 @@ StripeConfiguration.ApiKey = builder.Configuration["Secrets:StripeSecretKey"];
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 builder.Services.AddControllersWithViews()
     .AddViewLocalization()
-    .AddDataAnnotationsLocalization();
+    .AddDataAnnotationsLocalization(options => {
+        options.DataAnnotationLocalizerProvider = (type, factory) =>
+            factory.Create(typeof(Projeto_SEGUES.Resources.Errors));
+    });
 builder.Services.AddRazorPages();
 
 
@@ -216,6 +220,10 @@ var localizationOptions = new RequestLocalizationOptions()
  * Clearing this list forces the app to use the DefaultCulture (pt-PT) for EVERYONE.
  */
 localizationOptions.RequestCultureProviders.Clear();
+/*localizationOptions.RequestCultureProviders.Insert(0, new CustomRequestCultureProvider(context =>
+{
+    return Task.FromResult(new ProviderCultureResult("pt-PT"));
+}));*/
 
 app.UseRequestLocalization(localizationOptions);
 // Rest of pipeline after localization!

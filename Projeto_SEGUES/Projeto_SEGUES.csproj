@@ -19,20 +19,22 @@
     <EmbeddedResource Update="Resources\Errors.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Errors.Designer.cs</LastGenOutput>
+      <CustomToolNamespace>Projeto_SEGUES.Resources</CustomToolNamespace>
     </EmbeddedResource>
     <Compile Update="Resources\Errors.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>Errors.resx</DependentUpon>
     </Compile>
-    <EmbeddedResource Update="Resources\Errors.pt.resx">
+    <EmbeddedResource Update="Resources\Errors.pt-PT.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>Errors.pt.Designer.cs</LastGenOutput>
+      <LastGenOutput>Errors.pt-PT.Designer.cs</LastGenOutput>
+      <CustomToolNamespace>Projeto_SEGUES.Resources</CustomToolNamespace>
     </EmbeddedResource>
-    <Compile Update="Resources\Errors.pt.Designer.cs">
+    <Compile Update="Resources\Errors.pt-PT.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>Errors.pt.resx</DependentUpon>
+      <DependentUpon>Errors.pt-PT.resx</DependentUpon>
     </Compile>
   </ItemGroup>
 

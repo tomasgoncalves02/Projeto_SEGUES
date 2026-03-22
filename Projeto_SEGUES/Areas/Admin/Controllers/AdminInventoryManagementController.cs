@@ -1,8 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using Projeto_SEGUES.Areas.Inventory.ViewModels;
 using Projeto_SEGUES.Extensions;
+using Projeto_SEGUES.Models.Enums;
+using Projeto_SEGUES.Resources;
 using Projeto_SEGUES.Services;
+using System.Diagnostics;
 
 namespace Projeto_SEGUES.Areas.Admin;
 
@@ -10,22 +14,28 @@ namespace Projeto_SEGUES.Areas.Admin;
 /// Controller responsible for managing product inventory within the administrative area.
 /// </summary>
 /// <remarks>
-/// Allows administrators to perform CRUD operations (Create, Read, Update, Delete) on products, 
-/// as well as manage stock levels and associated categories.
+/// This controller handles CRUD operations for products, stock management, and categories,
+/// ensuring all actions are logged and exceptions are redirected to a global error page.
 /// </remarks>
 [Authorize(Roles = "Admin")]
 [Area("Admin")]
 public class AdminInventoryManagementController : Controller
 {
     private readonly IInventoryService _inventoryService;
+    private readonly ILogger<AdminInventoryManagementController> _logger;
+    private readonly IStringLocalizer<Errors> _localizer;
 
     /// <summary>
-    /// Initializes a new instance of the controller with the inventory service.
+    /// Initializes a new instance of the controller with inventory, logging, and localization services.
     /// </summary>
-    /// <param name="inventoryService">Service interface containing the inventory business logic.</param>
-    public AdminInventoryManagementController(IInventoryService inventoryService)
+    public AdminInventoryManagementController(
+        IInventoryService inventoryService,
+        ILogger<AdminInventoryManagementController> logger,
+        IStringLocalizer<Errors> localizer)
     {
         _inventoryService = inventoryService;
+        _logger = logger;
+        _localizer = localizer;
     }
 
     /// <summary>
@@ -34,140 +44,193 @@ public class AdminInventoryManagementController : Controller
     /// <returns>The index View populated with current categories and products.</returns>
     public async Task<IActionResult> Index()
     {
-        ViewBag.Categories = await _inventoryService.GetAllCategoriesForDropdownAsync();
-        ViewBag.Products = await _inventoryService.GetAllProductsAsync();
-        return View();
+        try
+        {
+            ViewBag.Categories = await _inventoryService.GetAllCategoriesForDropdownAsync();
+            ViewBag.Products = await _inventoryService.GetAllProductsAsync();
+            return View();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogAppError($"Error loading inventory index: {ex.Message}", TableName.Product, AppOperation.Read);
+            return RedirectToAction("Error", "Home", new { area = "", errorCode = (int)AppErrors.DatabaseQueryError });
+        }
     }
 
     /// <summary>
-    /// Retrieves the product list formatted for a partial interface update.
+    /// Retrieves the product list formatted for a partial interface update via AJAX.
     /// </summary>
-    /// <returns>A PartialView containing the products table or list.</returns>
+    /// <returns>A PartialView containing the products table.</returns>
     public async Task<IActionResult> GetProducts()
     {
-        var products = await _inventoryService.GetAllProductsAsync();
-        return PartialView("_ProductListPartial", products);
+        try
+        {
+            var products = await _inventoryService.GetAllProductsAsync();
+            return PartialView("_ProductListPartial", products);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogAppError($"Error retrieving partial product list: {ex.Message}", TableName.Product, AppOperation.Read);
+            return StatusCode(500); // Internal Server Error for AJAX requests
+        }
     }
 
     /// <summary>
     /// Processes the registration of a new product in the inventory.
     /// </summary>
-    /// <param name="productViewModel">Data model containing the details of the product to be created.</param>
-    /// <returns>Redirects to Index with a success or error message via SweetAlert.</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(ProductViewModel productViewModel)
     {
         if (!ModelState.IsValid)
         {
-            TempData.SetSwalError($"Não foi possível registar o produto. Verifique os campos.");
+            TempData.SetSwalError("Could not register product. Please verify the input fields.");
             return RedirectToAction(nameof(Index));
         }
-        var result = await _inventoryService.CreateProductAsync(productViewModel);
-        if (result.Success)
-        {
-            TempData.SetSwalSuccess(result.Message);
-        }
-        else
-        {
-            TempData.SetSwalError(result.Message);
-        }
-        return RedirectToAction(nameof(Index));
-    }
 
-    /// <summary>
-    /// Removes a product from the system based on the provided identifier.
-    /// </summary>
-    /// <param name="id">The unique identifier of the product.</param>
-    /// <returns>Redirects to Index reporting the result of the operation.</returns>
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Delete(int id)
-    {
-        var result = await _inventoryService.DeleteProductAsync(id);
-        if (!result.Success)
+        try
         {
-            TempData.SetSwalError(result.Message);
+            var result = await _inventoryService.CreateProductAsync(productViewModel);
+            if (result.Success)
+            {
+                TempData.SetSwalSuccess(result.Message);
+            }
+            else
+            {
+                TempData.SetSwalError(result.Message);
+            }
         }
-        else
+        catch (Exception ex)
         {
-            TempData.SetSwalSuccess(result.Message);
+            _logger.LogAppError($"Critical error creating product ({productViewModel.Name}): {ex.Message}", TableName.Product, AppOperation.Create);
+            return RedirectToAction("Error", "Home", new { area = "", errorCode = (int)AppErrors.ProductCreateErrror });
         }
+
         return RedirectToAction(nameof(Index));
     }
 
     /// <summary>
     /// Displays the edit form for a specific product.
     /// </summary>
-    /// <param name="id">The unique identifier of the product to edit.</param>
-    /// <returns>The edit View filled with current data or NotFound if the product does not exist.</returns>
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
-        var product = await _inventoryService.GetProductByIdAsync(id);
-        if (product == null) return NotFound();
-        ViewBag.Categories = await _inventoryService.GetAllCategoriesForDropdownAsync();
-        ProductViewModel productViewModel = new ProductViewModel
+        try
         {
-            Id = product.Id,
-            Name = product.Name,
-            Description = product.Description,
-            CategoryId = product.Category.Id,
-            Price = product.Price,
-            Stock = product.Stock,
-            MinimumStock = product.MinimumStock,
-            IsActive = product.IsActive
-        };
-        return View(productViewModel);
+            var product = await _inventoryService.GetProductByIdAsync(id);
+            if (product == null) return NotFound();
+
+            ViewBag.Categories = await _inventoryService.GetAllCategoriesForDropdownAsync();
+
+            ProductViewModel productViewModel = new ProductViewModel
+            {
+                Id = product.Id,
+                Name = product.Name,
+                Description = product.Description,
+                CategoryId = product.Category.Id,
+                Price = product.Price,
+                Stock = product.Stock,
+                MinimumStock = product.MinimumStock,
+                IsActive = product.IsActive
+            };
+            return View(productViewModel);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogAppError($"Error fetching product ID {id} for edit: {ex.Message}", TableName.Product, AppOperation.Read);
+            return RedirectToAction("Error", "Home", new { area = "", errorCode = (int)AppErrors.DatabaseQueryError });
+        }
     }
 
     /// <summary>
     /// Processes the changes made to an existing product.
     /// </summary>
-    /// <param name="productViewModel">Data model with the updated information.</param>
-    /// <returns>The same edit View with the result of the operation.</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(ProductViewModel productViewModel)
     {
         ViewBag.Categories = await _inventoryService.GetAllCategoriesForDropdownAsync();
+
         if (!ModelState.IsValid)
         {
             TempData.SetSwalError("Não foi possível atualizar o produto. Verifique os campos.");
             return View(productViewModel);
         }
-        var result = await _inventoryService.EditProductAsync(productViewModel);
-        if (!result.Success)
+
+        try
         {
-            TempData.SetSwalError(result.Message);
+            var result = await _inventoryService.EditProductAsync(productViewModel);
+            if (result.Success)
+            {
+                TempData.SetSwalSuccess(result.Message);
+            }
+            else
+            {
+                TempData.SetSwalError(result.Message);
+            }
         }
-        else
+        catch (Exception ex)
         {
-            TempData.SetSwalSuccess(result.Message);
+            _logger.LogAppError($"Critical error updating product ID {productViewModel.Id}: {ex.Message}", TableName.Product, AppOperation.Update);
+            return RedirectToAction("Error", "Home", new { area = "", errorCode = (int)AppErrors.ProductEditError });
         }
+
         return View(productViewModel);
+    }
+
+    /// <summary>
+    /// Removes a product from the system.
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(int id)
+    {
+        try
+        {
+            var result = await _inventoryService.DeleteProductAsync(id);
+            if (!result.Success)
+            {
+                TempData.SetSwalError(result.Message);
+            }
+            else
+            {
+                TempData.SetSwalSuccess(result.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogAppError($"Critical error deleting product ID {id}: {ex.Message}", TableName.Product, AppOperation.Delete);
+            return RedirectToAction("Error", "Home", new { area = "", errorCode = (int)AppErrors.ProductDeleteError });
+        }
+
+        return RedirectToAction(nameof(Index));
     }
 
     /// <summary>
     /// Reactivates a previously disabled product.
     /// </summary>
-    /// <param name="id">The unique identifier of the product.</param>
-    /// <returns>Redirects to Index reporting the result.</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Reactivate(int id)
     {
-        // O serviço deve ter uma lógica para definir IsActive = true
-        var result = await _inventoryService.ReactivateProductAsync(id);
+        try
+        {
+            var result = await _inventoryService.ReactivateProductAsync(id);
+            if (!result.Success)
+            {
+                TempData.SetSwalError(result.Message);
+            }
+            else
+            {
+                TempData.SetSwalSuccess(result.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogAppError($"Critical error reactivating product ID {id}: {ex.Message}", TableName.Product, AppOperation.Update);
+            return RedirectToAction("Error", "Home", new { area = "", errorCode = (int)AppErrors.DatabaseUpdateError });
+        }
 
-        if (!result.Success)
-        {
-            TempData.SetSwalError(result.Message);
-        }
-        else
-        {
-            TempData.SetSwalSuccess(result.Message);
-        }
         return RedirectToAction(nameof(Index));
     }
 }
