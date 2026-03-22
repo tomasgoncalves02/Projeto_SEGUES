@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Projeto_SEGUES.Areas.Identity.ViewModels;
 using Projeto_SEGUES.Extensions;
+using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 
@@ -83,7 +84,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 
             if (!ModelState.IsValid) return Page();
 
-            // Verifica se o email já está em uso para evitar duplicados
+            // Check if email is already registered to prevent duplicates
             var existingUser = await _userManager.FindByEmailAsync(Input.Email);
             if (existingUser != null)
             {
@@ -91,7 +92,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                 return Page();
             }
 
-            // Geração de código seguro e preparação dos dados temporários
+            // Generate code
             var verificationCode = System.Security.Cryptography.RandomNumberGenerator.GetInt32(100000, 999999).ToString();
 
             var registrationData = new RegisterDataViewModel
@@ -106,8 +107,8 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                 Code = verificationCode,
                 ExpiryTime = DateTime.Now.AddMinutes(5)
             };
-
-            // Serialização dos dados para persistência entre pedidos (multi-step form)
+            
+            // Serializate the data to be stored between requests (multi-step form)
             TempData.SetJson("RegistrationData", registrationData);
 
             var emailBody = ((EmailSender)_emailSender).GetEmailBody(
@@ -126,7 +127,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro ao enviar email de verificação para {Email}", Input.Email);
+                _logger.LogAppError(AppErrors.SendActivationEmailError, TableName.All, AppOperation.Other, ex);
                 TempData.Remove("RegistrationData");
                 ModelState.AddModelError(string.Empty, "Falha ao enviar o email. Verifique a sua conexão ou tente mais tarde.");
                 return Page();

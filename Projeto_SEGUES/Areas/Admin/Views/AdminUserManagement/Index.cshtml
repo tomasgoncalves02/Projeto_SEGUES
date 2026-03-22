@@ -28,7 +28,7 @@
             <form method="get" asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Index" class="row g-3 align-items-center">
                 @* SearchFilter *@
                 <div class="col-md-6">
-                    <div class="input-group flex-nowrap">
+                    <div class="input-group">
                         <label for="searchFilter" class="col-form-label fw-bold small me-3">Pesquisar:</label>
                         <input id="searchFilter" type="text" name="searchString" class="form-control border-0 bg-light"
                                placeholder="Nome ou email..."
@@ -41,7 +41,7 @@
                 </div>
                 @* RoleFilter *@
                 <div class="col-md-auto">
-                    <div class="input-group flex-nowrap">
+                    <div class="input-group">
                         <label for="roleFilter" class="col-form-label fw-bold small me-3">Role:</label>
                         <select id="roleFilter" name="roleFilter" class="form-select border-0 bg-light"
                                 onchange="this.form.submit()" style="border-radius: 8px;">
@@ -55,7 +55,7 @@
                 </div>
                 @* CategoryFilter *@
                 <div class="col-md-auto">
-                    <div class="input-group flex-nowrap">
+                    <div class="input-group">
                         <label for="categoryFilter" class="col-form-label fw-bold small me-3">Categoria:</label>
                         <select id="categoryFilter" name="categoryFilter" class="form-select border-0 bg-light"
                                 onchange="this.form.submit()" style="border-radius: 8px;">

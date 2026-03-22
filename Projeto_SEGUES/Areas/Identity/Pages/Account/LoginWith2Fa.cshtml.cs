@@ -74,7 +74,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         /// <returns>A página de introdução do código ou redirecionamento para Login se o contexto for perdido.</returns>
         public async Task<IActionResult> OnGetAsync(bool rememberMe, string? returnUrl = null)
         {
-            // Garante que o utilizador passou pela autenticação de password primeiro
+            // Ensures the user has gone through the password challenge first
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
             {
@@ -114,7 +114,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                 return RedirectToPage("./Login");
             }
 
-            // Normalização do código (remove caracteres de formatação comuns)
+            // Normalization of the code (removes common formatting characters)
             var authenticatorCode = Input.TwoFactorCode.Replace(" ", "").Replace("-", "");
 
             var result = await _signInManager.TwoFactorAuthenticatorSignInAsync(authenticatorCode, rememberMe, Input.RememberMachine);

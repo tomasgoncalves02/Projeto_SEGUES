@@ -4,21 +4,21 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 {
     /// <summary>
-    /// Model da p·gina de bloqueio de conta (Lockout).
+    /// Model da p√°gina de bloqueio de conta (Lockout).
     /// </summary>
     /// <remarks>
-    /// Esta p·gina È apresentada automaticamente pelo sistema de Identity quando um utilizador 
-    /// excede o n˙mero m·ximo de tentativas de login falhadas (configurado no Program.cs).
-    /// O bloqueio È tempor·rio e serve para proteger a conta contra ataques de forÁa bruta.
+    /// Esta p√°gina √© apresentada automaticamente pelo sistema de Identity quando um utilizador 
+    /// excede o n√∫mero m√°ximo de tentativas de login falhadas (configurado no Program.cs).
+    /// O bloqueio √© tempor√°rio e serve para proteger a conta contra ataques de for√ßa bruta.
     /// </remarks>
     [AllowAnonymous]
     public class Lockout : PageModel
     {
         /// <summary>
-        /// Processa o pedido GET da p·gina de bloqueio.
+        /// Processa o pedido GET da p√°gina de bloqueio.
         /// </summary>
         /// <remarks>
-        /// Informa o utilizador que a sua conta est· temporariamente suspensa por razıes de seguranÁa.
+        /// Informa o utilizador que a sua conta est√° temporariamente suspensa por raz√µes de seguran√ßa.
         /// </remarks>
         public void OnGet()
         {

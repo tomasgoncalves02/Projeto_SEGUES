@@ -4,22 +4,22 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 {
     /// <summary>
-    /// Model da página de login via códigos de recuperação (Recovery Codes).
+    /// Model da pÃ¡gina de login via cÃ³digos de recuperaÃ§Ã£o (Recovery Codes).
     /// </summary>
     /// <remarks>
-    /// Esta página serve como método de contingência para utilizadores com 2FA ativo. 
-    /// Permite a entrada no sistema utilizando um dos códigos de uso único gerados durante a 
-    /// configuração da autenticação de dois fatores, caso o dispositivo principal esteja inacessível.
+    /// Esta pÃ¡gina serve como mÃ©todo de contingÃªncia para utilizadores com 2FA ativo. 
+    /// Permite a entrada no sistema utilizando um dos cÃ³digos de uso Ãºnico gerados durante a 
+    /// configuraÃ§Ã£o da autenticaÃ§Ã£o de dois fatores, caso o dispositivo principal esteja inacessÃ­vel.
     /// </remarks>
     [AllowAnonymous]
     public class LoginWithRecoveryCode : PageModel
     {
         /// <summary>
-        /// Processa o pedido GET para a página de introdução do código de recuperação.
+        /// Processa o pedido GET para a pÃ¡gina de introduÃ§Ã£o do cÃ³digo de recuperaÃ§Ã£o.
         /// </summary>
         /// <remarks>
-        /// Verifica se o utilizador passou pela primeira fase de autenticação (password) 
-        /// e prepara o formulário para receber o código alfanumérico de segurança.
+        /// Verifica se o utilizador passou pela primeira fase de autenticaÃ§Ã£o (password) 
+        /// e prepara o formulÃ¡rio para receber o cÃ³digo alfanumÃ©rico de seguranÃ§a.
         /// </remarks>
         public void OnGet()
         {

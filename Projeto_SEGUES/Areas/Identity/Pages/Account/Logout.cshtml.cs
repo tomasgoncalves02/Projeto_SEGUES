@@ -45,7 +45,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         /// </remarks>
         public async Task<IActionResult> OnPost(string returnUrl = null)
         {
-            // Efetua o SignOut no sistema de Identity
+            // Identity sign out
             await _signInManager.SignOutAsync();
 
             _logger.LogInformation("Utilizador efetuou logout com sucesso.");
@@ -54,10 +54,8 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             {
                 return LocalRedirect(returnUrl);
             }
-
-            // Este redirecionamento é necessário para que o browser limpe o estado da identidade 
-            // e realize um novo pedido sem as credenciais anteriores.
-            return RedirectToPage();
+            
+            return RedirectToAction("Index", "Home", new { area = "" });
         }
     }
 }

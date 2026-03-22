@@ -10,6 +10,7 @@ using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
+using Projeto_SEGUES.Models.Enums;
 
 namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 {
@@ -26,6 +27,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         private readonly SignInManager<AppUser> _signInManager;
         private readonly AppDbContext _context;
         private readonly IEmailSender _emailSender;
+        private readonly ILogger<VerifyCodeModel> _logger;
 
         /// <summary>
         /// Inicializa uma nova instância de <see cref="VerifyCodeModel"/>.
@@ -34,12 +36,14 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             UserManager<AppUser> userManager,
             SignInManager<AppUser> signInManager,
             AppDbContext context,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            ILogger<VerifyCodeModel> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _context = context;
             _emailSender = emailSender;
+            _logger = logger;
         }
 
         /// <summary>
@@ -74,7 +78,8 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             if (data == null) return RedirectToPage("Register");
 
             UserEmailDisplay = data.Email;
-            // Mantém os dados no TempData para o próximo pedido (POST)
+            
+            // Keep data in TempData for the next request (POST)
             TempData.Keep("RegistrationData");
             return Page();
         }
@@ -90,21 +95,28 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         {
             if (TempData["RegistrationData"] is not string jsonData)
             {
+                TempData.SetSwalError("Dados de registo expirados. Por favor, registe-se novamente.");
                 return RedirectToPage("Register");
             }
             TempData.Keep("RegistrationData");
 
-            var data = JsonSerializer.Deserialize<RegisterDataViewModel>(jsonData)!;
+            var data = JsonSerializer.Deserialize<RegisterDataViewModel>(jsonData);
+            if (data == null)
+            {
+                TempData.SetSwalError("Dados de registo expirados. Por favor, registe-se novamente.");
+                return RedirectToPage("Register");
+            }
+            
             UserEmailDisplay = data.Email;
 
             if (!ModelState.IsValid) return Page();
 
-            // Verificação de expiração do código (5 minutos)
+            // Verify code expiration
             if (DateTime.Now > data.ExpiryTime)
             {
                 TempData.Remove("RegistrationData");
-                ModelState.AddModelError("", "O código expirou (limite de 5 minutos). Por favor registe-se novamente.");
-                return Page();
+                TempData.SetSwalError("O código expirou (limite de 5 minutos). Por favor registe-se novamente.");
+                return RedirectToPage("Register");
             }
 
             if (Input.Code != data.Code)
@@ -113,7 +125,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                 return Page();
             }
 
-            // Lógica de Atribuição de Categoria Automática
+            // Assign the user category based on email suffix
             string categoryName = "Externo";
             if (data.Email.ToLower().Contains("@estudantes."))
             {
@@ -126,7 +138,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 
             var category = await _context.UserCategory.FirstOrDefaultAsync(c => c.Name == categoryName);
 
-            // Mapeamento dos dados temporários para a entidade AppUser
+            // Map data to AppUser
             var user = new AppUser
             {
                 UserName = data.Email,
@@ -143,7 +155,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 
             if (result.Succeeded)
             {
-                // Vinculação de Login Externo (se aplicável)
+                // If applicable, link external login (Google/Facebook) to the newly created user
                 if (TempData.TryGetValue("ExternalLoginProvider", out object? value))
                 {
                     var provider = value?.ToString()!;
@@ -151,12 +163,13 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                     var info = new UserLoginInfo(provider, key, provider);
                     await _userManager.AddLoginAsync(user, info);
                 }
-
+                
                 await _userManager.AddToRoleAsync(user, "Client");
                 await _signInManager.SignInAsync(user, isPersistent: false);
 
                 TempData.Remove("RegistrationData");
                 TempData.SetSwalSuccess("Conta criada e validada com sucesso!");
+                _logger.LogAppUser($"User {user.Email} account created.", UserAction.Create);
                 return RedirectToAction("Index", "Home", new { area = "" });
             }
 
@@ -174,9 +187,13 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         public async Task<IActionResult> OnPostResendCodeAsync()
         {
             var data = TempData.GetJson<RegisterDataViewModel>("RegistrationData");
-            if (data == null) return RedirectToPage("Register");
+            if (data == null)
+            {
+                TempData.SetSwalError("Dados de registo expirados. Por favor, registe-se novamente.");
+                return RedirectToPage("Register");
+            }
 
-            // Regeneração do código e atualização da validade
+            // Regenerate new code
             string newCode = System.Security.Cryptography.RandomNumberGenerator.GetInt32(100000, 999999).ToString();
             data.Code = newCode;
             data.ExpiryTime = DateTime.Now.AddMinutes(5);
@@ -197,9 +214,10 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                 await _emailSender.SendEmailAsync(data.Email, "Código de Validação SEGUES", emailBody);
                 TempData.SetSwalSuccess("Um novo código foi enviado para o seu email.");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                ModelState.AddModelError("", "Erro ao reenviar o email. Tente mais tarde.");
+                _logger.LogAppError(AppErrors.ResendEmailError, TableName.All, AppOperation.Other, ex);
+                TempData.SetSwalError("Erro ao reenviar o email. Tente mais tarde.");
             }
 
             UserEmailDisplay = data.Email;
