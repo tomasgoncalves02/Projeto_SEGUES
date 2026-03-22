@@ -125,11 +125,11 @@ public class AdminOrderManagementController : Controller
         }
         catch (Exception ex)
         {
-            // SWEETALERT: Falha ao gravar na BD.
-            _logger.LogAppError(AppErrors.DatabaseUpdateError, TableName.AppConfig, AppOperation.Update);
-
+            _logger.LogAppError(AppErrors.DatabaseUpdateError, TableName.AppConfig, AppOperation.Update, ex);
             var erroEnum = AppErrors.DatabaseUpdateError;
-            var mensagemFinal = $"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";
+            var mensagemTraduzida = string.Format(Errors.DatabaseUpdateError, "o horário");
+
+            var mensagemFinal = $"{mensagemTraduzida} [Erro: {(int)erroEnum}]";
 
             TempData.SetSwalError(mensagemFinal);
             return RedirectToAction(nameof(Index));
@@ -258,12 +258,15 @@ public class AdminOrderManagementController : Controller
             return File(document.GeneratePdf(), "application/pdf", "Historico_Pedidos.pdf");
         }
         catch (Exception ex)
-        {           
-            _logger.LogError(ex, "Falha na geração de PDF de pedidos.");
-
+        {
+            _logger.LogAppError(
+                AppErrors.InternalServerError,
+                TableName.Order,
+                AppOperation.Read,
+                ex
+            );
             var erroEnum = AppErrors.InternalServerError;
-            var mensagemFinal = $"Não foi possível gerar o PDF. {_localizer[erroEnum.ToString()].Value} [{(int)erroEnum}]";
-
+            var mensagemFinal = $"Não foi possível gerar o PDF, {Errors.InternalServerError} [Erro: {(int)erroEnum}]";
             TempData.SetSwalError(mensagemFinal);
             return RedirectToAction(nameof(Index), new { status, date, search });
         }

@@ -109,12 +109,13 @@ public class AdminTicketManagementController : Controller
         catch (Exception ex)
         {
             _logger.LogAppError(AppErrors.DatabaseUpdateError, TableName.TicketPrice, AppOperation.Update, ex);
-
             var erroEnum = AppErrors.DatabaseUpdateError;
-            var mensagemFinal = $"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";
-            TempData.SetSwalError(mensagemFinal);
-        }
+            var mensagemTraduzida = string.Format(Errors.DatabaseUpdateError, "Preço de Senha");
+            var mensagemFinal = $"{mensagemTraduzida} [Erro: {(int)erroEnum}]";
 
+            TempData.SetSwalError(mensagemFinal);
+            return RedirectToAction(nameof(Index));
+        }
         return RedirectToAction(nameof(Index));
     }
 
@@ -218,7 +219,7 @@ public class AdminTicketManagementController : Controller
 
         try
         {
-            //throw new Exception("Falha simulada na base de dados");
+            throw new Exception("Falha simulada na base de dados");
             BarCanteenConfigViewModel vm = serviceName == "Almoço"
                 ? new() { CanteenLunchOpeningTime = openTime, CanteenLunchClosingTime = closeTime }
                 : new() { CanteenDinnerOpeningTime = openTime, CanteenDinnerClosingTime = closeTime };
@@ -250,6 +251,7 @@ public class AdminTicketManagementController : Controller
     {
         try
         {
+            throw new Exception();
             var history = await _ticketService.GetAllTicketsAsync();
             var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo-ips.png");
 
