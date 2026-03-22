@@ -80,9 +80,12 @@
             </section>
             *@
 
-            <div class="mt-4 mt-md-5 text-center">
-                <p class="text-muted mb-0 small">
+            <div class="mt-2 text-center">
+                <p class="text-muted mb-2 small">
                     Ainda não tem conta? <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" class="fw-bold text-nowrap">Registe-se aqui</a>
+                </p>
+                <p class="small text-muted">
+                    <a asp-area="" asp-controller="Home" asp-action="Index" class="fw-bold">Voltar à página inicial.</a>
                 </p>
             </div>
         </div>

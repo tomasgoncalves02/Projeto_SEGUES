@@ -10,6 +10,7 @@ using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using System.Security.Claims;
+using Microsoft.Extensions.Logging;
 
 namespace SeguesTests.Tickets
 {
@@ -20,6 +21,8 @@ namespace SeguesTests.Tickets
 
         private Mock<UserManager<AppUser>> GetMockUserManager() =>
             new Mock<UserManager<AppUser>>(new Mock<IUserStore<AppUser>>().Object, null, null, null, null, null, null, null, null);
+        
+        private Mock<ILogger<TicketController>> GetMockLogger() => new Mock<ILogger<TicketController>>();
 
         private async Task<(AppUser currentUser, AppUser recipientUser, Mock<ITicketService> mockService, TicketController controller)> SetupFullEnv(string currentUserId, string recipientEmail, bool sameCategory = true)
         {
@@ -27,8 +30,9 @@ namespace SeguesTests.Tickets
             var mockUserMgr = GetMockUserManager();
             var mockService = new Mock<ITicketService>();
             var mockAdminService = new Mock<IAdminService>();
+            var mockLogger = GetMockLogger();
 
-            var controller = new TicketController(mockUserMgr.Object, mockService.Object, context, mockAdminService.Object);
+            var controller = new TicketController(mockUserMgr.Object, mockService.Object, context, mockAdminService.Object, mockLogger.Object);
 
             var catEstudante = new UserCategory { Id = 1, Name = "Estudante" };
             var catProfessor = new UserCategory { Id = 2, Name = "Professor" };
@@ -160,7 +164,7 @@ namespace SeguesTests.Tickets
         {
             var context = GetDatabaseContext();
             var mockUserMgr = GetMockUserManager();
-            var controller = new TicketController(mockUserMgr.Object, Mock.Of<ITicketService>(), context, Mock.Of<IAdminService>());
+            var controller = new TicketController(mockUserMgr.Object, Mock.Of<ITicketService>(), context, Mock.Of<IAdminService>(), GetMockLogger().Object);
 
             mockUserMgr.Setup(m => m.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync((AppUser)null!);
 

@@ -14,12 +14,12 @@ public static class LoggerExtensions
         {
             if (exception != null)
             {
-                logger.LogError(exception, "{Message:l} (Table: {TableName}, Operation: {OperationName})", 
+                logger.LogError(exception, "{LogText:l} (Table: {TableName}, Operation: {OperationName})", 
                     message, table.ToString(), operation.ToString());
             }
             else
             {
-                logger.LogInformation("{Message:l} (Table: {TableName}, Operation: {OperationName})", 
+                logger.LogInformation("{LogText:l} (Table: {TableName}, Operation: {OperationName})", 
                     message, table.ToString(), operation.ToString());
             }
         }
@@ -30,7 +30,7 @@ public static class LoggerExtensions
         using (LogContext.PushProperty("LogType", "UserAction"))
         using (LogContext.PushProperty("UserAction", (byte) action))
         {
-            logger.LogInformation("{Message:l} (UserAction: {ActionName})", 
+            logger.LogInformation("{LogText:l} (UserAction: {ActionName})", 
                 message, action.ToString());
         }
     }

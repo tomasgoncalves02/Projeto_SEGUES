@@ -22,9 +22,6 @@ namespace Projeto_SEGUES.Models.Audit
         [Display(Name = "Origem do pedido")]
         public string? RequestPath { get; set; }
         
-        [Display(Name = "Exceção")]
-        public string? Exception { get; set; }
-
         [DataType(DataType.DateTime)]
         [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
         [Display(Name = "Data")]

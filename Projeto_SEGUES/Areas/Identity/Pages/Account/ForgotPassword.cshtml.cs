@@ -11,6 +11,8 @@ using Projeto_SEGUES.Services;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Encodings.Web;
+using Projeto_SEGUES.Extensions;
+using Projeto_SEGUES.Models.Enums;
 
 namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 {
@@ -25,16 +27,18 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly IEmailSender _emailSender;
+        private readonly ILogger<ForgotPasswordModel> _logger;
 
         /// <summary>
         /// Inicializa uma nova instância de <see cref="ForgotPasswordModel"/>.
         /// </summary>
         /// <param name="userManager">Gestor de utilizadores para validação de conta e geração de tokens.</param>
         /// <param name="emailSender">Serviço de envio de emails para notificação do utilizador.</param>
-        public ForgotPasswordModel(UserManager<AppUser> userManager, IEmailSender emailSender)
+        public ForgotPasswordModel(UserManager<AppUser> userManager, IEmailSender emailSender, ILogger<ForgotPasswordModel> logger)
         {
             _userManager = userManager;
             _emailSender = emailSender;
+            _logger = logger;
         }
 
         /// <summary>
@@ -51,8 +55,9 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             /// <summary>
             /// Email associado à conta que pretende recuperar.
             /// </summary>
-            [Required]
-            [EmailAddress]
+            [Required(ErrorMessage = "O email é obrigatório.")]
+            [EmailAddress(ErrorMessage = "Endereço de email inválido.")]
+            [Display(Name = "Endereço de email")]
             public required string Email { get; init; }
         }
 
@@ -72,8 +77,8 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             {
                 var user = await _userManager.FindByEmailAsync(Input.Email);
 
-                // Validação de segurança: se o user não existir ou o email não estiver confirmado, 
-                // redirecionamos na mesma para não dar pistas a atacantes.
+                // If user does not exist or email is not confirmed, redirect to ForgotPasswordConfirmation page.
+                // This prevents hackers from trying to enumerate user accounts by brute force.
                 if (user == null || !await _userManager.IsEmailConfirmedAsync(user))
                 {
                     return RedirectToPage("./ForgotPasswordConfirmation");
@@ -81,19 +86,19 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 
                 var email = await _userManager.GetEmailAsync(user);
 
-                // Geração e codificação do token de segurança
+                // Generate token
                 var code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(
                         await _userManager.GeneratePasswordResetTokenAsync(user)
                 ));
 
-                // Construção do link de callback para a página de ResetPassword
+                // Callback link
                 string callbackUrl = Url.Page(
                     "/Account/ResetPassword",
                     pageHandler: null,
                     values: new { area = "Identity", email, code },
                     protocol: Request.Scheme)!;
 
-                // Construção do corpo do email com HTML personalizado
+                // Email template
                 string emailBody = ((EmailSender)_emailSender).GetEmailBody(
                     "Recuperação de Senha",
                     user.FirstName,
@@ -110,11 +115,19 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                                           </div>
                       """);
 
-                // Envio do email através do serviço configurado
-                await _emailSender.SendEmailAsync(
-                    Input.Email,
-                    "SEGUES - Recuperação de Senha",
-                    emailBody);
+                // Send email
+
+                try
+                {
+                    await _emailSender.SendEmailAsync(
+                        Input.Email,
+                        "SEGUES - Recuperação de Senha",
+                        emailBody);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogAppError(AppErrors.EmailSenderError, TableName.All, AppOperation.Other, ex);
+                }
 
                 return RedirectToPage("./ForgotPasswordConfirmation");
             }

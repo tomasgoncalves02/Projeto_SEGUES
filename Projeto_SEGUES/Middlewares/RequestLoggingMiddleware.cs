@@ -14,6 +14,8 @@ public class RequestLoggingMiddleware
         string? userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
         string requestPath = context.Request.Path;
 
+        if (string.IsNullOrWhiteSpace(userId)) userId = null;
+        
         using (LogContext.PushProperty("AppUserId", userId))
         using (LogContext.PushProperty("RequestPath", requestPath))
         {

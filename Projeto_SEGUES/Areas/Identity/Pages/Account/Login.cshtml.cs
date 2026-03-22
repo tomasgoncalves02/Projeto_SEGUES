@@ -118,16 +118,6 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             
             if (!ModelState.IsValid)
             {
-                var fieldErrors = ModelState
-                    .Where(kv => kv.Value is not null && kv.Value.Errors.Count > 0)
-                    .SelectMany(kv => kv.Value!.Errors.Select(err => new { Field = kv.Key, Error = err.ErrorMessage }))
-                    .ToList();
-        
-                foreach (var fe in fieldErrors)
-                {
-                    _logger.LogWarning("Validation error on field {Field}: {Error}", fe.Field, fe.Error);
-                }
-        
                 TempData.SetSwalError("Por favor corrija os erros no formulário.");
                 return Page();
             }
@@ -137,8 +127,8 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 
             if (user is { Status: UserStatus.Inactive })
             {
-                _logger.LogWarning("Tentativa de login em conta desativada: {Email}", Input.Email);
-                TempData.SetSwalError("A sua conta foi desativada pela administração.");
+                _logger.LogAppUser($"Login attempt in inactivated account: {Input.Email}", UserAction.LogIn);
+                TempData.SetSwalError("A sua conta está desativada.");
                 return Page();
             }
 
@@ -147,7 +137,6 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 
             if (result.Succeeded)
             {
-                _logger.LogInformation("Utilizador {Email} autenticado com sucesso.", Input.Email);
                 _logger.LogAppUser($"User {Input.Email} logged in successfully.", UserAction.LogIn);
                 TempData.SetSwalSuccess("Login efetuado com sucesso!");
                 return LocalRedirect(returnUrl);
@@ -160,11 +149,11 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 
             if (result.IsLockedOut)
             {
-                _logger.LogWarning("Conta {Email} bloqueada por excesso de tentativas falhadas.", Input.Email);
+                _logger.LogAppUser($"Account {Input.Email} locked out due to failed login attempts.", UserAction.LogIn);
                 return RedirectToPage("./Lockout");
             }
             
-            _logger.LogWarning("Falha no login para {Email}: Credenciais inválidas.", Input.Email);
+            _logger.LogAppUser($"Failed login attempt for {Input.Email}.", UserAction.LogIn);
             TempData.SetSwalError("Tentativa de login inválida.");
             return Page();
         }

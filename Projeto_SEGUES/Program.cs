@@ -84,6 +84,7 @@ ConfigureBaseOptions(errorColumnOptions);
 
 var userColumnOptions = new ColumnOptions();
 userColumnOptions.AdditionalColumns = new Collection<SqlColumn>(commonColumns.ToList());
+userColumnOptions.Store.Remove(StandardColumn.Exception);
 userColumnOptions.AdditionalColumns.Add(new()
     { ColumnName = "UserAction", DataType = SqlDbType.TinyInt, AllowNull = true });
 ConfigureBaseOptions(userColumnOptions);
