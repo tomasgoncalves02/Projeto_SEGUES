@@ -63,15 +63,18 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         public class InputModel
         {
             /// <summary>Identificador único de email do utilizador.</summary>
-            [Required(ErrorMessage = "O campo {0} é obrigatório.")]
+            [Required(ErrorMessage = "O email é obrigatório.")]
             [EmailAddress(ErrorMessage = "Endereço de email inválido.")]
             [Display(Name = "Endereço de email")]
             public required string Email { get; init; }
         
             /// <summary>Palavra-passe de acesso.</summary>
-            [Required(ErrorMessage = "O campo {0} é obrigatório.")]
+            [Required(ErrorMessage = "A password é obrigatória.")]
+            [StringLength(100, ErrorMessage = "A password deve ter pelo menos {2} e no máximo {1} caracteres.", MinimumLength = 12)]
             [DataType(DataType.Password)]
-            [Display(Name = "Palavra-passe")]
+            [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{12,}$",
+                ErrorMessage = "A password deve ter pelo menos: 1 Minúscula, 1 Maiúscula, 1 Número e 1 Símbolo. E no mínimo 12 caracteres.")]
+            [Display(Name = "Password")]
             public required string Password { get; init; }
         
             /// <summary>Define se o cookie de autenticação deve persistir após fechar o navegador.</summary>
@@ -86,12 +89,12 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         {
             if (!string.IsNullOrEmpty(ErrorMessage))
             {
-                ModelState.AddModelError(string.Empty, ErrorMessage);
+                ModelState.AddModelError("", ErrorMessage);
             }
 
             returnUrl ??= Url.Content("~/");
-
-            // Limpa cookies externos existentes para garantir um processo de login limpo
+            
+            // Clear the existing external cookie to ensure a clean login process
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
@@ -106,7 +109,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         /// O fluxo inclui:
         /// 1. Verificação da existência do utilizador.
         /// 2. Validação do estado da conta (bloqueio administrativo se <see cref="UserStatus.Inactive"/>).
-        /// 3. Verificação de credenciais via <see cref="SignInManager{TUser}.PasswordSignInAsync"/>.
+        /// 3. Verificação de credenciais via <see cref="SignInManager{TUser}.PasswordSignInAsync(string, string, bool, bool)"/>.
         /// </remarks>
         public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
         {
@@ -116,8 +119,8 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             if (!ModelState.IsValid)
             {
                 var fieldErrors = ModelState
-                    .Where(kv => kv.Value.Errors.Count > 0)
-                    .SelectMany(kv => kv.Value.Errors.Select(err => new { Field = kv.Key, Error = err.ErrorMessage }))
+                    .Where(kv => kv.Value is not null && kv.Value.Errors.Count > 0)
+                    .SelectMany(kv => kv.Value!.Errors.Select(err => new { Field = kv.Key, Error = err.ErrorMessage }))
                     .ToList();
         
                 foreach (var fe in fieldErrors)
@@ -129,32 +132,30 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                 return Page();
             }
             
-            // Verificação de segurança personalizada: impede login de contas desativadas
+            // Not allow login if the user is inactive
             var user = await _userManager.FindByEmailAsync(Input.Email);
 
-            if (user != null)
+            if (user is { Status: UserStatus.Inactive })
             {
-                if (user.Status == UserStatus.Inactive)
-                {
-                    _logger.LogWarning("Tentativa de login em conta desativada: {Email}", Input.Email);
-                    TempData.SetSwalError("A sua conta foi desativada pela administração.");
-                    return Page();
-                }
+                _logger.LogWarning("Tentativa de login em conta desativada: {Email}", Input.Email);
+                TempData.SetSwalError("A sua conta foi desativada pela administração.");
+                return Page();
             }
 
-            // Tenta autenticação padrão do Identity
+            // Identity Authentication
             var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: true);
 
             if (result.Succeeded)
             {
                 _logger.LogInformation("Utilizador {Email} autenticado com sucesso.", Input.Email);
+                _logger.LogAppUser($"User {Input.Email} logged in successfully.", UserAction.LogIn);
                 TempData.SetSwalSuccess("Login efetuado com sucesso!");
                 return LocalRedirect(returnUrl);
             }
 
             if (result.RequiresTwoFactor)
             {
-                return RedirectToPage("./LoginWith2fa", new { ReturnUrl = "/", RememberMe = Input.RememberMe });
+                return RedirectToPage("./LoginWith2fa", new { ReturnUrl = "/", Input.RememberMe });
             }
 
             if (result.IsLockedOut)
@@ -162,6 +163,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                 _logger.LogWarning("Conta {Email} bloqueada por excesso de tentativas falhadas.", Input.Email);
                 return RedirectToPage("./Lockout");
             }
+            
             _logger.LogWarning("Falha no login para {Email}: Credenciais inválidas.", Input.Email);
             TempData.SetSwalError("Tentativa de login inválida.");
             return Page();

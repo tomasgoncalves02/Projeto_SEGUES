@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Moq;
 using Projeto_SEGUES.Areas.Inventory.ViewModels;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.Inventory;
@@ -21,7 +23,8 @@ namespace SeguesTests.Services
         public async Task CreateProductAsync_ValidProduct_ReturnsSuccess()
         {
             var context = GetDatabaseContext();
-            var service = new InventoryService(context);
+            var logger = new Mock<ILogger<InventoryService>>();
+            var service = new InventoryService(context, logger.Object);
             var category = new ProductCategory { Id = 1, Name = "Bebidas", Description = "Very Good" };
             context.ProductCategory.Add(category);
             await context.SaveChangesAsync();
@@ -47,7 +50,8 @@ namespace SeguesTests.Services
         public async Task CreateProductAsync_DuplicateName_ReturnsFailure()
         {
             var context = GetDatabaseContext();
-            var service = new InventoryService(context);
+            var logger = new Mock<ILogger<InventoryService>>();
+            var service = new InventoryService(context, logger.Object);
             var category = new ProductCategory { Id = 1, Name = "Snacks", Description = "Very Good" };
             context.ProductCategory.Add(category);
             context.Product.Add(new Product
@@ -74,7 +78,8 @@ namespace SeguesTests.Services
         public async Task GetAvailableProductsAsync_FiltersCorrectly()
         {
             var context = GetDatabaseContext();
-            var service = new InventoryService(context);
+            var logger = new Mock<ILogger<InventoryService>>();
+            var service = new InventoryService(context, logger.Object);
             var cat = new ProductCategory { Name = "Geral", Description = "Very Good" };
 
             context.Product.AddRange(
@@ -95,7 +100,8 @@ namespace SeguesTests.Services
         public async Task EditProductAsync_UpdatesExistingProduct()
         {
             var context = GetDatabaseContext();
-            var service = new InventoryService(context);
+            var logger = new Mock<ILogger<InventoryService>>();
+            var service = new InventoryService(context, logger.Object);
             var cat = new ProductCategory { Id = 1, Name = "Comida", Description = "Comestivel" };
             var product = new Product { Id = 10, Name = "Antigo", Description = "Muito Pedro", Category = cat, Price = 1m, Stock = 5, MinimumStock = 1 };
             context.ProductCategory.Add(cat);
@@ -127,7 +133,8 @@ namespace SeguesTests.Services
         public async Task DeleteProductAsync_PerformsSoftDelete()
         {
             var context = GetDatabaseContext();
-            var service = new InventoryService(context);
+            var logger = new Mock<ILogger<InventoryService>>();
+            var service = new InventoryService(context, logger.Object);
             var product = new Product
             {
                 Id = 1,

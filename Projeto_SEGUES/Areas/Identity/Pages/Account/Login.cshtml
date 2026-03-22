@@ -41,16 +41,16 @@
                     <span asp-validation-for="Input.Password" class="text-danger small"></span>
                 </div>
 
-                @* Links e Checkbox responsivos: empilham em ecrãs minúsculos *@
+                @* Remember checkbox, Forgot password link *@
                 <div class="d-flex justify-content-between align-items-sm-center mb-4 mb-md-5 gap-3">
                     <div class="form-check m-0">
                         <input class="form-check-input shadow-none" asp-for="Input.RememberMe" style="cursor: pointer;" />
                         <label class="form-check-label small" asp-for="Input.RememberMe" style="cursor: pointer;">Lembrar-me</label>
                     </div>
-                    <a id="forgot-password" asp-page="./ForgotPassword" class="small fw-bold">Esqueceu-se da senha?</a>
+                    <a asp-area="Identity" asp-page="./ForgotPassword" class="small fw-bold">Esqueceu-se da senha?</a>
                 </div>
 
-                <button id="login-submit" type="submit" class="w-100 btn btn-ips btn-lg py-2 py-md-3 fw-bold shadow-sm mb-4 text-uppercase">
+                <button type="submit" class="w-100 btn btn-ips btn-lg py-2 py-md-3 fw-bold shadow-sm mb-4">
                     ENTRAR
                 </button>
             </form>

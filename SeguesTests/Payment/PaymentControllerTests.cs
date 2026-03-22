@@ -10,6 +10,9 @@ using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Payment;
 using Projeto_SEGUES.Models.User;
 using System.Security.Claims;
+using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging;
+using Projeto_SEGUES.Resources;
 
 namespace SeguesTests.Payment
 {
@@ -19,6 +22,8 @@ namespace SeguesTests.Payment
         private readonly Mock<IHttpClientFactory> _mockHttpClientFactory;
         private readonly AppDbContext _context;
         private readonly PaymentController _controller;
+        private readonly Mock<ILogger<PaymentController>> _mockLogger;
+        private readonly Mock<IStringLocalizer<Errors>> _mockLocalizer;
 
         public PaymentControllerTests()
         {
@@ -30,8 +35,10 @@ namespace SeguesTests.Payment
             var store = new Mock<IUserStore<AppUser>>();
             _mockUserManager = new Mock<UserManager<AppUser>>(store.Object, null, null, null, null, null, null, null, null);
             _mockHttpClientFactory = new Mock<IHttpClientFactory>();
+            _mockLogger = new Mock<ILogger<PaymentController>>();
+            _mockLocalizer = new Mock<IStringLocalizer<Errors>>();
 
-            _controller = new PaymentController(_context, _mockHttpClientFactory.Object, _mockUserManager.Object);
+            _controller = new PaymentController(_context, _mockUserManager.Object, _mockLogger.Object, _mockLocalizer.Object);
 
             var httpContext = new DefaultHttpContext();
             _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };

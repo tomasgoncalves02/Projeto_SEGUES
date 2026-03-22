@@ -7,6 +7,7 @@ using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using System.Security.Claims;
+using Microsoft.Extensions.Logging;
 
 namespace SeguesTests.Report
 {
@@ -15,14 +16,16 @@ namespace SeguesTests.Report
         private readonly Mock<ITicketService> _mockTicketService;
         private readonly Mock<UserManager<AppUser>> _mockUserManager;
         private readonly ReportTicketsController _controller;
+        private readonly Mock<ILogger<ReportTicketsController>> _mockLogger;
 
         public ReportTicketsControllerTests()
         {
             _mockTicketService = new Mock<ITicketService>();
             var store = new Mock<IUserStore<AppUser>>();
             _mockUserManager = new Mock<UserManager<AppUser>>(store.Object, null, null, null, null, null, null, null, null);
+            _mockLogger = new Mock<ILogger<ReportTicketsController>>();
 
-            _controller = new ReportTicketsController(_mockTicketService.Object, _mockUserManager.Object);
+            _controller = new ReportTicketsController(_mockTicketService.Object, _mockUserManager.Object, _mockLogger.Object);
 
             var httpContext = new DefaultHttpContext();
             _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };

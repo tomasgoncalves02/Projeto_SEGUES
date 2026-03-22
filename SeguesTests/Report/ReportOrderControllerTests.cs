@@ -8,6 +8,9 @@ using Projeto_SEGUES.Models.Order;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using System.Security.Claims;
+using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging;
+using Projeto_SEGUES.Resources;
 
 namespace SeguesTests.Report
 {
@@ -16,14 +19,16 @@ namespace SeguesTests.Report
         private readonly Mock<IOrderService> _mockOrderService;
         private readonly Mock<UserManager<AppUser>> _mockUserManager;
         private readonly ReportOrderController _controller;
+        private readonly Mock<ILogger<ReportOrderController>> _mockLogger;
 
         public ReportOrderControllerTests()
         {
             _mockOrderService = new Mock<IOrderService>();
             var store = new Mock<IUserStore<AppUser>>();
             _mockUserManager = new Mock<UserManager<AppUser>>(store.Object, null, null, null, null, null, null, null, null);
+            _mockLogger = new Mock<ILogger<ReportOrderController>>();
 
-            _controller = new ReportOrderController(_mockOrderService.Object, _mockUserManager.Object);
+            _controller = new ReportOrderController(_mockOrderService.Object, _mockUserManager.Object, _mockLogger.Object);
 
             var httpContext = new DefaultHttpContext();
             _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };

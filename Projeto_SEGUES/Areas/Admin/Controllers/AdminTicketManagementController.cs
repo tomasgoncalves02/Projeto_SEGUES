@@ -108,7 +108,7 @@ public class AdminTicketManagementController : Controller
         }
         catch (Exception ex)
         {
-            _logger.LogAppError($"Erro ao atualizar preçário: {ex.Message}", TableName.TicketPrice, AppOperation.Update);
+            _logger.LogAppError(AppErrors.DatabaseUpdateError, TableName.TicketPrice, AppOperation.Update, ex);
 
             var erroEnum = AppErrors.DatabaseUpdateError;
             var mensagemFinal = $"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";
@@ -140,7 +140,7 @@ public class AdminTicketManagementController : Controller
         }
         catch (Exception ex)
         {
-            _logger.LogAppError($"Erro ao atualizar validade: {ex.Message}", TableName.AppConfig, AppOperation.Update);
+            _logger.LogAppError(AppErrors.DatabaseUpdateError, TableName.AppConfig, AppOperation.Update, ex);
 
             var erroEnum = AppErrors.DatabaseUpdateError;
             var mensagemFinal = $"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";
@@ -194,7 +194,7 @@ public class AdminTicketManagementController : Controller
         }
         catch (Exception ex)
         {
-            _logger.LogAppError($"Erro AJAX na auditoria de senhas: {ex.Message}", TableName.Ticket, AppOperation.Read);
+            _logger.LogAppError(AppErrors.DatabaseQueryError, TableName.Ticket, AppOperation.Read, ex);
             return StatusCode(500); // Erro para chamadas assíncronas
         }
     }
@@ -228,7 +228,7 @@ public class AdminTicketManagementController : Controller
         }
         catch (Exception ex)
         {
-            _logger.LogAppError($"Erro ao atualizar horário {serviceName}: {ex.Message}", TableName.AppConfig, AppOperation.Update);
+            _logger.LogAppError(AppErrors.DatabaseUpdateError, TableName.AppConfig, AppOperation.Update);
 
             var erroEnum = AppErrors.DatabaseUpdateError;
             var mensagemFinal = $"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";

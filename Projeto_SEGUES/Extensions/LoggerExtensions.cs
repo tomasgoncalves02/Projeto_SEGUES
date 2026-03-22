@@ -5,14 +5,23 @@ namespace Projeto_SEGUES.Extensions;
 
 public static class LoggerExtensions
 {
-    public static void LogAppError(this ILogger logger, string? message, TableName table, AppOperation operation)
+    public static void LogAppError(this ILogger logger, AppErrors appError, TableName table, AppOperation operation, Exception? exception = null)
     {
+        string message = appError.GetLogErrorMessage();
         using (LogContext.PushProperty("LogType", "Error"))
         using (LogContext.PushProperty("DbTable", (byte) table))
         using (LogContext.PushProperty("Operation", (byte) operation))
         {
-            logger.LogError("{Message} (Table: {TableName}, Operation: {OperationName})", 
-                message, table.ToString(), operation.ToString());
+            if (exception != null)
+            {
+                logger.LogError(exception, "{Message:l} (Table: {TableName}, Operation: {OperationName})", 
+                    message, table.ToString(), operation.ToString());
+            }
+            else
+            {
+                logger.LogInformation("{Message:l} (Table: {TableName}, Operation: {OperationName})", 
+                    message, table.ToString(), operation.ToString());
+            }
         }
     }
     
@@ -21,7 +30,7 @@ public static class LoggerExtensions
         using (LogContext.PushProperty("LogType", "UserAction"))
         using (LogContext.PushProperty("UserAction", (byte) action))
         {
-            logger.LogInformation("{Message} (UserAction: {ActionName})", 
+            logger.LogInformation("{Message:l} (UserAction: {ActionName})", 
                 message, action.ToString());
         }
     }

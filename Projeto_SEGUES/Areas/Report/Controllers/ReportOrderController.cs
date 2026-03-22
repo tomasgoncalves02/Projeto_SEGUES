@@ -110,9 +110,9 @@ public class ReportOrderController : Controller
         }
         catch (Exception ex)
         {
-            _logger.LogAppError($"Erro ao obter detalhes JSON do pedido {id}: {ex.Message}",
+            _logger.LogAppError(AppErrors.InternalServerError,
                                 TableName.Order,
-                                AppOperation.Read);
+                                AppOperation.Read, ex);
 
             // Usando a tua chave 'InternalServerError' e o Enum 1501
             var msg = $"{Errors.InternalServerError} [Erro: {(int)AppErrors.InternalServerError}]";

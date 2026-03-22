@@ -77,7 +77,7 @@ public class ActiveOrderController : Controller
         }
         catch (Exception ex)
         {
-            _logger.LogAppError($"Erro AJAX em ActiveOrders: {ex.Message}", TableName.Order, AppOperation.Read);
+            _logger.LogAppError(AppErrors.DatabaseQueryError, TableName.Order, AppOperation.Read, ex);
             return StatusCode(500);
         }
     }
@@ -135,7 +135,7 @@ public class ActiveOrderController : Controller
         }
         catch (Exception ex)
         {
-            _logger.LogAppError($"Erro ao cancelar pedido {id}: {ex.Message}", TableName.Order, AppOperation.Update);
+            _logger.LogAppError(AppErrors.OrderCancelError, TableName.Order, AppOperation.Update, ex);
 
             var erroEnum = AppErrors.OrderCancelError;
             var msg = $"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";

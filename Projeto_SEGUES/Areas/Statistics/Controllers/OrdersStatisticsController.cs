@@ -57,9 +57,9 @@ namespace Projeto_SEGUES.Areas.Statistics.Controllers
             catch (Exception ex)
             {
                 // Regista a falha no sistema de auditoria
-                _logger.LogAppError($"Erro ao gerar estatísticas de pedidos (Período: {period}): {ex.Message}",
+                _logger.LogAppError(AppErrors.DatabaseQueryError,
                                     TableName.Order,
-                                    AppOperation.Read);
+                                    AppOperation.Read, ex);
 
                 // Retorna um erro amigável usando a tua classe de recursos
                 var msg = $"{Errors.DatabaseQueryError} [Erro: {(int)AppErrors.DatabaseQueryError}]";

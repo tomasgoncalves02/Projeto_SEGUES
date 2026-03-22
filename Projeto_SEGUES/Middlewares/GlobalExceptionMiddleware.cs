@@ -1,6 +1,5 @@
-﻿using Microsoft.Extensions.Localization;
+﻿using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Enums;
-using Projeto_SEGUES.Resources;
 
 namespace Projeto_SEGUES.Middlewares;
 
@@ -26,12 +25,8 @@ public class GlobalExceptionMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, 
-                Errors.ResourceManager.GetString(nameof(AppErrors.InternalServerError), System.Globalization.CultureInfo.InvariantCulture) ?? "Internal Server Error", 
-                "Error",
-                TableName.All,
-                AppOperation.Other
-            );
+            _logger.LogAppError(AppErrors.InternalServerError, TableName.All, AppOperation.Other, ex);
+            
             // Handle the HTTP Response back to the user
             await HandleExceptionAsync(context);
         }
@@ -45,9 +40,27 @@ public class GlobalExceptionMiddleware
         {
             return;
         }
+        
+        // Clear any existing response data that might have been partially written.
+        context.Response.Clear();
 
-        // Redirect the user to your standard MVC/Razor Error route
-        context.Response.Redirect("/Home/Error");
+        // Check if the request is an HTMX or Ajax request
+        bool isHtmxRequest = context.Request.Headers["HX-Request"] == "true";
+        bool isAjaxRequest = context.Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+
+        if (isHtmxRequest || isAjaxRequest)
+        {
+            // Tell HTMX to intercept and perform a full-page client-side redirect.
+            context.Response.Headers["HX-Redirect"] = "/Home/Error";
+            
+            // HTMX needs a 200 OK status code to read the header properly.
+            context.Response.StatusCode = StatusCodes.Status200OK;
+        }
+        else
+        {
+            // Standard full-page browser request, redirect the user to the standard MVC/Razor Error route
+            context.Response.Redirect("/Home/Error");
+        }
         
         await Task.CompletedTask;
     }

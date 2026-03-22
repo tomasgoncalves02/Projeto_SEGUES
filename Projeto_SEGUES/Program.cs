@@ -2,23 +2,19 @@
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Localization;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
-using Projeto_SEGUES.Resources;
 using Projeto_SEGUES.Services;
 using QuestPDF.Infrastructure;
 using Serilog;
-using Serilog.Context;
 using Serilog.Filters;
 using Serilog.Sinks.MSSqlServer;
 using Stripe;
 using System.Collections.ObjectModel;
 using System.Data;
-using System.Security.Claims;
+using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Middlewares;
-using Microsoft.AspNetCore.Localization;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -197,10 +193,7 @@ StripeConfiguration.ApiKey = builder.Configuration["Secrets:StripeSecretKey"];
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 builder.Services.AddControllersWithViews()
     .AddViewLocalization()
-    .AddDataAnnotationsLocalization(options => {
-        options.DataAnnotationLocalizerProvider = (type, factory) =>
-            factory.Create(typeof(Projeto_SEGUES.Resources.Errors));
-    });
+    .AddDataAnnotationsLocalization();
 builder.Services.AddRazorPages();
 
 
@@ -220,10 +213,6 @@ var localizationOptions = new RequestLocalizationOptions()
  * Clearing this list forces the app to use the DefaultCulture (pt-PT) for EVERYONE.
  */
 localizationOptions.RequestCultureProviders.Clear();
-/*localizationOptions.RequestCultureProviders.Insert(0, new CustomRequestCultureProvider(context =>
-{
-    return Task.FromResult(new ProviderCultureResult("pt-PT"));
-}));*/
 
 app.UseRequestLocalization(localizationOptions);
 // Rest of pipeline after localization!
@@ -252,8 +241,8 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        var localizer = services.GetService<IStringLocalizer<Errors>>() ?? throw new InvalidOperationException("Localization service not found");
-        app.Logger.LogError(ex, localizer[nameof(AppErrors.InternalServerError)], "Error", TableName.All, AppOperation.DatabaseInitialization);
+        app.Logger.LogAppError(AppErrors.DatabaseConnectionError, TableName.All, AppOperation.DatabaseInitialization, ex);
+        throw;
     }
 }
 

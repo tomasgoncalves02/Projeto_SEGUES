@@ -97,7 +97,7 @@ public class CreateOrderController : Controller
         }
         catch (Exception ex)
         {
-            _logger.LogAppError($"Erro ao adicionar ao carrinho: {ex.Message}", TableName.Order, AppOperation.Create);
+            _logger.LogAppError(AppErrors.DatabaseConnectionError, TableName.Order, AppOperation.Create, ex);
             return StatusCode(500, new { failMessage = "Erro interno ao processar carrinho." });
         }
     }
@@ -123,7 +123,7 @@ public class CreateOrderController : Controller
         }
         catch (Exception ex)
         {
-            _logger.LogAppError($"Erro ao remover do carrinho: {ex.Message}", TableName.Order, AppOperation.Delete);
+            _logger.LogAppError(AppErrors.DatabaseQueryError, TableName.Order, AppOperation.Delete, ex);
             return StatusCode(500);
         }
     }
@@ -185,7 +185,7 @@ public class CreateOrderController : Controller
         catch (Exception ex)
         {
             // Erro crítico técnico (Ex: Falha no SaveChanges ou SQL)
-            _logger.LogAppError($"Erro crítico no SubmitOrder: {ex.Message}", TableName.Order, AppOperation.Create);
+            _logger.LogAppError(AppErrors.OrderProcessingError, TableName.Order, AppOperation.Create, ex);
 
             var erroEnum = AppErrors.OrderProcessingError;
             var msg = $"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";

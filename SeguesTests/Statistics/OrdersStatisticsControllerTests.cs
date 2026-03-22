@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Projeto_SEGUES.Areas.Statistics.Controllers;
 using Projeto_SEGUES.Services;
@@ -9,11 +10,13 @@ namespace SeguesTests.Statistics
     {
         private readonly Mock<IStatisticsService> _mockStatisticsService;
         private readonly OrdersStatisticsController _controller;
+        private readonly Mock<ILogger<OrdersStatisticsController>> _mockLogger;
 
         public OrdersStatisticsControllerTests()
         {
             _mockStatisticsService = new Mock<IStatisticsService>();
-            _controller = new OrdersStatisticsController(_mockStatisticsService.Object);
+            _mockLogger = new Mock<ILogger<OrdersStatisticsController>>();
+            _controller = new OrdersStatisticsController(_mockStatisticsService.Object, _mockLogger.Object);
         }
 
         // Confirms that the index action successfully returns the statistics dashboard view

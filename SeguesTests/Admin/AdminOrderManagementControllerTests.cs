@@ -3,10 +3,13 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Projeto_SEGUES.Areas.Admin;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.User;
+using Projeto_SEGUES.Resources;
 using Projeto_SEGUES.Services;
 
 namespace SeguesTests.Admin
@@ -17,6 +20,8 @@ namespace SeguesTests.Admin
         private readonly Mock<IOrderService> _mockOrderService;
         private readonly Mock<UserManager<AppUser>> _mockUserManager;
         private readonly AppDbContext _context;
+        private readonly Mock<ILogger<AdminOrderManagementController>> _mockLogger;
+        private readonly Mock<IStringLocalizer<Errors>> _mocklocalizer;
         private readonly AdminOrderManagementController _controller;
 
         public AdminOrderManagementControllerTests()
@@ -28,6 +33,8 @@ namespace SeguesTests.Admin
 
             _mockAdminService = new Mock<IAdminService>();
             _mockOrderService = new Mock<IOrderService>();
+            _mockLogger = new Mock<ILogger<AdminOrderManagementController>>();
+            _mocklocalizer = new Mock<IStringLocalizer<Errors>>();
 
             var store = new Mock<IUserStore<AppUser>>();
             _mockUserManager = new Mock<UserManager<AppUser>>(store.Object, null, null, null, null, null, null, null, null);
@@ -36,7 +43,10 @@ namespace SeguesTests.Admin
                 _mockAdminService.Object,
                 _mockOrderService.Object,
                 _mockUserManager.Object,
-                _context);
+                _context,
+                _mockLogger.Object,
+                _mocklocalizer.Object
+                );
 
             var httpContext = new DefaultHttpContext();
             _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };

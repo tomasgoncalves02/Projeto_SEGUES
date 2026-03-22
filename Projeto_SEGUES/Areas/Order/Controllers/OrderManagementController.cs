@@ -71,7 +71,7 @@ public class OrderManagementController : Controller
         }
         catch (Exception ex)
         {
-            _logger.LogAppError($"Erro AJAX na tabela de gestão: {ex.Message}", TableName.Order, AppOperation.Read);
+            _logger.LogAppError(AppErrors.DatabaseQueryError, TableName.Order, AppOperation.Read, ex);
 
             var erroEnum = AppErrors.DatabaseQueryError;
             var msg = $"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";
@@ -127,7 +127,7 @@ public class OrderManagementController : Controller
         }
         catch (Exception ex)
         {
-            _logger.LogAppError($"Erro ao atualizar estado do pedido {id}: {ex.Message}", TableName.Order, AppOperation.Update);
+            _logger.LogAppError(AppErrors.DatabaseUpdateError, TableName.Order, AppOperation.Update, ex);
 
             var erroEnum = AppErrors.DatabaseUpdateError;
             var msg = $"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";
@@ -160,7 +160,7 @@ public class OrderManagementController : Controller
         }
         catch (Exception ex)
         {
-            _logger.LogAppError($"Erro ao validar código do pedido {id}: {ex.Message}", TableName.Order, AppOperation.Update);
+            _logger.LogAppError(AppErrors.DatabaseUpdateError, TableName.Order, AppOperation.Update, ex);
 
             var erroEnum = AppErrors.DatabaseUpdateError;
             var msg = $"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";

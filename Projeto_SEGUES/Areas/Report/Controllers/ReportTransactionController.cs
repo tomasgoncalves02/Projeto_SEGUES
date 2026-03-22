@@ -116,7 +116,7 @@ public class ReportTransactionController : Controller
         }
         catch (Exception ex)
         {
-            _logger.LogAppError($"Erro AJAX na filtragem de balanço: {ex.Message}", TableName.Payment, AppOperation.Read);
+            _logger.LogAppError(AppErrors.DatabaseQueryError, TableName.Transaction, AppOperation.Read, ex);
 
             var msg = $"{Errors.DatabaseQueryError} [Erro: {(int)AppErrors.DatabaseQueryError}]";
             return StatusCode(500, new { failMessage = msg });

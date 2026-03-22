@@ -126,7 +126,7 @@ public class AdminOrderManagementController : Controller
         catch (Exception ex)
         {
             // SWEETALERT: Falha ao gravar na BD.
-            _logger.LogAppError($"Erro ao atualizar horário: {ex.Message}", TableName.AppConfig, AppOperation.Update);
+            _logger.LogAppError(AppErrors.DatabaseUpdateError, TableName.AppConfig, AppOperation.Update);
 
             var erroEnum = AppErrors.DatabaseUpdateError;
             var mensagemFinal = $"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";

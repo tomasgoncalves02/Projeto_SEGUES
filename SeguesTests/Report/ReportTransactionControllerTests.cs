@@ -11,6 +11,7 @@ using Projeto_SEGUES.Models.Payment;
 using Projeto_SEGUES.Models.User;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
+using Microsoft.Extensions.Logging;
 
 namespace SeguesTests.Report
 {
@@ -19,6 +20,7 @@ namespace SeguesTests.Report
         private readonly Mock<UserManager<AppUser>> _mockUserManager;
         private readonly AppDbContext _context;
         private readonly ReportTransactionController _controller;
+        private readonly Mock<ILogger<ReportTransactionController>> _mockLogger;
 
         public ReportTransactionControllerTests()
         {
@@ -29,8 +31,9 @@ namespace SeguesTests.Report
 
             var store = new Mock<IUserStore<AppUser>>();
             _mockUserManager = new Mock<UserManager<AppUser>>(store.Object, null, null, null, null, null, null, null, null);
+            _mockLogger = new Mock<ILogger<ReportTransactionController>>();
 
-            _controller = new ReportTransactionController(_mockUserManager.Object, _context);
+            _controller = new ReportTransactionController(_mockUserManager.Object, _context, _mockLogger.Object);
 
             var httpContext = new DefaultHttpContext();
             _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };

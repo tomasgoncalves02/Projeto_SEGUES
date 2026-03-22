@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Projeto_SEGUES.Areas.Statistics.Controllers;
+using Projeto_SEGUES.Resources;
 using Projeto_SEGUES.Services;
 
 namespace SeguesTests.Statistics
@@ -9,11 +12,15 @@ namespace SeguesTests.Statistics
     {
         private readonly Mock<IStatisticsService> _mockStatisticsService;
         private readonly TicketsStatisticsController _controller;
+        private readonly Mock<ILogger<TicketsStatisticsController>> _mockLogger;
+        private readonly Mock<IStringLocalizer<Errors>> _mockLocalizer;
 
         public TicketsStatisticsControllerTests()
         {
             _mockStatisticsService = new Mock<IStatisticsService>();
-            _controller = new TicketsStatisticsController(_mockStatisticsService.Object);
+            _mockLogger = new Mock<ILogger<TicketsStatisticsController>>();
+            _mockLocalizer = new Mock<IStringLocalizer<Errors>>();
+            _controller = new TicketsStatisticsController(_mockStatisticsService.Object, _mockLogger.Object, _mockLocalizer.Object);
         }
 
 

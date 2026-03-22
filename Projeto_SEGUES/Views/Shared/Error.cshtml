@@ -9,16 +9,16 @@
 
     <p class="text-muted mt-4 text-center">
         Por favor, tente novamente. Se o problema persistir, entre em contacto com o
-        <a href="mailto:segues2026@gmail.com" class="fw-bold text-ips text-decoration-none">suporte</a>.
+        <a href="mailto:segues2026@gmail.com" class="fw-bold text-color-ips">suporte</a>.
     </p>
 
-    <div class="mt-4 p-4 bg-light rounded d-inline-block text-start border shadow-sm" style="max-width: 100%;">
+    <div class="container mt-4 p-4 bg-light rounded d-inline-block text-start border shadow-sm">
         <p class="mb-2"><strong>Código do Erro:</strong></p>
 
-        <code class="d-block mb-3 fs-5 text-danger fw-bold">@((int)Model.ErrorCode)</code>
+        <code class="d-block mb-3 fs-5 text-danger fw-bold">@(Model.ErrorCode)</code>
 
         <p class="mb-2"><strong>Id do pedido:</strong></p>
-        <code class="d-block mb-3 text-muted" style="word-break: break-all;">@Model.RequestId</code>
+        <code class="d-block mb-3 text-muted text-break">@Model.RequestId</code>
 
         <hr />
         <small class="text-muted d-block mt-2">

@@ -22,7 +22,6 @@ namespace Projeto_SEGUES.Models.Audit
         [Display(Name = "Origem do pedido")]
         public string? RequestPath { get; set; }
         
-        [MaxLength(250)]
         [Display(Name = "Exceção")]
         public string? Exception { get; set; }
 

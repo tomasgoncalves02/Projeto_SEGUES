@@ -64,9 +64,9 @@ namespace Projeto_SEGUES.Areas.Statistics.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogAppError($"Erro ao processar estatísticas de senhas: {ex.Message}",
+                _logger.LogAppError(AppErrors.DatabaseQueryError,
                                     TableName.Ticket,
-                                    AppOperation.Read);
+                                    AppOperation.Read, ex);
                 var errorKey = AppErrors.DatabaseQueryError.ToString();
                 var msg = $"{_localizer[errorKey].Value} [Erro: {(int)AppErrors.DatabaseQueryError}]";
 

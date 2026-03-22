@@ -93,9 +93,9 @@ public class AdminMenuManagementController : Controller
         catch (Exception ex)
         {
             _logger.LogAppError(
-                $"Erro ao atualizar links do menu: {ex.Message}",
+                AppErrors.DatabaseUpdateError,
                 TableName.AppConfig,
-                AppOperation.Update
+                AppOperation.Update, ex
             );
 
             var errorEnum = AppErrors.DatabaseUpdateError;

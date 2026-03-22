@@ -8,6 +8,9 @@ using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using System.Security.Claims;
+using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging;
+using Projeto_SEGUES.Resources;
 
 namespace SeguesTests.Orders
 {
@@ -16,14 +19,18 @@ namespace SeguesTests.Orders
         private readonly Mock<UserManager<AppUser>> _mockUserManager;
         private readonly Mock<IOrderService> _mockOrderService;
         private readonly ActiveOrderController _controller;
+        private readonly Mock<ILogger<ActiveOrderController>> _mockLogger;
+        private readonly Mock<IStringLocalizer<Errors>> _mockLocalizer;
 
         public ActiveOrderControllerTests()
         {
             var store = new Mock<IUserStore<AppUser>>();
             _mockUserManager = new Mock<UserManager<AppUser>>(store.Object, null, null, null, null, null, null, null, null);
             _mockOrderService = new Mock<IOrderService>();
+            _mockLogger = new Mock<ILogger<ActiveOrderController>>();
+            _mockLocalizer = new Mock<IStringLocalizer<Errors>>();
 
-            _controller = new ActiveOrderController(_mockUserManager.Object, _mockOrderService.Object);
+            _controller = new ActiveOrderController(_mockUserManager.Object, _mockOrderService.Object, _mockLogger.Object, _mockLocalizer.Object);
 
             var httpContext = new DefaultHttpContext();
             _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };

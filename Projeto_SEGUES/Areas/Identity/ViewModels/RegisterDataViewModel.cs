@@ -47,7 +47,7 @@ public class RegisterDataViewModel
     /// </summary>
     /// <value>Deve ser um formato de email válido (ex: utilizador@dominio.com).</value>
     [Required(ErrorMessage = "O email é obrigatório.")]
-    [EmailAddress(ErrorMessage = "Email inválido.")]
+    [EmailAddress(ErrorMessage = "Endereço de email inválido.")]
     [Display(Name = "Email")]
     public required string Email { get; init; }
 

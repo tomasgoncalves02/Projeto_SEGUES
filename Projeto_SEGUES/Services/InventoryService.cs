@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Areas.Inventory.ViewModels;
 using Projeto_SEGUES.Data;
+using Projeto_SEGUES.Extensions;
+using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Inventory;
 
 namespace Projeto_SEGUES.Services;
@@ -9,8 +11,13 @@ namespace Projeto_SEGUES.Services;
 public class InventoryService : IInventoryService
 {
     private readonly AppDbContext _context;
+    private readonly ILogger<InventoryService> _logger;
 
-    public InventoryService(AppDbContext context) => _context = context;
+    public InventoryService(AppDbContext context, ILogger<InventoryService> logger) 
+    {
+        _context = context;
+        _logger = logger;
+    }
 
     public async Task<Product?> GetProductByIdAsync(int id)
     {
@@ -62,9 +69,10 @@ public class InventoryService : IInventoryService
             await _context.SaveChangesAsync();
             return ServiceResult.Ok("Produto criado com sucesso!");
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            return ServiceResult.Fail("Ocorreu um erro ao criar o produto.");
+            _logger.LogAppError(AppErrors.ProductCreateError, TableName.Product, AppOperation.Create, ex);
+            return ServiceResult.Fail();
         }
     }
 

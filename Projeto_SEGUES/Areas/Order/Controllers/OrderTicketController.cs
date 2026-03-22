@@ -106,9 +106,9 @@ public class OrderTicketController : Controller
         }
         catch (Exception ex)
         {
-            _logger.LogAppError($"Erro crítico na compra de senhas para o utilizador {userId}: {ex.Message}",
+            _logger.LogAppError(AppErrors.DatabaseUpdateError,
                                 TableName.Ticket,
-                                AppOperation.Create);
+                                AppOperation.Create, ex);
 
             // 1004 - DatabaseUpdateError
             var erroEnum = AppErrors.DatabaseUpdateError;

@@ -118,7 +118,7 @@ namespace Projeto_SEGUES.Areas.Payment
             }
             catch (Exception ex)
             {
-                _logger.LogAppError($"Erro ao criar sessão Stripe: {ex.Message}", TableName.Payment, AppOperation.Create);
+                _logger.LogAppError(AppErrors.InternalServerError, TableName.Transaction, AppOperation.Create, ex);
 
                 var erroEnum = AppErrors.InternalServerError;
                 var msg = $"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";
@@ -160,7 +160,7 @@ namespace Projeto_SEGUES.Areas.Payment
             }
             catch (Exception ex)
             {
-                _logger.LogAppError($"Erro crítico ao confirmar pagamento {reference}: {ex.Message}", TableName.Payment, AppOperation.Update);
+                _logger.LogAppError(AppErrors.InternalServerError, TableName.Transaction, AppOperation.Update);
 
                 var erroEnum = AppErrors.DatabaseUpdateError;
                 var msg = $"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";

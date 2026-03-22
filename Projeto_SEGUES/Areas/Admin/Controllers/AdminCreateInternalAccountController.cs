@@ -68,27 +68,23 @@ public class AdminCreateInternalAccountController : Controller
 
             var errors = result.Message.Split("; ");
             foreach (var error in errors)
-            {
                 ModelState.AddModelError("", error);
-            }
-            ViewBag.Roles = await _adminService.GetNonClientRolesForDropdownAsync();
-            return View("Index", model);
         }
         catch (Exception ex)
         {
-            _logger.LogAppError(
-                $"Erro na criação de conta ({model?.Email}): {ex.Message}",
+            _logger.LogAppError(AppErrors.SendActivationEmailError,
                 TableName.User,
-                AppOperation.Create
+                AppOperation.Create,
+                ex
             );
-            var errorEnum = AppErrors.SendActivationEmailError;
-            var translateMessage = _localizer[errorEnum.ToString()].Value;
-            var finalMessage = $"{translateMessage} [Erro: {(int)errorEnum}]";
-
-            TempData.SetSwalError(finalMessage);
-
-            ViewBag.Roles = await _adminService.GetNonClientRolesForDropdownAsync();
-            return View("Index", model);
+            return RedirectToAction("Error", "Home", new
+            {
+                area = "",
+                errorCode = AppErrors.SendActivationEmailError
+            });
         }
+
+        ViewBag.Roles = await _adminService.GetNonClientRolesForDropdownAsync();
+        return View("Index", model);
     }
 }

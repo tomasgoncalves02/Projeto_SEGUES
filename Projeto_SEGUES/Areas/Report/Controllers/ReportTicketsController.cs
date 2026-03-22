@@ -106,7 +106,7 @@ public class ReportTicketsController : Controller
         }
         catch (Exception ex)
         {
-            _logger.LogAppError($"Erro AJAX na filtragem de senhas: {ex.Message}", TableName.Ticket, AppOperation.Read);
+            _logger.LogAppError(AppErrors.DatabaseQueryError, TableName.Ticket, AppOperation.Read, ex);
 
             // Para chamadas parciais (AJAX), devolvemos a mensagem técnica do RESX via JSON/Header
             var msg = $"{Errors.DatabaseQueryError} [Erro: {(int)AppErrors.DatabaseQueryError}]";

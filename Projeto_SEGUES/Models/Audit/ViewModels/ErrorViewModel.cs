@@ -10,6 +10,6 @@ namespace Projeto_SEGUES.Models.Audit.ViewModels
         
         public string ErrorMessage { get; set; }
         
-        public AppErrors ErrorCode { get; set; }
+        public int ErrorCode { get; set; }
     }
 }

@@ -9,6 +9,9 @@ using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using System.Security.Claims;
+using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging;
+using Projeto_SEGUES.Resources;
 
 namespace SeguesTests.Admin
 {
@@ -18,11 +21,15 @@ namespace SeguesTests.Admin
         private readonly Mock<ITicketService> _mockTicketService;
         private readonly Mock<UserManager<AppUser>> _mockUserManager;
         private readonly AdminTicketManagementController _controller;
+        private readonly Mock<ILogger<AdminTicketManagementController>> _mockLogger;
+        private readonly Mock<IStringLocalizer<Errors>> _mockLocalizer;
 
         public AdminTicketManagementControllerTests()
         {
             _mockAdminService = new Mock<IAdminService>();
             _mockTicketService = new Mock<ITicketService>();
+            _mockLogger = new Mock<ILogger<AdminTicketManagementController>>();
+            _mockLocalizer = new Mock<IStringLocalizer<Errors>>();
 
             var store = new Mock<IUserStore<AppUser>>();
             _mockUserManager = new Mock<UserManager<AppUser>>(store.Object, null, null, null, null, null, null, null, null);
@@ -30,7 +37,10 @@ namespace SeguesTests.Admin
             _controller = new AdminTicketManagementController(
                 _mockAdminService.Object,
                 _mockUserManager.Object,
-                _mockTicketService.Object);
+                _mockTicketService.Object,
+                _mockLogger.Object,
+                _mockLocalizer.Object
+                );
 
             var httpContext = new DefaultHttpContext();
             _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
