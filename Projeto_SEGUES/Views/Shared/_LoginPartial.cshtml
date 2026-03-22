@@ -6,14 +6,14 @@
 @if (SignInManager.IsSignedIn(User))
 {
     var user = await UserManager.GetUserAsync(User);
-    var nome = user?.FirstName ?? "Utilizador";
-    var inicial = nome[0].ToString().ToUpper();
+    var name = user?.FirstName ?? "Utilizador";
+    var initial = name[0].ToString().ToUpper();
 
     <div class="dropdown">
         <div class="dropdown-toggle d-flex align-items-center p-0" id="userMenu" data-bs-toggle="dropdown" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false">
-            <div class="avatar-circle">@inicial</div>
+            <div class="avatar-circle">@initial</div>
             @* d-none (hide in mobile); d-sm-inline (show in tablet/pc) *@
-            <span class="ms-2 d-none d-sm-inline text-dark fw-bold">Olá, @nome!</span>
+            <span class="ms-2 d-none d-sm-inline text-dark fw-bold">Olá, @name!</span>
         </div>
         <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
             @* See Profile  *@

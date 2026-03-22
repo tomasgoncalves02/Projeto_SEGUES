@@ -121,6 +121,18 @@ html {
    Body
    ========= */
 
+.icon-fork-knife {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    background-color: white;
+    -webkit-mask: url('../images/fork-knife.svg') no-repeat center center;
+    -webkit-mask-size: 32px 32px;
+    mask: url('../images/fork-knife.svg') no-repeat center center;
+    mask-size: 32px 32px;
+    vertical-align: middle;
+}
+
 /* Typography */
 .text-color-ips {
     color: var(--ips) !important;
