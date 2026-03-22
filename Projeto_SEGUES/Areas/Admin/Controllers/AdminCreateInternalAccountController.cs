@@ -44,8 +44,9 @@ public class AdminCreateInternalAccountController : Controller
     }
 
     /// <summary>
-    /// Processes the form submission to create a new internal user.
+    /// Processes the creation of a new internal user and handles localized error messages.
     /// </summary>
+    /// <param name="model">The view model for the internal user account.</param>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CreateInternalUserViewModel model)
@@ -55,7 +56,6 @@ public class AdminCreateInternalAccountController : Controller
             ViewBag.Roles = await _adminService.GetNonClientRolesForDropdownAsync();
             return View("Index", model);
         }
-
         try
         {
             var result = await _adminService.CreateInternalUserAsync(model);
@@ -65,23 +65,25 @@ public class AdminCreateInternalAccountController : Controller
                 TempData.SetSwalSuccess($"Conta criada para {model.FirstName}!");
                 return RedirectToAction(nameof(Index));
             }
-
-            var errors = result.Message.Split("; ");
-            foreach (var error in errors)
-                ModelState.AddModelError("", error);
+            var rawErrors = result.Message.Split("; ");
+            foreach (var error in rawErrors)
+            {
+                var translatedError = Errors.ResourceManager.GetString(error) ?? error;
+                ModelState.AddModelError(string.Empty, translatedError);
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogAppError(AppErrors.SendActivationEmailError,
+            _logger.LogAppError(
+                AppErrors.SendActivationEmailError,
                 TableName.User,
                 AppOperation.Create,
                 ex
             );
-            return RedirectToAction("Error", "Home", new
-            {
-                area = "",
-                errorCode = AppErrors.SendActivationEmailError
-            });
+            var msg = $"{Errors.SendActivationEmailError} [Erro: {(int)AppErrors.SendActivationEmailError}]";
+            TempData.SetSwalError(msg);
+
+            return RedirectToAction(nameof(Index));
         }
 
         ViewBag.Roles = await _adminService.GetNonClientRolesForDropdownAsync();
