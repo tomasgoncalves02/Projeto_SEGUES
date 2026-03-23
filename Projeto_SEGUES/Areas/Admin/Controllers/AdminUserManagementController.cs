@@ -79,7 +79,11 @@ public class AdminUserManagementController : Controller
             .Include(u => u.UserCategory)
             .FirstOrDefaultAsync(u => u.Id == id);
 
-        if (user == null) return NotFound();
+        if (user == null)
+        {
+            _logger.LogAppError(AppErrors.UserNotFound, TableName.User, AppOperation.Read);
+            return RedirectToAction("Error", "Home", new { area = "", errorCode = AppErrors.UserNotFound });
+        }
 
         var roles = await _userManager.GetRolesAsync(user);
         var userRoleRaw = roles.FirstOrDefault() ?? "Client";
@@ -112,7 +116,11 @@ public class AdminUserManagementController : Controller
     public async Task<IActionResult> Edit(string id)
     {
         var user = await _userManager.FindByIdAsync(id);
-        if (user == null) return NotFound();
+        if (user == null)
+        {
+            _logger.LogAppError(AppErrors.UserNotFound, TableName.User, AppOperation.Read);
+            return RedirectToAction("Error", "Home", new { area = "", errorCode = AppErrors.UserNotFound });
+        }
 
         var roles = await _userManager.GetRolesAsync(user);
         ViewBag.Roles = await _adminService.GetAllRolesForDropdownAsync();
@@ -152,7 +160,7 @@ public class AdminUserManagementController : Controller
         }
 
         var user = await _userManager.FindByIdAsync(model.Id);
-        if (user == null) return NotFound();
+        if (user == null) return Challenge();
 
         string? pendingEmail = null;
         if (model.Email != user.Email)
@@ -229,6 +237,7 @@ public class AdminUserManagementController : Controller
             var user = await _userManager.FindByIdAsync(id);
             if (user == null)
             {
+                _logger.LogAppError(AppErrors.UserNotFound, TableName.User, AppOperation.Update);
                 TempData.SetSwalError("O utilizador indicado não foi encontrado.");
                 return RedirectToAction(nameof(Index));
             }
@@ -267,6 +276,7 @@ public class AdminUserManagementController : Controller
             var user = await _userManager.FindByIdAsync(id);
             if (user == null)
             {
+                _logger.LogAppError(AppErrors.UserNotFound, TableName.User, AppOperation.Update);
                 TempData.SetSwalError("Utilizador não encontrado.");
                 return RedirectToAction(nameof(Index));
             }

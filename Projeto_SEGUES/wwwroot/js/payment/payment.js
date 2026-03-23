@@ -1,45 +1,45 @@
-﻿// js/payment/payment.js
-var PaymentModule = (function () {
+﻿import { DOM } from "../core/dom.js";
 
-    // Configurações e Seletores
-    const selectors = {
-        amountInput: '#amountInput',
-        errorDiv: '#amountError',
-        paymentForm: '#paymentForm'
-    };
+function preventDoubleSubmission() {
+    const form = DOM.byId('paymentForm');
+    if (!form) return;
 
-    // Função para validar o limite de 1000€
-    const validateAmount = function () {
-        const input = document.querySelector(selectors.amountInput);
-        const error = document.querySelector(selectors.errorDiv);
-        const value = parseFloat(input.value);
+    // $(this).valid() is provided by Unobtrusive Validation
+    if ($(this).valid()) {
+        const submitBtn = DOM.bySelector('button[type="submit"]', form);
+        if (!submitBtn) return;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>A redirecionar...';
+    }
+}
 
-        if (value > 1000) {
-            error.style.display = 'block';
-            error.innerText = "Só pode depositar no máximo 1000 euros de cada vez.";
-            input.setCustomValidity("Limite excedido");
-            return false;
-        } else {
-            error.style.display = 'none';
-            input.setCustomValidity("");
-            return true;
-        }
-    };
+function disableKeyStroke(e) {
+    const disabledKeys = ['e', 'E', '+', '-'];
+    if (disabledKeys.includes(e.key)) {
+        e.preventDefault();
+    }
+}
 
-    // Inicialização dos Eventos
-    return {
-        init: function () {
-            const input = document.querySelector(selectors.amountInput);
-            if (input) {
-                input.addEventListener('input', validateAmount);
-            }
+function formatAmount() {
+    const amountInput = DOM.byId('amountInput');
+    if (!amountInput) return;
+    
+    // Remove any non-numeric characters except for dot and comma, then replace comma with dot
+    const value = amountInput.value.replace(/[^0-9.,]/g, '').replace(/,/g, '.');
+    if (!isNaN(value) && value >= 5 && value <= 1000) {
+        amountInput.value = value.toFixed(2);
+    } else {
+        amountInput.value = 5.00;
+    }
+}
 
-            console.log("Módulo de Pagamento inicializado.");
-        }
-    };
-})();
+const Payment = {
+    init() {
+        DOM.bind('paymentForm', 'submit', preventDoubleSubmission);
+        DOM.bind('amountInput', 'keydown', disableKeyStroke);
+        DOM.bind('amountInput', 'blur', formatAmount);
+    }
+}
 
-// Iniciar quando o DOM estiver pronto
-document.addEventListener('DOMContentLoaded', function () {
-    PaymentModule.init();
-});
+DOM.bindDocumentLoad(Payment.init);
+export { Payment };

@@ -25,7 +25,6 @@ public class AdminService : IAdminService
     private readonly IEmailSender _emailSender;
     private readonly ILogger<AdminService> _logger;
     private readonly IStringLocalizer<Errors> _localizer;
-    private const string _defaultLink = "https://www.ips.pt";
 
     public AdminService(
         AppDbContext context,
@@ -255,16 +254,16 @@ public class AdminService : IAdminService
         var config = await GetAppConfigAsync();
         return new BarCanteenConfigViewModel
         {
-            BarMenuLink = config.BarLink ?? _defaultLink,
-            CanteenMenuLink = config.CanteenLink ?? _defaultLink
+            BarMenuLink = config.BarLink,
+            CanteenMenuLink = config.CanteenLink
         };
     }
     
     public async Task UpdateMenuLinksAsync(string? canteenLink, string? barLink)
     {
         var config = await GetAppConfigAsync();
-        config.CanteenLink = canteenLink ?? config.CanteenLink ?? _defaultLink;
-        config.BarLink = barLink ?? config.BarLink ?? _defaultLink;
+        config.CanteenLink = canteenLink ?? config.CanteenLink;
+        config.BarLink = barLink ?? config.BarLink;
         await _context.SaveChangesAsync();
     }
     
@@ -276,7 +275,7 @@ public class AdminService : IAdminService
             BarOpeningTimeString = config.BarOpeningTime.ToString(@"hh\:mm"),
             BarClosingTime = config.BarClosingTime,
             BarClosingTimeString = config.BarClosingTime.ToString(@"hh\:mm"),
-            BarMenuLink = config.BarLink ?? _defaultLink,
+            BarMenuLink = config.BarLink,
             CanteenLunchOpeningTime = config.CanteenLunchOpeningTime,
             CanteenLunchOpeningTimeString = config.CanteenLunchOpeningTime.ToString(@"hh\:mm"),
             CanteenLunchClosingTime = config.CanteenLunchClosingTime,
@@ -285,7 +284,7 @@ public class AdminService : IAdminService
             CanteenDinnerOpeningTimeString = config.CanteenDinnerOpeningTime.ToString(@"hh\:mm"),
             CanteenDinnerClosingTime = config.CanteenDinnerClosingTime,
             CanteenDinnerClosingTimeString = config.CanteenDinnerClosingTime.ToString(@"hh\:mm"),
-            CanteenMenuLink = config.CanteenLink ?? _defaultLink
+            CanteenMenuLink = config.CanteenLink
         };
     }
     

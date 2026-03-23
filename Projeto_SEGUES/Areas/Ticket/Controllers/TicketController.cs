@@ -152,7 +152,7 @@ public class TicketController : Controller
         try
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Unauthorized();
+            if (user == null) return Challenge();
 
             var activeTickets = await _ticketService.GetActiveTicketsAsync(user.Id);
             return PartialView("_ActiveTicketsPartial", activeTickets);
@@ -225,7 +225,7 @@ public class TicketController : Controller
                 .Include(u => u.UserCategory)
                 .FirstOrDefaultAsync(u => u.Email == email);
 
-            if (currentUser == null) return Unauthorized();
+            if (currentUser == null) return Challenge();
 
             // Validação: Destinatário não existe
             if (recipient == null)

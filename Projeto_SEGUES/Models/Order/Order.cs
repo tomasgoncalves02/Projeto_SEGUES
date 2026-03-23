@@ -2,42 +2,42 @@ using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
 using System.ComponentModel.DataAnnotations;
 
-namespace Projeto_SEGUES.Models.Order
+namespace Projeto_SEGUES.Models.Order;
+
+public class Order
 {
-    public class Order
-    {
-        public int Id { get; set; }
+    public int Id { get; set; }
 
-        [Range(0, double.MaxValue)]
-        [Display(Name = "Valor Total")]
-        [DisplayFormat(DataFormatString = "{0:C2}", ApplyFormatInEditMode = true)]
-        public decimal TotalValue { get; set; }
+    [Range(0, double.MaxValue)]
+    [Display(Name = "Valor Total")]
+    [DisplayFormat(DataFormatString = "{0:C2}", ApplyFormatInEditMode = true)]
+    public decimal TotalValue { get; set; }
 
-        [DataType(DataType.Date)]
-        [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy HH:mm}", ApplyFormatInEditMode = true)]
-        [Display(Name = "Data do Pedido")]
-        public DateTime OrderDate { get; set; } = DateTime.Now;
+    [DataType(DataType.Date)]
+    [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy HH:mm}", ApplyFormatInEditMode = true)]
+    [Display(Name = "Data do Pedido")]
+    public DateTime OrderDate { get; set; } = DateTime.Now;
 
-        [DataType(DataType.Duration)]
-        [DisplayFormat(DataFormatString = @"{0:HH\:mm}", ApplyFormatInEditMode = true)]
-        [Display(Name = "Data de Entrega")]
-        public TimeSpan? DeliveryTime { get; set; }
+    [DataType(DataType.Duration)]
+    [DisplayFormat(DataFormatString = @"{0:HH\:mm}", ApplyFormatInEditMode = true)]
+    [Display(Name = "Data de Entrega")]
+    public TimeSpan? DeliveryTime { get; set; }
 
-        [DataType(DataType.Duration)]
-        [DisplayFormat(DataFormatString = @"{0:HH\:mm}", ApplyFormatInEditMode = true)]
-        [Display(Name = "Data de Recolha")]
-        public TimeSpan? PickupTime { get; set; }
+    [DataType(DataType.Duration)]
+    [DisplayFormat(DataFormatString = @"{0:HH\:mm}", ApplyFormatInEditMode = true)]
+    [Display(Name = "Data de Recolha")]
+    public TimeSpan? PickupTime { get; set; }
 
-        [Required]
-        public required AppUser AppUser { get; set; } // FK
+    [Required]
+    public required AppUser AppUser { get; set; } // FK
 
-        public Discount? Discount { get; set; }
+    public Discount? Discount { get; set; }
 
-        [MaxLength(8)]
-        public string RedemptionCode { get; set; } = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
+    [MaxLength(8)]
+    [Display(Name = "Código")]
+    public string RedemptionCode { get; set; } = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
 
-        public OrderStatus Status { get; set; } = OrderStatus.Cart;
+    public OrderStatus Status { get; set; } = OrderStatus.Cart;
 
-        public ICollection<OrderLine> ProductPurchases { get; set; } = new List<OrderLine>();
-    }
+    public ICollection<OrderLine> ProductPurchases { get; set; } = new List<OrderLine>();
 }

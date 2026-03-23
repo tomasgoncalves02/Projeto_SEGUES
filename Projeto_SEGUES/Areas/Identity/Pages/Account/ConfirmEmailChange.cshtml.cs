@@ -53,11 +53,7 @@ public class ConfirmEmailChangeModel : PageModel
         }
 
         var user = await _userManager.FindByIdAsync(userId);
-        if (user == null)
-        {
-            _logger.LogAppError(AppErrors.UserNotFound, TableName.Identity, AppOperation.Read);
-            return RedirectToAction("Error", "Home", new { area = "", errorCode = AppErrors.UserNotFound });
-        }
+        if (user == null) return Challenge();
 
         string decodedCode;
         try

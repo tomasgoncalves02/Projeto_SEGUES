@@ -116,12 +116,8 @@ public class ChangePasswordModel : PageModel
         }
 
         var user = await _userManager.GetUserAsync(User);
-        if (user == null)
-        {
-            _logger.LogAppError(AppErrors.UserNotFound, TableName.All, AppOperation.Other);
-            return RedirectToAction("Error", "Home", new { area = "", errorCode = AppErrors.UserNotFound });
-        }
-
+        if (user == null) return Challenge();
+        
         var changePasswordResult = await _userManager.ChangePasswordAsync(user, Input.OldPassword, Input.NewPassword);
         if (!changePasswordResult.Succeeded)
         {

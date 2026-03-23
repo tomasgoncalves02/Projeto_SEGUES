@@ -8,14 +8,14 @@ namespace Projeto_SEGUES.Models.Enums;
 public enum TicketFlow : byte
 {
     [Display(Name = "Todas")]
-    All = 0,
+    All,
 
     [Display(Name = "Compradas")]
-    Bought = 1,
+    Bought,
 
     [Display(Name = "Enviadas")]
-    Sent = 2,
+    Sent,
 
     [Display(Name = "Recebidas")]
-    Received = 3
+    Received
 }

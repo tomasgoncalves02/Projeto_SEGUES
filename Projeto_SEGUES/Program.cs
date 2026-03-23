@@ -186,6 +186,7 @@ builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IStatisticsService, StatisticsService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 //Stripe
 StripeConfiguration.ApiKey = builder.Configuration["Secrets:StripeSecretKey"];

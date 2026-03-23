@@ -61,10 +61,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Models\Report\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <_ContentIncludedByDefault Remove="Views\Teacher\Index.cshtml" />
     <_ContentIncludedByDefault Remove="Views\Employee\Index.cshtml" />
     <_ContentIncludedByDefault Remove="Views\Student\Index.cshtml" />

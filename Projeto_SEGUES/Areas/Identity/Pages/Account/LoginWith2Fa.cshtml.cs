@@ -76,12 +76,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         {
             // Ensures the user has gone through the password challenge first
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
-            if (user == null)
-            {
-                _logger.LogError("Não foi possível carregar o utilizador de autenticação de dois fatores.");
-                ModelState.AddModelError(string.Empty, "Não foi possível carregar o utilizador de autenticação de dois fatores.");
-                return RedirectToPage("./Login");
-            }
+            if (user == null) return Challenge();
 
             ReturnUrl = returnUrl;
             RememberMe = rememberMe;
@@ -107,12 +102,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
             returnUrl ??= Url.Content("~/");
 
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
-            if (user == null)
-            {
-                _logger.LogError("Não foi possível carregar o utilizador de autenticação de dois fatores.");
-                ModelState.AddModelError(string.Empty, "Não foi possível carregar o utilizador de autenticação de dois fatores.");
-                return RedirectToPage("./Login");
-            }
+            if (user == null) return Challenge();
 
             // Normalization of the code (removes common formatting characters)
             var authenticatorCode = Input.TwoFactorCode.Replace(" ", "").Replace("-", "");

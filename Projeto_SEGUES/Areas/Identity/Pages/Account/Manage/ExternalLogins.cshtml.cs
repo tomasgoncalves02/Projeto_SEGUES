@@ -61,10 +61,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account.Manage
         public async Task<IActionResult> OnGetAsync()
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return NotFound("Não foi possível gerir os logins externos.");
-            }
+            if (user == null) return Challenge();
 
             CurrentLogins = await _userManager.GetLoginsAsync(user);
             OtherLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync())
@@ -90,10 +87,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account.Manage
         public async Task<IActionResult> OnPostRemoveLoginAsync(string loginProvider, string providerKey)
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return NotFound("Não foi possível gerir os logins externos.");
-            }
+            if (user == null) return Challenge();
 
             var result = await _userManager.RemoveLoginAsync(user, loginProvider, providerKey);
             if (!result.Succeeded)
@@ -131,10 +125,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account.Manage
         public async Task<IActionResult> OnGetLinkLoginCallbackAsync()
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return NotFound("Não foi possível gerir os logins externos..");
-            }
+            if (user == null) return Challenge();
 
             var userId = await _userManager.GetUserIdAsync(user);
             var info = await _signInManager.GetExternalLoginInfoAsync(userId);

@@ -85,7 +85,7 @@ public class ReportTransactionController : Controller
         try
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Unauthorized();
+            if (user == null) return Challenge();
 
             var query = _context.Transaction
                 .Include(t => t.User)

@@ -24,7 +24,7 @@ public class UserController : Controller
     public async Task<IActionResult> Index()
     {
         var user = await _userManager.GetUserAsync(User);
-        if (user == null) return NotFound();
+        if (user == null) return Challenge();
         ViewBag.Email = user.Email;
 
         var roles = await _userManager.GetRolesAsync(user);
@@ -59,7 +59,7 @@ public class UserController : Controller
         }
 
         var user = await _userManager.GetUserAsync(User);
-        if (user == null) return NotFound();
+        if (user == null) return Challenge();
 
         user.FirstName = model.FirstName;
         user.LastName = model.LastName;

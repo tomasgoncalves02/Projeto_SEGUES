@@ -95,10 +95,7 @@ public class EmailModel : PageModel
     public async Task<IActionResult> OnGetAsync()
     {
         var user = await _userManager.GetUserAsync(User);
-        if (user == null)
-        {
-            throw new ApplicationException("Não foi possível carregar o utilizador.");
-        }
+        if (user == null) return Challenge();
 
         await LoadAsync(user);
         return Page();
@@ -111,10 +108,7 @@ public class EmailModel : PageModel
     public async Task<IActionResult> OnPostChangeEmailAsync()
     {
         var user = await _userManager.GetUserAsync(User);
-        if (user == null)
-        {
-            throw new ApplicationException("Não foi possível carregar o utilizador.");
-        }
+        if (user == null) return Challenge();
 
         if (!ModelState.IsValid)
         {
@@ -184,10 +178,7 @@ public class EmailModel : PageModel
     public async Task<IActionResult> OnPostSendVerificationEmailAsync()
     {
         var user = await _userManager.GetUserAsync(User);
-        if (user == null)
-        {
-            throw new ApplicationException("Não foi possível carregar o utilizador.");
-        }
+        if (user == null) return Challenge();
 
         if (!ModelState.IsValid)
         {
