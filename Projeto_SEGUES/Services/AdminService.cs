@@ -66,20 +66,41 @@ public class AdminService : IAdminService
 
         await using var transaction = await _context.Database.BeginTransactionAsync();
         var category = await _context.UserCategory.FirstAsync(c => c.Name == "Externo");
-        var user = new AppUser
+        AppUser user;
+        if (model.AccountType == "Employee")
         {
-            UserName = model.Email,
-            Email = model.Email,
-            FirstName = model.FirstName,
-            LastName = model.LastName,
-            Gender = model.Gender,
-            BirthDate = model.BirthDate,
-            Balance = 0m,
-            CreationDate = DateTime.Now,
-            EmailConfirmed = true,
-            Status = UserStatus.Active,
-            UserCategory = category
-        };
+            user = new Employee
+            {
+                UserName = model.Email,
+                Email = model.Email,
+                FirstName = model.FirstName,
+                LastName = model.LastName,
+                Gender = model.Gender,
+                BirthDate = model.BirthDate,
+                Balance = 0m,
+                CreationDate = DateTime.Now,
+                EmailConfirmed = true,
+                Status = UserStatus.Active,
+                UserCategory = category
+            };
+        }
+        else
+        {
+            user = new AppUser
+            {
+                UserName = model.Email,
+                Email = model.Email,
+                FirstName = model.FirstName,
+                LastName = model.LastName,
+                Gender = model.Gender,
+                BirthDate = model.BirthDate,
+                Balance = 0m,
+                CreationDate = DateTime.Now,
+                EmailConfirmed = true,
+                Status = UserStatus.Active,
+                UserCategory = category
+            };
+        }
 
         string password = GenerateSecurePassword();
         var result = await _userManager.CreateAsync(user, password);

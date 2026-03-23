@@ -89,7 +89,7 @@ namespace SeguesTests.Admin
             var result = await _controller.Edit("1");
 
             var viewResult = Assert.IsType<ViewResult>(result);
-            var model = Assert.IsType<EditUserViewModelAdmin>(viewResult.Model);
+            var model = Assert.IsType<EditUserAdminViewModel>(viewResult.Model);
             Assert.Equal(user.Id, model.Id);
         }
 
@@ -98,7 +98,7 @@ namespace SeguesTests.Admin
         [Fact]
         public async Task Edit_Post_ValidModel_RedirectsToIndex()
         {
-            var model = new EditUserViewModelAdmin
+            var model = new EditUserAdminViewModel
             {
                 Id = "1",
                 FirstName = "New",

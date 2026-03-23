@@ -9,7 +9,7 @@ public class UserCategory
     public int Id { get; init; }
 
     [Required]
-    [MaxLength(50)]
+    [MaxLength(50, ErrorMessage = "O nome deve ter no máximo {1} caracteres.")]
     [Display(Name = "Nome")]
     public required string Name { get; set; }
 

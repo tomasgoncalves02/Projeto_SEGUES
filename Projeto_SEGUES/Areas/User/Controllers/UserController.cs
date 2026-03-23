@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Areas.User.ViewModels;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.User;
@@ -13,67 +14,94 @@ namespace Projeto_SEGUES.Areas.User.Controllers;
 public class UserController : Controller
 {
     private readonly UserManager<AppUser> _userManager;
+    private readonly RoleManager<Role> _roleManager;
     private readonly IUserService _userService;
 
-    public UserController(UserManager<AppUser> userManager, IUserService userService)
+    public UserController(UserManager<AppUser> userManager, RoleManager<Role> roleManager, IUserService userService)
     {
         _userManager = userManager;
+        _roleManager = roleManager;
         _userService = userService;
     }
 
     public async Task<IActionResult> Index()
     {
-        var user = await _userManager.GetUserAsync(User);
+        var user = await _userManager.Users
+            .Include(u => u.UserCategory)
+            .Include(u => u.PostalCode)
+            .Include(u => (u as Student)!.School)
+            .Include(u => (u as Employee)!.School)
+            .FirstOrDefaultAsync(u => u.UserName == User.Identity!.Name);
         if (user == null) return Challenge();
-        ViewBag.Email = user.Email;
+        
+        var roleString = (await _userManager.GetRolesAsync(user)).FirstOrDefault() ?? "Client";
+        var role = await _roleManager.FindByNameAsync(roleString);
+        ViewBag.Schools = await _userService.GetSchoolsAsync();
 
-        var roles = await _userManager.GetRolesAsync(user);
-        var userRole = roles.FirstOrDefault() ?? "Client";
-
-        var editUserViewModel = new EditUserViewModelAdmin
+        var editUserViewModel = new EditUserViewModel
         {
             Id = user.Id,
             FirstName = user.FirstName,
             LastName = user.LastName,
             BirthDate = user.BirthDate,
+            Email = user.Email!,
             Gender = user.Gender,
-            /*FiscalNumber = user.FiscalNumber,
+            FiscalNumber = user.FiscalNumber,
             Address = user.Address,
-            City = user.City,*/
-            Role = userRole,
-            Category = user.UserCategory?.Name ?? "Sem Categoria",
-            //StudentNumber = user is Student student ? student.StudentNumber : null,
-            RoleDescription = user is Employee employee ? employee.RoleDescription : null
+            City = user.City,
+            Role = role!,
+            Category = user.UserCategory.Name,
+            StudentNumber = user is Student student ? student.StudentNumber : null,
+            RoleDescription = user is Employee employee ? employee.RoleDescription : null,
+            SchoolId = user switch
+            {
+                Student student2 => student2.School?.Id,
+                Employee employee2 => employee2.School?.Id,
+                _ => null
+            },
+            PostalCode = user.PostalCode?.Code
         };
+        
         return View(editUserViewModel);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> UpdateProfile(UpdateProfileViewModel model)
+    public async Task<IActionResult> UpdateProfile(EditUserViewModel model)
     {
+        var user = await _userManager.Users
+            .Include(u => u.UserCategory)
+            .FirstOrDefaultAsync(u => u.UserName == User.Identity!.Name);
+        if (user == null) return Challenge();
+        
         if (!ModelState.IsValid)
         {
-            TempData.SetSwalError("Dados inválidos.");
-            return RedirectToAction(nameof(Index));
+            // Reload data
+            ViewBag.Schools = await _userService.GetSchoolsAsync();
+            model.Email = user.Email!;
+            model.Category = user.UserCategory.Name;
+            var roleString = (await _userManager.GetRolesAsync(user)).FirstOrDefault() ?? "Client";
+            var role = await _roleManager.FindByNameAsync(roleString);
+            model.Role = role!;
+            if (user is Employee emp) model.RoleDescription = emp.RoleDescription;
+            
+            // Reload with filled data
+            TempData.SetSwalError("Por favor, verifique os dados preenchidos.");
+            return View(nameof(Index), model);
         }
-
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null) return Challenge();
-
-        user.FirstName = model.FirstName;
-        user.LastName = model.LastName;
-        user.Gender = model.Gender;
-        user.BirthDate = model.BirthDate;
-
-        var result = await _userManager.UpdateAsync(user);
-        if (result.Succeeded)
+        
+        var result = await _userService.UpdateUserProfileAsync(user, model);
+        
+        if (result.Success)
         {
-            TempData.SetSwalSuccess("Perfil atualizado com sucesso!");
+            TempData.SetSwalSuccess(result.Message);
             return RedirectToAction(nameof(Index));
         }
 
-        TempData.SetSwalError("Erro ao gravar.");
-        return RedirectToAction(nameof(Index));
+        TempData.SetSwalError(result.Message);
+            
+        // Reload with filled data
+        ViewBag.Schools = await _userService.GetSchoolsAsync();
+        return View(nameof(Index), model);
     }
 }

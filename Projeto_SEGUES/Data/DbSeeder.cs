@@ -15,6 +15,7 @@ namespace Projeto_SEGUES.Data
         {
             await SeedRolesAndAdminAsync(serviceProvider);
             await SeedInventoryAsync(serviceProvider);
+            await SeedSchoolsAsync(serviceProvider);
             await SeedTestData(serviceProvider); // TODO: Remove on app release
         }
 
@@ -131,15 +132,71 @@ namespace Projeto_SEGUES.Data
             // ProductCategory
             var defaultProductsCategories = new List<ProductCategory>
             {
-                new ProductCategory { Name = "Bebidas", Description = "Café, refrigerantes e outras bebidas." },
-                new ProductCategory { Name = "Refeições", Description = "Sanduíches, saladas e refeições rápidas." },
-                new ProductCategory { Name = "Doces", Description = "Bolos, tortas e outras sobremesas." },
-                new ProductCategory { Name = "Salgados", Description = "Empadas, croissants e outros salgados." }
+                new() { Name = "Bebidas", Description = "Café, refrigerantes e outras bebidas." },
+                new() { Name = "Refeições", Description = "Sanduíches, saladas e refeições rápidas." },
+                new() { Name = "Doces", Description = "Bolos, tortas e outras sobremesas." },
+                new() { Name = "Salgados", Description = "Empadas, croissants e outros salgados." }
             };
             foreach (var category in defaultProductsCategories)
             {
                 if (!await context.ProductCategory.AnyAsync(c => c.Name == category.Name))
                     await context.ProductCategory.AddAsync(category);
+            }
+            await context.SaveChangesAsync();
+        }
+
+        public static async Task SeedSchoolsAsync(IServiceProvider serviceProvider)
+        {
+            var context = serviceProvider.GetRequiredService<AppDbContext>();
+
+            var defaultSchoolsPostalCodes = new List<PostalCode>
+            {
+                new() { Code = "2910-761" }, // Setubal
+                new() { Code = "2839-001" } // Barreiro
+            };
+            foreach (var postalCode in defaultSchoolsPostalCodes)
+            {
+                if (!await context.PostalCode.AnyAsync(pc => pc.Code == postalCode.Code))
+                    await context.PostalCode.AddAsync(postalCode);
+            }
+            await context.SaveChangesAsync();
+            
+            var setubal = await context.PostalCode.FirstOrDefaultAsync(pc => pc.Code == "2910-761");
+            var barreiro = await context.PostalCode.FirstOrDefaultAsync(pc => pc.Code == "2839-001");
+
+            var defaultSchools = new List<School>
+            {
+                new()
+                {
+                    Name = "Escola Superior de Tecnologia de Setúbal", PostalCode = setubal!, IsActive = true,
+                    City = "Setúbal", Address = "Campus do IPS, Estefanilha", Code = "ESTS"
+                },
+                new()
+                {
+                    Name = "Escola Superior de Saúde de Setúbal", PostalCode = setubal!, IsActive = true,
+                    City = "Setúbal", Address = "Campus do IPS, Estefanilha", Code = "ESSS"
+                },
+                new()
+                {
+                    Name = "Escola Superior de Educação de Setúbal", PostalCode = setubal!, IsActive = true,
+                    City = "Setúbal", Address = "Campus do IPS, Estefanilha", Code = "ESES"
+                },
+                new()
+                {
+                    Name = "Escola Superior de Ciências Empresariais de Setúbal", PostalCode = setubal!,
+                    IsActive = true, City = "Setúbal", Address = "Campus do IPS, Estefanilha", Code = "ESCE"
+                },
+                new()
+                {
+                    Name = "Escola Superior de Tecnologia do Barreiro", PostalCode = barreiro!, IsActive = true,
+                    City = "Lavradio", Address = "Rua Américo da Silva Marinho", Code = "ESTB"
+                }
+            };
+            
+            foreach (var school in defaultSchools)
+            {
+                if (!await context.School.AnyAsync(s => s.Name == school.Name))
+                    await context.School.AddAsync(school);
             }
             await context.SaveChangesAsync();
         }
@@ -156,7 +213,7 @@ namespace Projeto_SEGUES.Data
             {
                 var employeeEmail = "employee@employee.com";
                 var employeeCategory = await context.UserCategory.FirstOrDefaultAsync(uc => uc.Name == "Externo");
-                employeeUser = new AppUser
+                employeeUser = new Employee
                 {
                     UserName = employeeEmail,
                     Email = employeeEmail,
@@ -168,7 +225,9 @@ namespace Projeto_SEGUES.Data
                     Balance = 1000m,
                     CreationDate = DateTime.Now,
                     Status = UserStatus.Active,
-                    UserCategory = employeeCategory!
+                    UserCategory = employeeCategory!,
+                    School = await context.School.FirstOrDefaultAsync(s => s.Code == "ESTS"),
+                    RoleDescription = "Copa"
                 };
                 var createEmployee = await userManager.CreateAsync(employeeUser, "AdminSEGUES123!");
 

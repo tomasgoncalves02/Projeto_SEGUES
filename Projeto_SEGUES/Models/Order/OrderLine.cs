@@ -18,7 +18,7 @@ public class OrderLine
     public required Order Order { get; set; } // FK
 
     [Required]
-    [Range(1, int.MaxValue)]
+    [Range(1, int.MaxValue, ErrorMessage = "A quantidade deve ser maior que zero.")]
     [Display(Name = "Quantidade")]
     public required int Quantity { get; set; } = 1;
 

@@ -127,29 +127,52 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 
             // Assign the user category based on email suffix
             string categoryName = "Externo";
-            if (data.Email.ToLower().Contains("@estudantes."))
+            string emailLower = data.Email.ToLower();
+            string? extractedStudentNumber = null;
+            if (emailLower.EndsWith("@estudantes.ips.pt"))
             {
                 categoryName = "Estudante";
+                extractedStudentNumber = emailLower.Split('@')[0];
             }
-            else if (data.Email.ToLower().Contains("@ips.pt"))
+            else if (emailLower.EndsWith("@ips.pt"))
             {
                 categoryName = "Trabalhador IPS";
             }
 
             var category = await _context.UserCategory.FirstOrDefaultAsync(c => c.Name == categoryName);
 
+            AppUser user;
+            
             // Map data to AppUser
-            var user = new AppUser
+            if (categoryName == "Estudante")
             {
-                UserName = data.Email,
-                Email = data.Email,
-                FirstName = data.FirstName,
-                LastName = data.LastName,
-                Gender = data.Gender,
-                BirthDate = data.BirthDate,
-                UserCategory = category!,
-                EmailConfirmed = true
-            };
+                user = new Student
+                {
+                    UserName = data.Email,
+                    Email = data.Email,
+                    FirstName = data.FirstName,
+                    LastName = data.LastName,
+                    Gender = data.Gender,
+                    BirthDate = data.BirthDate,
+                    UserCategory = category!,
+                    EmailConfirmed = true,
+                    StudentNumber = extractedStudentNumber!
+                };
+            }
+            else
+            {
+                user = new AppUser
+                {
+                    UserName = data.Email,
+                    Email = data.Email,
+                    FirstName = data.FirstName,
+                    LastName = data.LastName,
+                    Gender = data.Gender,
+                    BirthDate = data.BirthDate,
+                    UserCategory = category!,
+                    EmailConfirmed = true
+                };
+            }
 
             var result = await _userManager.CreateAsync(user, data.Password);
 

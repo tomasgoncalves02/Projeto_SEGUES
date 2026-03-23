@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Projeto_SEGUES.Areas.User.ViewModels;
 
-public class EditUserViewModelAdmin
+public class EditUserAdminViewModel
 {
     public required string Id { get; init; }
 
@@ -51,27 +51,27 @@ public class EditUserViewModelAdmin
     [Display(Name = "Categoria de Utilizador")]
     public required string Category { get; set; }
 
-    [MaxLength(9)]
+    [MaxLength(9, ErrorMessage = "O NIF deve ter no máximo {1} caracteres.")]
     [Display(Name = "NIF")]
     public string? FiscalNumber { get; set; }
 
-    [MaxLength(250)]
+    [MaxLength(250, ErrorMessage = "Morada deve ter no máximo {1} caracteres.")]
     [Display(Name = "Morada")]
     public string? Address { get; set; }
 
-    [MaxLength(50)]
+    [MaxLength(50, ErrorMessage = "Cidade deve ter no máximo {1} caracteres.")]
     [Display(Name = "Cidade")]
     public string? City { get; set; }
 
-    [MaxLength(9)]
+    [MaxLength(9, ErrorMessage = "O código postal deve ter no máximo {1} caracteres.")]
     [Display(Name = "Código Postal")]
     public string? PostalCode { get; set; }
 
-    [MaxLength(20)]
+    [MaxLength(20, ErrorMessage = "O número de estudante deve ter no máximo {1} caracteres.")]
     [Display(Name = "Número de Estudante")]
     public string? StudentNumber { get; set; }
 
-    [MaxLength(100)]
+    [MaxLength(100, ErrorMessage = "Cargo deve ter no máximo {1} caracteres.")]
     [Display(Name = "Cargo")]
     public string? RoleDescription { get; set; }
 

@@ -9,7 +9,7 @@ public class Discount
     public int Id { get; set; }
 
     [Required]
-    [MaxLength(100)]
+    [MaxLength(100, ErrorMessage = "O nome do desconto não pode exceder {1} caracteres.")]
     [Display(Name = "Nome")]
     public required string Name { get; set; }
 

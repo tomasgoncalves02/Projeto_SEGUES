@@ -29,6 +29,7 @@ public class Transaction
     [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy HH:mm}", ApplyFormatInEditMode = true)]
     public DateTime CreatedAt { get; init; } = DateTime.Now;
 
-    [MaxLength(100)]
+    [MaxLength(100, ErrorMessage = "O campo {0} deve conter no máximo {1} caracteres.")] 
+    [Display(Name = "Descrição da Transação")]
     public string? Description { get; init; }
 }

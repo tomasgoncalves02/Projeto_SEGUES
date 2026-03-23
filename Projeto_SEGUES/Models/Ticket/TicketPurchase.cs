@@ -7,7 +7,7 @@ public class TicketPurchase
 {
     public int Id { get; set; }
 
-    [Range(1, int.MaxValue)]
+    [Range(1, int.MaxValue, ErrorMessage = "A quantidade deve ser pelo menos 1.")]
     [Display(Name = "Quantidade")]
     public int Quantity { get; set; }
 

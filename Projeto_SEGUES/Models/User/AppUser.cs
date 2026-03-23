@@ -28,7 +28,7 @@ public class AppUser : IdentityUser
     [Display(Name = "Saldo")]
     public decimal Balance { get; set; } // 0 is default
 
-    [MaxLength(9)]
+    [MaxLength(9, ErrorMessage = "O NIF deve ter no máximo {1} caracteres.")]
     [Display(Name = "NIF")]
     public string? FiscalNumber { get; set; }
 
@@ -46,11 +46,11 @@ public class AppUser : IdentityUser
 
     public UserStatus Status { get; set; } = UserStatus.Active;
 
-    [MaxLength(250)]
+    [MaxLength(250, ErrorMessage = "Morada deve ter no máximo {1} caracteres.")]
     [Display(Name = "Morada")]
     public string? Address { get; set; }
 
-    [MaxLength(50)]
+    [MaxLength(50, ErrorMessage = "Cidade deve ter no máximo {1} caracteres.")]
     [Display(Name = "Cidade")]
     public string? City { get; set; }
 

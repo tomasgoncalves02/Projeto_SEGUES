@@ -91,7 +91,7 @@ else
                 <div class="card h-100 shadow-sm card-ips hover-shadow-ips bg-color-ips text-white hover-translate d-flex flex-column">
                     <div class="card-body text-center d-flex flex-column p-4">
                         <small class="d-block opacity-75 fw-bold mb-2 fs-4">Saldo Disponível</small>
-                        <h2 class="display-6 fw-bold my-auto">@balance.ToString("C")</h2>
+                        <h2 class="display-6 fw-bold my-auto mb-2">@balance.ToString("C")</h2>
                         <div class="mt-auto">
                             <a asp-area="Payment" asp-controller="Payment" asp-action="Deposit" class="btn btn-ips fw-bold w-100 py-2" style="border: 1px solid var(--ips-border) !important">Carregar Saldo</a>
                         </div>
@@ -167,7 +167,7 @@ else
                         <div class="row align-items-center">
                             <div class="col-md-8">
                                 <h4 class="fw-bold mb-1"><i class="bi bi-shield-lock me-2"></i>Painel de Administração</h4>
-                                <p class="mb-0 opacity-75">Configurações de limites e gestão de contas internas.</p>
+                                <p class="mb-0 opacity-75 py-1">Configurações de limites e gestão de contas internas.</p>
                             </div>
                             <div class="col-md-4 text-center">
                                 <a asp-area="Admin" asp-controller="Admin" asp-action="Index" class="btn btn-outline-light btn-lg px-5">Gerir Sistema &#x2192</a>

@@ -1,13 +1,16 @@
 ﻿@using Projeto_SEGUES.Models.Enums
-@model Projeto_SEGUES.Areas.User.ViewModels.EditUserViewModelAdmin
+@model Projeto_SEGUES.Areas.User.ViewModels.EditUserViewModel
 
 @{
     ViewData["Title"] = "Perfil - SEGUES";
     var initialLetter = Model.FirstName[0].ToString().ToUpper();
+    
+    bool isStudent = Model.Category.Equals("Estudante", StringComparison.OrdinalIgnoreCase);
+    bool isEmployee = Model.Role.Name!.Equals("Employee", StringComparison.OrdinalIgnoreCase);
+    bool showSchool = isEmployee || Model.Role.Name!.Equals("Client", StringComparison.OrdinalIgnoreCase);
 }
 
 <div class="container py-2 px-lg-5">
-    
     @* Top row *@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -19,87 +22,167 @@
             <i class="bi bi-arrow-left me-2"></i>Voltar
         </a>
     </div>
-
+    
     @* Profile Card *@
     <div class="card shadow-sm card-ips hover-shadow-ips border-0 d-flex flex-column mx-lg-6 mb-4">
         <div class="card-body p-4 p-md-5">
             @* User Header *@
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
                 <div class="d-flex align-items-center">
-                    <div class="avatar-circle shadow-sm bg-ips text-white d-flex align-items-center justify-content-center fw-bold rounded-circle" 
-                         style="width: 65px; height: 65px; font-size: 2rem;">
+                    <div class="avatar-circle fs-2" style="width: 65px; height: 65px;">
                         @initialLetter
                     </div>
                     <div class="ms-3">
-                        <h2 class="text-dark fw-bold fs-4 mb-0">@Model.FirstName @Model.LastName</h2>
-                        <div class="text-muted small">@ViewBag.Email</div>
+                        <h4 class="fw-bold mb-0">@Model.FirstName @Model.LastName</h4>
+                        <div class="text-muted small">@Model.Email</div>
                     </div>
                 </div>
-                <span class="badge @Model.Role.ToBadgeClass() fw-semibold fs-6 px-3 py-2 shadow-sm">
-                    @Model.Role.ToUpper()
+                <span class="badge @Model.Role.Name.ToBadgeClass() fw-semibold fs-6 shadow-sm">
+                    @Model.Role.DisplayName.ToUpper()
                 </span>
             </div>
-            
+
             <hr class="mb-4 text-muted">
-          
+
             @* Update Form *@
             <form id="profileForm" method="post" asp-area="User" asp-controller="User" asp-action="UpdateProfile">
                 <div asp-validation-summary="ModelOnly" class="text-danger small mb-3" role="alert"></div>
                 <input type="hidden" asp-for="Id"/>
                 @Html.AntiForgeryToken()
-                
-                <h4 class="fw-bold text-dark mb-3 fs-5">Informações Pessoais</h4>
+
+                <h5 class="fw-bold mb-3 text-color-ips"><i class="bi bi-person-badge me-2"></i>Informações Pessoais</h5>
 
                 <div class="row g-3 mb-4 text-start">
                     <div class="col-md-6">
                         <div class="form-floating">
-                            <input asp-for="FirstName" class="form-control" placeholder="Primeiro Nome" />
-                            <label asp-for="FirstName">Primeiro Nome</label>
+                            <input asp-for="FirstName" class="form-control" />
+                            <label asp-for="FirstName"></label>
                         </div>
                         <span asp-validation-for="FirstName" class="text-danger small d-block mt-1"></span>
                     </div>
 
                     <div class="col-md-6">
                         <div class="form-floating">
-                            <input asp-for="LastName" class="form-control" placeholder="Sobrenome" />
-                            <label asp-for="LastName">Sobrenome</label>
+                            <input asp-for="LastName" class="form-control" />
+                            <label asp-for="LastName"></label>
                         </div>
                         <span asp-validation-for="LastName" class="text-danger small d-block mt-1"></span>
                     </div>
 
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="form-floating">
                             <select asp-for="Gender" class="form-select" asp-items="Html.GetEnumSelectList<Gender>()">
                                 <option value="">Selecione...</option>
                             </select>
-                            <label asp-for="Gender">Género</label>
+                            <label asp-for="Gender"></label>
                         </div>
                         <span asp-validation-for="Gender" class="text-danger small d-block mt-1"></span>
                     </div>
 
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="form-floating">
-                            <input asp-for="BirthDate" type="date" class="form-control" placeholder="Data Nascimento"
+                            <input asp-for="BirthDate" type="date" class="form-control" 
                                    min="@DateTime.Now.AddYears(-120).ToString("yyyy-MM-dd")"
-                                   max="@DateTime.Now.ToString("yyyy-MM-dd")" />
-                            <label asp-for="BirthDate">Data Nascimento</label>
+                                   max="@DateTime.Now.AddYears(-17).ToString("yyyy-MM-dd")"/>
+                            <label asp-for="BirthDate"></label>
                         </div>
                         <span asp-validation-for="BirthDate" class="text-danger small d-block mt-1"></span>
-                    </div>                                                                       
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <input asp-for="FiscalNumber" class="form-control" placeholder="NIF" />
+                            <label asp-for="FiscalNumber"></label>
+                        </div>
+                        <span asp-validation-for="FiscalNumber" class="text-danger small d-block mt-1"></span>
+                    </div>
                 </div>
+                
+                @* Address and contacts *@
+                <h5 class="fw-bold mb-3 text-color-ips border-top pt-3"><i class="bi bi-house-door me-2"></i>Morada</h5>
+                <div class="row g-3 mb-4 text-start">
+                    <div class="col-12">
+                        <div class="form-floating">
+                            <input asp-for="Address" class="form-control" placeholder="Morada" />
+                            <label asp-for="Address"></label>
+                        </div>
+                        <span asp-validation-for="Address" class="text-danger small d-block mt-1"></span>
+                    </div>
 
+                    <div class="col-md-8">
+                        <div class="form-floating">
+                            <input asp-for="City" class="form-control" placeholder="Cidade" />
+                            <label asp-for="City"></label>
+                        </div>
+                        <span asp-validation-for="City" class="text-danger small d-block mt-1"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <input asp-for="PostalCode" class="form-control" placeholder="Código Postal" />
+                            <label asp-for="PostalCode"></label>
+                        </div>
+                        <span asp-validation-for="PostalCode" class="text-danger small d-block mt-1"></span>
+                    </div>
+                </div>
+                
+                @* Institutional information *@
+                <h5 class="fw-bold mb-3 text-color-ips border-top pt-3"><i class="bi bi-building me-2"></i>Informações Institucionais</h5>
+                <div class="row g-3 mb-4 text-start">
+                    <div class="col-md-6">
+                        <div class="p-2 px-3 border rounded bg-light h-100 d-flex flex-column justify-content-center">
+                            <span class="d-block small text-muted fw-bold mb-1">Categoria de Utilizador</span>
+                            <span class="fs-6 fw-medium">@(Model.Category)</span>
+                        </div>
+                    </div>
+
+                    @if (isEmployee)
+                    {
+                        <div class="col-md-6">
+                            <div class="p-2 px-3 border rounded bg-light h-100 d-flex flex-column justify-content-center">
+                                <span class="d-block small text-muted fw-bold mb-1">Cargo / Função</span>
+                                <span class="fs-6 fw-medium">@(Model.RoleDescription ?? "Não definido")</span>
+                            </div>
+                        </div>
+                    }
+
+                    @if (isStudent)
+                    {
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input asp-for="StudentNumber" class="form-control" placeholder="Nº Estudante"/>
+                                <label asp-for="StudentNumber"></label>
+                            </div>
+                            <span asp-validation-for="StudentNumber" class="text-danger small d-block mt-1"></span>
+                        </div>
+                    }
+
+                    @if (showSchool)
+                    {
+                        <div class="col-md-6">
+                            <div class="form-floating h-100">
+                                <select asp-for="SchoolId" class="form-select" asp-items="ViewBag.Schools">
+                                    <option value="">Selecione a Escola...</option>
+                                </select>
+                                <label asp-for="SchoolId"></label>
+                            </div>
+                            <span asp-validation-for="SchoolId" class="text-danger small d-block mt-1"></span>
+                        </div>
+                    }
+                </div>
+                
                 @* Action Buttons *@
-                <div class="d-flex flex-column flex-md-row gap-3 justify-content-between align-items-center border-top pt-4 mt-2">
-                    <div class="d-flex gap-2 w-100 w-md-auto">
-                        <a asp-area="Identity" asp-page="/Account/Manage/Email" class="btn btn-outline-secondary w-100 w-md-auto fw-bold shadow-sm">
+                <div class="d-grid gap-3 d-lg-flex justify-content-lg-between align-items-center border-top pt-4 mt-2">
+                    <div class="d-grid gap-3 d-md-flex justify-content-md-center">
+                        <a asp-area="Identity" asp-page="/Account/Manage/Email" class="btn btn-ips-outline-secondary fw-bold shadow-sm d-flex align-items-center justify-content-center text-nowrap">
                             <i class="bi bi-envelope me-2"></i>Email
                         </a>
-                        <a asp-area="Identity" asp-page="/Account/Manage/ChangePassword" class="btn btn-outline-secondary w-100 w-md-auto fw-bold shadow-sm">
+                        <a asp-area="Identity" asp-page="/Account/Manage/ChangePassword" class="btn btn-ips-outline-secondary fw-bold shadow-sm d-flex align-items-center justify-content-center text-nowrap">
                             <i class="bi bi-key me-2"></i>Password
                         </a>
                     </div>
 
-                    <button type="submit" class="btn btn-ips btn-lg px-4 fw-bold shadow-sm w-100 w-md-auto">
+                    <button type="submit" class="btn btn-ips px-4 fw-bold shadow-sm d-flex align-items-center justify-content-center text-nowrap">
                         <i class="bi bi-check2-circle me-2"></i>Guardar Alterações
                     </button>
                 </div>
@@ -107,74 +190,7 @@
         </div>
     </div>
 </div>
-
-@*
-
-                <div class="d-flex align-items-center">
-                    <div class="avatar-circle" style="width: 60px; height: 60px; font-size: 2rem;">@initialLetter</div>
-                    <div class="ms-3">
-                        <span class="text-dark fw-bold fs-3">@Model.FirstName @Model.LastName</span>
-                        <div class="text-muted">@ViewBag.Email</div>
-                    </div>
-                </div>
-                <span class="badge @Model.Role.ToBadgeClass() fw-semibold fs-5 px-3">@Model.Role.ToUpper()</span>
-            </div>
-            <hr class="mb-4" style="border-color: #ddd; border-width: 2px;">
-          
-            <form id="profileForm" method="post" asp-area="User" asp-controller="User" asp-action="UpdateProfile">
-                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-                <input type="hidden" asp-for="Id"/>
-                @Html.AntiForgeryToken()
-                
-                <div class="row g-3">
-                    <h4 class="fw-bold text-dark mb-2">Informações Pessoais</h4>
-
-                    <div class="col-md-6">
-                        <label asp-for="FirstName" class="form-label fw-bold"></label>
-                        <input asp-for="FirstName" class="form-control" />
-                        <span asp-validation-for="FirstName" class="text-danger small"></span>
-                    </div>
-                    <div class="col-md-6">
-                        <label asp-for="LastName" class="form-label fw-bold"></label>
-                        <input asp-for="LastName" class="form-control" />
-                        <span asp-validation-for="LastName" class="text-danger small"></span>
-                    </div>
-                    <div class="col-md-6">
-                        <label asp-for="Gender" class="form-label fw-bold"></label>
-                        <select asp-for="Gender" class="form-select" asp-items="Html.GetEnumSelectList<Gender>()">
-                            <option value="">Selecione...</option>
-                        </select>
-                        <span asp-validation-for="Gender" class="text-danger small"></span>
-                    </div>
-                    <div class="col-md-6">
-                        <label asp-for="BirthDate" class="form-label fw-bold"></label>
-                        <input asp-for="BirthDate" type="date" class="form-control" 
-                               min="@DateTime.Now.AddYears(-120).ToString("yyyy-MM-dd")"
-                               max="@DateTime.Now.ToString("yyyy-MM-dd")" />
-                        <span asp-validation-for="BirthDate" class="text-danger small"></span>
-                    </div>                                                                       
-                    <div class="col-12 mt-4">
-                        <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center">
-                            <div class="d-flex gap-2">
-                                <a asp-area="Identity" asp-page="/Account/Manage/Email" class="btn btn-ips-outline-secondary fw-bold">
-                                    <i class="bi bi-envelope me-2"></i>Alterar Email
-                                </a>
-                                <a asp-area="Identity" asp-page="/Account/Manage/ChangePassword" class="btn btn-ips-outline-secondary fw-bold">
-                                    <i class="bi bi-key me-2"></i>Alterar Password
-                                </a>
-                            </div>
-
-                            <button type="submit" class="btn btn-ips px-5 fw-bold shadow-sm">
-                                <i class="bi bi-check2-circle me-2"></i>Guardar Alterações
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>*@
-
+                   
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }

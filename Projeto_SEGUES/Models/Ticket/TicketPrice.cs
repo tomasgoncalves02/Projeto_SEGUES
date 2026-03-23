@@ -11,7 +11,7 @@ public class TicketPrice
     public required UserCategory UserCategory { get; set; } // FK
 
     [Required]
-    [Range(0, 100)]
+    [Range(0, 100, ErrorMessage = "O preço deve ser entre 0 e 100.")]
     [Display(Name = "Preço")]
     [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
     public decimal Price { get; set; }
