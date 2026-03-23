@@ -306,19 +306,19 @@ html {
     }
     
     .mx-lg-7 {
-        margin-left: 12rem !important;
-        margin-right: 12rem !important;
+        margin-left: 10rem !important;
+        margin-right: 10rem !important;
     }
 }
 @media (min-width: 1200px) {
     .mx-lg-6 {
-        margin-left: 16rem !important;
-        margin-right: 16rem !important;
+        margin-left: 10rem !important;
+        margin-right: 10rem !important;
     }
     
     .mx-lg-7 {
-        margin-left: 24rem !important;
-        margin-right: 24rem !important;
+        margin-left: 14rem !important;
+        margin-right: 14rem !important;
     }
 
     /* Animation in large screen */
@@ -327,14 +327,19 @@ html {
     }
 
     @keyframes float {
-        0% {
-            transform: translateY(0px);
-        }
-        50% {
-            transform: translateY(-15px);
-        }
-        100% {
-            transform: translateY(0px);
-        }
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-15px); }
+        100% { transform: translateY(0px); }
+    }
+}
+
+@media (min-width: 1400px) {
+    .mx-lg-6 {
+        margin-left: 16rem !important;
+        margin-right: 16rem !important;
+    }
+    .mx-lg-7 {
+        margin-left: 24rem !important;
+        margin-right: 24rem !important;
     }
 }
