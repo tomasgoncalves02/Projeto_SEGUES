@@ -21,7 +21,7 @@
         </div>
     </div>
 
-    @* Contentor que o HTMX vai atualizar *@
+    @* HTMX refresh for active tickets *@
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4"
          hx-get="/Ticket/Ticket/GetUpdatedActiveTickets"
          hx-trigger="every 30s"

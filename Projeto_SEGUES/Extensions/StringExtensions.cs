@@ -25,7 +25,7 @@ public static class StringExtensions
             "Suspended" => "bg-secondary text-dark border-secondary",
             "Inative" => "bg-danger-subtle text-danger border-danger",
 
-            // TicketState
+            // Ticket State
             "Available" => "bg-color-ips",
             "Used" => "bg-secondary",
             "Expired" => "bg-danger",

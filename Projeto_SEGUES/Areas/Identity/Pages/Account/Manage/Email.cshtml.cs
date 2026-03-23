@@ -186,14 +186,13 @@ public class EmailModel : PageModel
             return Page();
         }
 
-        var userId = await _userManager.GetUserIdAsync(user);
-        var email = (await _userManager.GetEmailAsync(user))!;
+        var email = user.Email!;
         var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
         var callbackUrl = Url.Page(
             "/Account/ConfirmEmail",
             pageHandler: null,
-            values: new { area = "Identity", userId, code },
+            values: new { area = "Identity", user.Id, code },
             protocol: Request.Scheme)!;
 
         const string title = "Verificação de Conta - SEGUES";

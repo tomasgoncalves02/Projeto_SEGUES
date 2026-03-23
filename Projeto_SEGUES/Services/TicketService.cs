@@ -16,7 +16,9 @@ public class TicketService : ITicketService
     {
         _context = context;
     }
-
+    
+    #region Expire Tickets
+    
     // Set expired tickets state to expired
     private async Task ExpireUserTicketsAsync(string userId)
     {
@@ -38,45 +40,11 @@ public class TicketService : ITicketService
                         && t.ExpirationDate < now)
             .ExecuteUpdateAsync(s => s.SetProperty(t => t.State, TicketState.Expired));
     }
-
-    // Get all tickets for a user (includes expired and used)
-    public async Task<List<Ticket>> GetUserTicketsAsync(string userId)
-    {
-        // Ensure we update expired tickets before fetching
-        await ExpireUserTicketsAsync(userId);
-        return await _context.Ticket
-            .Include(t => t.Owner)
-            .Include(t => t.TicketPurchase)
-            .Where(t => t.Owner.Id == userId)
-            .OrderByDescending(t => t.TicketPurchase.TransactionDate)
-            .ToListAsync();
-    }
-
-    // Get only active (available and not expired) tickets for a user
-    public async Task<List<Ticket>> GetActiveTicketsAsync(string userId)
-    {
-        // Ensure we update expired tickets before fetching
-        await ExpireUserTicketsAsync(userId);
-        var now = DateTime.Now;
-        return await _context.Ticket
-            .Include(t => t.TicketPurchase)
-            .Where(t => t.Owner.Id == userId && t.State == TicketState.Available && t.ExpirationDate >= now)
-            .OrderBy(t => t.ExpirationDate)
-            .ToListAsync();
-    }
-
-    // Get recent used tickets (for admin/employee dashboard)
-    [Authorize(Roles = "Admin, Employee")]
-    public async Task<List<Ticket>> GetRecentUsedTicketsAsync(int take = 10)
-    {
-        return await _context.Ticket
-            .Include(t => t.Owner)
-            .Where(t => t.State == TicketState.Used)
-            .OrderByDescending(t => t.UsedDate)
-            .Take(take)
-            .ToListAsync();
-    }
-
+    
+    #endregion
+    
+    #region Buy/Order Tickets
+    
     // Get current price for a user based on their category and current date
     public async Task<decimal> GetCurrentPriceForUserAsync(AppUser user)
     {
@@ -95,7 +63,7 @@ public class TicketService : ITicketService
 
         return price?.Price ?? 0m;
     }
-
+    
     // Buy Tickets: checks balance, creates purchase record, creates tickets, updates user balance
     public async Task<ServiceResult> BuyTicketsAsync(string userId, int quantity)
     {
@@ -177,6 +145,126 @@ public class TicketService : ITicketService
             return ServiceResult.Fail("Erro ao processar a compra.");
         }
     }
+    
+    #endregion
+    
+    #region Active Tickets
+    
+    // Get only active (available and not expired) tickets for a user
+    public async Task<List<Ticket>> GetActiveTicketsAsync(string userId)
+    {
+        // Ensure we update expired tickets before fetching
+        await ExpireUserTicketsAsync(userId);
+        var now = DateTime.Now;
+        return await _context.Ticket
+            .Include(t => t.TicketPurchase)
+            .Where(t => t.Owner.Id == userId && t.State == TicketState.Available && t.ExpirationDate >= now)
+            .OrderBy(t => t.ExpirationDate)
+            .ToListAsync();
+    }
+    
+    #endregion
+
+    #region Transfer Tickets
+    
+    public async Task<ServiceResult> TransferTicketsAsync(string senderId, string recipientEmail, List<string> selectedTickets)
+    {
+        // 1. Carregar Sender e Receiver com suas CATEGORIAS (usando Include para evitar NullReference)
+        var sender = await _context.Users
+            .Include(u => u.UserCategory)
+            .FirstOrDefaultAsync(u => u.Id == senderId);
+
+        var receiver = await _context.Users
+            .Include(u => u.UserCategory)
+            .FirstOrDefaultAsync(u => u.Email == recipientEmail);
+
+        if (sender == null) return ServiceResult.Fail("Utilizador remetente não encontrado.");
+        if (receiver == null) return ServiceResult.Fail("Não foi encontrado nenhum utilizador com esse e-mail.");
+
+        if (sender.Email!.Equals(recipientEmail, StringComparison.OrdinalIgnoreCase))
+            return ServiceResult.Fail("Não pode transferir senhas para si próprio.");
+
+        // 2. NOVA REGRA: Comparar Categorias (Trabalhador, Estudante, etc.) em vez de Roles
+        if (sender.UserCategory.Id != receiver.UserCategory.Id)
+        {
+            return ServiceResult.Fail($"Transferência recusada: Só pode enviar senhas para utilizadores da categoria {sender.UserCategory.Name}. " +
+                                      $"O destinatário é {receiver.UserCategory.Name}.");
+        }
+
+        // 3. Procurar os tickets
+        var ticketsToTransfer = await _context.Ticket
+            .Include(t => t.Owner)
+            .Where(t => t.Owner.Id == sender.Id
+                     && selectedTickets.Contains(t.ValidationCode)
+                     && t.State == TicketState.Available)
+            .ToListAsync();
+
+        if (!ticketsToTransfer.Any())
+            return ServiceResult.Fail("As senhas selecionadas já não estão disponíveis ou não lhe pertencem.");
+
+        await using var tx = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            foreach (var ticket in ticketsToTransfer)
+            {
+                ticket.State = TicketState.Available;
+                ticket.Owner = receiver; // O destinatário passa a ser o novo dono
+
+                var transferRecord = new TicketTransfer
+                {
+                    TransferDate = DateTime.Now,
+                    Ticket = ticket,
+                    Sender = sender,
+                    Receiver = receiver
+                };
+                _context.TicketTransfer.Add(transferRecord);
+            }
+
+            await _context.SaveChangesAsync();
+            await tx.CommitAsync();
+
+            return ServiceResult.Ok($"{ticketsToTransfer.Count} senha(s) transferida(s) com sucesso!");
+        }
+        catch (Exception)
+        {
+            await tx.RollbackAsync();
+            return ServiceResult.Fail("Ocorreu um erro interno ao processar a transferência.");
+        }
+    }
+    
+    #endregion
+    
+    
+
+    // Get all tickets for a user (includes expired and used)
+    public async Task<List<Ticket>> GetUserTicketsAsync(string userId)
+    {
+        // Ensure we update expired tickets before fetching
+        await ExpireUserTicketsAsync(userId);
+        return await _context.Ticket
+            .Include(t => t.Owner)
+            .Include(t => t.TicketPurchase)
+            .Where(t => t.Owner.Id == userId)
+            .OrderByDescending(t => t.TicketPurchase.TransactionDate)
+            .ToListAsync();
+    }
+
+    
+
+    // Get recent used tickets (for admin/employee dashboard)
+    [Authorize(Roles = "Admin, Employee")]
+    public async Task<List<Ticket>> GetRecentUsedTicketsAsync(int take = 10)
+    {
+        return await _context.Ticket
+            .Include(t => t.Owner)
+            .Where(t => t.State == TicketState.Used)
+            .OrderByDescending(t => t.UsedDate)
+            .Take(take)
+            .ToListAsync();
+    }
+    
+
+    
 
     // Validate Ticket: checks code, updates state to used if valid, returns result message
     [Authorize(Roles = "Admin, Employee")]
@@ -309,69 +397,5 @@ public class TicketService : ITicketService
 
 
 
-
-    public async Task<ServiceResult> TransferTicketsAsync(string senderId, string recipientEmail, List<string> selectedTickets)
-    {
-        // 1. Carregar Sender e Receiver com suas CATEGORIAS (usando Include para evitar NullReference)
-        var sender = await _context.Users
-            .Include(u => u.UserCategory)
-            .FirstOrDefaultAsync(u => u.Id == senderId);
-
-        var receiver = await _context.Users
-            .Include(u => u.UserCategory)
-            .FirstOrDefaultAsync(u => u.Email == recipientEmail);
-
-        if (sender == null) return ServiceResult.Fail("Utilizador remetente não encontrado.");
-        if (receiver == null) return ServiceResult.Fail("Não foi encontrado nenhum utilizador com esse e-mail.");
-
-        if (sender.Email!.Equals(recipientEmail, StringComparison.OrdinalIgnoreCase))
-            return ServiceResult.Fail("Não pode transferir senhas para si próprio.");
-
-        // 2. NOVA REGRA: Comparar Categorias (Trabalhador, Estudante, etc.) em vez de Roles
-        if (sender.UserCategory.Id != receiver.UserCategory.Id)
-        {
-            return ServiceResult.Fail($"Transferência recusada: Só pode enviar senhas para utilizadores da categoria {sender.UserCategory.Name}. " +
-                                      $"O destinatário é {receiver.UserCategory.Name}.");
-        }
-
-        // 3. Procurar os tickets
-        var ticketsToTransfer = await _context.Ticket
-            .Include(t => t.Owner)
-            .Where(t => t.Owner.Id == sender.Id
-                     && selectedTickets.Contains(t.ValidationCode)
-                     && t.State == TicketState.Available)
-            .ToListAsync();
-
-        if (!ticketsToTransfer.Any())
-            return ServiceResult.Fail("As senhas selecionadas já não estão disponíveis ou não lhe pertencem.");
-
-        await using var tx = await _context.Database.BeginTransactionAsync();
-        try
-        {
-            foreach (var ticket in ticketsToTransfer)
-            {
-                ticket.State = TicketState.Available;
-                ticket.Owner = receiver; // O destinatário passa a ser o novo dono
-
-                var transferRecord = new TicketTransfer
-                {
-                    TransferDate = DateTime.Now,
-                    Ticket = ticket,
-                    Sender = sender,
-                    Receiver = receiver
-                };
-                _context.TicketTransfer.Add(transferRecord);
-            }
-
-            await _context.SaveChangesAsync();
-            await tx.CommitAsync();
-
-            return ServiceResult.Ok($"{ticketsToTransfer.Count} senha(s) transferida(s) com sucesso!");
-        }
-        catch (Exception)
-        {
-            await tx.RollbackAsync();
-            return ServiceResult.Fail("Ocorreu um erro interno ao processar a transferência.");
-        }
-    }
+    
 }

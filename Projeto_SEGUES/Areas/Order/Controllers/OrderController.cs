@@ -55,7 +55,6 @@ public class OrderController : Controller
         try
         {
             var user = await _userManager.GetUserAsync(User);
-
             // Verificação real em vez de usar o operador '!'
             if (user == null) return Challenge();
 

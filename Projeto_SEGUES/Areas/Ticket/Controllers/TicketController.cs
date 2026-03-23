@@ -52,24 +52,12 @@ public class TicketController : Controller
     /// </summary>
     public async Task<IActionResult> Index()
     {
-        try
-        {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Challenge();
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Challenge();
 
-            BarCanteenConfigViewModel barCanteenConfig = await _adminService.GetScheduleAsync();
-            ViewBag.UserBalance = user.Balance;
-            return View(barCanteenConfig);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erro ao carregar a página principal de senhas.");
-
-            var msg = $"{Errors.DatabaseQueryError} [Erro: {(int)AppErrors.DatabaseQueryError}]";
-            TempData.SetSwalError(msg);
-
-            return RedirectToAction("Index", "Home", new { area = "" });
-        }
+        BarCanteenConfigViewModel barCanteenConfig = await _adminService.GetScheduleAsync();
+        ViewBag.UserBalance = user.Balance;
+        return View(barCanteenConfig);
     }
 
     /// <summary>
@@ -77,27 +65,11 @@ public class TicketController : Controller
     /// </summary>
     public async Task<IActionResult> ActiveTickets()
     {
-        try
-        {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Challenge();
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return Challenge();
 
-            var activeTickets = await _ticketService.GetActiveTicketsAsync(user.Id);
-            var roles = await _userManager.GetRolesAsync(user);
-            ViewBag.UserRole = roles.FirstOrDefault();
-
-            return View(activeTickets);
-        }
-        catch (Exception ex)
-        {
-            // CORRIGIDO: Ordem dos parâmetros de acordo com LoggerExtensions
-            _logger.LogAppError(AppErrors.DatabaseQueryError, TableName.Ticket, AppOperation.Read, ex);
-
-            var msg = $"{Errors.DatabaseQueryError} [Erro: {(int)AppErrors.DatabaseQueryError}]";
-            TempData.SetSwalError(msg);
-
-            return RedirectToAction(nameof(Index));
-        }
+        var activeTickets = await _ticketService.GetActiveTicketsAsync(userId);
+        return View(activeTickets);
     }
 
     /// <summary>
@@ -106,20 +78,11 @@ public class TicketController : Controller
     [HttpGet]
     public async Task<IActionResult> SendTicket()
     {
-        try
-        {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Challenge();
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return Challenge();
 
-            var availableTickets = await _ticketService.GetActiveTicketsAsync(user.Id);
-            return View(availableTickets);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erro ao carregar página de envio de senhas.");
-            TempData.SetSwalError(Errors.UnexpectedError);
-            return RedirectToAction(nameof(Index));
-        }
+        var availableTickets = await _ticketService.GetActiveTicketsAsync(userId); 
+        return View(availableTickets);
     }
 
     /// <summary>
@@ -128,19 +91,16 @@ public class TicketController : Controller
     [HttpGet]
     public async Task<IActionResult> GetUpdatedTickets()
     {
-        try
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+            // Force the browser to do a full-page redirect
+            Response.Headers["HX-Redirect"] = Url.Page("/Account/Login", new { area = "Identity" });
+            return Unauthorized();
+        }
 
-            var tickets = await _ticketService.GetUserTicketsAsync(userId);
-            return PartialView("_TicketTablePartial", tickets);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erro AJAX no histórico de senhas.");
-            return StatusCode(500, new { failMessage = Errors.DatabaseQueryError });
-        }
+        var tickets = await _ticketService.GetUserTicketsAsync(userId);
+        return PartialView("_TicketTablePartial", tickets);
     }
 
     /// <summary>
@@ -149,19 +109,11 @@ public class TicketController : Controller
     [HttpGet]
     public async Task<IActionResult> GetUpdatedActiveTickets()
     {
-        try
-        {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Challenge();
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Challenge();
 
-            var activeTickets = await _ticketService.GetActiveTicketsAsync(user.Id);
-            return PartialView("_ActiveTicketsPartial", activeTickets);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erro AJAX nas senhas ativas.");
-            return StatusCode(500, new { failMessage = Errors.DatabaseQueryError });
-        }
+        var activeTickets = await _ticketService.GetActiveTicketsAsync(user.Id);
+        return PartialView("_ActiveTicketsPartial", activeTickets);
     }
 
     /// <summary>
