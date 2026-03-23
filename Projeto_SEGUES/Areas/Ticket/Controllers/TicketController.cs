@@ -109,10 +109,15 @@ public class TicketController : Controller
     [HttpGet]
     public async Task<IActionResult> GetUpdatedActiveTickets()
     {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null) return Challenge();
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+        {
+            // Force the browser to do a full-page redirect
+            Response.Headers["HX-Redirect"] = Url.Page("/Account/Login", new { area = "Identity" });
+            return Unauthorized();
+        }
 
-        var activeTickets = await _ticketService.GetActiveTicketsAsync(user.Id);
+        var activeTickets = await _ticketService.GetActiveTicketsAsync(userId);
         return PartialView("_ActiveTicketsPartial", activeTickets);
     }
 

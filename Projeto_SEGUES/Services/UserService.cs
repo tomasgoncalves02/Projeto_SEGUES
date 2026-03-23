@@ -52,13 +52,28 @@ public class UserService : IUserService
         }
         else
         {
-            user.PostalCode = null;
+            user.PostalCode = null; 
+            
+            // Also clear FK if present (ensures EF will set DB column to NULL)
+            var fkProp = user.GetType().GetProperty("PostalCodeId");
+            if (fkProp != null && fkProp.PropertyType == typeof(int?))
+            {
+                fkProp.SetValue(user, null);
+            }
         }
         
         School? selectedSchool = null;
         if (model.SchoolId.HasValue)
         {
             selectedSchool = await _context.School.FindAsync(model.SchoolId);
+        }
+        else
+        {
+            var fkProp = user.GetType().GetProperty("SchoolId");
+            if (fkProp != null && fkProp.PropertyType == typeof(int?))
+            {
+                fkProp.SetValue(user, null);
+            }
         }
         
         if (user is Student studentUser)

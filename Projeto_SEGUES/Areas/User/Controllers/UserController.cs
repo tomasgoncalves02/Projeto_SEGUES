@@ -71,6 +71,9 @@ public class UserController : Controller
     {
         var user = await _userManager.Users
             .Include(u => u.UserCategory)
+            .Include(u => u.PostalCode)
+            .Include(u => (u as Student)!.School)
+            .Include(u => (u as Employee)!.School)
             .FirstOrDefaultAsync(u => u.UserName == User.Identity!.Name);
         if (user == null) return Challenge();
         
