@@ -58,17 +58,30 @@ public class PaymentController : Controller
             TempData.SetSwalError("Por favor, corrija os erros no formulário.");
             return View("Deposit", model);
         }
-        
+
         var user = await _userManager.GetUserAsync(User);
         if (user == null) return Challenge();
 
         var successUrl = Url.Action("SuccessPayment", "Payment",
             new { reference = "REF_PLACEHOLDER", sessionId = "SESSION_PLACEHOLDER" }, Request.Scheme);
         var cancelUrl = Url.Action("CancelPayment", "Payment", null, Request.Scheme);
-        
-        var stripeUrl = await _paymentService.CreateStripeSessionAsync(user, model.Amount, successUrl, cancelUrl);
-        
-        return Redirect(stripeUrl);
+
+        try
+        {           
+            var stripeUrl = await _paymentService.CreateStripeSessionAsync(user, model.Amount, successUrl, cancelUrl);
+            return Redirect(stripeUrl);
+        }
+        catch (HttpRequestException ex)
+        {          
+            _logger.LogError(ex, "Falha de comunicação com a Stripe (DNS/Rede).");
+            TempData.SetSwalError("Não foi possível contactar o servidor de pagamentos. Verifique a sua ligação à internet.");
+        }
+        catch (Exception ex)
+        {           
+            _logger.LogError(ex, "Erro inesperado ao criar sessão de checkout.");
+            TempData.SetSwalError("Ocorreu um erro inesperado ao processar o seu pagamento. Tente novamente mais tarde.");
+        }       
+        return View("Deposit", model);
     }
 
     /// <summary>
