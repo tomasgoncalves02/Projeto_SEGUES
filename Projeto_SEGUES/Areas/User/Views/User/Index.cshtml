@@ -6,20 +6,110 @@
     var initialLetter = Model.FirstName[0].ToString().ToUpper();
 }
 
-
-<div class="container mt-5">
+<div class="container py-2 px-lg-5">
+    
     @* Top row *@
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="fw-bold title-underline">Perfil</h1>
+        <div>
+            <h1 class="fw-bold display-6 mb-1 title-underline">Perfil</h1>
+            <p class="text-muted small mt-1 mb-0">Faça a gestão dos seus dados pessoais e de segurança.</p>
+        </div>
         @* Return button *@
-        <a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4 rounded-3">
+        <a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold shadow-sm">
             <i class="bi bi-arrow-left me-2"></i>Voltar
         </a>
     </div>
-    @* Profile *@
-    <div class="card card-ips hover-shadow-ips mb-4 shadow-sm">
-        <div class="card-body py-4">
-            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
+
+    @* Profile Card *@
+    <div class="card shadow-sm card-ips hover-shadow-ips border-0 d-flex flex-column mx-lg-6 mb-4">
+        <div class="card-body p-4 p-md-5">
+            @* User Header *@
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+                <div class="d-flex align-items-center">
+                    <div class="avatar-circle shadow-sm bg-ips text-white d-flex align-items-center justify-content-center fw-bold rounded-circle" 
+                         style="width: 65px; height: 65px; font-size: 2rem;">
+                        @initialLetter
+                    </div>
+                    <div class="ms-3">
+                        <h2 class="text-dark fw-bold fs-4 mb-0">@Model.FirstName @Model.LastName</h2>
+                        <div class="text-muted small">@ViewBag.Email</div>
+                    </div>
+                </div>
+                <span class="badge @Model.Role.ToBadgeClass() fw-semibold fs-6 px-3 py-2 shadow-sm">
+                    @Model.Role.ToUpper()
+                </span>
+            </div>
+            
+            <hr class="mb-4 text-muted">
+          
+            @* Update Form *@
+            <form id="profileForm" method="post" asp-area="User" asp-controller="User" asp-action="UpdateProfile">
+                <div asp-validation-summary="ModelOnly" class="text-danger small mb-3" role="alert"></div>
+                <input type="hidden" asp-for="Id"/>
+                @Html.AntiForgeryToken()
+                
+                <h4 class="fw-bold text-dark mb-3 fs-5">Informações Pessoais</h4>
+
+                <div class="row g-3 mb-4 text-start">
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input asp-for="FirstName" class="form-control" placeholder="Primeiro Nome" />
+                            <label asp-for="FirstName">Primeiro Nome</label>
+                        </div>
+                        <span asp-validation-for="FirstName" class="text-danger small d-block mt-1"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input asp-for="LastName" class="form-control" placeholder="Sobrenome" />
+                            <label asp-for="LastName">Sobrenome</label>
+                        </div>
+                        <span asp-validation-for="LastName" class="text-danger small d-block mt-1"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <select asp-for="Gender" class="form-select" asp-items="Html.GetEnumSelectList<Gender>()">
+                                <option value="">Selecione...</option>
+                            </select>
+                            <label asp-for="Gender">Género</label>
+                        </div>
+                        <span asp-validation-for="Gender" class="text-danger small d-block mt-1"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input asp-for="BirthDate" type="date" class="form-control" placeholder="Data Nascimento"
+                                   min="@DateTime.Now.AddYears(-120).ToString("yyyy-MM-dd")"
+                                   max="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                            <label asp-for="BirthDate">Data Nascimento</label>
+                        </div>
+                        <span asp-validation-for="BirthDate" class="text-danger small d-block mt-1"></span>
+                    </div>                                                                       
+                </div>
+
+                @* Action Buttons *@
+                <div class="d-flex flex-column flex-md-row gap-3 justify-content-between align-items-center border-top pt-4 mt-2">
+                    <div class="d-flex gap-2 w-100 w-md-auto">
+                        <a asp-area="Identity" asp-page="/Account/Manage/Email" class="btn btn-outline-secondary w-100 w-md-auto fw-bold shadow-sm">
+                            <i class="bi bi-envelope me-2"></i>Email
+                        </a>
+                        <a asp-area="Identity" asp-page="/Account/Manage/ChangePassword" class="btn btn-outline-secondary w-100 w-md-auto fw-bold shadow-sm">
+                            <i class="bi bi-key me-2"></i>Password
+                        </a>
+                    </div>
+
+                    <button type="submit" class="btn btn-ips btn-lg px-4 fw-bold shadow-sm w-100 w-md-auto">
+                        <i class="bi bi-check2-circle me-2"></i>Guardar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@*
+
                 <div class="d-flex align-items-center">
                     <div class="avatar-circle" style="width: 60px; height: 60px; font-size: 2rem;">@initialLetter</div>
                     <div class="ms-3">
@@ -83,10 +173,8 @@
             </form>
         </div>
     </div>
-</div>
+</div>*@
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    <partial name="_ValidationScriptsPartial" />
 }

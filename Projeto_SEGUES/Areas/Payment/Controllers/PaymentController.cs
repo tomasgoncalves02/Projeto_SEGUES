@@ -72,15 +72,12 @@ public class PaymentController : Controller
             return Redirect(stripeUrl);
         }
         catch (HttpRequestException ex)
-        {          
-            _logger.LogError(ex, "Falha de comunicação com a Stripe (DNS/Rede).");
+        {
+            _logger.LogAppUser($"Payment gateway unreachable for user {user.Id}: {ex.Message}", UserAction.FailedPayment);
             TempData.SetSwalError("Não foi possível contactar o servidor de pagamentos. Verifique a sua ligação à internet.");
         }
-        catch (Exception ex)
-        {           
-            _logger.LogError(ex, "Erro inesperado ao criar sessão de checkout.");
-            TempData.SetSwalError("Ocorreu um erro inesperado ao processar o seu pagamento. Tente novamente mais tarde.");
-        }       
+        // InternalServerError bubbles up to the global error handler, which logs the error and shows a generic error page.
+        
         return View("Deposit", model);
     }
 
