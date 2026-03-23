@@ -4,12 +4,16 @@ function preventDoubleSubmission() {
     const form = DOM.byId('paymentForm');
     if (!form) return;
 
-    // $(this).valid() is provided by Unobtrusive Validation
-    if ($(this).valid()) {
+    //  Unobtrusive Validation
+    if ($(form).valid()) {
         const submitBtn = DOM.bySelector('button[type="submit"]', form);
         if (!submitBtn) return;
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>A redirecionar...';
+
+        // Disabling it instantly can cancel the submission.
+        setTimeout(() => {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>A redirecionar...';
+        }, 10);
     }
 }
 
@@ -24,8 +28,8 @@ function formatAmount() {
     const amountInput = DOM.byId('amountInput');
     if (!amountInput) return;
     
-    // Remove any non-numeric characters except for dot and comma, then replace comma with dot
-    const value = amountInput.value.replace(/[^0-9.,]/g, '').replace(/,/g, '.');
+    const value = parseFloat(amountInput.value);
+    
     if (!isNaN(value) && value >= 5 && value <= 1000) {
         amountInput.value = value.toFixed(2);
     } else {
