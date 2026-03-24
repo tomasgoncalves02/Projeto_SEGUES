@@ -151,6 +151,7 @@ public class AdminOrderManagementController : Controller
     {
         try
         {
+            // 1. Construção da Query com os Includes necessários
             var query = _context.Order
                 .Include(o => o.AppUser)
                 .Include(o => o.ProductPurchases)
@@ -158,9 +159,13 @@ public class AdminOrderManagementController : Controller
                 .Where(o => o.Status != OrderStatus.Cart)
                 .AsQueryable();
 
-            // Filtros
-            if (!string.IsNullOrEmpty(status)) query = query.Where(o => ((int)o.Status).ToString() == status);
-            if (date.HasValue) query = query.Where(o => o.OrderDate.Date == date.Value.Date);
+            // 2. Aplicação dos Filtros
+            if (!string.IsNullOrEmpty(status))
+                query = query.Where(o => ((int)o.Status).ToString() == status);
+
+            if (date.HasValue)
+                query = query.Where(o => o.OrderDate.Date == date.Value.Date);
+
             if (!string.IsNullOrEmpty(search))
             {
                 search = search.ToLower();
@@ -171,18 +176,27 @@ public class AdminOrderManagementController : Controller
             }
 
             var orders = await query.OrderByDescending(o => o.OrderDate).ToListAsync();
+
+            // Caminho para o Logótipo
             var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo-ips.png");
 
+            // 3. Criação do Documento QuestPDF
             var document = QuestPDF.Fluent.Document.Create(container =>
             {
                 container.Page(page =>
                 {
+                    // Configurações da Página (Horizontal para caberem as 9 colunas)
                     page.Size(PageSizes.A4.Landscape());
                     page.Margin(15);
+                
+                    page.DefaultTextStyle(x => x.FontFamily("Roboto").FontSize(9));
 
+                    // Cabeçalho do PDF
                     page.Header().Row(row =>
                     {
-                        if (System.IO.File.Exists(logoPath)) row.ConstantItem(100).Image(logoPath);
+                        if (System.IO.File.Exists(logoPath))
+                            row.ConstantItem(100).Image(logoPath);
+
                         row.RelativeItem().Column(col =>
                         {
                             col.Item().AlignRight().Text("Histórico Geral de Pedidos").FontSize(16).SemiBold().FontColor("#009697");
@@ -190,30 +204,38 @@ public class AdminOrderManagementController : Controller
                         });
                     });
 
+                    // Conteúdo / Tabela
                     page.Content().PaddingTop(10).Table(table =>
                     {
+                        // Definição das larguras das colunas (Total de 9 colunas)
                         table.ColumnsDefinition(columns =>
                         {
-                            columns.RelativeColumn(1.5f);
-                            columns.ConstantColumn(40);
-                            columns.ConstantColumn(60);
-                            columns.ConstantColumn(75);
-                            columns.ConstantColumn(60);
-                            columns.RelativeColumn(2.5f);
-                            columns.ConstantColumn(75);
-                            columns.ConstantColumn(65);
-                            columns.ConstantColumn(55);
+                            columns.RelativeColumn(1.5f); // Utilizador
+                            columns.ConstantColumn(40);   // Nº
+                            columns.ConstantColumn(60);   // Código
+                            columns.ConstantColumn(75);   // Data
+                            columns.ConstantColumn(60);   // Agendado
+                            columns.RelativeColumn(2.5f); // Produtos
+                            columns.ConstantColumn(75);   // Estado
+                            columns.ConstantColumn(65);   // Recolhido
+                            columns.ConstantColumn(55);   // Total
                         });
 
+                        // Cabeçalho da Tabela
                         table.Header(header =>
                         {
                             string[] titles = { "Utilizador", "Nº", "Código", "Data", "Agendado", "Produtos", "Estado", "Recolhido em", "Total" };
                             foreach (var t in titles)
-                                header.Cell().Background("#009697").Padding(4).AlignCenter().Text(t).FontColor(Colors.White).FontSize(8).SemiBold();
+                            {
+                                header.Cell().Background("#009697").Padding(4).AlignCenter()
+                                      .Text(t).FontColor(Colors.White).FontSize(8).SemiBold();
+                            }
                         });
 
+                        // Linhas da Tabela (Dados dos Pedidos)
                         foreach (var o in orders)
                         {
+                            // Coluna Utilizador
                             table.Cell().Element(CellStyle).Column(c =>
                             {
                                 c.Item().Text($"{o.AppUser?.FirstName} {o.AppUser?.LastName}").FontSize(8).SemiBold();
@@ -224,12 +246,14 @@ public class AdminOrderManagementController : Controller
                             table.Cell().Element(CellStyle).AlignCenter().Text(o.RedemptionCode).FontSize(7);
                             table.Cell().Element(CellStyle).AlignCenter().Text(o.OrderDate.ToString("dd/MM/yy HH:mm"));
 
+                            // Hora Agendada
                             table.Cell().Element(CellStyle).AlignCenter().Text(
                                 (o.DeliveryTime.HasValue && o.DeliveryTime.Value != TimeSpan.Zero)
                                 ? o.DeliveryTime.Value.ToString(@"hh\:mm")
-                                : "Imediato"
+                                : "Agora"
                             );
 
+                            // Lista de Produtos no Pedido
                             table.Cell().Element(CellStyle).PaddingLeft(4).Column(c =>
                             {
                                 foreach (var p in o.ProductPurchases)
@@ -238,24 +262,30 @@ public class AdminOrderManagementController : Controller
 
                             table.Cell().Element(CellStyle).AlignCenter().Text(o.Status.ToString());
 
+                            // Hora de Recolha Real
                             table.Cell().Element(CellStyle).AlignCenter().Text(
                                 (o.PickupTime == null || o.PickupTime == TimeSpan.Zero)
                                 ? "---"
                                 : o.PickupTime.Value.ToString(@"hh\:mm")
                             );
 
+                            // Valor Total
                             table.Cell().Element(CellStyle).AlignRight().PaddingRight(4).Text($"{o.TotalValue:N2}€").SemiBold();
                         }
                     });
 
-                    page.Footer().AlignCenter().Text(x =>
+                    // Rodapé com numeração de página
+                    page.Footer().PaddingTop(5).AlignCenter().Text(x =>
                     {
-                        x.Span("Página "); x.CurrentPageNumber();
+                        x.Span("Página ");
+                        x.CurrentPageNumber();
+                        x.Span(" de ");
+                        x.TotalPages();
                     });
                 });
             });
 
-            return File(document.GeneratePdf(), "application/pdf", "Historico_Pedidos.pdf");
+            return File(document.GeneratePdf(), "application/pdf", $"Historico_Pedidos_{DateTime.Now:yyyyMMdd}.pdf");
         }
         catch (Exception ex)
         {
@@ -267,7 +297,7 @@ public class AdminOrderManagementController : Controller
             );
             var erroEnum = AppErrors.InternalServerError;
             var mensagemFinal = $"Não foi possível gerar o PDF, {Errors.InternalServerError} [Erro: {(int)erroEnum}]";
-            TempData.SetSwalError(mensagemFinal);
+            TempData.SetSwalError(mensagemFinal);           
             return RedirectToAction(nameof(Index), new { status, date, search });
         }
     }
@@ -278,9 +308,9 @@ public class AdminOrderManagementController : Controller
     /// <param name="container">Cell interface container.</param>
     /// <returns>The styled container with borders and padding.</returns>
     static IContainer CellStyle(IContainer container) =>
-        container
-            .BorderBottom(1)
-            .BorderColor(Colors.Grey.Lighten3)
-            .PaddingVertical(4)
-            .DefaultTextStyle(x => x.FontSize(8));
+     container
+         .BorderBottom(1)
+         .BorderColor(Colors.Grey.Lighten3)
+         .PaddingVertical(4)
+         .DefaultTextStyle(x => x.FontFamily("Roboto").FontSize(8));
 }
