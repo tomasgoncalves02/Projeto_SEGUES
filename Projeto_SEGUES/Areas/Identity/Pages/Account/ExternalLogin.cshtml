@@ -21,18 +21,18 @@
             @* Email *@
             <div class="form-floating mb-3">
                 <input asp-for="Input.Email" class="form-control" autocomplete="email" placeholder="nome@exemplo.com"/>
-                <label asp-for="Input.Email" class="form-label"></label>
+                <label asp-for="Input.Email"></label>
                 <span asp-validation-for="Input.Email" class="text-danger small"></span>
             </div>
             @* Name *@
             <div class="form-floating mb-3">
                 <input asp-for="Input.FirstName" class="form-control" placeholder="Primeiro Nome"/>
-                <label asp-for="Input.FirstName" class="form-label"></label>
+                <label asp-for="Input.FirstName"></label>
                 <span asp-validation-for="Input.FirstName" class="text-danger"></span>
             </div>
             <div class="form-floating mb-3">
                 <input asp-for="Input.LastName" class="form-control" placeholder="Sobrenome"/>
-                <label asp-for="Input.LastName" class="form-label"></label>
+                <label asp-for="Input.LastName"></label>
                 <span asp-validation-for="Input.LastName" class="text-danger"></span>
             </div>
             @* Gender *@
@@ -40,13 +40,13 @@
                 <select asp-for="Input.Gender" class="form-control" asp-items="Html.GetEnumSelectList<Gender>()">
                     <option value="">Selecione o Género</option>
                 </select>
-                <label asp-for="Input.Gender" class="form-label">Género</label>
+                <label asp-for="Input.Gender">Género</label>
                 <span asp-validation-for="Input.Gender" class="text-danger"></span>
             </div>
             @* BirthDate *@
             <div class="form-floating mb-3">
                 <input asp-for="Input.BirthDate" type="date" class="form-control" value="@DateTime.Today"/>
-                <label asp-for="Input.BirthDate" class="form-label">Data de Nascimento</label>
+                <label asp-for="Input.BirthDate">Data de Nascimento</label>
                 <span asp-validation-for="Input.BirthDate" class="text-danger"></span>
             </div>
             <button type="submit" class="w-100 btn btn-lg btn-primary">Registar</button>

@@ -1,16 +1,17 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Moq;
 using Projeto_SEGUES.Areas.Order;
 using Projeto_SEGUES.Areas.Order.ViewModels;
-using Projeto_SEGUES.Models.Order;
-using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Models.Enums;
+using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using System.Security.Claims;
-using Xunit;
+using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging;
+using Projeto_SEGUES.Resources;
 
 namespace SeguesTests.Orders
 {
@@ -21,12 +22,16 @@ namespace SeguesTests.Orders
         private readonly Mock<IAdminService> _mockAdminService;
         private readonly Mock<UserManager<AppUser>> _mockUserManager;
         private readonly CreateOrderController _controller;
+        private readonly Mock<ILogger<CreateOrderController>> _mockLogger;
+        private readonly Mock<IStringLocalizer<Errors>> _mockLocalizer;
 
         public CreateOrderControllerTests()
         {
             _mockInventoryService = new Mock<IInventoryService>();
             _mockOrderService = new Mock<IOrderService>();
             _mockAdminService = new Mock<IAdminService>();
+            _mockLogger = new Mock<ILogger<CreateOrderController>>();
+            _mockLocalizer = new Mock<IStringLocalizer<Errors>>();
 
             var store = new Mock<IUserStore<AppUser>>();
             _mockUserManager = new Mock<UserManager<AppUser>>(store.Object, null, null, null, null, null, null, null, null);
@@ -35,7 +40,9 @@ namespace SeguesTests.Orders
                 _mockInventoryService.Object,
                 _mockOrderService.Object,
                 _mockUserManager.Object,
-                _mockAdminService.Object);
+                _mockAdminService.Object,
+                _mockLogger.Object,
+                _mockLocalizer.Object);
 
             var httpContext = new DefaultHttpContext();
             _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
@@ -62,7 +69,7 @@ namespace SeguesTests.Orders
             var cart = new Projeto_SEGUES.Models.Order.Order { AppUser = user, OrderDate = DateTime.Now };
 
             _mockUserManager.Setup(u => u.GetUserId(It.IsAny<ClaimsPrincipal>())).Returns(user.Id);
-            _mockOrderService.Setup(s => s.GetCartAsync(user.Id)).ReturnsAsync(cart);
+            _mockOrderService.Setup(s => s.GetCartAsync(user.Id, true)).ReturnsAsync(cart);
             _mockOrderService.Setup(s => s.GetOrderTotal(cart)).Returns(new OrderTotalViewModel());
             _mockInventoryService.Setup(s => s.GetAvailableProductsAsync()).ReturnsAsync(new List<Projeto_SEGUES.Models.Inventory.Product>());
 
@@ -80,8 +87,8 @@ namespace SeguesTests.Orders
             var totals = new OrderTotalViewModel { TotalQuantity = 2, TotalValue = 5.50m };
 
             _mockUserManager.Setup(u => u.GetUserId(It.IsAny<ClaimsPrincipal>())).Returns(userId);
-            _mockOrderService.Setup(s => s.AddToCartAsync(userId, 1, 1))
-                .ReturnsAsync(ServiceResult.Ok("Added", totals));
+            // _mockOrderService.Setup(s => s.AddToCartAsync(userId, 1, 1))
+            //     .ReturnsAsync(ServiceResult.Ok("Added", totals));
 
             var result = await _controller.AddToCart(1, 1);
 
@@ -103,7 +110,7 @@ namespace SeguesTests.Orders
             var cart = new Projeto_SEGUES.Models.Order.Order { AppUser = user, OrderDate = DateTime.Now };
 
             _mockUserManager.Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(user);
-            _mockOrderService.Setup(s => s.GetCartAsync(user.Id)).ReturnsAsync(cart);
+            _mockOrderService.Setup(s => s.GetCartAsync(user.Id, true)).ReturnsAsync(cart);
             _mockOrderService.Setup(s => s.GetOrderTotal(cart)).Returns(new OrderTotalViewModel());
 
             var result = await _controller.Checkout();

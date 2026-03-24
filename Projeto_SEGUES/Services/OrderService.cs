@@ -1,6 +1,5 @@
-//using Castle.Core.Smtp;
+﻿//using Castle.Core.Smtp;
 using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Areas.Order.ViewModels;
 using Projeto_SEGUES.Data;
@@ -9,6 +8,7 @@ using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Order;
 using Projeto_SEGUES.Models.User;
 using System.ComponentModel.DataAnnotations;
+using Projeto_SEGUES.Areas.Admin.ViewModels;
 
 namespace Projeto_SEGUES.Services;
 
@@ -26,13 +26,13 @@ public class OrderService : IOrderService
         _emailSender = emailSender;
     }
 
-    public async Task<Order> GetCartAsync(string userId)
+    public async Task<Order?> GetCartAsync(string userId, bool createIfNotFound = true)
     {
         var cart = await _context.Order
             .Include(o => o.ProductPurchases)
             .ThenInclude(ol => ol.Product)
             .FirstOrDefaultAsync(o => o.AppUser.Id == userId && o.Status == OrderStatus.Cart);
-        if (cart != null) return cart;
+        if (cart != null || !createIfNotFound) return cart;
 
         var user = await _context.Users.FindAsync(userId);
         cart = new Order
@@ -63,11 +63,11 @@ public class OrderService : IOrderService
         };
     }
 
-    public async Task<ServiceResult> AddToCartAsync(string userId, int productId, int quantity)
+    public async Task<ServiceResult<OrderTotalViewModel>> AddToCartAsync(string userId, int productId, int quantity)
     {
         var cart = await GetCartAsync(userId);
         var product = await _context.Product.FindAsync(productId);
-        if (product == null) return ServiceResult.Fail("Produto não encontrado.", GetOrderTotal(cart));
+        if (product == null) return ServiceResult<OrderTotalViewModel>.Fail("Produto não encontrado.", GetOrderTotal(cart));
 
         var line = await _context.OrderLine.FirstOrDefaultAsync(ol => ol.Order.Id == cart.Id && ol.ProductId == productId);
         if (line != null)
@@ -96,16 +96,16 @@ public class OrderService : IOrderService
         }
 
         await _context.SaveChangesAsync();
-        return ServiceResult.Ok("Produto adicionado ao carrinho.", GetOrderTotal(cart));
+        return ServiceResult<OrderTotalViewModel>.Ok("Produto adicionado ao carrinho.", GetOrderTotal(cart));
     }
 
-    public async Task<ServiceResult> RemoveFromCartAsync(string userId, int productId)
+    public async Task<ServiceResult<OrderTotalViewModel>> RemoveFromCartAsync(string userId, int productId)
     {
         var cart = await GetCartAsync(userId);
         var line = await _context.OrderLine
             .FirstOrDefaultAsync(ol => ol.Order.Id == cart.Id && ol.ProductId == productId);
 
-        if (line == null) return ServiceResult.Fail("Produto não encontrado no carrinho.");
+        if (line == null) return ServiceResult<OrderTotalViewModel>.Fail("Produto não encontrado no carrinho.");
         cart.TotalValue -= (line.Quantity * line.ProductValue);
         if (cart.TotalValue < 0) cart.TotalValue = 0;
 
@@ -113,7 +113,7 @@ public class OrderService : IOrderService
 
         await _context.SaveChangesAsync();
 
-        return ServiceResult.Ok("Produto removido do carrinho.", GetOrderTotal(cart));
+        return ServiceResult<OrderTotalViewModel>.Ok("Produto removido do carrinho.", GetOrderTotal(cart));
     }
 
     public async Task<ServiceResult> SubmitOrderAsync(AppUser user, bool receiveNow, string? pickupTime)
@@ -146,9 +146,8 @@ public class OrderService : IOrderService
 
         if (!await _adminService.IsBarOpenAsync(timeToValidate))
         {
-            var open = await _adminService.GetOpenBarTimeAsync();
-            var close = await _adminService.GetCloseBarTimesAsync();
-            return ServiceResult.Fail($"O Bar encontra-se encerrado para o horário selecionado. Funcionamento: {open:hh\\:mm} às {close:hh\\:mm}.");
+            BarCanteenConfigViewModel barCanteenConfig = await _adminService.GetScheduleAsync();
+            return ServiceResult.Fail($"O Bar encontra-se encerrado para o horário selecionado. Funcionamento: {barCanteenConfig.BarOpeningTime} às {barCanteenConfig.BarClosingTime}.");
         }
 
         decimal total = ApplyDiscount(cart.TotalValue, cart.Discount);
@@ -201,7 +200,7 @@ public class OrderService : IOrderService
             {
                 await SendStatusUpdateEmailAsync(cart);
                 // Se correr bem, mensagem normal de sucesso
-                return ServiceResult.Ok("Encomenda realizada com sucesso!");
+                return ServiceResult.Ok("Encomenda realizada com sucesso! Acompanhe o estado do pedido no seu email");
             }
             catch (Exception)
             {
@@ -285,6 +284,7 @@ public class OrderService : IOrderService
         return await _context.Order
             .Include(o => o.ProductPurchases)
             .ThenInclude(ol => ol.Product)
+            .ThenInclude(p => p.Category)
             .Include(o => o.AppUser)
             .FirstOrDefaultAsync(o => o.Id == id);
     }
@@ -335,7 +335,7 @@ public class OrderService : IOrderService
             return ServiceResult.Fail("Não é possível mudar para este estado.");
         }
 
-        if (newStatus != order.Status + 1)
+        if (newStatus != order.Status + 1 && newStatus != order.Status - 1)
             return ServiceResult.Fail("Transição de status inválida.");
 
         if (newStatus == OrderStatus.Cancelled)
@@ -374,18 +374,16 @@ public class OrderService : IOrderService
         }
     }
 
-    public async Task<ServiceResult> ValidateOrderCodeAsync(int id, string codeEntered, AppUser staffMember)
+    public async Task<ServiceResult> ValidateOrderCodeAsync(int id, string enteredCode, AppUser staffMember)
     {
-        if (string.IsNullOrWhiteSpace(codeEntered))
+        enteredCode = enteredCode.Trim();
+        if (string.IsNullOrWhiteSpace(enteredCode))
             return ServiceResult.Fail("Por favor, insira o código de levantamento.");
 
         var order = await GetOrderByIdAsync(id);
         if (order == null) return ServiceResult.Fail("Pedido não encontrado.");
-
-        var storedCode = order.RedemptionCode?.Trim();
-        var enteredCode = codeEntered.Trim();
-
-        if (!string.Equals(order.RedemptionCode!.Trim(), codeEntered.Trim(), StringComparison.CurrentCultureIgnoreCase))
+        
+        if (!string.Equals(order.RedemptionCode, enteredCode, StringComparison.CurrentCultureIgnoreCase))
             return ServiceResult.Fail("Código inválido!");
 
         try
@@ -398,7 +396,7 @@ public class OrderService : IOrderService
                 UserAction = UserAction.ValidateOrder,
                 Message = $"Entregou o pedido #{order.RedemptionCode} ao utilizador {order.AppUser.UserName}.",
                 TimeStamp = DateTime.Now,
-                AppUser = staffMember, 
+                AppUser = staffMember,
                 RequestPath = "/Order/ValidateCode"
             };
             _context.UserLog.Add(log);
@@ -435,7 +433,7 @@ public class OrderService : IOrderService
                 .FirstOrDefault()?.Name ?? order.Status.ToString();
 
             string title = "Atualização do Pedido";
-            string name = order.AppUser.UserName ?? "Cliente";
+            string name = order.AppUser.FirstName ?? "Cliente";
 
             // Mensagem personalizada conforme o estado
             string customMessage = order.Status switch
@@ -472,8 +470,8 @@ public class OrderService : IOrderService
             await _emailSender.SendEmailAsync(order.AppUser.Email, $"SEGUES - Pedido #{order.RedemptionCode}", body);
         }
         catch (Exception ex)
-        {           
-            Console.WriteLine($"[Email Service Failure]: {ex.Message}");           
+        {
+            Console.WriteLine($"[Email Service Failure]: {ex.Message}");
             throw;
         }
     }

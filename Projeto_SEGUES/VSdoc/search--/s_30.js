@@ -1,0 +1,1 @@
+search_result['30']=["topic_000000000000000A.html","AdminInventoryManagementController Constructor","Inicializa uma nova instância do controlador com o serviço de inventário."];

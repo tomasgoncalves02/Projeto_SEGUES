@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Moq;
@@ -8,7 +8,6 @@ using Projeto_SEGUES.Models.Inventory;
 using Projeto_SEGUES.Models.Order;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
-using Xunit;
 
 namespace SeguesTests.Services
 {
@@ -105,8 +104,8 @@ namespace SeguesTests.Services
             await context.SaveChangesAsync();
 
             _mockAdminService.Setup(s => s.IsBarOpenAsync(It.IsAny<TimeSpan>())).ReturnsAsync(false);
-            _mockAdminService.Setup(s => s.GetOpenBarTimeAsync()).ReturnsAsync(new TimeSpan(8, 0, 0));
-            _mockAdminService.Setup(s => s.GetCloseBarTimesAsync()).ReturnsAsync(new TimeSpan(20, 0, 0));
+            // _mockAdminService.Setup(s => s.GetOpenBarTimeAsync()).ReturnsAsync(new TimeSpan(8, 0, 0));
+            // _mockAdminService.Setup(s => s.GetCloseBarTimesAsync()).ReturnsAsync(new TimeSpan(20, 0, 0));
 
             var result = await service.SubmitOrderAsync(user, true, null);
 

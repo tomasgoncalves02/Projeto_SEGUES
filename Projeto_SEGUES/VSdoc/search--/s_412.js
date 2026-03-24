@@ -1,0 +1,1 @@
+search_result['412']=["topic_00000000000000D5.html","ProductViewModel.IsActive Property","Define se o produto está disponível para venda ou uso no sistema."];

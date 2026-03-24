@@ -1,0 +1,1 @@
+search_result['7']=["topic_0000000000000002.html","AdminBarManagementController.Index Method","Apresenta a página principal da gestão da barra administrativa."];

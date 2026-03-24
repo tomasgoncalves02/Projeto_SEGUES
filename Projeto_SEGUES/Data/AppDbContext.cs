@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Models.Admin;
 using Projeto_SEGUES.Models.Audit;
@@ -22,12 +22,12 @@ namespace Projeto_SEGUES.Data
         public DbSet<DbStats> DbStats { get; set; }
         public DbSet<UserLog> UserLog { get; set; }
         public DbSet<ErrorLog> ErrorLog { get; set; }
-        
+
         /* =========
          * Admin
          * ========= */
         public DbSet<AppConfig> AppConfig { get; set; }
-        
+
         /* =========
          * User
          * ========= */
@@ -37,13 +37,13 @@ namespace Projeto_SEGUES.Data
         public DbSet<School> School { get; set; }
         public DbSet<Student> Student { get; set; }
         public DbSet<UserCategory> UserCategory { get; set; }
-        
+
         /* =========
          * Inventory
          * ========= */
         public DbSet<Product> Product { get; set; }
         public DbSet<ProductCategory> ProductCategory { get; set; }
-        
+
         /* =========
          * Order
          * ========= */
@@ -51,7 +51,7 @@ namespace Projeto_SEGUES.Data
         public DbSet<OrderLine> OrderLine { get; set; }
         public DbSet<BalanceOrder> BalanceOrder { get; set; }
         public DbSet<Discount> Discount { get; set; }
-        
+
         /* =========
          * Payment
          * ========= */
@@ -77,13 +77,13 @@ namespace Projeto_SEGUES.Data
                 .HasOne(u => u.UserCategory)
                 .WithMany()
                 .IsRequired();
-            
+
             modelBuilder.Entity<UserCategory>()
                 .HasMany(uc => uc.TicketPrices)
                 .WithOne(tp => tp.UserCategory)
                 .HasForeignKey(tp => tp.Id)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             modelBuilder.Entity<Order>()
                 .HasIndex(o => o.RedemptionCode)
                 .IsUnique();
@@ -101,7 +101,7 @@ namespace Projeto_SEGUES.Data
                 .HasOne(ol => ol.Order)
                 .WithMany(o => o.ProductPurchases)
                 .HasForeignKey(ol => ol.OrderId);
-            
+
             modelBuilder.Entity<Ticket>()
                 .HasOne(t => t.Owner)
                 .WithMany()
@@ -109,7 +109,7 @@ namespace Projeto_SEGUES.Data
             modelBuilder.Entity<Ticket>()
                 .HasIndex(t => t.ValidationCode)
                 .IsUnique();
-            
+
             modelBuilder.Entity<TicketTransfer>()
                 .HasOne(tt => tt.Sender)
                 .WithMany()

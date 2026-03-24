@@ -1,0 +1,1 @@
+search_result['855']=["topic_0000000000000225.html","Discount.IsGlobal Property",""];

@@ -1,0 +1,1 @@
+search_result['467']=["topic_00000000000000F3.html","OrderTotalViewModel Class","ViewModel que representa o resumo financeiro e quantitativo de uma encomenda ou carrinho."];

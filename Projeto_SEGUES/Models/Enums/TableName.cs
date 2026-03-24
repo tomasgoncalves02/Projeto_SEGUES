@@ -1,4 +1,4 @@
-namespace Projeto_SEGUES.Models.Enums;
+﻿namespace Projeto_SEGUES.Models.Enums;
 
 public enum TableName : byte
 {
@@ -8,6 +8,7 @@ public enum TableName : byte
     DbStats,
     Discount,
     Employee,
+    Identity,
     Order,
     OrderLine,
     PostalCode,
@@ -22,4 +23,5 @@ public enum TableName : byte
     Transaction,
     User,
     UserCategory,
+    UserLog
 }

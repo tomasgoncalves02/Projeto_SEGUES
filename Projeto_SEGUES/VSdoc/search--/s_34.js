@@ -1,0 +1,1 @@
+search_result['34']=["topic_000000000000000E.html","AdminInventoryManagementController.Delete Method","Remove um produto do sistema com base no identificador fornecido."];

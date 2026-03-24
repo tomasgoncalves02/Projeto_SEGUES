@@ -1,0 +1,1 @@
+search_result['422']=["topic_00000000000000DA.html","ActiveOrderController.GetUpdatedActiveOrders Method","Endpoint otimizado para HTMX que devolve apenas os cartões de pedidos ativos."];

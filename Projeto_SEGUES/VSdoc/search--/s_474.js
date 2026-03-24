@@ -1,0 +1,1 @@
+search_result['474']=["topic_00000000000000F5.html","OrderTotalViewModel.TotalValue Property","Valor monetário total da encomenda, somando o preço unitário multiplicado pela quantidade de cada produto."];

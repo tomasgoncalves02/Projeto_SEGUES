@@ -1,0 +1,1 @@
+search_result['157']=["topic_000000000000004E.html","ExternalLoginsModel Class","Model da página de gestão de logins externos (ex: Google, Facebook) associados à conta do utilizador."];

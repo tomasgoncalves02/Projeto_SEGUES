@@ -1,14 +1,11 @@
-﻿using Microsoft.Data.Sqlite;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Moq;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.Admin;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
-using Xunit;
 
 namespace SeguesTests.Services
 {
@@ -78,12 +75,12 @@ namespace SeguesTests.Services
             {
                 Id = 1,
                 TicketValidityDays = 30,
-                OpenBarTime = TimeSpan.Zero,
-                CloseBarTime = TimeSpan.Zero,
-                OpenLunchTime = TimeSpan.Zero,
-                CloseLunchTime = TimeSpan.Zero,
-                OpenDinnerTime = TimeSpan.Zero,
-                CloseDinnerTime = TimeSpan.Zero
+                BarOpeningTime = TimeSpan.Zero,
+                BarClosingTime = TimeSpan.Zero,
+                CanteenLunchOpeningTime = TimeSpan.Zero,
+                CanteenLunchClosingTime = TimeSpan.Zero,
+                CanteenDinnerOpeningTime = TimeSpan.Zero,
+                CanteenDinnerClosingTime = TimeSpan.Zero
             };
 
             context.UserCategory.Add(cat);

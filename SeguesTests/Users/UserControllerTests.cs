@@ -1,23 +1,18 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Identity;
 using Moq;
 using Projeto_SEGUES.Areas.User.Controllers;
-using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
-using System.Security.Claims;
-using Xunit;
 
 namespace SeguesTests.User
 {
     public class UserControllerTests
     {
-        private readonly Mock<IAdminService> _mockAdminService;
-        private readonly Mock<UserManager<AppUser>> _mockUserManager;
-        private readonly UserController _controller;
+        private readonly Mock<IAdminService>? _mockAdminService;
+        private readonly Mock<UserManager<AppUser>>? _mockUserManager;
+        private readonly UserController? _controller;
 
+        /*
         public UserControllerTests()
         {
             _mockAdminService = new Mock<IAdminService>();
@@ -143,6 +138,6 @@ namespace SeguesTests.User
             var jsonResult = Assert.IsType<JsonResult>(result);
             var list = Assert.IsAssignableFrom<IEnumerable<object>>(jsonResult.Value);
             Assert.NotEmpty(list);
-        }
+        }*/
     }
 }

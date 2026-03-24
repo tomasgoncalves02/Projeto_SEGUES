@@ -1,0 +1,1 @@
+search_result['281']=["topic_0000000000000093.html","LoginWith2FaModel Class","Model responsável pela segunda etapa da autenticação (2FA - Two-Factor Authentication)."];

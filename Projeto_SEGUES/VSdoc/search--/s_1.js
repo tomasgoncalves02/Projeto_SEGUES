@@ -1,0 +1,1 @@
+search_result['1']=["topic_0000000000000001.html","AdminBarManagementController Class","Controller responsável pela gestão da barra administrativa e navegação do back-office."];

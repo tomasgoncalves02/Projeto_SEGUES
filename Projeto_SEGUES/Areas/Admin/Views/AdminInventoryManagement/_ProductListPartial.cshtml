@@ -1,9 +1,10 @@
+﻿@using System.Text.Json
 @model IEnumerable<Projeto_SEGUES.Models.Inventory.Product>
 
 @if (Model == null || !Model.Any())
 {
     <tr>
-        <td colspan="4" class="text-center py-5 text-muted">
+        <td colspan="5" class="text-center py-5 text-muted">
             <i class="bi bi-inbox display-4 d-block mb-3 opacity-25"></i>
             Nenhum produto encontrado.
         </td>
@@ -13,17 +14,30 @@ else
 {
     @foreach (var p in Model)
     {
-        <tr class="table-row-ips-hover@(p.IsActive ? "" : " text-muted text-decoration-line-through")" data-stock="@p.Stock" data-category-id="@p.Category?.Id">
+        var productInfo = new
+        {
+            name = p.Name,
+            description = p.Description,
+            price = p.Price.ToString("C2"),
+            categoryName = p.Category.Name,
+            categoryDescription = p.Category.Description,
+            stock = p.Stock,
+            minStock = p.MinimumStock
+        };
+        
+        <tr class="table-row-ips-hover productRow @(p.IsActive ? "" : "text-muted text-decoration-line-through")" data-name="@p.Name" data-categoryid="@p.Category.Id">
             <td class="fw-bold text-start ps-4">@p.Name</td>
-            <td class="text-color-ips fw-bold" data-category-id="@p.Category?.Id">@p.Category?.Name</td>
+            <td class="text-color-ips fw-bold">@p.Category.Name</td>
             <td class="text-color-ips fw-bold">@p.Price.ToString("C")</td>
             <td>
-                <span class="badge @(p.Stock <= 0 ? "bg-danger" : (p.Stock < 5 ? "bg-warning text-dark" : "bg-success"))">@p.Stock</span>
+                <span class="badge @(p.Stock <= 0 ? "bg-danger" : (p.Stock < p.MinimumStock ? "bg-warning text-dark" : "bg-success"))">
+                    @p.Stock
+                </span>
             </td>
             <td class="text-center pe-4">
                 <div class="btn-group shadow-sm">
-                    <button type="button" class="btn btn-sm btn-ips" title="Detalhes"
-                            onclick="showProductDetails(@p.Id, '@p.Name', '@p.Description', '@p.Price', @p.Stock)">
+                    <button type="button" class="btn btn-sm btn-ips showProductDetails" title="Detalhes" 
+                            data-product='@Html.Raw(JsonSerializer.Serialize(productInfo))'>
                         <i class="bi bi-eye"></i>
                     </button>
                     <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-sm btn-ips-outline-secondary" title="Editar">
@@ -31,9 +45,23 @@ else
                     </a>
                     @if (p.IsActive)
                     {
+                        @* Botão Desativar *@
                         <form asp-action="Delete" asp-route-id="@p.Id" method="post" id="delete-form-@p.Id" class="d-inline">
-                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmDelete('@p.Id', '@p.Name')" title="Eliminar">
+                            @Html.AntiForgeryToken()
+                            <button type="button" class="btn btn-sm btn-outline-danger confirmDeleteProduct"
+                                    data-id="@p.Id" data-name="@p.Name" title="Desativar">
                                 <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        @* Botão Reativar *@
+                        <form asp-action="Reactivate" asp-route-id="@p.Id" method="post" id="reactivate-form-@p.Id" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="button" class="btn btn-sm btn-outline-success confirmReactivateProduct"
+                                    data-id="@p.Id" data-name="@p.Name" title="Reativar">
+                                <i class="bi bi-arrow-counterclockwise"></i>
                             </button>
                         </form>
                     }

@@ -1,138 +1,224 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-
-using System.ComponentModel.DataAnnotations;
-using System.Text;
-using System.Text.Encodings.Web;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.User;
+using Projeto_SEGUES.Services;
+using System.ComponentModel.DataAnnotations;
+using System.Text;
+using Projeto_SEGUES.Models.Enums;
 
-namespace Projeto_SEGUES.Areas.Identity.Pages.Account.Manage
+namespace Projeto_SEGUES.Areas.Identity.Pages.Account.Manage;
+
+/// <summary>
+/// Model class for the user's email management page.
+/// </summary>
+/// <remarks>
+/// This class allows the user to view their current email, check the confirmation status, 
+/// and request an address change by sending security tokens via email.
+/// </remarks>
+public class EmailModel : PageModel
 {
-    public class EmailModel : PageModel
+    private readonly UserManager<AppUser> _userManager;
+    private readonly IEmailSender _emailSender;
+    private readonly ILogger<EmailModel> _logger;
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="EmailModel"/>.
+    /// </summary>
+    /// <param name="userManager">User manager for account operations.</param>
+    /// <param name="emailSender">Email sending service for notifications and tokens.</param>
+    /// <param name="logger">Logger service for auditing and error tracking.</param>
+    public EmailModel(
+        UserManager<AppUser> userManager,
+        IEmailSender emailSender,
+        ILogger<EmailModel> logger)
     {
-        private readonly UserManager<AppUser> _userManager;
-        private readonly IEmailSender _emailSender;
+        _userManager = userManager;
+        _emailSender = emailSender;
+        _logger = logger;
+    }
 
-        public EmailModel(
-            UserManager<AppUser> userManager,
-            IEmailSender emailSender)
+    /// <summary>
+    /// Gets or sets the user's current email.
+    /// </summary>
+    public required string Email { get; set; }
+
+    /// <summary>
+    /// Indicates whether the current email has already been confirmed by the user.
+    /// </summary>
+    public bool IsEmailConfirmed { get; set; }
+
+    /// <summary>
+    /// Data input model for the email change form.
+    /// </summary>
+    [BindProperty]
+    public required InputModel Input { get; set; }
+
+    /// <summary>
+    /// Defines the properties and validations for the new email input form.
+    /// </summary>
+    public class InputModel
+    {
+        /// <summary>
+        /// The new email address desired by the user.
+        /// </summary>
+        [Required(ErrorMessage = "O email é obrigatório.")]
+        [EmailAddress(ErrorMessage = "Endereço de email inválido.")]
+        [Display(Name = "Novo email")]
+        public required string NewEmail { get; init; }
+    }
+
+    /// <summary>
+    /// Loads user data into the model properties.
+    /// </summary>
+    /// <param name="user">The current authenticated user.</param>
+    private async Task LoadAsync(AppUser user)
+    {
+        var email = (await _userManager.GetEmailAsync(user))!;
+        Email = email;
+
+        Input = new InputModel
         {
-            _userManager = userManager;
-            _emailSender = emailSender;
-        }
-        
-        public required string Email { get; set; }
-        
-        public bool IsEmailConfirmed { get; set; }
-        
-        [BindProperty]
-        public required InputModel Input { get; set; }
-        
-        public class InputModel
+            NewEmail = email,
+        };
+
+        IsEmailConfirmed = await _userManager.IsEmailConfirmedAsync(user);
+    }
+
+    /// <summary>
+    /// Processes the initial GET request for the email management page.
+    /// </summary>
+    /// <returns>The Razor page with loaded data.</returns>
+    public async Task<IActionResult> OnGetAsync()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Challenge();
+
+        await LoadAsync(user);
+        return Page();
+    }
+
+    /// <summary>
+    /// Processes the email change request and sends a confirmation link to the new address.
+    /// </summary>
+    /// <returns>Redirect to the same page with success or error message.</returns>
+    public async Task<IActionResult> OnPostChangeEmailAsync()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Challenge();
+
+        if (!ModelState.IsValid)
         {
-            [Required]
-            [EmailAddress]
-            [Display(Name = "Novo email")]
-            public required string NewEmail { get; init; }
-        }
-
-        private async Task LoadAsync(AppUser user)
-        {
-            var email = (await _userManager.GetEmailAsync(user))!;
-            Email = email;
-
-            Input = new InputModel
-            {
-                NewEmail = email,
-            };
-
-            IsEmailConfirmed = await _userManager.IsEmailConfirmedAsync(user);
-        }
-
-        public async Task<IActionResult> OnGetAsync()
-        {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return NotFound("Não foi possível alterar o email.");
-            }
-
             await LoadAsync(user);
             return Page();
         }
 
-        public async Task<IActionResult> OnPostChangeEmailAsync()
+        var currentEmail = await _userManager.GetEmailAsync(user);
+        if (Input.NewEmail != currentEmail)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
+            // Check if the new email is already in use by another account
+            var emailExists = await _userManager.FindByEmailAsync(Input.NewEmail);
+            if (emailExists != null)
             {
-                return NotFound("Não foi possível alterar o email.");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                await LoadAsync(user);
-                return Page();
-            }
-
-            var email = await _userManager.GetEmailAsync(user);
-            if (Input.NewEmail != email)
-            {
-                var userId = await _userManager.GetUserIdAsync(user);
-                var code = await _userManager.GenerateChangeEmailTokenAsync(user, Input.NewEmail);
-                code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-                var callbackUrl = Url.Page(
-                    "/Account/ConfirmEmailChange",
-                    pageHandler: null,
-                    values: new { area = "Identity", userId, email = Input.NewEmail, code },
-                    protocol: Request.Scheme)!;
-                await _emailSender.SendEmailAsync(
-                    Input.NewEmail,
-                    "Confirma o teu email",
-                    $"Por favor confirma a tua conta <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicando aqui</a>.");
-                TempData.SetSwalSuccess("Link de confirmação para alterar o email enviado. Por favor verifica o teu email.");
-                return RedirectToPage();
-            }
-            TempData.SetSwalInfo("O teu email permanece inalterado.");
-            return RedirectToPage();
-        }
-
-        public async Task<IActionResult> OnPostSendVerificationEmailAsync()
-        {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return NotFound("Não foi possível enviar o email de verificação.");
-            }
-
-            if (!ModelState.IsValid)
-            {
+                _logger.LogAppUser($"User {currentEmail} tried to change email to {Input.NewEmail}, but it's already in use.", UserAction.Update);
+                ModelState.AddModelError("Input.NewEmail", "Este endereço de email já está registado no sistema.");
                 await LoadAsync(user);
                 return Page();
             }
 
             var userId = await _userManager.GetUserIdAsync(user);
-            var email = (await _userManager.GetEmailAsync(user))!;
-            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-            var callbackUrl = Url.Page(
-                "/Account/ConfirmEmail",
-                pageHandler: null,
-                values: new { area = "Identity", userId, code },
-                protocol: Request.Scheme)!;
-            await _emailSender.SendEmailAsync(
-                email,
-                "Confirma o teu email",
-                $"Por favor confirma a tua conta <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicando aqui</a>..");
+            var code = await _userManager.GenerateChangeEmailTokenAsync(user, Input.NewEmail);
+            var codeEncoded = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
-            TempData.SetSwalSuccess("Link de confirmação para alterar o email enviado. Por favor verifica o teu email.");
+            var callbackUrl = Url.Page(
+                "/Account/ConfirmEmailChange",
+                pageHandler: null,
+                values: new { area = "Identity", userId, email = Input.NewEmail, code = codeEncoded },
+                protocol: Request.Scheme)!;
+
+            const string title = "Confirmação de Novo Email - SEGUES";
+            string content = $"""
+                                  <p>Recebemos um pedido para alterar o email associado à sua conta SEGUES para: <strong>{Input.NewEmail}</strong>.</p>
+                                  <p>Para concluir este processo e validar o seu novo endereço, clique no botão abaixo:</p>
+                                  <div style='text-align: center; margin: 30px 0;'>
+                                      <a href='{callbackUrl}' style='background-color: #009697; color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;'>Confirmar Novo Email</a>
+                                  </div>
+                                  <p style='font-size: 0.8em; color: #666;'>Se não solicitou esta alteração, pode ignorar este email com segurança.</p>
+                              """;
+
+            var emailSenderService = _emailSender as EmailSender;
+            string finalBody = emailSenderService?.GetEmailBody(title, user.FirstName, content) ?? content;
+
+            try
+            {
+                await _emailSender.SendEmailAsync(Input.NewEmail, title, finalBody);
+                _logger.LogAppUser($"User {currentEmail} requested email change to {Input.NewEmail}.", UserAction.Update);
+                TempData.SetSwalSuccess("Pedido enviado! Verifique a sua nova caixa de entrada para confirmar a alteração.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogAppError(AppErrors.EmailSenderError, TableName.Identity, AppOperation.Update, ex);
+                TempData.SetSwalError("Erro ao enviar email. Por favor, verifique a sua ligação ou tente mais tarde.");
+            }
+
             return RedirectToPage();
         }
+
+        TempData.SetSwalInfo("O endereço de email inserido é o mesmo que já está em uso.");
+        return RedirectToPage();
+    }
+
+    /// <summary>
+    /// Resends the confirmation email to the current email address if it is not yet confirmed.
+    /// </summary>
+    /// <returns>Redirect to the current page with visual feedback.</returns>
+    public async Task<IActionResult> OnPostSendVerificationEmailAsync()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Challenge();
+
+        if (!ModelState.IsValid)
+        {
+            await LoadAsync(user);
+            return Page();
+        }
+
+        var email = user.Email!;
+        var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+        var callbackUrl = Url.Page(
+            "/Account/ConfirmEmail",
+            pageHandler: null,
+            values: new { area = "Identity", user.Id, code },
+            protocol: Request.Scheme)!;
+
+        const string title = "Verificação de Conta - SEGUES";
+        string content = $"""
+                              <p>Obrigado por utilizar a plataforma SEGUES.</p>
+                              <p>Para garantir a segurança da sua conta, por favor confirme o seu endereço de email clicando no botão abaixo:</p>
+                              <div style='text-align: center; margin: 30px 0;'>
+                                  <a href='{callbackUrl}' style='background-color: #009697; color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;'>Confirmar Email</a>
+                              </div>
+                          """;
+
+        var emailSenderService = _emailSender as EmailSender;
+        string finalBody = emailSenderService?.GetEmailBody(title, user.FirstName, content) ?? content;
+
+        try
+        {
+            await _emailSender.SendEmailAsync(email, title, finalBody);
+            _logger.LogAppUser($"User {email} requested to resend the email verification email.", UserAction.Update);
+            TempData.SetSwalSuccess("Link de confirmação enviado. Por favor verifique a sua caixa de correio.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogAppError(AppErrors.EmailSenderError, TableName.All, AppOperation.Other, ex);
+            TempData.SetSwalError("Erro ao enviar email. Por favor, verifique a sua ligação ou tente mais tarde.");
+        }
+
+        return RedirectToPage();
     }
 }

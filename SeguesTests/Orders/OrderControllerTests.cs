@@ -1,13 +1,15 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Projeto_SEGUES.Areas.Order;
-using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Models.Enums;
+using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using System.Security.Claims;
-using Xunit;
+using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging;
+using Projeto_SEGUES.Resources;
 
 namespace SeguesTests.Orders
 {
@@ -15,15 +17,19 @@ namespace SeguesTests.Orders
     {
         private readonly Mock<UserManager<AppUser>> _mockUserManager;
         private readonly Mock<IAdminService> _mockAdminService;
+        private readonly Mock<IOrderService> _mockOrderService;
         private readonly OrderController _controller;
+        private readonly Mock<ILogger<OrderController>> _mockLogger;
 
         public OrderControllerTests()
         {
             var store = new Mock<IUserStore<AppUser>>();
             _mockUserManager = new Mock<UserManager<AppUser>>(store.Object, null, null, null, null, null, null, null, null);
             _mockAdminService = new Mock<IAdminService>();
+            _mockOrderService = new Mock<IOrderService>();
+            _mockLogger = new Mock<ILogger<OrderController>>();
 
-            _controller = new OrderController(_mockUserManager.Object, _mockAdminService.Object);
+            _controller = new OrderController(_mockUserManager.Object, _mockAdminService.Object, _mockOrderService.Object, _mockLogger.Object);
 
             var httpContext = new DefaultHttpContext();
             _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
@@ -47,8 +53,8 @@ namespace SeguesTests.Orders
             };
 
             _mockUserManager.Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(user);
-            _mockAdminService.Setup(s => s.GetOpenBarTimeAsync()).ReturnsAsync(new TimeSpan(8, 0, 0));
-            _mockAdminService.Setup(s => s.GetCloseBarTimesAsync()).ReturnsAsync(new TimeSpan(20, 0, 0));
+            // _mockAdminService.Setup(s => s.GetOpenBarTimeAsync()).ReturnsAsync(new TimeSpan(8, 0, 0));
+            // _mockAdminService.Setup(s => s.GetCloseBarTimesAsync()).ReturnsAsync(new TimeSpan(20, 0, 0));
 
             var result = await _controller.Index();
 

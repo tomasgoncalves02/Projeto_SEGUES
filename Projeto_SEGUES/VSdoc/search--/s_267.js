@@ -1,0 +1,1 @@
+search_result['267']=["topic_000000000000008A.html","LoginModel.ExternalLogins Property","Lista de fornecedores de autenticação externa configurados (ex: Google)."];

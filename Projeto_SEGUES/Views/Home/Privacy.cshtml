@@ -1,14 +1,26 @@
 ﻿@{
     ViewData["Title"] = "Política de Privacidade";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>
-    A sua privacidade é importante para nós. Esta política de privacidade explica como recolhemos, utilizamos e protegemos as suas informações pessoais quando utiliza o nosso site.<br/><br/>
-    Recolhemos informações que nos fornece diretamente, como o seu nome, endereço de email e outras informações de contacto quando se regista ou utiliza os nossos serviços.<br/><br/>
-    Utilizamos as suas informações para fornecer e melhorar os nossos serviços, comunicar consigo e personalizar a sua experiência no site.<br/><br/>
-    Protegemos as suas informações através de medidas de segurança adequadas para evitar acesso não autorizado, divulgação ou alteração.<br/><br/>
-    Não partilhamos as suas informações pessoais com terceiros, exceto quando necessário para fornecer os nossos serviços ou quando exigido por lei.<br/><br/>
-    Pode aceder, corrigir ou eliminar as suas informações pessoais a qualquer momento, contactando-nos através dos contactos fornecidos no site.<br/><br/>
-    Ao utilizar o nosso site, concorda com os termos desta política de privacidade. Reservamos o direito de atualizar esta política periodicamente, pelo que recomendamos que a reveja regularmente.
-</p>
+<div class="container mt-4">
+    @* Top row *@
+    <div class="row mb-4 align-items-center">
+        <div class="col-7">
+            <h1 class="title-underline">@ViewData["Title"]</h1>
+        </div>
+        <div class="col-5 text-end">
+            <a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4">
+                <i class="bi bi-arrow-left me-2"></i>Voltar
+            </a>
+        </div>
+    </div>
+    <p class="lh-lg">
+        A sua privacidade é importante para nós. Esta política de privacidade explica como recolhemos, utilizamos e protegemos as suas informações pessoais quando utiliza o nosso site.<br/>
+        Recolhemos informações que nos fornece diretamente, como o seu nome, endereço de email e outras informações de contacto quando se regista ou utiliza os nossos serviços.<br/>
+        Utilizamos as suas informações para fornecer e melhorar os nossos serviços, comunicar consigo e personalizar a sua experiência no site.<br/>
+        Protegemos as suas informações através de medidas de segurança adequadas para evitar acesso não autorizado, divulgação ou alteração.<br/>
+        Não partilhamos as suas informações pessoais com terceiros, exceto quando necessário para fornecer os nossos serviços ou quando exigido por lei.<br/>
+        Pode aceder, corrigir ou eliminar as suas informações pessoais a qualquer momento, contactando por email o <a href="mailto:segues2026@gmail.com">suporte</a>.<br/>
+        Ao utilizar o nosso site, concorda com os termos desta política de privacidade. Reservamos o direito de atualizar esta política periodicamente, pelo que recomendamos que a reveja regularmente.
+    </p>
+</div>

@@ -22,7 +22,7 @@
         @* Left panel: target of HTMX *@
         <div class="col-lg-4">
             <div id="side-panel-target">
-                <div class="card shadow-sm border-0 p-5 text-center text-muted card-ips">
+                <div class="card shadow-sm border-0 p-5 text-center text-muted card-ips hover-shadow-ips">
                     <i class="bi bi-info-circle fs-1 mb-3 opacity-50 text-color-ips"></i>
                     <p class="small fw-bold">Selecione um pedido na tabela para ver os detalhes e gerir o estado.</p>
                 </div>
@@ -34,11 +34,15 @@
             <h5 class="fw-bold"><i class="bi bi-clock-history me-2 text-color-ips"></i> Histórico Recente</h5>
             <div
                 hx-get="/Order/OrderManagement/GetOrdersTable"
-                hx-trigger="every 30s"
-                hx-swap="innerHTML"
-                hx-boost="true">
+                hx-trigger="orderUpdated from:body, every 30s"
+                hx-swap="innerHTML">
                 <partial name="_ManageOrdersTablePartial" model="Model"/>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script type="module" src="~/js/inventory/inventory.js"></script>
+    <script type="module" src="~/js/order/order.js"></script>
+}

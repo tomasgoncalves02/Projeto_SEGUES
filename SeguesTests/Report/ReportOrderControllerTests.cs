@@ -1,14 +1,16 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Projeto_SEGUES.Areas.Report;
+using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Order;
 using Projeto_SEGUES.Models.User;
-using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Services;
 using System.Security.Claims;
-using Xunit;
+using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging;
+using Projeto_SEGUES.Resources;
 
 namespace SeguesTests.Report
 {
@@ -17,14 +19,16 @@ namespace SeguesTests.Report
         private readonly Mock<IOrderService> _mockOrderService;
         private readonly Mock<UserManager<AppUser>> _mockUserManager;
         private readonly ReportOrderController _controller;
+        private readonly Mock<ILogger<ReportOrderController>> _mockLogger;
 
         public ReportOrderControllerTests()
         {
             _mockOrderService = new Mock<IOrderService>();
             var store = new Mock<IUserStore<AppUser>>();
             _mockUserManager = new Mock<UserManager<AppUser>>(store.Object, null, null, null, null, null, null, null, null);
+            _mockLogger = new Mock<ILogger<ReportOrderController>>();
 
-            _controller = new ReportOrderController(_mockOrderService.Object, _mockUserManager.Object);
+            _controller = new ReportOrderController(_mockOrderService.Object, _mockUserManager.Object, _mockLogger.Object);
 
             var httpContext = new DefaultHttpContext();
             _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
@@ -160,7 +164,7 @@ namespace SeguesTests.Report
                 Description = "sabe muito bem",
                 Category = new Projeto_SEGUES.Models.Inventory.ProductCategory { Description = "comeres", Name = "comer" },
                 MinimumStock = 10,
-                 Stock = 60,
+                Stock = 60,
                 Name = "Café",
                 Price = 0.70m
             };
@@ -171,7 +175,7 @@ namespace SeguesTests.Report
                 OrderId = order.Id,
                 Order = order,
                 Product = product,
-                ProductValue = product.Price, 
+                ProductValue = product.Price,
                 Quantity = 2
             };
 

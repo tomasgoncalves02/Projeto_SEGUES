@@ -23,12 +23,12 @@
         </a>
     </div>
     @* Filters *@
-    <div class="card card-ips mb-4 shadow-sm">
+    <div class="card card-ips hover-shadow-ips mb-4 shadow-sm">
         <div class="card-body py-4">
             <form method="get" asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Index" class="row g-3 align-items-center">
                 @* SearchFilter *@
                 <div class="col-md-6">
-                    <div class="input-group flex-nowrap">
+                    <div class="input-group">
                         <label for="searchFilter" class="col-form-label fw-bold small me-3">Pesquisar:</label>
                         <input id="searchFilter" type="text" name="searchString" class="form-control border-0 bg-light"
                                placeholder="Nome ou email..."
@@ -41,7 +41,7 @@
                 </div>
                 @* RoleFilter *@
                 <div class="col-md-auto">
-                    <div class="input-group flex-nowrap">
+                    <div class="input-group">
                         <label for="roleFilter" class="col-form-label fw-bold small me-3">Role:</label>
                         <select id="roleFilter" name="roleFilter" class="form-select border-0 bg-light"
                                 onchange="this.form.submit()" style="border-radius: 8px;">
@@ -55,7 +55,7 @@
                 </div>
                 @* CategoryFilter *@
                 <div class="col-md-auto">
-                    <div class="input-group flex-nowrap">
+                    <div class="input-group">
                         <label for="categoryFilter" class="col-form-label fw-bold small me-3">Categoria:</label>
                         <select id="categoryFilter" name="categoryFilter" class="form-select border-0 bg-light"
                                 onchange="this.form.submit()" style="border-radius: 8px;">
@@ -77,7 +77,7 @@
 
     @* User table *@
     <div class="card shadow-sm border-0">
-        <div class="table-responsive rounded-3">
+        <div class="table-responsive rounded-3" style="max-height: 500px;">
             <table class="table table-hover align-middle mb-0 text-center">
                 <thead class="bg-color-ips text-white">
                 <tr>
@@ -159,22 +159,24 @@
                                     if (user.Status == UserStatus.Inactive)
                                     {
                                         @* Botão Ativar *@
-                                        <form asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Activate" asp-route-id="@user.Id" method="post" style="display:inline;">
-                                            <button type="submit" class="btn btn-sm btn-outline-success rounded-0 rounded-end" title="Ativar Conta">
-                                                <i class="bi bi-person-check"></i>
-                                            </button>
-                                        </form>
+                                            <form asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Activate" asp-route-id="@user.Id" method="post" id="activate-form-@user.Id" style="display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <button type="button" class="btn btn-sm btn-outline-success rounded-0 rounded-end confirmActivateUser"
+                                                        data-id="@user.Id" data-name="@user.FirstName @user.LastName" title="Ativar Conta">
+                                                    <i class="bi bi-person-check"></i>
+                                                </button>
+                                            </form>
                                     }
                                     else
                                     {
                                         @* Botão Desativar *@
-                                        <form asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Deactivate" asp-route-id="@user.Id" method="post" id="deactivate-form-@user.Id" style="display:inline;">
-                                            <button type="button" class="btn btn-sm btn-outline-danger rounded-0 rounded-end"
-                                                    onclick="confirmDeactivate('@user.Id', '@user.FirstName @user.LastName')"
-                                                    title="Desativar Conta">
-                                                <i class="bi bi-person-x"></i>
-                                            </button>
-                                        </form>
+                                            <form asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Deactivate" asp-route-id="@user.Id" method="post" id="deactivate-form-@user.Id" style="display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <button type="button" class="btn btn-sm btn-outline-danger rounded-0 rounded-end confirmDeactivateUser"
+                                                        data-id="@user.Id" data-name="@user.FirstName @user.LastName" title="Desativar Conta">
+                                                    <i class="bi bi-person-x"></i>
+                                                </button>
+                                            </form>
                                     }
                                 }
                             </div>
@@ -188,18 +190,5 @@
 </div>
 
 @section Scripts {
-    <script>
-        function confirmDeactivate(userId, userName) {
-            Notifications.confirm(
-                '',
-                `Tem a certeza que deseja desativar o utilizador <b>${userName}</b>?<br>
-                 <small class='text-muted'>O utilizador deixará de ter acesso à plataforma.</small>`,
-            ).then((result) => {
-                if (result.isConfirmed) {
-                    // Submit the specific form for this user
-                    document.getElementById('deactivate-form-' + userId).submit();
-                }
-            });
-        }
-    </script>
+    <script type="module" src="~/js/admin/userManagement.js"></script>
 }

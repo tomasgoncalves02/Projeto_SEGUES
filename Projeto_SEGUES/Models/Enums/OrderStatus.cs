@@ -20,10 +20,10 @@ public enum OrderStatus : byte
 
 public static class OrderStatusExtensions
 {
-    private static readonly OrderStatus[] ActiveStatus = 
+    private static readonly OrderStatus[] ActiveStatus =
     [
-        OrderStatus.Pending, 
-        OrderStatus.Preparing, 
+        OrderStatus.Pending,
+        OrderStatus.Preparing,
         OrderStatus.ReadyToDeliver
     ];
 

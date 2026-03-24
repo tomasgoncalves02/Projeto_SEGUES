@@ -1,0 +1,132 @@
+﻿@{
+    ViewData["Title"] = "Estatisticas do Bar - Admin"; 
+}
+
+<div class="container mt-5">
+@* Header *@
+    <div class="row mb-5 align-items-center">
+        <div class="col-md-6">
+            <h2 class="fw-bold title-underline mb-0">Estatísticas do Bar</h2>
+        </div>
+        <div class="col-md-6 text-end">
+            <a asp-area="Statistics" asp-controller="Statistics" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4">
+                <i class="bi bi-arrow-left me-2"></i>Voltar
+            </a>
+        </div>
+    </div>
+
+    @* Filtro Período *@
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card card-ips hover-shadow-ips shadow-sm border-0 rounded-3">
+                <div class="card-body p-3">
+                    <label class="form-label fw-semibold small mb-1">Data</label>
+                    <select id="selectOrdersPeriod" class="form-select shadow-none">
+                        <option value="1" selected>Dia</option>
+                        <option value="2">Semana</option>
+                        <option value="3">Mês</option>
+                        <option value="4">Ano</option>
+                        <option value="5">Total</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        @* Total Consumos *@
+        <div class="col-md-3">
+            <div class="card card-ips hover-shadow-ips shadow-sm border-0 rounded-3 h-100">
+                <div class="card-body p-4">
+                    <p class="small fw-semibold text-muted mb-1">Total de Pedidos</p>
+                    <h3 class="fw-bold mb-1" style="color: darkcyan;" id="totalOrderBar">—</h3>
+                </div>
+            </div>
+        </div>
+        @* Receita Total *@
+        <div class="col-md-3">
+            <div class="card card-ips hover-shadow-ips shadow-sm border-0 rounded-3 h-100">
+                <div class="card-body p-4">
+                    <p class="small fw-semibold text-muted mb-1">Receita Total</p>
+                    <h3 class="fw-bold mb-1" style="color: darkcyan;" id="totalIncomeBar">—</h3>
+                </div>
+            </div>
+        </div>
+        @* Receita Media *@
+        <div class="col-md-3">
+            <div class="card card-ips hover-shadow-ips shadow-sm border-0 rounded-3 h-100">
+                <div class="card-body p-4">
+                    <p class="small fw-semibold text-muted mb-1">Compra Media</p>
+                    <h3 class="fw-bold mb-1" style="color: darkcyan;" id="averageIncomeBar">—</h3>
+                </div>
+            </div>
+        </div>
+        @* Novos Utilizadores *@
+        <div class="col-md-3">
+            <div class="card card-ips hover-shadow-ips shadow-sm border-0 rounded-3 h-100">
+                <div class="card-body p-4">
+                    <p class="small fw-semibold text-muted mb-1">Total de Clientes</p>
+                    <h3 class="fw-bold mb-1" style="color: darkcyan;" id="totalBuyersBar">—</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+
+        @* Gráfico *@
+        <div class="col-lg-6">
+            <div class="card card-ips hover-shadow-ips shadow-sm border-0 rounded-3 h-100">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-1" style="color: darkcyan;">Pedidos ao longo do tempo</h6>
+                    <p class="text-muted small mb-3" id="orderChartSubtitle">Pedidos por hora hoje</p>
+                    <div style="position: relative; height: 260px;">
+                        <canvas id="orderChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* NOVO: Gráfico Circular (Categorias) *@
+        <div class="col-lg-5">
+            <div class="card card-ips hover-shadow-ips shadow-sm border-0 rounded-3 h-100">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-1" style="color: darkcyan;">Por categoria</h6>
+                    <p class="text-muted small mb-4">Distribuição de produtos</p>
+                    <div style="position: relative; height: 240px;">
+                        <canvas id="productCategoriesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Tabela de Produtos Mais Vendidos *@
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="card card-ips hover-shadow-ips shadow-sm border-0 rounded-3">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-3" style="color: var(--ips);">Top Produtos Mais Vendidos</h6>
+                    <div class="table-responsive" style="max-height: 500px;">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light text-muted small text-uppercase">
+                                <tr>
+                                    <th class="rounded-start">Produto</th>
+                                    <th class="text-center rounded-end" style="width: 150px;">Quantidade</th>
+                                </tr>
+                            </thead>
+                            <tbody id="topProductsTableBody">
+                                <tr><td colspan="2" class="text-center text-muted py-3">A carregar...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.umd.min.js"></script>
+    <script type="module" src="~/js/report/statistics.js"></script>
+}

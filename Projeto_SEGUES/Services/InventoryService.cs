@@ -1,7 +1,9 @@
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Areas.Inventory.ViewModels;
 using Projeto_SEGUES.Data;
+using Projeto_SEGUES.Extensions;
+using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Inventory;
 
 namespace Projeto_SEGUES.Services;
@@ -9,14 +11,19 @@ namespace Projeto_SEGUES.Services;
 public class InventoryService : IInventoryService
 {
     private readonly AppDbContext _context;
-    
-    public InventoryService(AppDbContext context) => _context = context;
+    private readonly ILogger<InventoryService> _logger;
+
+    public InventoryService(AppDbContext context, ILogger<InventoryService> logger) 
+    {
+        _context = context;
+        _logger = logger;
+    }
 
     public async Task<Product?> GetProductByIdAsync(int id)
     {
         return await _context.Product.FindAsync(id);
     }
-    
+
     public async Task<List<Product>> GetAvailableProductsAsync()
     {
         return await _context.Product
@@ -44,12 +51,12 @@ public class InventoryService : IInventoryService
         if (category == null) return ServiceResult.Fail("Categoria não encontrada.");
         Product product = new Product
         {
-            Name = productViewModel.Name, 
-            Description = productViewModel.Description, 
-            Category = category, 
-            Price = productViewModel.Price, 
-            Stock = productViewModel.Stock, 
-            MinimumStock = productViewModel.MinimumStock, 
+            Name = productViewModel.Name,
+            Description = productViewModel.Description,
+            Category = category,
+            Price = productViewModel.Price,
+            Stock = productViewModel.Stock,
+            MinimumStock = productViewModel.MinimumStock,
             IsActive = true
         };
         if (await _context.Product.AnyAsync(p => p.Name == product.Name))
@@ -62,24 +69,25 @@ public class InventoryService : IInventoryService
             await _context.SaveChangesAsync();
             return ServiceResult.Ok("Produto criado com sucesso!");
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            return ServiceResult.Fail("Ocorreu um erro ao criar o produto.");
+            _logger.LogAppError(AppErrors.ProductCreateError, TableName.Product, AppOperation.Create, ex);
+            return ServiceResult.Fail();
         }
     }
 
     public async Task<ServiceResult> EditProductAsync(ProductViewModel productViewModel)
     {
         var category = await _context.ProductCategory.FindAsync(productViewModel.CategoryId);
-        
+
         var existingProduct = await _context.Product.FindAsync(productViewModel.Id);
         if (existingProduct == null) return ServiceResult.Fail("Produto não encontrado.");
-        
+
         if (await _context.Product.AnyAsync(p => p.Name == productViewModel.Name && p.Id != productViewModel.Id))
         {
             return ServiceResult.Fail("Já existe um produto com esse nome.");
         }
-        
+
         try
         {
             existingProduct.Name = productViewModel.Name;
@@ -112,5 +120,17 @@ public class InventoryService : IInventoryService
         {
             return ServiceResult.Fail("Ocorreu um erro ao eliminar o produto.");
         }
+    }
+
+    public async Task<ServiceResult> ReactivateProductAsync(int id)
+    {
+        var product = await _context.Product.FindAsync(id);
+        if (product == null)
+            return ServiceResult.Fail("Produto não encontrado.");
+
+        product.IsActive = true;
+        await _context.SaveChangesAsync();
+
+        return ServiceResult.Ok($"Produto \"{product.Name}\" reativado com sucesso.");
     }
 }

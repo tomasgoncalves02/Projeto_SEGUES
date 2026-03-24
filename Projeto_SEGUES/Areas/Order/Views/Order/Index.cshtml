@@ -1,30 +1,56 @@
-﻿@{
+﻿@using Projeto_SEGUES.Areas.Order.ViewModels
+@{
     ViewData["Title"] = "Bar - SEGUES";
-    decimal balance = ViewBag.UserBalance;
-    var barOpen = ViewBag.OpeningTime ?? "08:30";
-    var barClose = ViewBag.ClosingTime ?? "23:50";
+    OrderTotalViewModel cartTotal = ViewBag.CartTotal;
 }
 
-<div class="container mt-5">
-    <div class="row mb-3">
-        <div class="col-12">
+<div class="container mt-5 text-start">
+    @* Title Row with Cart *@
+    <div class="flex-column mb-3 align-items-center">
+        <div class="flex-column flex-sm-row d-flex justify-content-between align-items-center">
             <h3 class="fw-bold display-5 title-underline mb-2">Bar</h3>
+            @if (cartTotal != null && cartTotal.TotalQuantity > 0)
+            {
+                <div class="d-flex align-items-center bg-light p-2 px-3 rounded-3 shadow-sm border">
+                    <div class="text-center me-3 border-end pe-3">
+                        <span class="fw-bold small d-block text-uppercase text-muted mb-1">Carrinho</span>
+                        <a asp-area="Order" asp-controller="CreateOrder" asp-action="Checkout" class="position-relative d-inline-block text-decoration-none">
+                            <i class="bi bi-cart-check fs-2 text-color-ips"></i>
+                            <span id="cartCount" class="position-absolute badge rounded-pill bg-danger fs-7"
+                                  style="top: -2px; right: -5px; padding: 0.35em 0.5em; border: 2px solid white;">
+                                @cartTotal.TotalQuantity
+                            </span>
+                        </a>
+                    </div>
+                    <div class="text-center">
+                        <span class="fw-bold small d-block text-uppercase text-muted">Total</span>
+                        <span id="cartTotal" class="fw-bold text-color-ips fs-5">@cartTotal.TotalValue.ToString("C")</span>
+                    </div>
+                </div>
+            }
+            @* Return button in larger screen *@
+            <a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold shadow-sm d-none d-md-flex">
+                <i class="bi bi-arrow-left me-2"></i>Voltar
+            </a>
+        </div>
+        <div class="mt-2">
             <p class="text-muted fs-5">Selecione uma das opções abaixo para gerir os seus serviços.</p>
         </div>
     </div>
 
+    @* Schedule Card *@
     <div class="row mb-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm bg-color-ips-light" style="border-left: 5px solid var(--ips) !important;">
-                <div class="card-body py-2 d-flex align-items-center flex-wrap">
-                    <div class="me-4">
-                        <i class="bi bi-clock-fill text-color-ips fs-4 me-2"></i>
-                        <span class="fw-bold text-uppercase small text-muted">Horário de Funcionamento</span>
+                <div class="card-body py-2 d-flex flex-column flex-md-row align-items-start align-items-md-center">
+                    <div class="me-md-4 mb-2 mb-md-0 d-flex align-items-center">
+                        <i class="bi bi-clock text-color-ips fs-4 me-2"></i>
+                        <span class="fw-bold small text-muted">Horário</span>
                     </div>
                     <div class="d-flex align-items-center">
                         <span class="badge bg-color-ips text-white me-2">Bar</span>
-                        <span class="fw-bold text-color-ips">@barOpen - @barClose</span>
-                    </div>                   
+                        <span class="fw-bold text-color-ips">@ViewBag.BarOpeningTimeString - @ViewBag.BarClosingTimeString</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -33,10 +59,10 @@
     <div class="row g-4">
         @* Card Saldo *@
         <div class="col-md-6 col-lg-3">
-            <div class="card h-100 shadow-sm card-ips bg-color-ips text-white hover-translate d-flex flex-column">
+            <div class="card h-100 shadow-sm card-ips hover-shadow-ips bg-color-ips text-white hover-translate d-flex flex-column">
                 <div class="card-body text-center d-flex flex-column p-4">
                     <small class="d-block opacity-75 fw-bold mb-2 fs-4">Saldo Disponível</small>
-                    <h2 class="display-6 fw-bold my-auto">@balance.ToString("C")</h2>
+                    <h2 class="display-6 fw-bold my-auto">@ViewBag.UserBalance.ToString("C")</h2>
                     <div class="mt-auto">
                         <a asp-area="Payment" asp-controller="Payment" asp-action="Deposit" class="btn btn-ips fw-bold w-100 py-2" style="border: 1px solid white !important">Carregar Saldo</a>
                     </div>
@@ -46,7 +72,7 @@
 
         @* Card Loja *@
         <div class="col-md-6 col-lg-3">
-            <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
+            <div class="card h-100 shadow-sm card-ips hover-shadow-ips hover-translate d-flex flex-column">
                 <div class="card-body text-center d-flex flex-column p-4">
                     <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-cart-plus"></i></div>
                     <h5 class="fw-bold">Efetuar Pedido</h5>
@@ -62,7 +88,7 @@
 
         @* Card Pedidos *@
         <div class="col-md-6 col-lg-3">
-            <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
+            <div class="card h-100 shadow-sm card-ips hover-shadow-ips hover-translate d-flex flex-column">
                 <div class="card-body text-center d-flex flex-column p-4">
                     <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-qr-code-scan"></i></div>
                     <h5 class="fw-bold">Pedidos</h5>
@@ -75,13 +101,13 @@
         </div>
         @* Menu Card *@
         <div class="col-md-6 col-lg-3">
-            <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column border-primary">
+            <div class="card h-100 shadow-sm card-ips hover-translate hover-shadow-ips d-flex flex-column border-primary">
                 <div class="card-body text-center d-flex flex-column p-4">
-                    <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-calendar-event"></i></div>
+                    <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-journal-richtext"></i></div>
                     <h5 class="fw-bold">Ementa</h5>
                     <p class="text-muted small mb-4">Consulta o que há para o almoço esta semana.</p>
                     <div class="mt-auto">
-                        <a href="https://software.movelife.net/pt-PT/Menus/PublicCC/Tj6o3O_vCFDXvHU0nbgTmg%3d%3d?DaySelected=13%2F03%2F2026&capit=5&idzone=1616" target="_blank" class="btn w-100 py-2 fw-bold btn-ips">Ver Ementa</a>
+                        <a href="@ViewBag.BarMenuLink" target="_blank" class="btn w-100 py-2 fw-bold btn-ips">Ver Ementa</a>
                     </div>
                 </div>
             </div>
@@ -89,7 +115,7 @@
 
         @* Card Voltar *@
         <div class="col-md-6 col-lg-3">
-            <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
+            <div class="card h-100 shadow-sm card-ips hover-shadow-ips hover-translate d-flex flex-column">
                 <div class="card-body text-center d-flex flex-column p-4">
                     <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-arrow-left-circle"></i></div>
                     <h5 class="fw-bold">Voltar</h5>

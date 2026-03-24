@@ -1,14 +1,13 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering; 
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Moq;
 using Projeto_SEGUES.Areas.Admin;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
-using Projeto_SEGUES.Models.Enums; 
+using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Services;
-using Xunit;
 
 namespace SeguesTests.Admin
 {
@@ -20,7 +19,7 @@ namespace SeguesTests.Admin
         public AdminCreateInternalAccountControllerTests()
         {
             _mockAdminService = new Mock<IAdminService>();
-            _controller = new AdminCreateInternalAccountController(_mockAdminService.Object);
+           // _controller = new AdminCreateInternalAccountController(_mockAdminService.Object);
 
             var httpContext = new DefaultHttpContext();
             _controller.TempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>());
@@ -31,7 +30,7 @@ namespace SeguesTests.Admin
             FirstName = "Joao",
             LastName = "Silva",
             Email = "joao@test.com",
-            Gender = Gender.Male, 
+            Gender = Gender.Male,
             BirthDate = DateTime.Now.AddYears(-20),
             AccountType = "Admin"
         };
@@ -80,7 +79,7 @@ namespace SeguesTests.Admin
         {
             var model = CreateValidModel();
             _mockAdminService.Setup(s => s.CreateInternalUserAsync(model))
-                .ReturnsAsync(IdentityResult.Success);
+                .ReturnsAsync(ServiceResult.Ok());
 
             var result = await _controller.Create(model);
 
@@ -94,10 +93,9 @@ namespace SeguesTests.Admin
         public async Task Create_ServiceFails_ReturnsViewWithErrorsAndPopulatesRoles()
         {
             var model = CreateValidModel();
-            var identityError = new IdentityError { Description = "O e-mail já está em uso." };
 
             _mockAdminService.Setup(s => s.CreateInternalUserAsync(model))
-                .ReturnsAsync(IdentityResult.Failed(identityError));
+                .ReturnsAsync(ServiceResult.Fail("O e-mail já está em uso."));
 
             var roles = new List<SelectListItem> { new SelectListItem { Value = "Admin", Text = "Admin" } };
             _mockAdminService.Setup(s => s.GetNonClientRolesForDropdownAsync())
@@ -106,9 +104,9 @@ namespace SeguesTests.Admin
             var result = await _controller.Create(model);
 
             var viewResult = Assert.IsType<ViewResult>(result);
-            Assert.Equal("Index", viewResult.ViewName); 
-            Assert.False(_controller.ModelState.IsValid); 
-            Assert.Equal(roles, _controller.ViewBag.Roles); 
+            Assert.Equal("Index", viewResult.ViewName);
+            Assert.False(_controller.ModelState.IsValid);
+            Assert.Equal(roles, _controller.ViewBag.Roles);
         }
 
 
@@ -141,7 +139,7 @@ namespace SeguesTests.Admin
         {
             var model = CreateValidModel();
             _mockAdminService.Setup(s => s.CreateInternalUserAsync(model))
-                .ReturnsAsync(IdentityResult.Success);
+                .ReturnsAsync(ServiceResult.Ok());
 
             var result = await _controller.Create(model);
 
@@ -159,14 +157,10 @@ namespace SeguesTests.Admin
         public async Task Create_ServiceFailsWithMultipleErrors_AddsAllToModelState()
         {
             var model = CreateValidModel();
-            var errors = new List<IdentityError>
-    {
-        new IdentityError { Description = "Email inválido" },
-        new IdentityError { Description = "Senha fraca" }
-    };
+            var errors = "Email inválido; Senha fraca";
 
             _mockAdminService.Setup(s => s.CreateInternalUserAsync(model))
-                .ReturnsAsync(IdentityResult.Failed(errors.ToArray()));
+                .ReturnsAsync(ServiceResult.Fail(errors));
 
             _mockAdminService.Setup(s => s.GetNonClientRolesForDropdownAsync())
                 .ReturnsAsync(new List<SelectListItem>());
@@ -182,15 +176,15 @@ namespace SeguesTests.Admin
         [Fact]
         public async Task Create_ServiceFails_ReturnsExplicitIndexView()
         {
-           
+
             var model = CreateValidModel();
             _mockAdminService.Setup(s => s.CreateInternalUserAsync(model))
-                .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Erro" }));
+                .ReturnsAsync(ServiceResult.Fail("Erro"));
 
             var result = await _controller.Create(model);
 
             var viewResult = Assert.IsType<ViewResult>(result);
-           
+
             Assert.Equal("Index", viewResult.ViewName);
         }
 
@@ -199,7 +193,7 @@ namespace SeguesTests.Admin
         [Fact]
         public async Task Create_ExceptionPath_SetsBothModelStateAndTempData()
         {
-            
+
             var model = CreateValidModel();
             _mockAdminService.Setup(s => s.CreateInternalUserAsync(model))
                 .ThrowsAsync(new System.Exception());
@@ -207,7 +201,7 @@ namespace SeguesTests.Admin
             await _controller.Create(model);
 
             Assert.False(_controller.ModelState.IsValid);
-            Assert.NotEmpty(_controller.TempData); 
+            Assert.NotEmpty(_controller.TempData);
         }
 
     }

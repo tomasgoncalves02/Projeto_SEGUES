@@ -5,7 +5,7 @@
 }
 
 <div class="container mt-5">
-    @* Cabeçalho principal *@
+    @* Top row *@
     <div class="row mb-5 align-items-center">
         <div class="col-md-6 text-start">
             <h2 class="fw-bold title-underline mb-0">Gestão de Inventário</h2>
@@ -19,10 +19,10 @@
     </div>
 
     <div class="row g-4 text-start">
-        @* FORMULÁRIO DE CRIAÇÃO *@
+        @* Create Product Form *@
         <div class="col-lg-4">
-            <div class="card card-ips shadow-sm h-100">
-                <div class="card-header bg-white py-3 border-0">
+            <div class="card card-ips hover-shadow-ips shadow-sm h-100 border-0">
+                <div class="card-header bg-white py-3 border-bottom">
                     <h5 class="fw-bold mb-0 text-color-ips">
                         <i class="bi bi-plus-circle me-2"></i>Novo Produto
                     </h5>
@@ -30,66 +30,64 @@
                 <div class="card-body p-4">
                     <form asp-area="Admin" asp-controller="AdminInventoryManagement" asp-action="Create" method="post">
                         <div class="mb-3">
-                            <label class="form-label fw-bold small text-muted text-uppercase">Nome</label>
+                            <label asp-for="@Model.Name" class="form-label fw-bold small text-muted"></label>
                             <input asp-for="@Model.Name" class="form-control" placeholder="Ex: Sandes de Atum" required />
+                            <span asp-validation-for="@Model.Name" class="text-danger small"></span>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold small text-muted text-uppercase">Categoria</label>
+                            <label asp-for="@Model.CategoryId" class="form-label fw-bold small text-muted"></label>
                             <select asp-for="@Model.CategoryId" class="form-select" asp-items="ViewBag.Categories" required>
                                 <option value="">Selecione uma categoria</option>
                             </select>
+                            <span asp-validation-for="@Model.CategoryId" class="text-danger small"></span>
                         </div>
-                        <div class="row mb-3">
+                        <div class="row g-2 mb-3">
                             <div class="col-6">
-                                <label class="form-label fw-bold small text-muted text-uppercase">Preço (€)</label>
-                                <input asp-for="@Model.Price" type="number" step="0.01" class="form-control fw-bold text-color-ips" value="0.00" />
+                                <label asp-for="@Model.Price" class="form-label fw-bold small text-muted">Preço (€)</label>
+                                <input asp-for="@Model.Price" type="number" step="0.01" class="form-control fw-bold text-color-ips" />
                             </div>
                             <div class="col-6">
-                                <label class="form-label fw-bold small text-muted text-uppercase">Stock</label>
-                                <input asp-for="@Model.Stock" type="number" class="form-control fw-bold" value="0" />
+                                <label asp-for="@Model.Stock" class="form-label fw-bold small text-muted">Stock</label>
+                                <input asp-for="@Model.Stock" type="number" class="form-control fw-bold" />
                             </div>
-                            <div class="col-6">
-                                <label class="form-label fw-bold small text-muted text-uppercase">Stock mínimo</label>
-                                <input asp-for="@Model.MinimumStock" type="number" class="form-control fw-bold" value="0" />
+                            <div class="col-12">
+                                <label asp-for="@Model.MinimumStock" class="form-label fw-bold small text-muted">Stock mínimo</label>
+                                <input asp-for="@Model.MinimumStock" type="number" class="form-control fw-bold" />
                             </div>
                         </div>
                         <div class="mb-4">
-                            <label class="form-label fw-bold small text-muted text-uppercase">Descrição</label>
-                            <textarea asp-for="@Model.Description" class="form-control" rows="4"
-                                      placeholder="Breve descrição..." maxlength="250"></textarea>
+                            <label asp-for="Description" class="form-label fw-bold small text-muted">Descrição</label>
+                            <textarea asp-for="Description" class="form-control" rows="4" placeholder="Breve descrição..." maxlength="250"></textarea>
                             <div class="form-text text-end small">Máximo 250 caracteres.</div>
                         </div>
                         <button type="submit" class="btn btn-ips w-100 py-3 fw-bold shadow-sm">
-                            <i class="bi bi-check-lg me-2"></i>CONFIRMAR REGISTO
+                            <i class="bi bi-check-lg me-2"></i>Confirmar Registo
                         </button>
                     </form>
                 </div>
             </div>
         </div>
 
-        @* FILTRO E TABELA *@
+        @* Filter and Product List *@
         <div class="col-lg-8">
-            @* Barra de Filtros *@
-            <div class="card card-ips shadow-sm mb-4">
+            @* Filters *@
+            <div class="card card-ips hover-shadow-ips shadow-sm mb-4 border-0">
                 <div class="card-body p-4 filter-bar">
                     <div class="row g-3 align-items-end">
                         <div class="col-md-4">
-                            <label class="form-label fw-bold small text-muted text-uppercase">Categoria</label>
-                            <select class="form-select" id="categoryFilter" onchange="filterTable()" asp-items="ViewBag.Categories">
-                                <option value="">Categoria/Tipo</option>
+                            <label class="form-label fw-bold small text-muted">Categoria</label>
+                            <select class="form-select" id="categoryFilter" asp-items="ViewBag.Categories">
+                                <option value="">Todas as Categorias</option>
                             </select>
                         </div>
                         <div class="col-md-5">
-                            <label class="form-label fw-bold small text-muted text-uppercase">Pesquisar</label>
-                            <input type="text" id="searchInput" class="form-control" placeholder="Nome do produto..." onkeyup="filterTable()">
+                            <label class="form-label fw-bold small text-muted">Pesquisar</label>
+                            <input type="text" id="nameFilter" class="form-control" placeholder="Nome do produto...">
                         </div>
                         <div class="col-md-3">
-                            <div class="d-flex flex-column h-100">
-                                <a href="javascript:void(0)" onclick="clearFilters()" class="btn-reset-x mb-2 justify-content-end">
-                                    Limpar Filtros <i class="bi bi-x-circle"></i>
-                                </a>
-                                <button type="button" onclick="filterTable()" class="btn btn-ips fw-bold text-uppercase shadow-sm">
-                                    <i class="bi bi-search me-2"></i> PESQUISAR
+                            <div class="d-flex flex-column gap-2">
+                                <button type="button" id="clearProductsTableFilters" class="btn btn-sm fw-bold">
+                                    <i class="bi bi-x-circle me-1"></i> Limpar Filtros
                                 </button>
                             </div>
                         </div>
@@ -97,24 +95,24 @@
                 </div>
             </div>
 
-            @* Listagem *@
-            <div class="card card-ips shadow-sm overflow-hidden">
+            @* Product List *@
+            <div class="card card-ips hover-shadow-ips shadow-sm border-0">
                 <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fw-bold text-color-ips"><i class="bi bi-list-ul me-2"></i>Lista de Produtos</h5>
-                    <span class="badge bg-light text-dark border">@ViewBag.Products.Count registos</span>
+                    <span class="badge bg-light text-dark border"><span id="productsCountBadge">@ViewBag.Products.Count</span> registos</span>
                 </div>
-                <div class="table-responsive">
+                <div class="table-responsive" style="max-height: 600px;">
                     <table class="table table-hover align-middle mb-0 text-center" id="productsTable">
-                        <thead class="bg-color-ips text-white">
+                        <thead class="bg-color-ips text-white position-sticky top-0">
                             <tr>
-                                <th class="py-3 text-start ps-4">Produto</th>
+                                <th class="py-3 text-start ps-4">Nome</th>
                                 <th class="py-3">Categoria</th>
                                 <th class="py-3">Preço</th>
                                 <th class="py-3">Stock</th>
                                 <th class="py-3 text-center pe-4">Ação</th>
                             </tr>
                         </thead>
-                        <tbody id="productListContainer" class="col-lg-8"
+                        <tbody id="productListContainer"
                              hx-get="/Admin/AdminInventoryManagement/GetProducts"
                              hx-trigger="every 60s"
                              hx-swap="innerHTML">
@@ -127,84 +125,7 @@
     </div>
 </div>
 
-@* MODAL DE DETALHES *@
-<div class="modal fade" id="productModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-color-ips text-white">
-                <h5 class="modal-title fw-bold"><i class="bi bi-info-circle me-2"></i>Detalhes do Produto</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-4 text-start">
-                <div class="mb-4">
-                    <label class="fw-bold text-muted small text-uppercase d-block mb-1">Nome</label>
-                    <span id="view-name" class="fs-5 fw-bold text-color-ips"></span>
-                </div>
-                <div class="mb-4">
-                   <label class="fw-bold text-muted small text-uppercase d-block mb-1">Descrição</label>                  
-                    <p id="view-description" class="text-muted bg-light p-3 rounded border-start border-4 border-color-ips mb-0 text-break"></p>
-                </div>
-                <div class="row text-center">
-                    <div class="col-6">
-                        <div class="border rounded p-3 bg-light">
-                            <label class="fw-bold text-muted small text-uppercase d-block">Preço</label>
-                            <span id="view-price" class="fw-bold text-color-ips fs-4"></span>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="border rounded p-3 bg-light">
-                            <label class="fw-bold text-muted small text-uppercase d-block">Stock</label>
-                            <span id="view-stock" class="fw-bold fs-4"></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 @section Scripts {
-    <script>
-        function filterTable() {
-            const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
-            const searchCategory = document.getElementById('categoryFilter').value;
-            const rows = document.querySelectorAll('.table-row-ips-hover');
-
-            rows.forEach(row => {
-                const name = row.querySelector('td:first-child').textContent.trim().toLowerCase();
-                const category = parseInt(row.getAttribute('data-category-id'));
-
-                const matchesSearch = name.includes(searchTerm);
-                const matchesCategory = searchCategory === "" || category === parseInt(searchCategory);
-                row.style.display = (matchesSearch && matchesCategory) ? "" : "none";
-            });
-        }
-
-        function clearFilters() {
-            document.getElementById('searchInput').value = "";
-            document.getElementById('statusFilter').value = "todos";
-            filterTable();
-        }
-
-        function showProductDetails(id, name, description, price, stock) {
-            document.getElementById('view-name').innerText = name;
-            document.getElementById('view-description').innerText = description || "Sem descrição.";
-            document.getElementById('view-price').innerText = parseFloat(price.replace(',', '.')).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' });
-
-            const stockElem = document.getElementById('view-stock');
-            stockElem.innerText = stock;
-            stockElem.className = "fw-bold fs-4 " + (stock <= 0 ? "text-danger" : (stock < 5 ? "text-warning" : "text-success"));
-
-            new bootstrap.Modal(document.getElementById('productModal')).show();
-        }
-
-        function confirmDelete(id, name) {
-            Notifications.confirm(`Tem a certeza que deseja eliminar o produto "${name}"?`)
-            .then((result) => {
-                if (result.isConfirmed) {
-                    document.getElementById('delete-form-' + id).submit();
-                }
-            });
-        }
-    </script>
+    <partial name="_ValidationScriptsPartial" />
+    <script type="module" src="~/js/inventory/inventory.js"></script>
 }

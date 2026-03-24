@@ -16,67 +16,35 @@ public class TicketService : ITicketService
     {
         _context = context;
     }
-
+    
+    #region Expire Tickets
+    
     // Set expired tickets state to expired
     private async Task ExpireUserTicketsAsync(string userId)
     {
         var now = DateTime.Now;
         // Executes directly in the database without loading entities into memory
         await _context.Ticket
-            .Where(t => t.Owner.Id == userId 
-                        && t.State == TicketState.Available 
+            .Where(t => t.Owner.Id == userId
+                        && t.State == TicketState.Available
                         && t.ExpirationDate < now)
             .ExecuteUpdateAsync(s => s.SetProperty(t => t.State, TicketState.Expired));
     }
-    
+
     private async Task ExpireTicketsGlobalAsync()
     {
         var now = DateTime.Now;
         // Updates ALL expired tickets in the system in one go
         await _context.Ticket
-            .Where(t => t.State == TicketState.Available 
+            .Where(t => t.State == TicketState.Available
                         && t.ExpirationDate < now)
             .ExecuteUpdateAsync(s => s.SetProperty(t => t.State, TicketState.Expired));
     }
-
-    // Get all tickets for a user (includes expired and used)
-    public async Task<List<Ticket>> GetUserTicketsAsync(string userId)
-    {
-        // Ensure we update expired tickets before fetching
-        await ExpireUserTicketsAsync(userId);
-        return await _context.Ticket
-            .Include(t => t.Owner)
-            .Include(t => t.TicketPurchase)
-            .Where(t => t.Owner.Id == userId)
-            .OrderByDescending(t => t.TicketPurchase.TransactionDate)
-            .ToListAsync();
-    }
-
-    // Get only active (available and not expired) tickets for a user
-    public async Task<List<Ticket>> GetActiveTicketsAsync(string userId)
-    {
-        // Ensure we update expired tickets before fetching
-        await ExpireUserTicketsAsync(userId);
-        var now = DateTime.Now;
-        return await _context.Ticket
-            .Include(t => t.TicketPurchase)
-            .Where(t => t.Owner.Id == userId && t.State == TicketState.Available && t.ExpirationDate >= now)
-            .OrderBy(t => t.ExpirationDate)
-            .ToListAsync();
-    }
-
-    // Get recent used tickets (for admin/employee dashboard)
-    [Authorize(Roles = "Admin, Employee")]
-    public async Task<List<Ticket>> GetRecentUsedTicketsAsync(int take = 10)
-    {
-        return await _context.Ticket
-            .Include(t => t.Owner)
-            .Where(t => t.State == TicketState.Used)
-            .OrderByDescending(t => t.UsedDate)
-            .Take(take)
-            .ToListAsync();
-    }
-
+    
+    #endregion
+    
+    #region Buy/Order Tickets
+    
     // Get current price for a user based on their category and current date
     public async Task<decimal> GetCurrentPriceForUserAsync(AppUser user)
     {
@@ -84,18 +52,18 @@ public class TicketService : ITicketService
         await _context.Entry(user).Reference(u => u.UserCategory).LoadAsync();
         var userCategoryId = user.UserCategory?.Id;
         if (userCategoryId == null) return 0m;
-        
+
         var now = DateTime.Now;
         var price = await _context.TicketPrice
             .Where(p => p.UserCategory.Id == userCategoryId
-                        && now >= p.InitialDatePrice 
+                        && now >= p.InitialDatePrice
                         && now <= p.EndDatePrice)
             .OrderByDescending(p => p.InitialDatePrice)
             .FirstOrDefaultAsync();
 
         return price?.Price ?? 0m;
     }
-
+    
     // Buy Tickets: checks balance, creates purchase record, creates tickets, updates user balance
     public async Task<ServiceResult> BuyTicketsAsync(string userId, int quantity)
     {
@@ -148,11 +116,12 @@ public class TicketService : ITicketService
 
             for (int i = 0; i < quantity; i++)
             {
-                do {
+                do
+                {
                     code = Guid.NewGuid().ToString()[..8].ToUpper();
                 }
-                while(_context.Ticket.Any(t => t.ValidationCode == code));
-                
+                while (_context.Ticket.Any(t => t.ValidationCode == code));
+
                 _context.Ticket.Add(new Ticket
                 {
                     Owner = dbUser,
@@ -176,6 +145,126 @@ public class TicketService : ITicketService
             return ServiceResult.Fail("Erro ao processar a compra.");
         }
     }
+    
+    #endregion
+    
+    #region Active Tickets
+    
+    // Get only active (available and not expired) tickets for a user
+    public async Task<List<Ticket>> GetActiveTicketsAsync(string userId)
+    {
+        // Ensure we update expired tickets before fetching
+        await ExpireUserTicketsAsync(userId);
+        var now = DateTime.Now;
+        return await _context.Ticket
+            .Include(t => t.TicketPurchase)
+            .Where(t => t.Owner.Id == userId && t.State == TicketState.Available && t.ExpirationDate >= now)
+            .OrderBy(t => t.ExpirationDate)
+            .ToListAsync();
+    }
+    
+    #endregion
+
+    #region Transfer Tickets
+    
+    public async Task<ServiceResult> TransferTicketsAsync(string senderId, string recipientEmail, List<string> selectedTickets)
+    {
+        // 1. Carregar Sender e Receiver com suas CATEGORIAS (usando Include para evitar NullReference)
+        var sender = await _context.Users
+            .Include(u => u.UserCategory)
+            .FirstOrDefaultAsync(u => u.Id == senderId);
+
+        var receiver = await _context.Users
+            .Include(u => u.UserCategory)
+            .FirstOrDefaultAsync(u => u.Email == recipientEmail);
+
+        if (sender == null) return ServiceResult.Fail("Utilizador remetente não encontrado.");
+        if (receiver == null) return ServiceResult.Fail("Não foi encontrado nenhum utilizador com esse e-mail.");
+
+        if (sender.Email!.Equals(recipientEmail, StringComparison.OrdinalIgnoreCase))
+            return ServiceResult.Fail("Não pode transferir senhas para si próprio.");
+
+        // 2. NOVA REGRA: Comparar Categorias (Trabalhador, Estudante, etc.) em vez de Roles
+        if (sender.UserCategory.Id != receiver.UserCategory.Id)
+        {
+            return ServiceResult.Fail($"Transferência recusada: Só pode enviar senhas para utilizadores da categoria {sender.UserCategory.Name}. " +
+                                      $"O destinatário é {receiver.UserCategory.Name}.");
+        }
+
+        // 3. Procurar os tickets
+        var ticketsToTransfer = await _context.Ticket
+            .Include(t => t.Owner)
+            .Where(t => t.Owner.Id == sender.Id
+                     && selectedTickets.Contains(t.ValidationCode)
+                     && t.State == TicketState.Available)
+            .ToListAsync();
+
+        if (!ticketsToTransfer.Any())
+            return ServiceResult.Fail("As senhas selecionadas já não estão disponíveis ou não lhe pertencem.");
+
+        await using var tx = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            foreach (var ticket in ticketsToTransfer)
+            {
+                ticket.State = TicketState.Available;
+                ticket.Owner = receiver; // O destinatário passa a ser o novo dono
+
+                var transferRecord = new TicketTransfer
+                {
+                    TransferDate = DateTime.Now,
+                    Ticket = ticket,
+                    Sender = sender,
+                    Receiver = receiver
+                };
+                _context.TicketTransfer.Add(transferRecord);
+            }
+
+            await _context.SaveChangesAsync();
+            await tx.CommitAsync();
+
+            return ServiceResult.Ok($"{ticketsToTransfer.Count} senha(s) transferida(s) com sucesso!");
+        }
+        catch (Exception)
+        {
+            await tx.RollbackAsync();
+            return ServiceResult.Fail("Ocorreu um erro interno ao processar a transferência.");
+        }
+    }
+    
+    #endregion
+    
+    
+
+    // Get all tickets for a user (includes expired and used)
+    public async Task<List<Ticket>> GetUserTicketsAsync(string userId)
+    {
+        // Ensure we update expired tickets before fetching
+        await ExpireUserTicketsAsync(userId);
+        return await _context.Ticket
+            .Include(t => t.Owner)
+            .Include(t => t.TicketPurchase)
+            .Where(t => t.Owner.Id == userId)
+            .OrderByDescending(t => t.TicketPurchase.TransactionDate)
+            .ToListAsync();
+    }
+
+    
+
+    // Get recent used tickets (for admin/employee dashboard)
+    [Authorize(Roles = "Admin, Employee")]
+    public async Task<List<Ticket>> GetRecentUsedTicketsAsync(int take = 10)
+    {
+        return await _context.Ticket
+            .Include(t => t.Owner)
+            .Where(t => t.State == TicketState.Used)
+            .OrderByDescending(t => t.UsedDate)
+            .Take(take)
+            .ToListAsync();
+    }
+    
+
+    
 
     // Validate Ticket: checks code, updates state to used if valid, returns result message
     [Authorize(Roles = "Admin, Employee")]
@@ -195,7 +284,7 @@ public class TicketService : ITicketService
         if (ticket.State == TicketState.Expired || ticket.ExpirationDate < DateTime.Now)
         {
             // Auto-update to expired if it wasn't already
-            if(ticket.State != TicketState.Expired) 
+            if (ticket.State != TicketState.Expired)
             {
                 ticket.State = TicketState.Expired;
                 await _context.SaveChangesAsync();
@@ -228,7 +317,7 @@ public class TicketService : ITicketService
 
     // Query History (Search/Filter)
     public async Task<List<Ticket>> QueryHistoryAsync(string userId, string searchString, TicketState? stateFilter, string flowFilter, DateTime? dateFilter)
-    {   
+    {
         // Ensure we update expired tickets before fetching
         await ExpireUserTicketsAsync(userId);
 
@@ -296,81 +385,17 @@ public class TicketService : ITicketService
         await ExpireTicketsGlobalAsync();
 
         return await _context.Ticket
-            .Include(t => t.Owner)                      
-            .Include(t => t.TicketPurchase)             
-            .Include(t => t.Transfers)                  
-                .ThenInclude(tr => tr.Sender)           
+            .Include(t => t.Owner)
+            .Include(t => t.TicketPurchase)
             .Include(t => t.Transfers)
-                .ThenInclude(tr => tr.Receiver)      
+                .ThenInclude(tr => tr.Sender)
+            .Include(t => t.Transfers)
+                .ThenInclude(tr => tr.Receiver)
             .OrderByDescending(t => t.TicketPurchase.TransactionDate)
             .ToListAsync();
     }
 
 
 
-
-    public async Task<ServiceResult> TransferTicketsAsync(string senderId, string recipientEmail, List<string> selectedTickets)
-    {
-        // 1. Carregar Sender e Receiver com suas CATEGORIAS (usando Include para evitar NullReference)
-        var sender = await _context.Users
-            .Include(u => u.UserCategory)
-            .FirstOrDefaultAsync(u => u.Id == senderId);
-
-        var receiver = await _context.Users
-            .Include(u => u.UserCategory)
-            .FirstOrDefaultAsync(u => u.Email == recipientEmail);
-
-        if (sender == null) return ServiceResult.Fail("Utilizador remetente não encontrado.");
-        if (receiver == null) return ServiceResult.Fail("Não foi encontrado nenhum utilizador com esse e-mail.");
-
-        if (sender.Email!.Equals(recipientEmail, StringComparison.OrdinalIgnoreCase))
-            return ServiceResult.Fail("Não pode transferir senhas para si próprio.");
-
-        // 2. NOVA REGRA: Comparar Categorias (Trabalhador, Estudante, etc.) em vez de Roles
-        if (sender.UserCategory.Id != receiver.UserCategory.Id)
-        {
-            return ServiceResult.Fail($"Transferência recusada: Só pode enviar senhas para utilizadores da categoria {sender.UserCategory.Name}. " +
-                                      $"O destinatário é {receiver.UserCategory.Name}.");
-        }
-
-        // 3. Procurar os tickets
-        var ticketsToTransfer = await _context.Ticket
-            .Include(t => t.Owner)
-            .Where(t => t.Owner.Id == sender.Id
-                     && selectedTickets.Contains(t.ValidationCode)
-                     && t.State == TicketState.Available)
-            .ToListAsync();
-
-        if (!ticketsToTransfer.Any())
-            return ServiceResult.Fail("As senhas selecionadas já não estão disponíveis ou não lhe pertencem.");
-
-        await using var tx = await _context.Database.BeginTransactionAsync();
-        try
-        {
-            foreach (var ticket in ticketsToTransfer)
-            {
-                ticket.State = TicketState.Available;
-                ticket.Owner = receiver; // O destinatário passa a ser o novo dono
-
-                var transferRecord = new TicketTransfer
-                {
-                    TransferDate = DateTime.Now,
-                    Ticket = ticket,
-                    Sender = sender,
-                    Receiver = receiver
-                };
-                _context.TicketTransfer.Add(transferRecord);
-            }
-
-            await _context.SaveChangesAsync();
-            await tx.CommitAsync();
-
-            return ServiceResult.Ok($"{ticketsToTransfer.Count} senha(s) transferida(s) com sucesso!");
-        }
-        catch (Exception)
-        {
-            await tx.RollbackAsync();
-            return ServiceResult.Fail("Ocorreu um erro interno ao processar a transferência.");
-        }
-    }
+    
 }

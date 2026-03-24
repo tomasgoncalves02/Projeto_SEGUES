@@ -2,8 +2,6 @@
 @model IEnumerable<Projeto_SEGUES.Models.Order.Order>
 @{
     ViewData["Title"] = "Histórico Geral de Pedidos - SEGUES";
-    TimeSpan OpenTime = ViewBag.OpenBarTime != null ? (TimeSpan)ViewBag.OpenBarTime : TimeSpan.Zero;
-    TimeSpan CloseTime = ViewBag.CloseBarTime != null ? (TimeSpan)ViewBag.CloseBarTime : TimeSpan.Zero;
 }
 
 
@@ -23,7 +21,7 @@
     </div>
 
     @* Definição do Hórario de Funcionamento*@
-    <div class="card card-ips shadow-sm mb-4 border-0 rounded-3" style="max-width: 580px;">
+    <div class="card card-ips hover-shadow-ips shadow-sm mb-4 border-0 rounded-3" style="max-width: 580px;">
         <div class="card-body p-4">
             <h6 class="fw-bold mb-3" style="color: darkcyan;">
                 Definição do Horário de Funcionamento
@@ -38,7 +36,7 @@
                         <input type="time"
                                name="openTime"
                                class="form-control shadow-none"
-                               value="@OpenTime.ToString(@"hh\:mm")"
+                               value="@ViewBag.BarOpeningTimeString"
                                style="width: 140px;" />
                     </div>
 
@@ -47,7 +45,7 @@
                         <input type="time"
                                name="closeTime"
                                class="form-control shadow-none"
-                               value="@CloseTime.ToString(@"hh\:mm")"
+                               value="@ViewBag.BarClosingTimeString"
                                style="width: 140px;" />
                     </div>
 
@@ -64,7 +62,7 @@
 
 
     @* Barra de Filtros *@
-    <div class="card card-ips shadow-sm mb-4 border-0 rounded-3">
+    <div class="card card-ips hover-shadow-ips shadow-sm mb-4 border-0 rounded-3">
         <div class="card-body p-4">
             <div class="row g-3 align-items-end text-start">
                 <div class="col-md-2">
@@ -112,7 +110,7 @@
             </div>
         </div>
 
-        <div class="table-responsive">
+        <div class="table-responsive" style="max-height: 600px;">
             <table class="table table-hover align-middle mb-0 text-center" id="ordersTable" style="min-width: 1200px;">
                 <thead class="bg-color-ips text-white">
                     <tr>
@@ -204,7 +202,7 @@
                                 </td>
                                 <td class="fw-bold text-color-ips">@order.TotalValue.ToString("N2")€</td>
                                 <td class="pe-4">
-                                    <button type="button" class="btn btn-sm btn-ips fw-bold px-3 shadow-sm" onclick="verDetalhesProdutos(@order.Id, '/Admin/AdminOrderManagement/GetOrderDetails')">
+                                    <button type="button" class="btn btn-sm btn-ips fw-bold px-3 shadow-sm showOrderDetails" data-id="@order.Id">
                                         <i class="bi bi-search"></i>
                                     </button>
                                 </td>
@@ -218,6 +216,7 @@
 </div>
 
 @section Scripts {
+    <script type="module" src="~/js/report/reportOrder.js"></script>
     <script>
         function filterTable() {
             let searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();

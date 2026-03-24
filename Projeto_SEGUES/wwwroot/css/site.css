@@ -1,4 +1,4 @@
-/* ==========
+﻿/* ==========
    Variables 
    ========== */
 :root {
@@ -31,6 +31,10 @@ a:hover {
     text-decoration: underline;
 }
 
+button:hover {
+    text-decoration: underline;
+}
+
 .dropdown-item:hover {
     color: var(--ips-hover);
     background-color: var(--ips-bg-light);
@@ -55,19 +59,37 @@ a:hover {
     flex: 1 1 auto; /* Fill available space */
 }
 
+/* Table */
+
+.table>thead>tr>* {
+    color: white;
+    background-color: var(--ips);
+}
+
+.table-hover>tbody>tr:hover>* {
+    background-color: var(--ips-shadow-soft);
+}
+
+.table-responsive {
+    overflow-y: auto !important;
+}
+
 /* ==========
    Scrollbar
    ========== */
 ::-webkit-scrollbar {
     width: 0.7em;
 }
+
 ::-webkit-scrollbar-track {
     background-color: var(--ips-bg-light);
 }
+
 ::-webkit-scrollbar-thumb {
     background-color: var(--ips);
     border-radius: 5px;
 }
+
 html {
     scrollbar-width: auto;
     scrollbar-color: var(--ips) var(--ips-bg-light);
@@ -99,6 +121,18 @@ html {
    Body
    ========= */
 
+.icon-fork-knife {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    background-color: white;
+    -webkit-mask: url('../images/fork-knife.svg') no-repeat center center;
+    -webkit-mask-size: 32px 32px;
+    mask: url('../images/fork-knife.svg') no-repeat center center;
+    mask-size: 32px 32px;
+    vertical-align: middle;
+}
+
 /* Typography */
 .text-color-ips {
     color: var(--ips) !important;
@@ -120,11 +154,6 @@ html {
 .card-ips {
     border: none !important;
     border-top: 6px solid var(--ips) !important;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.card-ips:hover, .card-admin:hover {
-    box-shadow: 0 1rem 3rem var(--ips-shadow-heavy) !important;
 }
 
 .card-ips-icon {
@@ -149,8 +178,20 @@ html {
     width: fit-content;
 }
 
+.hover-translate {
+    transition: transform 0.3s ease;
+}
+
 .hover-translate:hover {
     transform: translateY(-5px);
+}
+
+.hover-shadow-ips {
+    transition: box-shadow 0.3s ease;
+}
+
+.hover-shadow-ips:hover {
+    box-shadow: 0 1rem 3rem var(--ips-shadow-heavy) !important;
 }
 
 .card-admin {
@@ -196,9 +237,16 @@ html {
     box-shadow: 0 0 0 0.25rem var(--ips-shadow-heavy) !important;
 }
 
-.btn-disabled {
+.btn-disabled-light {
     background-color: var(--ips-bg-light) !important;
     color: var(--ips) !important;
+    opacity: 0.65;
+    text-decoration: none !important;
+}
+
+.btn-disabled-dark {
+    background-color: var(--disabled) !important;
+    color: white !important;
     opacity: 0.65;
     text-decoration: none !important;
 }
@@ -235,14 +283,20 @@ html {
 /* ========== 
    Responsive Design
    ========== */
-.mx-lg-6 {
+.mx-lg-6, .mx-lg-7 {
     margin-left: 0 !important;
     margin-right: 0 !important;
 }
+
 @media (min-width: 768px) {
     .mx-lg-6 {
         margin-left: 4rem !important;
         margin-right: 4rem !important;
+    }
+    
+    .mx-lg-7 {
+        margin-left: 6rem !important;
+        margin-right: 6rem !important;
     }
 }
 @media (min-width: 992px) {
@@ -250,11 +304,21 @@ html {
         margin-left: 8rem !important;
         margin-right: 8rem !important;
     }
+    
+    .mx-lg-7 {
+        margin-left: 10rem !important;
+        margin-right: 10rem !important;
+    }
 }
 @media (min-width: 1200px) {
     .mx-lg-6 {
-        margin-left: 16rem !important;
-        margin-right: 16rem !important;
+        margin-left: 10rem !important;
+        margin-right: 10rem !important;
+    }
+    
+    .mx-lg-7 {
+        margin-left: 14rem !important;
+        margin-right: 14rem !important;
     }
 
     /* Animation in large screen */
@@ -263,14 +327,19 @@ html {
     }
 
     @keyframes float {
-        0% {
-            transform: translateY(0px);
-        }
-        50% {
-            transform: translateY(-15px);
-        }
-        100% {
-            transform: translateY(0px);
-        }
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-15px); }
+        100% { transform: translateY(0px); }
+    }
+}
+
+@media (min-width: 1400px) {
+    .mx-lg-6 {
+        margin-left: 16rem !important;
+        margin-right: 16rem !important;
+    }
+    .mx-lg-7 {
+        margin-left: 20rem !important;
+        margin-right: 20rem !important;
     }
 }

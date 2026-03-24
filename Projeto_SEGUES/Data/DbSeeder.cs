@@ -15,22 +15,26 @@ namespace Projeto_SEGUES.Data
         {
             await SeedRolesAndAdminAsync(serviceProvider);
             await SeedInventoryAsync(serviceProvider);
+            await SeedSchoolsAsync(serviceProvider);
             await SeedTestData(serviceProvider); // TODO: Remove on app release
         }
-        
+
         public static async Task SeedRolesAndAdminAsync(IServiceProvider serviceProvider)
         {
             var roleManager = serviceProvider.GetRequiredService<RoleManager<Role>>();
             var userManager = serviceProvider.GetRequiredService<UserManager<AppUser>>();
             var context = serviceProvider.GetRequiredService<AppDbContext>();
-            
+
             // AppConfig
             if (!await context.AppConfig.AnyAsync())
             {
                 var appConfig = new AppConfig();
+                // Links for current IPS menus
+                appConfig.BarLink = "https://software.movelife.net/pt-PT/Menus/PublicCC/Tj6o3O_vCFDXvHU0nbgTmg%3d%3d";
+                appConfig.CanteenLink = "https://software.movelife.net/pt-PT/Menus/PublicCC/Tj6o3O_vCFB2LmCmm9VUjw%3d%3d";
                 await context.AppConfig.AddAsync(appConfig);
             }
-            
+
             // Roles
             var roles = new[]
             {
@@ -46,7 +50,7 @@ namespace Projeto_SEGUES.Data
                     await roleManager.CreateAsync(role);
                 }
             }
-            
+
             // UserCategories
             var categories = new[]
             {
@@ -61,7 +65,7 @@ namespace Projeto_SEGUES.Data
                     await context.UserCategory.AddAsync(category);
             }
             await context.SaveChangesAsync();
-            
+
             // TicketPrice
             var defaultPrices = new Dictionary<string, decimal>
             {
@@ -76,10 +80,10 @@ namespace Projeto_SEGUES.Data
                 var catDb = await context.UserCategory
                     .FirstOrDefaultAsync(c => c.Name == category);
                 if (catDb == null) continue;
-                
+
                 if (await context.TicketPrice.AnyAsync(tp => tp.UserCategory.Id == catDb.Id && tp.EndDatePrice > DateTime.Now))
                     continue;
-                
+
                 context.TicketPrice.Add(new TicketPrice
                 {
                     UserCategory = catDb,
@@ -89,14 +93,13 @@ namespace Projeto_SEGUES.Data
                 });
             }
             await context.SaveChangesAsync();
-
-            // Create Admin
-            var adminEmail = "admin@admin.com";
-            var adminUser = await userManager.FindByEmailAsync(adminEmail);
+  
+            var admins = await userManager.GetUsersInRoleAsync("Admin");
             var adminCategory = await context.UserCategory.FirstOrDefaultAsync(uc => uc.Name == "Externo");
 
-            if (adminUser == null)
+            if (!admins.Any())
             {
+                var adminEmail = "admin@admin.com";
                 var newAdmin = new AppUser
                 {
                     UserName = adminEmail,
@@ -111,7 +114,7 @@ namespace Projeto_SEGUES.Data
                     Status = UserStatus.Active,
                     UserCategory = adminCategory!
                 };
-                
+
                 var createAdmin = await userManager.CreateAsync(newAdmin, "AdminSEGUES123!");
 
                 if (createAdmin.Succeeded)
@@ -125,14 +128,14 @@ namespace Projeto_SEGUES.Data
         public static async Task SeedInventoryAsync(IServiceProvider serviceProvider)
         {
             var context = serviceProvider.GetRequiredService<AppDbContext>();
-            
+
             // ProductCategory
             var defaultProductsCategories = new List<ProductCategory>
             {
-                new ProductCategory { Name = "Bebidas", Description = "Café, refrigerantes e outras bebidas." },
-                new ProductCategory { Name = "Refeições", Description = "Sanduíches, saladas e refeições rápidas." },
-                new ProductCategory { Name = "Doces", Description = "Bolos, tortas e outras sobremesas." },
-                new ProductCategory { Name = "Salgados", Description = "Empadas, croissants e outros salgados." }
+                new() { Name = "Bebidas", Description = "Café, refrigerantes e outras bebidas." },
+                new() { Name = "Refeições", Description = "Sanduíches, saladas e refeições rápidas." },
+                new() { Name = "Doces", Description = "Bolos, tortas e outras sobremesas." },
+                new() { Name = "Salgados", Description = "Empadas, croissants e outros salgados." }
             };
             foreach (var category in defaultProductsCategories)
             {
@@ -142,18 +145,75 @@ namespace Projeto_SEGUES.Data
             await context.SaveChangesAsync();
         }
 
+        public static async Task SeedSchoolsAsync(IServiceProvider serviceProvider)
+        {
+            var context = serviceProvider.GetRequiredService<AppDbContext>();
+
+            var defaultSchoolsPostalCodes = new List<PostalCode>
+            {
+                new() { Code = "2910-761" }, // Setubal
+                new() { Code = "2839-001" } // Barreiro
+            };
+            foreach (var postalCode in defaultSchoolsPostalCodes)
+            {
+                if (!await context.PostalCode.AnyAsync(pc => pc.Code == postalCode.Code))
+                    await context.PostalCode.AddAsync(postalCode);
+            }
+            await context.SaveChangesAsync();
+            
+            var setubal = await context.PostalCode.FirstOrDefaultAsync(pc => pc.Code == "2910-761");
+            var barreiro = await context.PostalCode.FirstOrDefaultAsync(pc => pc.Code == "2839-001");
+
+            var defaultSchools = new List<School>
+            {
+                new()
+                {
+                    Name = "Escola Superior de Tecnologia de Setúbal", PostalCode = setubal!, IsActive = true,
+                    City = "Setúbal", Address = "Campus do IPS, Estefanilha", Code = "ESTS"
+                },
+                new()
+                {
+                    Name = "Escola Superior de Saúde de Setúbal", PostalCode = setubal!, IsActive = true,
+                    City = "Setúbal", Address = "Campus do IPS, Estefanilha", Code = "ESSS"
+                },
+                new()
+                {
+                    Name = "Escola Superior de Educação de Setúbal", PostalCode = setubal!, IsActive = true,
+                    City = "Setúbal", Address = "Campus do IPS, Estefanilha", Code = "ESES"
+                },
+                new()
+                {
+                    Name = "Escola Superior de Ciências Empresariais de Setúbal", PostalCode = setubal!,
+                    IsActive = true, City = "Setúbal", Address = "Campus do IPS, Estefanilha", Code = "ESCE"
+                },
+                new()
+                {
+                    Name = "Escola Superior de Tecnologia do Barreiro", PostalCode = barreiro!, IsActive = true,
+                    City = "Lavradio", Address = "Rua Américo da Silva Marinho", Code = "ESTB"
+                }
+            };
+            
+            foreach (var school in defaultSchools)
+            {
+                if (!await context.School.AnyAsync(s => s.Name == school.Name))
+                    await context.School.AddAsync(school);
+            }
+            await context.SaveChangesAsync();
+        }
+
         public static async Task SeedTestData(IServiceProvider serviceProvider)
         {
             var context = serviceProvider.GetRequiredService<AppDbContext>();
             var userManager = serviceProvider.GetRequiredService<UserManager<AppUser>>();
-            
-            // Create employee
-            var employeeEmail = "employee@employee.com";
-            var employeeUser = await userManager.FindByEmailAsync(employeeEmail);
+
+            var employees = await userManager.GetUsersInRoleAsync("Employee");
+            AppUser? employeeUser = employees.FirstOrDefault();
+
             if (employeeUser == null)
             {
+                var employeeEmail = "employee@employee.com";
                 var employeeCategory = await context.UserCategory.FirstOrDefaultAsync(uc => uc.Name == "Externo");
-                var newEmployee = new AppUser
+                employeeUser = new Employee
                 {
                     UserName = employeeEmail,
                     Email = employeeEmail,
@@ -165,17 +225,19 @@ namespace Projeto_SEGUES.Data
                     Balance = 1000m,
                     CreationDate = DateTime.Now,
                     Status = UserStatus.Active,
-                    UserCategory = employeeCategory!
+                    UserCategory = employeeCategory!,
+                    School = await context.School.FirstOrDefaultAsync(s => s.Code == "ESTS"),
+                    RoleDescription = "Copa"
                 };
-                var createEmployee = await userManager.CreateAsync(newEmployee, "AdminSEGUES123!");
+                var createEmployee = await userManager.CreateAsync(employeeUser, "AdminSEGUES123!");
 
                 if (createEmployee.Succeeded)
                 {
-                    await userManager.AddToRoleAsync(newEmployee, "Employee");
+                    await userManager.AddToRoleAsync(employeeUser, "Employee");
                 }
             }
             await context.SaveChangesAsync();
-            
+
             // Products default data
             var dbProductCategories = await context.ProductCategory.ToListAsync();
             var defaultProducts = new List<Product>
@@ -228,10 +290,10 @@ namespace Projeto_SEGUES.Data
                     await context.Product.AddAsync(product);
             }
             await context.SaveChangesAsync();
-            
+
             // Create tickets
             var adminUser = await userManager.FindByEmailAsync("admin@admin.com");
-            employeeUser = await userManager.FindByEmailAsync(employeeEmail);
+            //employeeUser = await userManager.FindByEmailAsync(employeeEmail);
             var ticketPurchase = new TicketPurchase
             {
                 Quantity = 40,
@@ -239,16 +301,21 @@ namespace Projeto_SEGUES.Data
                 Value = 220m,
                 AppUser = employeeUser!
             };
-            await context.TicketPurchase.AddAsync(ticketPurchase);
+            if (!await context.TicketPurchase.AnyAsync(tp => tp.AppUser.Id == employeeUser!.Id))
+            {
+                await context.TicketPurchase.AddAsync(ticketPurchase);
+            }
             await context.SaveChangesAsync();
 
             var tickets = new List<Ticket>();
-            var now = DateTime.Now; 
-            
+            var now = DateTime.Now;
+
             /* 10 tickets same day different hours */
+            var hourRange = Math.Max(1, now.Hour - 8 + 1);
             for (int i = 0; i < 10; i++)
             {
-                var usedDate = now.Date.AddHours(i + 8); // 08h–17h
+                var hour = 8 + (i % hourRange); // Start at 8h, end at current hour, loop if more than available hours
+                var usedDate = now.Date.AddHours(hour); // 08h–17h but no future time
                 tickets.Add(new Ticket
                 {
                     ExpirationDate = now.AddDays(365),
@@ -260,66 +327,75 @@ namespace Projeto_SEGUES.Data
                     ValidatedBy = adminUser,
                     TicketPurchase = ticketPurchase
                 });
-            } 
-            /* 10 tickets in the same week but different days */ 
-            var startOfWeek = now.Date.AddDays(-(int)now.DayOfWeek + (int)DayOfWeek.Monday);
-            for (int i = 0; i < 10; i++) 
-            { 
-                var usedDate = startOfWeek.AddDays(i % 7).AddHours(9 + i);
-                tickets.Add(new Ticket 
-                { 
-                    ExpirationDate = now.AddDays(365), 
-                    State = TicketState.Used, 
-                    IsUsed = true, 
-                    UsedDate = usedDate, 
-                    Owner = employeeUser!, 
-                    ValidationCode = Guid.NewGuid().ToString("N")[..8].ToUpper(), 
-                    ValidatedBy = adminUser, 
-                    TicketPurchase = ticketPurchase 
-                }); 
-            } 
-            /* 10 tickets in the same month spread out by days */ 
-            var startOfMonth = new DateTime(now.Year, now.Month, 1);
-            for (int i = 0; i < 10; i++) 
-            { 
-                var usedDate = startOfMonth.AddDays(i * 3).AddHours(10);
-                tickets.Add(new Ticket 
-                { 
-                    ExpirationDate = now.AddDays(365), 
-                    State = TicketState.Used, 
-                    IsUsed = true,
-                    UsedDate = usedDate, 
-                    Owner = employeeUser!, 
-                    ValidationCode = Guid.NewGuid().ToString("N")[..8].ToUpper(), 
-                    ValidatedBy = adminUser, 
-                    TicketPurchase = ticketPurchase 
-                }); 
-            } 
-            /* 10 tickets in the same year spread by months */ 
-            for (int i = 0; i < 10; i++) 
-            { 
-                var usedDate = new DateTime(now.Year, (i % 12) + 1, 15).AddHours(11);
-                tickets.Add(new Ticket 
-                { 
-                    ExpirationDate = now.AddDays(365), 
-                    State = TicketState.Used, 
-                    IsUsed = true, 
-                    UsedDate = usedDate, 
-                    Owner = employeeUser!, 
-                    ValidationCode = Guid.NewGuid().ToString("N")[..8].ToUpper(), 
-                    ValidatedBy = adminUser, 
-                    TicketPurchase = ticketPurchase 
-                }); 
             }
-            
-            await context.Ticket.AddRangeAsync(tickets);
+            /* 10 tickets in the same week but different days */
+            var startOfWeek = now.Date.AddDays(-(int)now.DayOfWeek + (int)DayOfWeek.Sunday);
+            var dayOfWeekRange = Math.Max(1, (now.Date - startOfWeek).Days + 1);
+            for (int i = 0; i < 10; i++)
+            {
+                var day = (i % dayOfWeekRange) + 1; // Start at Sunday, end at current day, loop if more than available days
+                var usedDate = startOfWeek.AddDays(day).AddHours(8 + (i % 8));
+                if (usedDate > now) usedDate = usedDate.Date.AddHours(8 + (i % hourRange)); // If future time, set to current day with hour loop
+                tickets.Add(new Ticket
+                {
+                    ExpirationDate = now.AddDays(365),
+                    State = TicketState.Used,
+                    IsUsed = true,
+                    UsedDate = usedDate,
+                    Owner = employeeUser!,
+                    ValidationCode = Guid.NewGuid().ToString("N")[..8].ToUpper(),
+                    ValidatedBy = adminUser,
+                    TicketPurchase = ticketPurchase
+                });
+            }
+            /* 10 tickets in the same month spread out by days */
+            var startOfMonth = new DateTime(now.Year, now.Month, 1);
+            var dayOfMonthRange = Math.Max(1, (now.Date - startOfMonth).Days + 1);
+            for (int i = 0; i < 10; i++)
+            {
+                var day = ((i * 3) % dayOfMonthRange) + 1; // Start at 1st, end at current day, loop if more than available days
+                var usedDate = startOfMonth.AddDays(day).AddHours(8 + (i % 8));
+                if (usedDate > now) usedDate = usedDate.Date.AddHours(8 + (i % hourRange)); // If future time, set to current day with hour loop
+                tickets.Add(new Ticket
+                {
+                    ExpirationDate = now.AddDays(365),
+                    State = TicketState.Used,
+                    IsUsed = true,
+                    UsedDate = usedDate,
+                    Owner = employeeUser!,
+                    ValidationCode = Guid.NewGuid().ToString("N")[..8].ToUpper(),
+                    ValidatedBy = adminUser,
+                    TicketPurchase = ticketPurchase
+                });
+            }
+            /* 10 tickets in the same year spread by months */
+            for (int i = 0; i < 10; i++)
+            {
+                var usedDate = new DateTime(now.Year, (i % now.Month) + 1, now.Day).AddHours((i + 8) % now.Hour);
+                tickets.Add(new Ticket
+                {
+                    ExpirationDate = now.AddDays(365),
+                    State = TicketState.Used,
+                    IsUsed = true,
+                    UsedDate = usedDate,
+                    Owner = employeeUser!,
+                    ValidationCode = Guid.NewGuid().ToString("N")[..8].ToUpper(),
+                    ValidatedBy = adminUser,
+                    TicketPurchase = ticketPurchase
+                });
+            }
+
+            if (!context.Ticket.Any(t => t.Owner.Id == employeeUser!.Id))
+            {
+                await context.Ticket.AddRangeAsync(tickets);
+            }
             await context.SaveChangesAsync();
-            
+
             // Create Orders
             var orders = new List<Order>();
             var products = context.Product.ToList();
             var rnd = new Random();
-            
+
             // Local auxilliary function to create orders
             Order CreateOrder(DateTime orderDate)
             {
@@ -357,35 +433,45 @@ namespace Projeto_SEGUES.Data
                 order.TotalValue = order.ProductPurchases.Sum(l => l.ProductValue * l.Quantity);
                 return order;
             }
-            
+
             /* 10 orders in the same day with different time */
             for (int i = 0; i < 10; i++)
             {
-                var date = now.Date.AddHours(8 + i);
-                orders.Add(CreateOrder(date));
-            } 
-            /* 10 orders in the same week, in different days */
-            startOfWeek = now.Date.AddDays(-(int)now.DayOfWeek + (int)DayOfWeek.Monday);
-            for (int i = 0; i < 10; i++)
-            {
-                var date = startOfWeek.AddDays(i % 7).AddHours(9 + i);
-                orders.Add(CreateOrder(date));
-            } 
-            /* 10 orders in the same month in different days */
-            startOfMonth = new DateTime(now.Year, now.Month, 1);
-            for (int i = 0; i < 10; i++)
-            {
-                var date = startOfMonth.AddDays(i * 3).AddHours(12);
-                orders.Add(CreateOrder(date));
-            } 
-            /* 10 orders in the same year in different months */
-            for (int i = 0; i < 10; i++)
-            {
-                var date = new DateTime(now.Year, (i % 12) + 1, 15).AddHours(13);
+                var hour = 8 + (i % hourRange); // Start at 8h, end at current hour, loop if more than available hours
+                var date = now.Date.AddHours(hour); // 08h–17h but no future time
                 orders.Add(CreateOrder(date));
             }
             
-            await context.Order.AddRangeAsync(orders);
+            /* 10 orders in the same week, in different days */
+            
+            for (int i = 0; i < 10; i++)
+            {
+                var day = (i % dayOfWeekRange) + 1; // Start at Sunday, end at current day, loop if more than available days
+                var date = startOfWeek.AddDays(day).AddHours(8 + (i % 8));
+                if (date > now) date = date.Date.AddHours(8 + (i % hourRange)); // If future time, set to current day with hour loop
+                orders.Add(CreateOrder(date));
+            }
+            
+            /* 10 orders in the same month in different days */
+            for (int i = 0; i < 10; i++)
+            {
+                var day = ((i * 3) % dayOfMonthRange) + 1; // Start at 1st, end at current day, loop if more than available days
+                var date = startOfMonth.AddDays(day).AddHours(8 + (i % 8));
+                if (date > now) date = date.Date.AddHours(8 + (i % hourRange)); // If future time, set to current day with hour loop
+                orders.Add(CreateOrder(date));
+            }
+            
+            /* 10 orders in the same year in different months */
+            for (int i = 0; i < 10; i++)
+            {
+                var date = new DateTime(now.Year, (i % now.Month) + 1, now.Day).AddHours((i + 8) % now.Hour);
+                orders.Add(CreateOrder(date));
+            }
+
+            if (!context.Order.Any(o => o.AppUser.Id == employeeUser!.Id))
+            {
+                await context.Order.AddRangeAsync(orders);
+            }
             await context.SaveChangesAsync();
         }
     }

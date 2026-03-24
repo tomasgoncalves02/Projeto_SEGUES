@@ -1,0 +1,1 @@
+c['483']=[['484',"Date Property","topic_0000000000000195.html",0],['485',"Id Property","topic_0000000000000190.html",0],['486',"RowsNumb Property","topic_0000000000000192.html",0],['487',"SpaceKb Property","topic_0000000000000193.html",0],['488',"SpaceReserved Property","topic_0000000000000194.html",0],['489',"Table Property","topic_0000000000000191.html",0]];

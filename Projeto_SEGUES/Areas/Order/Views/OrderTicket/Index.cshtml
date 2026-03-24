@@ -1,4 +1,5 @@
-﻿@model IEnumerable<Projeto_SEGUES.Models.Ticket.Ticket>
+﻿@using System.Globalization
+@model IEnumerable<Projeto_SEGUES.Models.Ticket.Ticket>
 
 @{
     ViewData["Title"] = "Gestão de Senhas - SEGUES";
@@ -11,7 +12,7 @@
     <div class="row mb-4 align-items-center">
         <div class="col-md-5">
             <h2 class="fw-bold title-underline mb-2">
-                <i class="bi bi-ticket-detailed-fill me-2 text-color-ips"></i>
+                <i class="bi bi-ticket-detailed me-2 text-color-ips"></i>
                 Comprar Senhas
             </h2>
             <p class="text-muted small">Senhas de Refeições - SEGUES</p>
@@ -34,22 +35,26 @@
     <div class="row g-4">
         @* Purchase form *@
         <div class="col-lg-4">
-            <div class="card shadow-sm card-ips mb-4">
-                <div class="card-header bg-white py-3 text-color-ips">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-cart-plus me-2"></i>Nova Compra</h5>
-                </div>
-                <div class="card-body">
-                    <div class="alert alert-light border-0 small mb-4" style="background-color: var(--ips-shadow-soft);">
+            <div class="card shadow-sm card-ips hover-shadow-ips mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-color-ips mb-4">
+                        <i class="bi bi-cart-plus me-2"></i>Nova Compra
+                    </h5>
+                    <hr class="opacity-75 mb-4">
+
+                    <div class="alert border-0 small mb-4" style="background-color: var(--ips-shadow-soft);">
                         Preço para o seu perfil: <strong class="text-color-ips fs-5">@price.ToString("C")</strong>
                     </div>
                     <form asp-area="Order" asp-controller="OrderTicket" asp-action="BuyTicket" method="post" id="purchaseTicketForm">
-                        <div id="unitPrice" class="d-none">@price.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)</div>
                         <div class="mb-4">
                             <label class="form-label small fw-bold">Quantidade:</label>
-                            <input type="number" name="quantity" id="quantityInput" class="form-control border-2" min="1" value="1" step="1" @(balance < price ? "disabled" : "")/>
+                            <input type="number" name="quantity" id="quantityInput"
+                                   data-unitprice="@price.ToString("F2", CultureInfo.InvariantCulture)"
+                                   class="form-control border-secondary-subtle" min="1" value="1" step="1"
+                                   @(balance < price ? "disabled" : "") />
                         </div>
                         <div class="mb-3 small text-muted">
-                            Total: <strong id="totalValue">@price.ToString("C")</strong>
+                            Total: <strong id="totalValue" class="text-dark">@price.ToString("C")</strong>
                         </div>
                         <button type="submit" class="btn btn-ips w-100 py-2 fw-bold shadow-sm" id="submitPurchase"
                                 @(balance < price ? "disabled" : "")>
@@ -61,13 +66,13 @@
         </div>
         @* Table with ticket history *@
         <div class="col-lg-8">
-            <div class="card shadow-sm card-ips h-100">
+            <div class="card shadow-sm card-ips hover-shadow-ips h-100">
                 @* h-100 opcional para alinhar alturas *@
                 <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
                     <h5 class="mb-0 fw-bold text-color-ips"><i class="bi bi-list-check me-2"></i>Registo de Senhas</h5>
                 </div>
 
-                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                <div class="table-responsive" style="max-height: 400px;">
                     <table class="table table-hover align-middle mb-0 text-center">
                         <thead class="text-white bg-color-ips" style="position: sticky; top: 0; z-index: 1;">
                         <tr>
@@ -79,9 +84,9 @@
                         </thead>
                         <tbody id="ticket-history-body"
                                hx-get="/Ticket/Ticket/GetUpdatedTickets"
-                               hx-trigger="every 2s"
+                               hx-trigger="every 30s"
                                hx-swap="innerHTML">
-                        <partial name="_TicketTable" model="Model" />
+                        <partial name="~/Areas/Ticket/Views/Ticket/_TicketTablePartial.cshtml" model="Model" />
                         </tbody>
                     </table>
                 </div>
@@ -91,36 +96,6 @@
 </div>
 
 @section Scripts {
-    <script>
-        // Referência ao formulário
-        const purchaseTicketForm = document.getElementById('purchaseTicketForm');
-
-        if (purchaseTicketForm) {
-            const quantityInput = document.getElementById('quantityInput');
-
-            // Atualiza o total usando a função calculateTotal do teu ficheiro original
-            quantityInput.addEventListener('input', function() {
-                const totalDisplay = document.getElementById('totalValue');
-                const unitPrice = document.getElementById('unitPrice')?.textContent;
-                if (totalDisplay) {
-                    totalDisplay.textContent = calculateTotal(this.value, unitPrice);
-                }
-            });
-
-            // Submissão usando o Notifications.confirm do teu ficheiro original
-            purchaseTicketForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const quantity = quantityInput.value;
-                const totalValue = document.getElementById('totalValue')?.textContent;
-
-                Notifications.confirm(null,
-                    `Deseja comprar <b>${quantity}</b> senha(s)?<br>Total a descontar: <b>${totalValue}</b>`
-                ).then((result) => {
-                    if (result.isConfirmed) {
-                        purchaseTicketForm.submit();
-                    }
-                });
-            });
-        }
-    </script>
+    <script type="module" src="~/js/order/createOrderTicket.js"></script>
+    <script type="module" src="~/js/ticket/ticket.js"></script>
 }

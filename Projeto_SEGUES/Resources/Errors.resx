@@ -1,132 +1,291 @@
-<?xml version="1.0" encoding="utf-8"?>
-
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-<xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
-        <xsd:complexType>
-            <xsd:choice maxOccurs="unbounded">
-                <xsd:element name="metadata">
-                    <xsd:complexType>
-                        <xsd:sequence>
-                            <xsd:element name="value" type="xsd:string" minOccurs="0" />
-                        </xsd:sequence>
-                        <xsd:attribute name="name" use="required" type="xsd:string" />
-                        <xsd:attribute name="type" type="xsd:string" />
-                        <xsd:attribute name="mimetype" type="xsd:string" />
-                        <xsd:attribute ref="xml:space" />
-                    </xsd:complexType>
-                </xsd:element>
-                <xsd:element name="assembly">
-                    <xsd:complexType>
-                        <xsd:attribute name="alias" type="xsd:string" />
-                        <xsd:attribute name="name" type="xsd:string" />
-                    </xsd:complexType>
-                </xsd:element>
-                <xsd:element name="data">
-                    <xsd:complexType>
-                        <xsd:sequence>
-                            <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
-                            <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
-                        </xsd:sequence>
-                        <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="0" />
-                        <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
-                        <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
-                        <xsd:attribute ref="xml:space" />
-                    </xsd:complexType>
-                </xsd:element>
-                <xsd:element name="resheader">
-                    <xsd:complexType>
-                        <xsd:sequence>
-                            <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
-                        </xsd:sequence>
-                        <xsd:attribute name="name" type="xsd:string" use="required" />
-                    </xsd:complexType>
-                </xsd:element>
-            </xsd:choice>
-        </xsd:complexType>
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
     </xsd:element>
-</xsd:schema>
-<resheader name="resmimetype">
+  </xsd:schema>
+  <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
-</resheader>
-<resheader name="version">
+  </resheader>
+  <resheader name="version">
     <value>2.0</value>
-</resheader>
-<resheader name="reader">
+  </resheader>
+  <resheader name="reader">
     <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-</resheader>
-<resheader name="writer">
+  </resheader>
+  <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-</resheader>
-
-<!-- Standard HTTP Errors -->
-<data name="BadRequest" xml:space="preserve">
-    <value>{LogType} Invalid request affecting {Table} during {Operation}.</value>
+  </resheader>
+  <data name="BadRequest" xml:space="preserve">
+      <value>Invalid request.</value>
   </data>
-<data name="Unauthorized" xml:space="preserve">
-    <value>{LogType} Unauthorized access attempt to {Table} during {Operation}.</value>
+  <data name="Unauthorized" xml:space="preserve">
+    <value>Unauthorized access attempt.</value>
   </data>
-<data name="Forbidden" xml:space="preserve">
-    <value>{LogType} Access forbidden for {Table} during {Operation}.</value>
+  <data name="Forbidden" xml:space="preserve">
+    <value>Access forbidden.</value>
   </data>
-<data name="NotFound" xml:space="preserve">
-    <value>{LogType} Resource not found in {Table} during {Operation}.</value>
+  <data name="NotFound" xml:space="preserve">
+    <value>Resource not found.</value>
   </data>
-<data name="InternalServerError" xml:space="preserve">
-    <value>{LogType} Internal server error affecting {Table} during {Operation}.</value>
+  <data name="InternalServerError" xml:space="preserve">
+    <value>Internal server error.</value>
   </data>
-
-<!-- Database Errors -->
-<data name="DatabaseConnectionError" xml:space="preserve">
-    <value>{LogType} Failed to connect to database for {Table} during {Operation}.</value>
+  <data name="DatabaseConnectionError" xml:space="preserve">
+    <value>Failed to connect to database.</value>
   </data>
-<data name="DatabaseQueryError" xml:space="preserve">
-    <value>{LogType} Error executing query on {Table} during {Operation}.</value>
+  <data name="DatabaseQueryError" xml:space="preserve">
+    <value>Error executing query.</value>
   </data>
-<data name="DataNotFoundError" xml:space="preserve">
-    <value>{LogType} Data not found in {Table} during {Operation}.</value>
+  <data name="DataNotFoundError" xml:space="preserve">
+    <value>Data not found.</value>
   </data>
-<data name="ConcurrencyError" xml:space="preserve">
-    <value>{LogType} Concurrency conflict detected in {Table} during {Operation}.</value>
+  <data name="ConcurrencyError" xml:space="preserve">
+    <value>Concurrency conflict detected.</value>
   </data>
-
-<!-- Identity Errors -->
-<data name="InvalidCredentials" xml:space="preserve">
-    <value>{LogType} Authentication failed for user during {Operation}.</value>
+  <data name="InvalidCredentials" xml:space="preserve">
+    <value>Authentication failed for user.</value>
   </data>
-<data name="UserNotFound" xml:space="preserve">
-    <value>{LogType} User not found during {Operation}.</value>
+  <data name="UserNotFound" xml:space="preserve">
+    <value>User not found.</value>
   </data>
-<data name="InvalidToken" xml:space="preserve">
-    <value>{LogType} Invalid or expired token during {Operation}.</value>
+  <data name="InvalidToken" xml:space="preserve">
+    <value>Invalid or expired token.</value>
   </data>
-<data name="UnauthorizedAccess" xml:space="preserve">
-    <value>{LogType} Unauthorized access to {Table} during {Operation}.</value>
+  <data name="AccountLocked" xml:space="preserve">
+    <value>Account locked for user.</value>
   </data>
-<data name="AccountLocked" xml:space="preserve">
-    <value>{LogType} Account locked for user during {Operation}.</value>
+  <data name="UserAlreadyRegistered" xml:space="preserve">
+    <value>Registration failed: User already exists.</value>
   </data>
-<data name="UserAlreadyRegistered" xml:space="preserve">
-    <value>{LogType} Registration failed: User already exists during {Operation}.</value>
+  <data name="InvalidOperation" xml:space="preserve">
+    <value>Invalid operation.</value>
   </data>
-
-<!-- Business Logic Errors -->
-<data name="InvalidOperation" xml:space="preserve">
-    <value>{LogType} Invalid operation on {Table} during {Operation}.</value>
+  <data name="ValidationError" xml:space="preserve">
+    <value>Validation failed.</value>
   </data>
-<data name="ValidationError" xml:space="preserve">
-    <value>{LogType} Validation failed for {Table} during {Operation}.</value>
+  <data name="InsufficientFunds" xml:space="preserve">
+    <value>Insufficient funds for transaction.</value>
   </data>
-<data name="InsufficientFunds" xml:space="preserve">
-    <value>{LogType} Insufficient funds for transaction in {Table} during {Operation}.</value>
+  <data name="EmailSenderError" xml:space="preserve">
+    <value>Failed to send email.</value>
   </data>
-<data name="EmailSenderError" xml:space="preserve">
-    <value>{LogType} Failed to send email during {Operation}.</value>
+  <data name="UnexpectedError" xml:space="preserve">
+    <value>An unexpected error occurred.</value>
   </data>
-
-<!-- Generic -->
-<data name="UnexpectedError" xml:space="preserve">
-    <value>{LogType} An unexpected error occurred in {Table} during {Operation}.</value>
+  <data name="InvalidQuantity" xml:space="preserve">
+    <value>Invalid quantity.</value>
+  </data>
+  <data name="PricingNotAvailable" xml:space="preserve">
+    <value>Pricing not available.</value>
+  </data>
+  <data name="TicketNotFound" xml:space="preserve">
+    <value>Ticket not found.</value>
+  </data>
+  <data name="TicketAlreadyUsed" xml:space="preserve">
+      <value>Ticket already used.</value>
+  </data>
+  <data name="TicketExpired" xml:space="preserve">
+    <value>Ticket expired.</value>
+  </data>
+  <data name="TicketNotAvailable" xml:space="preserve">
+    <value>Ticket not available (cancelled or pending).</value>
+  </data>
+  <data name="SenderNotFound" xml:space="preserve">
+    <value>Sender not found.</value>
+  </data>
+  <data name="RecipientNotFound" xml:space="preserve">
+    <value>Recipient not found with the given email.</value>
+  </data>
+  <data name="TransferToSelf" xml:space="preserve">
+    <value>Cannot transfer tickets to self.</value>
+  </data>
+  <data name="CategoryMismatch" xml:space="preserve">
+      <value>Transfer recused. Can only send tickets to users of same category.</value>
+  </data>
+  <data name="TicketsNotOwned" xml:space="preserve">
+    <value>Tickets not owned.</value>
+  </data>
+  <data name="ProductCategoryNotFound" xml:space="preserve">
+    <value>Product category not found.</value>
+  </data>
+  <data name="ProductAlreadyExists" xml:space="preserve">
+    <value>Product with this name already exists.</value>
+  </data>
+  <data name="ProductCreateError" xml:space="preserve">
+    <value>Error during product creation.</value>
+  </data>
+  <data name="ProductNotFound" xml:space="preserve">
+    <value>Product not found.</value>
+  </data>
+  <data name="ProductEditError" xml:space="preserve">
+    <value>Error during product update.</value>
+  </data>
+  <data name="ProductDeleteError" xml:space="preserve">
+    <value>Error during product inactivation.</value>
+  </data>
+  <data name="CartEmpty" xml:space="preserve">
+    <value>Cart is empty.</value>
+  </data>
+  <data name="SchedulePast" xml:space="preserve">
+    <value>Cannot schedule to the past.</value>
+  </data>
+  <data name="InvalidPickupTime" xml:space="preserve">
+    <value>Invalid pickup time.</value>
+  </data>
+  <data name="BarClosed" xml:space="preserve">
+      <value>Bar is closed.</value>
+  </data>
+  <data name="InsufficientStock" xml:space="preserve">
+      <value>Insufficient stock for product.</value>
+  </data>
+  <data name="OrderProcessingError" xml:space="preserve">
+    <value>Error processing order.</value>
+  </data>
+  <data name="OrderCannotCancel" xml:space="preserve">
+    <value>Cannot cancel order.</value>
+  </data>
+  <data name="OrderCancelError" xml:space="preserve">
+    <value>Error cancelling order.</value>
+  </data>
+  <data name="InvalidStatusTransition" xml:space="preserve">
+    <value>Invalid order status transition.</value>
+  </data>
+  <data name="UseCancelFunction" xml:space="preserve">
+    <value>Must use the cancel order function.</value>
+  </data>
+  <data name="DatabaseUpdateError" xml:space="preserve">
+      <value>Error updating data in database.</value>
+  </data>
+  <data name="RedemptionCodeRequired" xml:space="preserve">
+    <value>Redemption code required.</value>
+  </data>
+  <data name="InvalidRedemptionCode" xml:space="preserve">
+    <value>Invalid redemption code.</value>
+  </data>
+  <data name="CodeExpired" xml:space="preserve">
+    <value>Code expired (5min limit), must register again.</value>
+  </data>
+  <data name="IncorrectCode" xml:space="preserve">
+    <value>Incorrect code.</value>
+  </data>
+  <data name="ResendEmailError" xml:space="preserve">
+    <value>Error resending email.</value>
+  </data>
+  <data name="EmailAlreadyRegistered" xml:space="preserve">
+    <value>Email already registered.</value>
+  </data>
+  <data name="SendActivationEmailError" xml:space="preserve">
+    <value>Error sending activation email.</value>
+  </data>
+  <data name="InvalidTimeFormat" xml:space="preserve">
+    <value>Invalid time format.</value>
+  </data>
+  <data name="NoItemsSelected" xml:space="preserve">
+    <value>Please select at least one item to proceed.</value>
+  </data>
+  <data name="RecipientEmailRequired" xml:space="preserve">
+    <value>The recipient's email is required</value>
   </data>
 </root>

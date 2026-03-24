@@ -14,23 +14,23 @@
                 <span class="fw-bold fs-5">@ViewBag.Balance.ToString("N2") €</span>
             </div >
             <div class="col-md-5 text-end">
-            <a asp-area="Order" asp-controller="CreateOrder" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4 shadow-sm">
-                <i class="bi bi-arrow-left me-2"></i> Voltar
-            </a>
+                <a asp-area="Order" asp-controller="CreateOrder" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4 shadow-sm">
+                    <i class="bi bi-arrow-left me-2"></i> Voltar
+                </a>
             </div>
         </div>
     </div>
 
     <div class="row g-4">
         <div class="col-lg-4">
-            <div class="card card-ips shadow-sm border-0 rounded-3">
+            <div class="card card-ips hover-shadow-ips shadow-sm border-0 rounded-3">
                 <div class="card-body p-4 text-center">
                     <div class="bg-light border rounded p-3 mb-4">
                         <small class="text-muted fw-bold text-uppercase d-block mb-1">Total a Pagar</small>
                         <span class="fs-1 fw-bold text-color-ips">@Model.TotalValue.ToString("N2") €</span>
                     </div>
 
-                    <form id="formConfirmacao" asp-area="Order" asp-controller="CreateOrder" asp-action="SubmitOrder" method="post">
+                    <form id="checkoutForm" asp-area="Order" asp-controller="CreateOrder" asp-action="SubmitOrder" method="post">
                         @Html.AntiForgeryToken()
                         <p class="fw-bold small mb-2 text-uppercase text-muted text-start">Data de recebimento</p>
                         <div class="row g-2 mb-4">
@@ -51,8 +51,52 @@
                             </div>
                         </div>
 
-                        @section Scripts {
-                            <script>
+                        <button type="button" id="confirmOrder"
+                                class="btn btn-ips w-100 py-3 fw-bold text-uppercase shadow-sm"
+                                @(Model.ProductPurchases.Any() ? "" : "disabled")>
+                            Confirmar compra
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card card-ips hover-shadow-ips shadow-sm border-0 rounded-3 overflow-hidden">
+                <table class="table table-hover align-middle mb-0 text-center">
+                    <thead class="bg-color-ips text-white">
+                    <tr>
+                        <th class="ps-4 text-start py-3">Nome</th>
+                        <th>Preço</th>
+                        <th>Qtd</th>
+                        <th class="pe-4">Ação</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in Model.ProductPurchases)
+                    {
+                        <tr>
+                            <td class="ps-4 text-start fw-bold">@item.Product.Name</td>
+                            <td class="text-color-ips fw-bold">@item.ProductValue.ToString("C")</td>
+                            <td><span class="badge bg-light text-dark border px-3">@item.Quantity</span></td>
+                            <td class="pe-4">
+                                <button type="button" class="btn btn-link text-muted p-0 border-0 removeFromCart" data-id="@item.ProductId" data-name="@item.Product.Name">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="module" src="~/js/order/createOrder.js"></script>
+    
+    <script>
                                 // Toggle do campo de hora
                                 document.querySelectorAll('input[name="receiveNow"]').forEach(function(radio) {
                                     radio.addEventListener('change', function() {
@@ -70,7 +114,7 @@
                                 });
 
                                 // Antes de submeter, se for "Agora" preenche a hora atual
-                                document.getElementById('formConfirmacao').addEventListener('submit', function() {
+                                document.getElementById('checkoutForm').addEventListener('submit', function() {
                                     var receiveNow = document.querySelector('input[name="receiveNow"]:checked').value;
                                     if (receiveNow === 'true') {
                                         var agora = new Date();
@@ -80,48 +124,4 @@
                                     }
                                 });
                             </script>
-                        }
-
-                        <button type="button"
-                                onclick="confirmarCompraBar('formConfirmacao')"
-                                class="btn btn-ips w-100 py-3 fw-bold text-uppercase shadow-sm"
-                                @(Model.ProductPurchases.Any() ? "" : "disabled")>
-                            Confirmar compra
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-8">
-            <div class="card card-ips shadow-sm border-0 rounded-3 overflow-hidden">
-                <table class="table table-hover align-middle mb-0 text-center">
-                    <thead class="bg-color-ips text-white">
-                        <tr>
-                            <th class="ps-4 text-start py-3">Nome</th>
-                            <th>Preço</th>
-                            <th>Qtd</th>
-                            <th class="pe-4">Ação</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model.ProductPurchases)
-                        {
-                            <tr>
-                                <td class="ps-4 text-start fw-bold">@item.Product.Name</td>
-                                <td class="text-color-ips fw-bold">@item.ProductValue.ToString("C")</td>
-                                <td><span class="badge bg-light text-dark border px-3">@item.Quantity</span></td>
-                                <td class="pe-4">
-                                    <button type="button" class="btn btn-link text-muted p-0 border-0"
-                                            onclick="removeFromCart(@item.ProductId, '@item.Product.Name')">
-                                        <i class="bi bi-x-lg"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
+}

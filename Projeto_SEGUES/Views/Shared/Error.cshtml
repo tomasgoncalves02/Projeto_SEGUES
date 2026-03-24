@@ -3,18 +3,30 @@
     ViewData["Title"] = "Erro";
 }
 
-<h1 class="text-danger">Erro.</h1>
-<h2 class="text-danger">Um erro aconteceu ao tentar executar o seu pedido.</h2>
+<div class="container text-center mt-5">
+    <h1 class="text-danger display-4 fw-bold">Erro!</h1>
+    <h2 class="text-muted mt-3">@Model.ErrorMessage</h2>
 
-<p>
-    Por favor, tente novamente. Se o problema persistir, entre em contacto com o <a mailto="segues2026@gmail.com">suporte</a>.
-</p>
-
-@if (Model.ShowRequestId)
-{
-    <p>
-        <strong>Request ID:</strong> <code>@Model.RequestId</code>
+    <p class="text-muted mt-4 text-center">
+        Por favor, tente novamente. Se o problema persistir, entre em contacto com o
+        <a href="mailto:segues2026@gmail.com" class="fw-bold text-color-ips">suporte</a>.
     </p>
-}
 
-@* Swapping to Development environment will display more detailed information about the error that occurred. *@
+    <div class="container mt-4 p-4 bg-light rounded d-inline-block text-start border shadow-sm">
+        <p class="mb-2"><strong>Código do Erro:</strong></p>
+
+        <code class="d-block mb-3 fs-5 text-danger fw-bold">@(Model.ErrorCode)</code>
+
+        <p class="mb-2"><strong>Id do pedido:</strong></p>
+        <code class="d-block mb-3 text-muted text-break">@Model.RequestId</code>
+
+        <hr />
+        <small class="text-muted d-block mt-2">
+            Por favor, forneça estes códigos ao contactar o suporte para facilitar o diagnóstico.
+        </small>
+    </div>
+
+    <div class="mt-5">
+        <a href="/" class="btn btn-ips px-5 py-2 fw-bold shadow-sm">Voltar à Página Inicial</a>
+    </div>
+</div>

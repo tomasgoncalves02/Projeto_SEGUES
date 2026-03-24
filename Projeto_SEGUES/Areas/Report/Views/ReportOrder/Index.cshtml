@@ -19,7 +19,7 @@
     </div>
 
     @* Barra de Filtros *@
-    <div class="card card-ips shadow-sm mb-4 border-0 rounded-3">
+    <div class="card card-ips hover-shadow-ips shadow-sm mb-4 border-0 rounded-3">
         <div class="card-body p-4 filter-bar">
             <div class="row g-3 align-items-end">
                 <div class="col-md-3">
@@ -54,8 +54,8 @@
     </div>
 
     @* Listagem de Pedidos *@
-    <div class="card card-ips shadow-sm border-0 rounded-3 overflow-hidden">
-        <div class="table-responsive">
+    <div class="card card-ips hover-shadow-ips shadow-sm border-0 rounded-3 overflow-hidden">
+        <div class="table-responsive" style="max-height: 500px;">
             <table class="table table-hover align-middle mb-0 text-center" id="historyTable" style="min-width: 1200px;">
                 <thead class="bg-color-ips text-white">
                 <tr>
@@ -146,7 +146,7 @@
                             </td>
 
                             <td>
-                                <button type="button" class="btn btn-sm btn-ips shadow-sm px-3" onclick="verDetalhesProdutos(@item.Id)">
+                                <button type="button" class="btn btn-sm btn-ips shadow-sm px-3 showOrderDetails" data-id="@item.Id">
                                     <i class="bi bi-eye"></i>
                                 </button>
                             </td>
@@ -161,6 +161,7 @@
 </div>
 
 @section Scripts {
+    <script type="module" src="~/js/report/reportOrder.js"></script>
     <script>
          function filterHistory() {
             const search = document.getElementById('searchInput').value.toLowerCase().trim();

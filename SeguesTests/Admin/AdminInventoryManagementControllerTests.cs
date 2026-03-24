@@ -6,7 +6,6 @@ using Projeto_SEGUES.Areas.Admin;
 using Projeto_SEGUES.Areas.Inventory.ViewModels;
 using Projeto_SEGUES.Models.Inventory;
 using Projeto_SEGUES.Services;
-using Xunit;
 
 namespace SeguesTests.Admin
 {
@@ -18,7 +17,7 @@ namespace SeguesTests.Admin
         public AdminInventoryManagementControllerTests()
         {
             _mockInventoryService = new Mock<IInventoryService>();
-            _controller = new AdminInventoryManagementController(_mockInventoryService.Object);
+            //_controller = new AdminInventoryManagementController(_mockInventoryService.Object);
 
             var httpContext = new DefaultHttpContext();
             _controller.TempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>());
@@ -60,7 +59,12 @@ namespace SeguesTests.Admin
             _controller.ModelState.AddModelError("Name", "Required");
             var model = new ProductViewModel
             {
-                Name = "test product", Description = "tset edscription", CategoryId = 1, Price = 15.00m, Stock = 5, MinimumStock = 1
+                Name = "test product",
+                Description = "tset edscription",
+                CategoryId = 1,
+                Price = 15.00m,
+                Stock = 5,
+                MinimumStock = 1
             };
 
             var result = await _controller.Create(model);
@@ -86,8 +90,16 @@ namespace SeguesTests.Admin
         [Fact]
         public async Task Edit_Get_ValidId_ReturnsViewWithViewModel()
         {
-            var product = new Product { Id = 1, Name = "Coffee",Description="Very good for the sleep" , MinimumStock = 2 , Price=12,
-                Stock=500 ,Category = new ProductCategory { Id = 1 , Description = "Food" , Name="Eating things"} };
+            var product = new Product
+            {
+                Id = 1,
+                Name = "Coffee",
+                Description = "Very good for the sleep",
+                MinimumStock = 2,
+                Price = 12,
+                Stock = 500,
+                Category = new ProductCategory { Id = 1, Description = "Food", Name = "Eating things" }
+            };
             _mockInventoryService.Setup(s => s.GetProductByIdAsync(1)).ReturnsAsync(product);
 
             var result = await _controller.Edit(1);

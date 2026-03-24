@@ -1,0 +1,1 @@
+search_result['33']=["topic_000000000000000D.html","AdminInventoryManagementController.Create Method","Processa o registo de um novo produto no inventário."];

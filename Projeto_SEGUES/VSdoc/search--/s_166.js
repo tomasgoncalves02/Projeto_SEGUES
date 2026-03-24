@@ -1,0 +1,1 @@
+search_result['166']=["topic_0000000000000052.html","ExternalLoginsModel.ShowRemoveButton Property","Define se o botão de remoção deve ser exibido, prevenindo que o utilizador fique sem métodos de acesso."];

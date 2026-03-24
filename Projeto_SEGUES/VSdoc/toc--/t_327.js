@@ -1,0 +1,1 @@
+c['327']=[['328',"GetFilteredHistory Method","topic_0000000000000107.html",0],['329',"Index Method","topic_0000000000000106.html",0]];

@@ -1,87 +1,65 @@
-﻿@{
-    ViewData["Title"] = "Horários de Funcionamento";
+﻿@model Projeto_SEGUES.Areas.Admin.ViewModels.BarCanteenConfigViewModel
 
-    // --- BAR ---
-    // Vai buscar as strings formatadas que enviamos do HomeController
-    var barOpen = ViewBag.OpeningTime ?? "08:30";
-    var barClose = ViewBag.ClosingTime ?? "23:50";
-
-    // --- REFEITÓRIO ---
-    // Converte os TimeSpan para o formato HH:mm. Se nulos, usa os valores padrão.
-    string lunchOpen = ViewBag.LunchOpenTime is TimeSpan lo ? lo.ToString(@"hh\:mm") : "12:00";
-    string lunchClose = ViewBag.LunchCloseTime is TimeSpan lc ? lc.ToString(@"hh\:mm") : "14:30";
-
-    string dinnerOpen = ViewBag.DinnerOpenTime is TimeSpan doTime ? doTime.ToString(@"hh\:mm") : "19:00";
-    string dinnerClose = ViewBag.DinnerCloseTime is TimeSpan dc ? dc.ToString(@"hh\:mm") : "21:30";
+@{
+    ViewData["Title"] = "Horários";
 }
 
-<div class="container d-flex align-items-center justify-content-center py-5" style="min-height: 80vh;">
-    <div class="row w-100 justify-content-center g-4">
-
-        @* Card do Bar *@
-        <div class="col-12 col-md-6 col-lg-5">
-            <div class="card shadow-lg border-0 h-100 card-ips" style="border-radius: 10px; overflow: hidden;">
-                <div class="bg-color-ips py-4 text-center">
-                    <h2 class="text-white fw-bold mb-0">
-                        <i class="bi bi-cup-hot-fill me-2"></i>Horário do Bar
-                    </h2>
-                </div>
-
-                <div class="card-body p-4 p-md-5">
-                    <div class="bg-color-ips-light d-flex justify-content-between align-items-center p-3 mb-3" style="border-radius: 5px;">
-                        <span class="text-color-ips fw-bold fs-4">Abertura</span>
-                        <span class="text-color-ips fw-bold fs-2">@barOpen</span>
-                    </div>
-
-                    <div class="bg-color-ips-light d-flex justify-content-between align-items-center p-3" style="border-radius: 5px;">
-                        <span class="text-color-ips fw-bold fs-4">Fecho</span>
-                        <span class="text-color-ips fw-bold fs-2">@barClose</span>
-                    </div>
-                </div>
-            </div>
+<div class="container d-flex flex-column justify-content-center py-4" style="min-height: 80vh;">
+    @* Top row *@
+    <div class="row mb-4 align-items-center">
+        <div class="col-7">
+            <h1 class="title-underline">@ViewData["Title"]</h1>
         </div>
-
-        @* Card do Refeitório *@
-        <div class="col-12 col-md-6 col-lg-5">
-            <div class="card shadow-lg border-0 h-100 card-ips" style="border-radius: 10px; overflow: hidden;">
-                <div class="bg-color-ips py-4 text-center">
-                    <h2 class="text-white fw-bold mb-0">
-                        <i class="bi bi-egg-fried me-2"></i>Horário do Refeitório
-                    </h2>
-                </div>
-
-                <div class="card-body p-4 p-md-5">
-                    @* Almoço *@
-                    <div class="mb-4">
-                        <h5 class="text-color-ips fw-bold mb-3 border-bottom border-2 pb-1" style="width: fit-content;">
-                            <i class="bi bi-sun-fill me-2"></i>ALMOÇO
-                        </h5>
-                        <div class="bg-color-ips-light d-flex justify-content-between align-items-center p-3" style="border-radius: 5px;">
-                            <span class="text-color-ips fw-bold fs-5">Horário</span>
-                            <span class="text-color-ips fw-bold fs-3">@lunchOpen - @lunchClose</span>
-                        </div>
-                    </div>
-
-                    @* Jantar *@
-                    <div>
-                        <h5 class="text-color-ips fw-bold mb-3 border-bottom border-2 pb-1" style="width: fit-content;">
-                            <i class="bi bi-moon-stars-fill me-2"></i>JANTAR
-                        </h5>
-                        <div class="bg-color-ips-light d-flex justify-content-between align-items-center p-3" style="border-radius: 5px;">
-                            <span class="text-color-ips fw-bold fs-5">Horário</span>
-                            <span class="text-color-ips fw-bold fs-3">@dinnerOpen - @dinnerClose</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        @* Botão Voltar *@
-        <div class="col-12 text-center mt-4">
-            <a asp-controller="Home" asp-action="Index" class="fw-bold text-color-ips text-decoration-none border-bottom border-2 border-color-ips pb-1">
-                Voltar
+        <div class="col-5 text-end">
+            <a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4">
+                <i class="bi bi-arrow-left me-2"></i>Voltar
             </a>
         </div>
-
+    </div>
+    <div class="row w-100 justify-content-center g-4">
+        @* Bar Card *@
+        <div class="col-12 col-md-6 col-lg-5">
+            <div class="card hover-shadow-ips shadow-lg border-0 rounded-3">
+                <div class="card-header bg-color-ips py-4 text-center border-0">
+                    <h2 class="text-white fw-bold mb-0">
+                        <i class="bi bi-cup-hot me-2"></i>Horário do Bar
+                    </h2>
+                </div>
+                @* Bar Opening and Closing Time *@
+                <div class="card-body p-4 p-md-5">
+                    <div class="bg-color-ips-light d-flex justify-content-between align-items-center p-3 mb-3 rounded-2">
+                        <span class="text-color-ips fw-bold fs-4">Abertura</span>
+                        <span class="text-color-ips fw-bold fs-2">@Model.BarOpeningTimeString</span>
+                    </div>
+                    <div class="bg-color-ips-light d-flex justify-content-between align-items-center p-3 rounded-2">
+                        <span class="text-color-ips fw-bold fs-4">Fecho</span>
+                        <span class="text-color-ips fw-bold fs-2">@Model.BarClosingTimeString</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        @* Canteen Card *@
+        <div class="col-12 col-md-6 col-lg-5">
+            <div class="card hover-shadow-ips shadow-lg border-0 rounded-3">
+                <div class="card-header bg-color-ips py-4 text-center border-0">
+                    <h2 class="text-white fw-bold mb-0">
+                        <i class="icon-fork-knife me-2"></i>Horário do Refeitório
+                    </h2>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    @* Lunch *@
+                    <div class="bg-color-ips-light d-flex justify-content-between align-items-center p-3 mb-3 rounded-2">
+                        <span class="text-color-ips fw-bold fs-4"><i class="bi bi-sun me-2"></i>Almoço</span>
+                        <span class="text-color-ips fw-bold fs-3">@Model.CanteenLunchOpeningTimeString - @Model.CanteenLunchClosingTimeString</span>
+                    </div>
+                    @* Dinner *@
+                    <div class="bg-color-ips-light d-flex justify-content-between align-items-center p-3 mb-3 rounded-2">
+                        <span class="text-color-ips fw-bold fs-4"><i class="bi bi-moon-stars me-2"></i>Jantar</span>
+                        <span class="text-color-ips fw-bold fs-3">@Model.CanteenDinnerOpeningTimeString - @Model.CanteenDinnerClosingTimeString</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>

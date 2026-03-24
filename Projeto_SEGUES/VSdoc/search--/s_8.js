@@ -1,0 +1,1 @@
+search_result['8']=["topic_0000000000000003.html","AdminController Class","Controller principal da área administrativa do sistema."];

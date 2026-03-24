@@ -1,0 +1,1 @@
+search_result['520']=["topic_000000000000010A.html","ReportTransactionController Constructor","Inicializa uma nova instância do controlador de relatórios de transações."];

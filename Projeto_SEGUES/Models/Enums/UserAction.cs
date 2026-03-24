@@ -2,6 +2,7 @@ namespace Projeto_SEGUES.Models.Enums;
 
 public enum UserAction : byte
 {
+    // Identity
     LogIn,
     LogOut,
     FailedLogin,
@@ -13,16 +14,21 @@ public enum UserAction : byte
     AccountLocked,
     AccountUnlocked,
     SessionTimedOut,
+    
+    // Business Actions
+    SuccessPayment,
+    FailedPayment,
+
+    // Employee Actions
+    ValidateTicket,
+    ValidateOrder,
+    UpdateStatus,
+
+    // Database Actions
+    Create,
+    Update,
+    Delete,
+    
+    // General
     Other,
-
-        // --- Ações de Negócio SEGUES (ADICIONAR ESTES) ---
-    ValidateTicket,   // Quando o funcionário valida uma senha de refeição
-    ValidateOrder,    // Quando o funcionário entrega um pedido do bar (Redemption Code)
-    UpdateStatus,     // Quando o funcionário muda o estado de um pedido (ex: Pendente -> Pronto)
-
-    // --- Gestão de Dados ---
-    Create,           // Criar novos registos 
-    Update,           // Editar registos existentes
-    Delete,           // Apagar registos
-
 }

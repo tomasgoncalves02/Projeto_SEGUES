@@ -1,9 +1,10 @@
 ﻿@using Microsoft.AspNetCore.Identity
+@using Projeto_SEGUES.Areas.Order.ViewModels
 @inject SignInManager<Projeto_SEGUES.Models.User.AppUser> SignInManager
 
 @{
     ViewData["Title"] = "Página Inicial - SEGUES";
-    var balance = ViewBag.UserBalance ?? 0m;
+    OrderTotalViewModel cartTotal = ViewBag.CartTotal;
 }
 
 @if (!SignInManager.IsSignedIn(User))
@@ -11,23 +12,33 @@
     <div class="container d-flex flex-column px-xl-0 py-xl-4" style="min-height: 80vh;">
         <div class="row align-items-center flex-grow-1">
             <div class="col-lg-5">
-                <p class="fw-bold mb-1 text-muted small">BEM-VINDO AO</p>
-                <h1 class="display-1 fw-bold">SEGUES<span class="text-color-ips">.</span></h1>
-                <h2 class="fw-bold mb-4">SISTEMA DE GESTÃO DE <span class="text-color-ips">SENHAS</span></h2>
+                <p class="fs-3 mb-1 text-muted">BEM-VINDO AO</p>
+                <h1 class="display-1 fw-bold">S<span class="text-color-ips">.</span>E<span class="text-color-ips">.</span>G<span class="text-color-ips">.</span>U<span class="text-color-ips">.</span>E<span class="text-color-ips">.</span>S<span class="text-color-ips">.</span></h1>
+                <h2 class="fw-bold mb-4">
+                    <span aria-hidden="true">
+                        <b class="text-color-ips fs-1">S</b>istema <b class="text-color-ips fs-1">E</b>letrónico de <b class="text-color-ips fs-1">G</b>estão <b class="text-color-ips fs-1">U</b>niversitária de <b class="text-color-ips fs-1">E</b>ncomendas e <b class="text-color-ips fs-1">S</b>enhas
+                    </span>
+                    <span class="visually-hidden">
+                        Sistema Eletrónico de Gestão Universitária de Encomendas e Senhas
+                    </span>
+                </h2>
 
                 <p class="fs-5 text-muted mb-4">
                     Compra as tuas senhas no refeitório e faz pedidos no bar de forma rápida e simples.
                 </p>
-
-                <div class="button-group-wrapper" style="max-width: 450px;">
+                
+                <div style="max-width: 450px;">
                     <div class="d-flex gap-2 mb-2">
-                        <button onclick="escolherEmenta()" class="btn btn-ips py-3 flex-fill fw-bold col-2">
-                            VER EMENTA
+                        <button id="pickMenu"
+                                class="btn btn-ips py-3 flex-fill fw-bold"
+                                data-canteen="@ViewBag.CanteenLink"
+                                data-bar="@ViewBag.BarLink">
+                            Ver Ementa
                         </button>
-                        <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-ips-outline-secondary py-3 flex-fill fw-bold col-2">INICIAR SESSÃO</a>
+                        <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-ips-outline-secondary py-3 flex-fill fw-bold col-2">Iniciar Sessão</a>
                     </div>
                     <a asp-controller="Home" asp-action="Schedule" class="btn btn-ips w-100 py-3 fw-bold">
-                        HORÁRIO DE FUNCIONAMENTO
+                        Horário de Funcionamento
                     </a>
                 </div>
             </div>
@@ -38,28 +49,49 @@
         </div>
 
         <div class="text-center mt-auto pt-4">
-            <p class="mb-0">Não tens conta? <a asp-area="Identity" asp-page="/Account/Register" class="fw-bold text-color-ips text-decoration-none border-bottom border-2">Regista-te</a></p>
+            <p class="mb-0">Não tens conta? <a asp-area="Identity" asp-page="/Account/Register" class="fw-bold text-color-ips">Regista-te aqui.</a></p>
         </div>
     </div>
+    @section Scripts {
+        <script type="module" src="~/js/home.js"></script>
+    }
 }
 else
 {
-    
-    <div class="container mt-5">
-        <div class="row mb-5">
-            <div class="col-12">
-                <h3 class="fw-bold display-5">Olá, @ViewBag.FirstName! 👋</h3>
-                <p class="text-muted fs-5">Selecione uma das opções abaixo para gerir os seus serviços.</p>
+    var balance = ViewBag.UserBalance ?? 0m;
+    <div class="container mt-5 text-start">
+        <div class="flex-column mb-3 align-items-center">
+            <div class="flex-column flex-sm-row d-flex justify-content-between align-items-center mb-2">
+                <h3 class="fw-bold display-5 mb-2">Olá, @ViewBag.FirstName! 👋</h3>
+                @if (cartTotal is { TotalQuantity: > 0 })
+                {
+                    <div class="d-flex align-items-center bg-light p-2 px-3 rounded-3 shadow-sm border">
+                        <div class="text-center me-3 border-end pe-3">
+                            <span class="fw-bold small d-block text-uppercase text-muted mb-1">Carrinho</span>
+                            <a asp-area="Order" asp-controller="CreateOrder" asp-action="Checkout" class="position-relative d-inline-block text-decoration-none">
+                                <i class="bi bi-cart-check fs-2 text-color-ips"></i>
+                                <span id="cartCount" class="position-absolute badge rounded-pill bg-danger fs-7"
+                                      style="top: -2px; right: -5px; padding: 0.35em 0.5em; border: 2px solid white;">
+                                    @cartTotal.TotalQuantity
+                                </span>
+                            </a>
+                        </div>
+                        <div class="text-center">
+                            <span class="fw-bold small d-block text-uppercase text-muted">Total</span>
+                            <span id="cartTotal" class="fw-bold text-color-ips fs-5">@cartTotal.TotalValue.ToString("C")</span>
+                        </div>
+                    </div>
+                }
             </div>
+            <p class="text-muted fs-5">Selecione uma das opções abaixo para gerir os seus serviços.</p>
         </div>
-
         <div class="row g-4">
             @* Balance Card *@
             <div class="col-md-6 col-lg-3">
-                <div class="card h-100 shadow-sm card-ips bg-color-ips text-white hover-translate d-flex flex-column">
+                <div class="card h-100 shadow-sm card-ips hover-shadow-ips bg-color-ips text-white hover-translate d-flex flex-column">
                     <div class="card-body text-center d-flex flex-column p-4">
                         <small class="d-block opacity-75 fw-bold mb-2 fs-4">Saldo Disponível</small>
-                        <h2 class="display-6 fw-bold my-auto">@balance.ToString("C")</h2>
+                        <h2 class="display-6 fw-bold my-auto mb-2">@balance.ToString("C")</h2>
                         <div class="mt-auto">
                             <a asp-area="Payment" asp-controller="Payment" asp-action="Deposit" class="btn btn-ips fw-bold w-100 py-2" style="border: 1px solid var(--ips-border) !important">Carregar Saldo</a>
                         </div>
@@ -69,9 +101,9 @@ else
 
             @* Ticket Card *@
             <div class="col-md-6 col-lg-3">
-                <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
+                <div class="card h-100 shadow-sm card-ips hover-shadow-ips hover-translate d-flex flex-column">
                     <div class="card-body text-center d-flex flex-column p-4">
-                        <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-cart-plus"></i></div>
+                        <div class="fs-1 mb-3 text-color-ips"><i class="icon-fork-knife bg-color-ips" style="mask-size: 40px 47px; width: 40px; height: 47px;"></i></div>
                         <h5 class="fw-bold">Refeitório</h5>
                         <p class="text-muted small mb-4">Compra e usa as tuas senhas de refeição.</p>
                         <div class="mt-auto">
@@ -83,7 +115,7 @@ else
 
             @* Bar Card *@
             <div class="col-md-6 col-lg-3">
-                <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
+                <div class="card h-100 shadow-sm card-ips hover-shadow-ips hover-translate d-flex flex-column">
                     <div class="card-body text-center d-flex flex-column p-4">
                         <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-cup-straw"></i></div>
                         <h5 class="fw-bold">Bar</h5>
@@ -97,7 +129,7 @@ else
 
             @* History Card *@
             <div class="col-md-6 col-lg-3">
-                <div class="card h-100 shadow-sm card-ips hover-translate d-flex flex-column">
+                <div class="card h-100 shadow-sm card-ips hover-shadow-ips hover-translate d-flex flex-column">
                     <div class="card-body text-center d-flex flex-column p-4">
                         <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-clock-history"></i></div>
                         <h5 class="fw-bold">Histórico</h5>
@@ -113,12 +145,12 @@ else
             @if (User.IsInRole("Employee"))
             {
                 <div class="col-md-6 col-lg-3">
-                    <div class="card h-100 shadow-sm card-ips p-4 hover-translate">
+                    <div class="card h-100 shadow-sm card-ips hover-shadow-ips p-4 hover-translate">
                         <div class="card-body text-center d-flex flex-column p-0">
-                            <div class="mb-3 text-color-ips" style="color: #009697; font-size: 2.5rem;">
-                                <i class="bi bi-person-badge-fill"></i>
+                            <div class="mb-3 text-color-ips fs-1">
+                                <i class="bi bi-person-badge"></i>
                             </div>
-                            <h5 class="fw-bold" style="color: #2D2926;">Painel de Gestão</h5>
+                            <h5 class="fw-bold">Painel de Gestão</h5>
                             <p class="text-muted small mb-4">Efetua as tuas tarefas de funcionário e gestão de refeições.</p>
                             <div class="mt-auto">
                                 <a asp-area="Admin" asp-controller="Employee" asp-action="Index" class="btn w-100 py-2 fw-bold btn-ips">Ver Painel</a>
@@ -131,11 +163,11 @@ else
             @if (User.IsInRole("Admin"))
             {
                 <div class="col-12 mt-4">
-                    <div class="card shadow-lg card-admin p-4 hover-translate">
+                    <div class="card shadow-lg card-admin hover-shadow-ips p-4 hover-translate">
                         <div class="row align-items-center">
                             <div class="col-md-8">
                                 <h4 class="fw-bold mb-1"><i class="bi bi-shield-lock me-2"></i>Painel de Administração</h4>
-                                <p class="mb-0 opacity-75">Configurações de limites e gestão de contas internas.</p>
+                                <p class="mb-0 opacity-75 py-1">Configurações de limites e gestão de contas internas.</p>
                             </div>
                             <div class="col-md-4 text-center">
                                 <a asp-area="Admin" asp-controller="Admin" asp-action="Index" class="btn btn-outline-light btn-lg px-5">Gerir Sistema &#x2192</a>

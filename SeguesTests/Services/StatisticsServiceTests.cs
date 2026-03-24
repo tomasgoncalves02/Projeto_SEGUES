@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Inventory;
@@ -6,8 +6,6 @@ using Projeto_SEGUES.Models.Order;
 using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
-using System.Reflection; // Necessário para ler as propriedades
-using Xunit;
 
 namespace SeguesTests.Services
 {
@@ -69,7 +67,7 @@ namespace SeguesTests.Services
             );
             await context.SaveChangesAsync();
 
-            var result = await service.GetBarStats(1);
+            var result = await service.GetOrdersStats(1);
 
             var totalConsumptions = (int)GetPropValue(result, "totalConsumptions");
             var totalRevenue = (decimal)GetPropValue(result, "totalRevenue");
@@ -95,7 +93,7 @@ namespace SeguesTests.Services
             context.Order.Add(order);
             await context.SaveChangesAsync();
 
-            var result = await service.GetBarStats(1);
+            var result = await service.GetOrdersStats(1);
 
             var topProducts = GetPropValue(result, "topProducts") as IEnumerable<object>;
 
@@ -129,7 +127,7 @@ namespace SeguesTests.Services
                     Owner = pedro,
                     State = TicketState.Used,
                     ExpirationDate = DateTime.Now.AddDays(1),
-                    TicketPurchase = p1 
+                    TicketPurchase = p1
                 },
                 new Ticket
                 {
@@ -139,7 +137,7 @@ namespace SeguesTests.Services
                     Owner = staff,
                     State = TicketState.Used,
                     ExpirationDate = DateTime.Now.AddDays(1),
-                    TicketPurchase = p2 
+                    TicketPurchase = p2
                 }
             );
             await context.SaveChangesAsync();
@@ -166,7 +164,7 @@ namespace SeguesTests.Services
             );
             await context.SaveChangesAsync();
 
-            var result = await service.GetBarStats(1);
+            var result = await service.GetOrdersStats(1);
             var totalConsumptions = (int)GetPropValue(result, "totalConsumptions");
 
             Assert.Equal(1, totalConsumptions);
@@ -180,7 +178,7 @@ namespace SeguesTests.Services
             var context = GetDatabaseContext();
             var service = new StatisticsService(context);
 
-            var result = await service.GetBarStats(1);
+            var result = await service.GetOrdersStats(1);
             var totalRevenue = (decimal)GetPropValue(result, "totalRevenue");
             var topProducts = GetPropValue(result, "topProducts") as IEnumerable<object>;
 

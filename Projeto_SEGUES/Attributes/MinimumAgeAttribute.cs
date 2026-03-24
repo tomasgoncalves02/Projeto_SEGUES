@@ -9,16 +9,14 @@ public class MinimumAgeAttribute : ValidationAttribute
 
     protected override ValidationResult IsValid(object? value, ValidationContext validationContext)
     {
-        if (value is not DateTime dateOfBirth)
-        {
-            return new ValidationResult("Data de nascimento inválida.");
-        }
-        var today = DateTime.Today; 
+        if (value is not DateTime dateOfBirth) return new ValidationResult("Data de nascimento inválida.");
+        
+        var today = DateTime.Today;
         var age = today.Year - dateOfBirth.Year;
-        if (dateOfBirth > today.AddYears(-age)) 
-            age--; 
-        return age < MinimumAge 
-            ? new ValidationResult($"A idade mínima é de {MinimumAge} anos.") 
+        if (dateOfBirth > today.AddYears(-age))
+            age--;
+        return age < MinimumAge
+            ? new ValidationResult($"A idade mínima é de {MinimumAge} anos.")
             : ValidationResult.Success!;
     }
 }

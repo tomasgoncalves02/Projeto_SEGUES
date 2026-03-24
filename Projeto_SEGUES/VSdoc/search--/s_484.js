@@ -1,0 +1,1 @@
+search_result['484']=["topic_00000000000000FA.html","PaymentController.CreateCheckoutSession Method","Cria uma sessão de Checkout no Stripe e regista uma transação pendente no sistema."];

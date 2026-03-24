@@ -4,10 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Moq;
 using Projeto_SEGUES.Areas.Admin;
-using Projeto_SEGUES.Areas.Admin.ViewModels;
+using Projeto_SEGUES.Areas.User.ViewModels;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.Audit;
 using Projeto_SEGUES.Models.Enums;
@@ -15,7 +14,9 @@ using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using System.Security.Claims;
 using System.Security.Principal;
-using Xunit;
+using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging;
+using Projeto_SEGUES.Resources;
 
 namespace SeguesTests.Admin
 {
@@ -25,6 +26,8 @@ namespace SeguesTests.Admin
         private readonly Mock<IAdminService> _mockAdminService;
         private readonly AdminUserManagementController _controller;
         private readonly AppDbContext _context;
+        private readonly Mock<ILogger<AdminUserManagementController>> _mockLogger;
+        private readonly Mock<IStringLocalizer<Errors>> _mockLocalizer;
 
         public AdminUserManagementControllerTests()
         {
@@ -36,9 +39,9 @@ namespace SeguesTests.Admin
             var store = new Mock<IUserStore<AppUser>>();
             _mockUserManager = new Mock<UserManager<AppUser>>(store.Object, null, null, null, null, null, null, null, null);
             _mockAdminService = new Mock<IAdminService>();
-            
 
-            _controller = new AdminUserManagementController(_mockUserManager.Object, _mockAdminService.Object, _context);
+
+            _controller = new AdminUserManagementController(_mockUserManager.Object, _mockAdminService.Object, _context, _mockLogger.Object, _mockLocalizer.Object);
 
             var httpContext = new DefaultHttpContext();
             _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
@@ -86,8 +89,8 @@ namespace SeguesTests.Admin
             var result = await _controller.Edit("1");
 
             var viewResult = Assert.IsType<ViewResult>(result);
-            var model = Assert.IsType<EditUserViewModel>(viewResult.Model);
-            Assert.Equal(user.Email, model.Email);
+            var model = Assert.IsType<EditUserAdminViewModel>(viewResult.Model);
+            Assert.Equal(user.Id, model.Id);
         }
 
 
@@ -95,17 +98,16 @@ namespace SeguesTests.Admin
         [Fact]
         public async Task Edit_Post_ValidModel_RedirectsToIndex()
         {
-            var model = new EditUserViewModel
+            var model = new EditUserAdminViewModel
             {
                 Id = "1",
-                Email = "new@test.com",
                 FirstName = "New",
                 LastName = "Name",
                 Category = "Estudante",
                 Role = "Admin",
                 Gender = Gender.Male,
                 BirthDate = DateTime.Now.AddYears(-20),
-                Balance = 10.00m 
+                Balance = 10.00m
             };
 
             var user = CreateTestUser("1", "old@test.com");

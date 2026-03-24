@@ -8,7 +8,6 @@ using Projeto_SEGUES.Areas.Ticket.ViewModels;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using System.Security.Claims;
-using Xunit;
 
 namespace SeguesTests.Tickets
 {
@@ -37,7 +36,7 @@ namespace SeguesTests.Tickets
             LastName = "Staff",
             BirthDate = DateTime.Today.AddYears(-20),
             Gender = Projeto_SEGUES.Models.Enums.Gender.Male,
-            UserCategory = new UserCategory { Name ="Employee"},
+            UserCategory = new UserCategory { Name = "Employee" },
             Email = "pedro.staff@segues.pt"
         };
 
@@ -138,7 +137,7 @@ namespace SeguesTests.Tickets
             await _controller.Index(model);
 
             Assert.True(_controller.ModelState.IsValid);
-            Assert.Equal(0, _controller.ModelState.Count);
+            Assert.Empty(_controller.ModelState);
         }
 
         // Ensures that the recent tickets list is still refreshed even if the submitted validation code is null or empty
