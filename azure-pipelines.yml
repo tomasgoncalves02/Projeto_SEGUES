@@ -6,8 +6,9 @@ pool:
 
 variables:
   buildConfiguration: 'Release'
+  # Nome exato confirmado na sua imagem do portal
   webAppName: 'segues-projeto-esa-pv'     
-  azureServiceConnection: 'ConexaoAzure'    
+  azureServiceConnection: 'ConexaoAzure' 
 
 stages:
 - stage: Build
@@ -20,12 +21,22 @@ stages:
       inputs:
         version: '8.x'
 
+    # O comando publish agora gera explicitamente um ficheiro ZIP
     - script: dotnet publish --configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)
-      displayName: 'Publicar e Gerar ZIP'
+      displayName: 'Publicar Projeto'
 
-    - publish: $(Build.ArtifactStagingDirectory)
+    - task: ArchiveFiles@2
+      displayName: 'Zipar Artefactos'
+      inputs:
+        rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
+        includeRootFolder: false
+        archiveType: 'zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+        replaceExistingArchive: true
+
+    - publish: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
       artifact: drop
-      displayName: 'Guardar Artefacto'
+      displayName: 'Guardar Artefacto ZIP'
 
 - stage: Deploy
   displayName: 'CD - Enviar para o Azure'
@@ -39,8 +50,10 @@ stages:
         deploy:
           steps:
           - task: AzureWebApp@1
-            displayName: 'Deploy para App Service'
+            displayName: 'Deploy para App Service (Windows)'
             inputs:
               azureSubscription: $(azureServiceConnection)
+              appType: 'webApp' # Definido como Web App (Windows)
               appName: $(webAppName)
-              package: '$(Pipeline.Workspace)/drop/**/*.zip'
+              # Caminho exato para o ficheiro zipado
+              package: '$(Pipeline.Workspace)/drop/$(Build.BuildId).zip'
