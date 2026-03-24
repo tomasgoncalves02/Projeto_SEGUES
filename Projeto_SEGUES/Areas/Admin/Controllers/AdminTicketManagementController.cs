@@ -250,17 +250,23 @@ public class AdminTicketManagementController : Controller
     {
         try
         {
+            // 1. Busca os dados (Certifica-te que o Service usa AsNoTracking para ser rápido)
             var history = await _ticketService.GetAllTicketsAsync();
+
+            // 2. Caminho do logo
             var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo-ips.png");
 
             var document = Document.Create(container =>
             {
                 container.Page(page =>
                 {
+                    
                     page.Size(PageSizes.A4.Landscape());
                     page.Margin(20);
-                    page.PageColor(Colors.White);
+                    page.PageColor(Colors.White);                   
+                    page.DefaultTextStyle(x => x.FontFamily("Roboto").FontSize(9));
 
+                    // Cabeçalho
                     page.Header().PaddingBottom(10).Row(row =>
                     {
                         if (System.IO.File.Exists(logoPath))
@@ -275,6 +281,7 @@ public class AdminTicketManagementController : Controller
                         });
                     });
 
+                    // Conteúdo / Tabela
                     page.Content().Table(table =>
                     {
                         table.ColumnsDefinition(columns =>
@@ -295,7 +302,8 @@ public class AdminTicketManagementController : Controller
                             string[] colNames = { "Dono Atual", "Código", "Estado", "Compra", "Data Transf.", "Enviado Por", "Recebido Por", "Uso", "Expiração" };
                             foreach (var name in colNames)
                             {
-                                header.Cell().Background(Color.FromHex("#009697")).Padding(5).AlignCenter().Text(name).FontColor(Colors.White).FontSize(8).SemiBold();
+                                header.Cell().Background(Color.FromHex("#009697")).Padding(5).AlignCenter()
+                                      .Text(name).FontColor(Colors.White).FontSize(8).SemiBold();
                             }
                         });
 
@@ -303,34 +311,40 @@ public class AdminTicketManagementController : Controller
                         {
                             var lastTrans = t.Transfers?.OrderByDescending(x => x.TransferDate).FirstOrDefault();
 
+                            
                             table.Cell().Element(ContentStyle).AlignLeft().Column(c =>
                             {
                                 c.Item().Text($"{t.Owner?.FirstName} {t.Owner?.LastName}").FontSize(8).SemiBold();
                                 c.Item().Text(t.Owner?.Email).FontSize(7).FontColor(Colors.Grey.Medium);
                             });
-
-                            table.Cell().Element(ContentStyle).Text(t.ValidationCode).FontFamily(Fonts.CourierNew).FontSize(8);
-                            table.Cell().Element(ContentStyle).Text(t.IsUsed ? "Usada" : (t.ExpirationDate < DateTime.Now ? "Expirada" : "Disponível")).FontSize(8);
-                            table.Cell().Element(ContentStyle).Text(t.TicketPurchase?.TransactionDate.ToString("dd/MM/yy HH:mm") ?? "-").FontSize(8);
-                            table.Cell().Element(ContentStyle).Text(lastTrans?.TransferDate.ToString("dd/MM/yy") ?? "-").FontSize(8);
-                            table.Cell().Element(ContentStyle).Text(lastTrans?.Sender?.UserName ?? "-").FontSize(8);
-                            table.Cell().Element(ContentStyle).Text(lastTrans?.Receiver?.UserName ?? "Compra Direta").FontSize(8);
-                            table.Cell().Element(ContentStyle).Text(t.IsUsed ? t.UsedDate?.ToString("dd/MM/yy") : "-").FontSize(8);
-                            table.Cell().Element(ContentStyle).Text(t.ExpirationDate.ToString("dd/MM/yy")).FontSize(8);
+               
+                            table.Cell().Element(ContentStyle).AlignCenter().Text(t.ValidationCode).FontSize(8);
+                            table.Cell().Element(ContentStyle).AlignCenter().Text(t.IsUsed ? "Utilizada" : (t.ExpirationDate < DateTime.Now ? "Expirada" : "Disponível")).FontSize(8);
+                            table.Cell().Element(ContentStyle).AlignCenter().Text(t.TicketPurchase?.TransactionDate.ToString("dd/MM/yy HH:mm") ?? "-").FontSize(8);
+                            table.Cell().Element(ContentStyle).AlignCenter().Text(lastTrans?.TransferDate.ToString("dd/MM/yy") ?? "-").FontSize(8);
+                            table.Cell().Element(ContentStyle).AlignCenter().Text(lastTrans?.Sender?.UserName ?? "-").FontSize(8);
+                            table.Cell().Element(ContentStyle).AlignCenter().Text(lastTrans?.Receiver?.UserName ?? "Compra Direta").FontSize(8);
+                            table.Cell().Element(ContentStyle).AlignCenter().Text(t.IsUsed ? t.UsedDate?.ToString("dd/MM/yy") : "-").FontSize(8);
+                            table.Cell().Element(ContentStyle).AlignCenter().Text(t.ExpirationDate.ToString("dd/MM/yy")).FontSize(8);
                         }
                     });
 
-                    page.Footer().AlignCenter().Text(x =>
+                    // Rodapé
+                    page.Footer().PaddingTop(5).AlignCenter().Text(x =>
                     {
-                        x.Span("Página "); x.CurrentPageNumber();
+                        x.Span("Página ");
+                        x.CurrentPageNumber();
+                        x.Span(" de ");
+                        x.TotalPages();
                     });
                 });
             });
 
-            return File(document.GeneratePdf(), "application/pdf", "Auditoria_Senhas_IPS.pdf");
+            return File(document.GeneratePdf(), "application/pdf", $"Auditoria_Senhas_{DateTime.Now:yyyyMMdd}.pdf");
         }
         catch (Exception ex)
         {
+            // Restauro dos teus logs originais
             _logger.LogError(ex, "Erro ao exportar PDF de auditoria de senhas.");
 
             var erroEnum = AppErrors.InternalServerError;
@@ -347,5 +361,5 @@ public class AdminTicketManagementController : Controller
     /// <param name="container">QuestPDF container to style.</param>
     /// <returns>The container with applied borders, padding, and alignment.</returns>
     static IContainer ContentStyle(IContainer container) =>
-        container.PaddingVertical(4).BorderBottom(1).BorderColor(Colors.Grey.Lighten3).AlignCenter();
+        container.PaddingVertical(4).BorderBottom(1).BorderColor(Colors.Grey.Lighten3).AlignCenter().AlignMiddle();
 }

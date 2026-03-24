@@ -11,6 +11,7 @@ using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using System.Security.Claims;
 using Microsoft.Extensions.Logging;
+using Projeto_SEGUES.Areas.Ticket.ViewModels;
 
 namespace SeguesTests.Tickets
 {
@@ -26,13 +27,12 @@ namespace SeguesTests.Tickets
 
         private async Task<(AppUser currentUser, AppUser recipientUser, Mock<ITicketService> mockService, TicketController controller)> SetupFullEnv(string currentUserId, string recipientEmail, bool sameCategory = true)
         {
-            var context = GetDatabaseContext();
             var mockUserMgr = GetMockUserManager();
             var mockService = new Mock<ITicketService>();
             var mockAdminService = new Mock<IAdminService>();
             var mockLogger = GetMockLogger();
 
-            var controller = new TicketController(mockUserMgr.Object, mockService.Object, context, mockAdminService.Object, mockLogger.Object);
+            var controller = new TicketController(mockUserMgr.Object, mockService.Object, mockAdminService.Object);
 
             var catEstudante = new UserCategory { Id = 1, Name = "Estudante" };
             var catProfessor = new UserCategory { Id = 2, Name = "Professor" };
@@ -59,10 +59,7 @@ namespace SeguesTests.Tickets
                 BirthDate = DateTime.Now.AddYears(-22),
                 Gender = Gender.Male
             };
-
-            context.UserCategory.AddRange(catEstudante, catProfessor);
-            context.Users.AddRange(currentUser, recipientUser);
-            await context.SaveChangesAsync();
+            
 
             var identity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, currentUserId) }, "Test");
             var httpContext = new DefaultHttpContext { User = new ClaimsPrincipal(identity) };
@@ -94,10 +91,15 @@ namespace SeguesTests.Tickets
         {
             var (_, _, _, controller) = await SetupFullEnv("u-pedro", "dest@segues.pt");
 
-            var result = await controller.TransferTickets(new List<string>(), "dest@segues.pt");
+            var vm = new TransferTicketViewModel
+            {
+                RecipientEmail = "dest@segues.pt",
+                SelectedTickets = new List<string>() // No tickets selected
+            };
+            var result = await controller.TransferTickets(vm);
 
             var redirect = Assert.IsType<RedirectToActionResult>(result);
-            Assert.Equal("SendTicket", redirect.ActionName);
+            Assert.Equal("TransferTicket", redirect.ActionName);
             Assert.Contains("error", controller.TempData["SwalData"]?.ToString()?.ToLower());
         }
 
@@ -112,7 +114,13 @@ namespace SeguesTests.Tickets
             mockService.Setup(s => s.TransferTicketsAsync(currentUserId, "dest@segues.pt", tickets))
                 .ReturnsAsync(ServiceResult.Ok("Success"));
 
-            var result = await controller.TransferTickets(tickets, "dest@segues.pt");
+            var vm = new TransferTicketViewModel
+            {
+                RecipientEmail = "dest@segues.pt",
+                SelectedTickets = tickets
+            };
+            
+            var result = await controller.TransferTickets(vm);
 
             Assert.IsType<RedirectToActionResult>(result);
             mockService.Verify(s => s.TransferTicketsAsync(currentUserId, "dest@segues.pt", tickets), Times.Once);
@@ -162,9 +170,8 @@ namespace SeguesTests.Tickets
         [Fact]
         public async Task Index_UserNotFound_ReturnsChallenge()
         {
-            var context = GetDatabaseContext();
             var mockUserMgr = GetMockUserManager();
-            var controller = new TicketController(mockUserMgr.Object, Mock.Of<ITicketService>(), context, Mock.Of<IAdminService>(), GetMockLogger().Object);
+            var controller = new TicketController(mockUserMgr.Object, Mock.Of<ITicketService>(), Mock.Of<IAdminService>());
 
             mockUserMgr.Setup(m => m.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync((AppUser)null!);
 
@@ -179,10 +186,15 @@ namespace SeguesTests.Tickets
         {
             var (_, _, _, controller) = await SetupFullEnv("u-pedro", "dest@segues.pt");
 
-            var result = await controller.TransferTickets(new List<string> { "T1" }, "");
+            var vm = new TransferTicketViewModel
+            {
+                RecipientEmail = "",
+                SelectedTickets = new List<string> { "T1" }
+            };
+            var result = await controller.TransferTickets(vm);
 
             var redirect = Assert.IsType<RedirectToActionResult>(result);
-            Assert.Equal("SendTicket", redirect.ActionName);
+            Assert.Equal("TransferTicket", redirect.ActionName);
             Assert.Contains("error", controller.TempData["SwalData"]?.ToString()?.ToLower());
         }
 
@@ -197,7 +209,12 @@ namespace SeguesTests.Tickets
             mockService.Setup(s => s.TransferTicketsAsync(currentUserId, "dest@segues.pt", tickets))
                 .ReturnsAsync(ServiceResult.Fail("Transfer failed due to system error"));
 
-            var result = await controller.TransferTickets(tickets, "dest@segues.pt");
+            var vm = new TransferTicketViewModel
+            {
+                RecipientEmail = "dest@segues.pt",
+                SelectedTickets = tickets
+            };
+            var result = await controller.TransferTickets(vm);
 
             var redirect = Assert.IsType<RedirectToActionResult>(result);
             Assert.Contains("error", controller.TempData["SwalData"]?.ToString()?.ToLower());

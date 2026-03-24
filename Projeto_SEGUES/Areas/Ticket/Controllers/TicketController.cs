@@ -1,15 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
-using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Extensions;
-using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
-using Projeto_SEGUES.Resources;
 using Projeto_SEGUES.Services;
 using System.Security.Claims;
+using Projeto_SEGUES.Areas.Ticket.ViewModels;
 
 namespace Projeto_SEGUES.Areas.Ticket;
 
@@ -26,9 +23,7 @@ public class TicketController : Controller
 {
     private readonly UserManager<AppUser> _userManager;
     private readonly ITicketService _ticketService;
-    private readonly AppDbContext _context;
     private readonly IAdminService _adminService;
-    private readonly ILogger<TicketController> _logger;
 
     /// <summary>
     /// Initializes a new instance of the TicketController with necessary services and logging.
@@ -36,15 +31,11 @@ public class TicketController : Controller
     public TicketController(
         UserManager<AppUser> userManager,
         ITicketService ticketService,
-        AppDbContext context,
-        IAdminService adminService,
-        ILogger<TicketController> logger)
+        IAdminService adminService)
     {
         _userManager = userManager;
         _ticketService = ticketService;
-        _context = context;
         _adminService = adminService;
-        _logger = logger;
     }
 
     /// <summary>
@@ -70,19 +61,6 @@ public class TicketController : Controller
 
         var activeTickets = await _ticketService.GetActiveTicketsAsync(userId);
         return View(activeTickets);
-    }
-
-    /// <summary>
-    /// Displays the view to select and send tickets.
-    /// </summary>
-    [HttpGet]
-    public async Task<IActionResult> SendTicket()
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId)) return Challenge();
-
-        var availableTickets = await _ticketService.GetActiveTicketsAsync(userId); 
-        return View(availableTickets);
     }
 
     /// <summary>
@@ -120,90 +98,72 @@ public class TicketController : Controller
         var activeTickets = await _ticketService.GetActiveTicketsAsync(userId);
         return PartialView("_ActiveTicketsPartial", activeTickets);
     }
-
+    
     /// <summary>
-    /// Processes the transfer of selected tickets to a recipient.
+    /// Displays the view to select and send tickets.
     /// </summary>
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> TransferTickets(List<string> selectedTickets, string recipientEmail)
+    [HttpGet]
+    public async Task<IActionResult> TransferTicket()
     {
-        var currentUserId = _userManager.GetUserId(User);
-        if (string.IsNullOrEmpty(currentUserId)) return Challenge();
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return Challenge();
 
-        if (selectedTickets == null || !selectedTickets.Any())
+        var availableTickets = await _ticketService.GetActiveTicketsAsync(userId);
+        TransferTicketViewModel vm = new TransferTicketViewModel
         {
-            TempData.SetSwalError("Por favor, selecione pelo menos um item para continuar.");
-            return RedirectToAction(nameof(SendTicket));
-        }
-
-        if (string.IsNullOrWhiteSpace(recipientEmail))
-        {
-            TempData.SetSwalError("O e-mail do destinatário é obrigatório");
-            return RedirectToAction(nameof(SendTicket));
-        }
-
-        try
-        {
-            var result = await _ticketService.TransferTicketsAsync(currentUserId, recipientEmail, selectedTickets);
-
-            if (!result.Success) TempData.SetSwalError(result.Message);
-            else TempData.SetSwalSuccess(result.Message);
-        }
-        catch (Exception ex)
-        {
-            // CORRIGIDO: Removida a string personalizada para bater certo com LoggerExtensions
-            _logger.LogAppError(AppErrors.DatabaseUpdateError, TableName.Ticket, AppOperation.Update, ex);
-
-            var msg = string.Format(Errors.DatabaseUpdateError, "Ticket");
-            TempData.SetSwalError(msg);
-        }
-
-        return RedirectToAction(nameof(SendTicket));
+            AvailableTickets = availableTickets
+        };
+        return View(vm);
     }
-
+    
     /// <summary>
     /// Validates if the recipient is eligible for a transfer.
     /// </summary>
     [HttpGet]
     public async Task<IActionResult> CheckTransferEligibility(string email)
     {
-        try
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
         {
-            var currentUserId = _userManager.GetUserId(User);
-            if (currentUserId == null) return Unauthorized();
-
-            // Precisamos do Include para carregar as categorias, senão dá erro de Null
-            var currentUser = await _context.Users
-                .Include(u => u.UserCategory)
-                .FirstOrDefaultAsync(u => u.Id == currentUserId);
-
-            var recipient = await _context.Users
-                .Include(u => u.UserCategory)
-                .FirstOrDefaultAsync(u => u.Email == email);
-
-            if (currentUser == null) return Challenge();
-
-            // Validação: Destinatário não existe
-            if (recipient == null)
-                return Json(new { success = false, message = Errors.UserNotFound });
-
-            if (currentUser.UserCategory.Id != recipient.UserCategory.Id)
-            {
-                var msg = "Transferência recusada: Só pode enviar senhas para utilizadores da mesma categoria.";
-
-                return Json(new { success = false, message = msg });
-            }
-            return Json(new
-            {
-                success = true,
-                recipientName = $"{recipient.FirstName} {recipient.LastName}"
-            });
+            // Force the browser to do a full-page redirect
+            Response.Headers["HX-Redirect"] = Url.Page("/Account/Login", new { area = "Identity" });
+            return Unauthorized();
         }
-        catch (Exception ex)
+        
+        var result = await _ticketService.CheckTransferEligibilityAsync(userId, email);
+        return Json(new { success = result.Success, message = result.Message, recipientName = result.Data });
+    }
+
+    /// <summary>
+    /// Processes the transfer of selected tickets to a recipient.
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> TransferTickets(TransferTicketViewModel model)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return Challenge();
+
+        if (!ModelState.IsValid || model.SelectedTickets.Count == 0)
         {
-            _logger.LogError(ex, "Erro ao verificar elegibilidade de transferência.");
-            return Json(new { success = false, message = Errors.InternalServerError });
+            TempData.SetSwalError("Por favor, selecione pelo menos um item e verifique o email.");
+            // Reload data
+            model.AvailableTickets = await _ticketService.GetActiveTicketsAsync(userId);
+            return View(nameof(TransferTicket), model);
         }
+        
+        var result = await _ticketService.TransferTicketsAsync(userId, model.RecipientEmail!, model.SelectedTickets);
+
+        if (!result.Success)
+        {
+            TempData.SetSwalError(result.Message);
+            
+            // Reload data
+            model.AvailableTickets = await _ticketService.GetActiveTicketsAsync(userId);
+            return View(nameof(TransferTicket), model);
+        }
+
+        TempData.SetSwalSuccess(result.Message);
+        return RedirectToAction(nameof(TransferTicket));
     }
 }

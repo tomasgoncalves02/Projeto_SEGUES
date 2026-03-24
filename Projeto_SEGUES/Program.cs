@@ -3,18 +3,20 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Data;
+using Projeto_SEGUES.Extensions;
+using Projeto_SEGUES.Middlewares;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
+using QuestPDF.Drawing;
 using QuestPDF.Infrastructure;
 using Serilog;
+using Serilog.Events;
 using Serilog.Filters;
 using Serilog.Sinks.MSSqlServer;
 using Stripe;
 using System.Collections.ObjectModel;
 using System.Data;
-using Projeto_SEGUES.Extensions;
-using Projeto_SEGUES.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -114,6 +116,7 @@ builder.Host.UseSerilog((ctx, configuration) =>
         // Default System Logs
         .WriteTo.Logger(lc => lc
             .Filter.ByExcluding(Matching.WithProperty("LogType"))
+            .Filter.ByIncludingOnly(evt => evt.Level >= LogEventLevel.Error)
             .WriteTo.MSSqlServer(
                 connectionString: connectionString,
                 sinkOptions: new MSSqlServerSinkOptions { TableName = "ErrorLog", AutoCreateSqlTable = false },
@@ -201,6 +204,13 @@ builder.Services.AddRazorPages();
 
 QuestPDF.Settings.License = LicenseType.Community;
 var app = builder.Build();
+var fontPath = Path.Combine(app.Environment.WebRootPath, "fonts", "Roboto-Regular.ttf");
+
+if (System.IO.File.Exists(fontPath))
+{
+    using var fontStream = System.IO.File.OpenRead(fontPath);
+    FontManager.RegisterFont(fontStream);
+}
 
 // Set localization (first thing after build!)
 var supportedCultures = new[] { "pt-PT" };

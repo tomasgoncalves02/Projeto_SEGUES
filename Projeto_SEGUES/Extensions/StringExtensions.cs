@@ -27,7 +27,7 @@ public static class StringExtensions
 
             // Ticket State
             "Available" => "bg-color-ips",
-            "Used" => "bg-secondary",
+            "Used" => "bg-success",
             "Expired" => "bg-danger",
 
             // Order Status

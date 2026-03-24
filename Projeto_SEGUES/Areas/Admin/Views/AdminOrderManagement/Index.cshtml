@@ -6,10 +6,7 @@
 
 
 <div class="container-fluid mt-5 px-4">
-    @* Cabeçalho Responsivo *@
     <div class="row align-items-end mb-4 g-3">
-
-        @* Botão Voltar: Ordem 1 no Mobile (Topo), Ordem 2 no PC (Direita) *@
         <div class="col-12 col-md-auto order-1 order-md-2 text-end ms-md-auto">
             <a asp-area="Admin" asp-controller="AdminBarManagement" asp-action="Index"
                class="btn btn-ips-outline-secondary fw-bold px-4">
@@ -17,7 +14,6 @@
             </a>
         </div>
 
-        @* Título e Subtítulo: Ordem 2 no Mobile (Baixo), Ordem 1 no PC (Esquerda) *@
         <div class="col-12 col-md order-2 order-md-1">
             <h2 class="fw-bold title-underline mb-2">
                 <i class="bi bi-journal-text me-2 text-color-ips"></i>
@@ -26,7 +22,6 @@
             <p class="text-muted small mb-0">Controlo total de transações, horários de recolha e fluxo financeiro do Bar.</p>
         </div>
     </div>
-
     @* Definição do Hórario de Funcionamento*@
     <div class="card card-ips hover-shadow-ips shadow-sm mb-4 border-0 rounded-3" style="max-width: 580px;">
         <div class="card-body p-4">
