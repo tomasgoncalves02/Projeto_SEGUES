@@ -4,59 +4,76 @@
     <div class="table-responsive rounded-3" style="max-height: 500px;">
         <table class="table align-middle mb-0 text-center">
             <thead class="bg-color-ips text-white">
-            <tr>
-                <th class="ps-4 py-3">Selecionar</th>
-                <th class="py-3">Utilizador</th>
-                <th class="py-3">Pedido efetuado</th>
-                <th class="py-3">Hora de entregar</th>
-                <th class="pe-4 py-3">Estado</th>
-            </tr>
+                <tr>
+                    <th class="ps-4 py-3">Selecionar</th>
+                    <th class="py-3">Utilizador</th>
+                    <th class="py-3">Pedido efetuado</th>
+                    <th class="py-3">Hora de entregar</th>
+                    <th class="pe-4 py-3">Estado</th>
+                </tr>
             </thead>
             <tbody>
-            @foreach (var order in Model)
-            {
-                <tr class="table-row-ips-hover">
-                    @* Select *@
-                    <td>
-                        <button class="btn btn-sm btn-ips shadow-sm"
-                                hx-get="/Order/OrderManagement/GetOrderDetailsSide/@order.Id"
-                                hx-target="#side-panel-target"
-                                hx-swap="outerHTML"
-                                >
-                            <i class="bi bi-arrow-up-left"></i>
-                        </button>
-                    </td>
-                    @* User *@
-                    <td class="ps-4">
-                        <div class="d-flex align-items-center flex-column">
-                            <div class="fw-bold text-dark">@order.AppUser.FirstName @order.AppUser.LastName</div>
-                            <div class="text-muted">@order.AppUser.UserName</div>
-                        </div>
-                    </td>
-                    @* Order date *@
-                    <td>@order.OrderDate.ToString("HH:mm")</td>
-                    @* Pickup time *@
-                    <td class="align-middle">
-                        @if (order.DeliveryTime.HasValue)
-                        {
-                            <span class="fw-bold">@string.Format("{0:hh\\:mm}", order.DeliveryTime.Value)</span>
-                        }
-                        else
-                        {
-                            /* If DeliveryTime is null, the order is for immediate delivery */
-                            <span class="badge p-2 bg-color-ips text-white fs-7" style="min-width: fit-content;">
-                                AGORA
-                            </span>
-                        }
-                    </td>
-                    @* Status *@
-                    <td>
-                        <span class="badge @order.Status.ToString().ToBadgeClass() p-2" style="min-width: fit-content;">
-                            @order.Status.ToDisplayName().ToUpper()
-                        </span>
-                    </td>
-                </tr>
-            }
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var order in Model)
+                    {
+                        <tr class="table-row-ips-hover">
+                            @* Select *@
+                            <td>
+                                <button class="btn btn-sm btn-ips shadow-sm"
+                                        hx-get="/Order/OrderManagement/GetOrderDetailsSide/@order.Id"
+                                        hx-target="#side-panel-target"
+                                        hx-swap="outerHTML">
+                                    <i class="bi bi-arrow-up-left"></i>
+                                </button>
+                            </td>
+
+                            @* User *@
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center flex-column">
+                                    <div class="fw-bold text-dark">@order.AppUser.FirstName @order.AppUser.LastName</div>
+                                    <div class="text-muted small">@order.AppUser.UserName</div>
+                                </div>
+                            </td>
+
+                            @* Order date *@
+                            <td>@order.OrderDate.ToString("HH:mm")</td>
+
+                            @* Pickup time *@
+                            <td class="align-middle">
+                                @if (order.DeliveryTime.HasValue)
+                                {
+                                    <span class="fw-bold">@string.Format("{0:hh\\:mm}", order.DeliveryTime.Value)</span>
+                                }
+                                else
+                                {
+                                    <span class="badge p-2 bg-color-ips text-white fs-7" style="min-width: fit-content;">
+                                        AGORA
+                                    </span>
+                                }
+                            </td>
+
+                            @* Status *@
+                            <td class="pe-4">
+                                <span class="badge @order.Status.ToString().ToBadgeClass() p-2" style="min-width: fit-content;">
+                                    @order.Status.ToDisplayName().ToUpper()
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="py-5 text-center">
+                            <div class="text-muted">
+                                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                                <p class="mb-0 fw-bold">Não existem pedidos ativos de momento.</p>
+                                <small>Novos pedidos aparecerão aqui automaticamente.</small>
+                            </div>
+                        </td>
+                    </tr>
+                }
             </tbody>
         </table>
     </div>

@@ -5,18 +5,18 @@
 }
 
 <div class="container mt-5">
-    @* --- Cabeçalho --- *@
-    <div class="row mb-4 align-items-center">
-        <div class="col-md-8 text-start">
+    <div class="row align-items-end mb-4 g-3">
+        <div class="col-12 col-md-auto order-1 order-md-2 text-end ms-md-auto">
+            <a asp-area="Admin" asp-controller="Admin" asp-action="Index"
+               class="btn btn-ips-outline-secondary fw-bold px-4 shadow-sm">
+                <i class="bi bi-arrow-left me-2"></i>Voltar
+            </a>
+        </div>
+        <div class="col-12 col-md order-2 order-md-1">
             <h2 class="fw-bold title-underline mb-2">
                 Histórico de Funcionários
             </h2>
-            <p class="text-muted small">Consulta detalhada de todas as operações realizadas pelos colaboradores internos.</p>
-        </div>
-        <div class="col-md-4 text-end">
-            <a asp-area="Admin" asp-controller="Admin" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4 shadow-sm">
-                <i class="bi bi-arrow-left me-2"></i>Voltar
-            </a>
+            <p class="text-muted small mb-0">Consulta detalhada de todas as operações realizadas pelos colaboradores internos.</p>
         </div>
     </div>
 
@@ -111,6 +111,18 @@
                                 </td>
                             </tr>
                         }
+                    }
+                    else
+                    {                     
+                        <tr>
+                            <td colspan="5" class="py-5 text-center">
+                                <div class="text-muted">
+                                    <i class="bi bi-info-circle fs-2 d-block mb-2"></i>
+                                    <p class="mb-0 fw-bold">Nenhum registo de atividade encontrado.</p>
+                                    <small>Tente ajustar os filtros de pesquisa ou a data selecionada.</small>
+                                </div>
+                            </td>
+                        </tr>
                     }
                 </tbody>
             </table>

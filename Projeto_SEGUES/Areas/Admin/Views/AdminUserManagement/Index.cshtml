@@ -14,13 +14,18 @@
 }
 
 <div class="container mt-5">
-    @* Top row *@
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="fw-bold title-underline">Lista de Utilizadores</h1>
-        @* Return button *@
-        <a asp-area="Admin" asp-controller="Admin" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4" style="padding-top: 0.72rem; padding-bottom: 0.71rem;">
-            <i class="bi bi-arrow-left me-2"></i>Voltar ao Painel
-        </a>
+    @* Cabeçalho Responsivo *@
+    <div class="row align-items-end mb-4 g-3">
+        <div class="col-12 col-md-auto order-1 order-md-2 text-end ms-md-auto">
+            <a asp-area="Admin" asp-controller="Admin" asp-action="Index"
+               class="btn btn-ips-outline-secondary fw-bold px-4">
+                <i class="bi bi-arrow-left me-2"></i>Voltar
+            </a>
+        </div>
+        <div class="col-12 col-md order-2 order-md-1">
+            <h1 class="fw-bold title-underline mb-0">Lista de Utilizadores</h1>
+        </div>
+
     </div>
     @* Filters *@
     <div class="card card-ips hover-shadow-ips mb-4 shadow-sm">

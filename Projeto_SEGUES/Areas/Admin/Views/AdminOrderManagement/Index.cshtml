@@ -6,18 +6,25 @@
 
 
 <div class="container-fluid mt-5 px-4">
-    @* Cabeçalho *@
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
+    @* Cabeçalho Responsivo *@
+    <div class="row align-items-end mb-4 g-3">
+
+        @* Botão Voltar: Ordem 1 no Mobile (Topo), Ordem 2 no PC (Direita) *@
+        <div class="col-12 col-md-auto order-1 order-md-2 text-end ms-md-auto">
+            <a asp-area="Admin" asp-controller="AdminBarManagement" asp-action="Index"
+               class="btn btn-ips-outline-secondary fw-bold px-4">
+                <i class="bi bi-arrow-left me-2"></i>Voltar
+            </a>
+        </div>
+
+        @* Título e Subtítulo: Ordem 2 no Mobile (Baixo), Ordem 1 no PC (Esquerda) *@
+        <div class="col-12 col-md order-2 order-md-1">
             <h2 class="fw-bold title-underline mb-2">
                 <i class="bi bi-journal-text me-2 text-color-ips"></i>
                 Histórico Geral de Pedidos
             </h2>
             <p class="text-muted small mb-0">Controlo total de transações, horários de recolha e fluxo financeiro do Bar.</p>
         </div>
-        <a asp-area="Admin" asp-controller="AdminBarManagement" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4">
-            <i class="bi bi-arrow-left me-2"></i>Voltar
-        </a>
     </div>
 
     @* Definição do Hórario de Funcionamento*@
@@ -98,15 +105,22 @@
 
     @* Tabela *@
     <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
-        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
-            <h5 class="mb-0 fw-bold text-color-ips">
-                <i class="bi bi-receipt-cutoff me-2"></i>Registo de Transações
-            </h5>
-            <div class="d-flex align-items-center gap-3">
-                <button type="button" onclick="exportarPDFComFiltros()" class="btn btn-ips fw-bold shadow-sm px-4 py-2">
-                    <i class="bi bi-file-earmark-pdf me-2"></i>Exportar PDF
-                </button>
-                <span class="badge bg-light text-dark border fs-6">Total: @Model.Count() pedidos únicos</span>
+        <div class="card-header bg-white py-3 border-bottom">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                <h5 class="mb-0 fw-bold text-color-ips">
+                    <i class="bi bi-receipt-cutoff me-2"></i>Registo de Transações
+                </h5>
+                <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2 gap-md-3">
+                    @* Contador de pedidos *@
+                    <span class="badge bg-light text-dark border fs-6 py-2 px-3 text-center">
+                        Total: @Model.Count() pedidos únicos
+                    </span>
+
+                    @* Botão Exportar PDF *@
+                    <button type="button" onclick="exportarPDFComFiltros()" class="btn btn-ips fw-bold shadow-sm px-4 py-2">
+                        <i class="bi bi-file-earmark-pdf me-2"></i>Exportar PDF
+                    </button>
+                </div>
             </div>
         </div>
 

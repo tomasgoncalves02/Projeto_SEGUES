@@ -5,15 +5,15 @@
 }
 
 <div class="container mt-4">
-    @* Top row *@
-    <div class="row mb-4 align-items-center">
-        <div class="col-md-7">
-            <h2 class="fw-bold title-underline mb-2">Gerir Pedidos</h2>
-        </div>
-        <div class="col-md-5 text-end">
-            <a asp-area="Admin" asp-controller="Employee" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4">
+    <div class="row align-items-end mb-4 g-3">
+        <div class="col-12 col-md-auto order-1 order-md-2 text-end ms-md-auto">
+            <a asp-area="Admin" asp-controller="Employee" asp-action="Index"
+               class="btn btn-ips-outline-secondary fw-bold px-4">
                 <i class="bi bi-arrow-left me-2"></i>Voltar
             </a>
+        </div>
+        <div class="col-12 col-md order-2 order-md-1">
+            <h2 class="fw-bold title-underline mb-0">Gerir Pedidos</h2>
         </div>
     </div>
 
