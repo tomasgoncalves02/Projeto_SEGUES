@@ -1,15 +1,15 @@
 using Microsoft.AspNetCore.Mvc;
-using Projeto_SEGUES.Areas.Statistics.Controllers;
+using Projeto_SEGUES.Areas.Report;
 
 namespace SeguesTests.Statistics
 {
-    public class StatisticsControllerTests
+    public class ReportStatisticsControllerTests
     {
-        private readonly StatisticsController _controller;
+        private readonly ReportStatisticsController _controller;
 
-        public StatisticsControllerTests()
+        public ReportStatisticsControllerTests()
         {
-            _controller = new StatisticsController();
+            _controller = new ReportStatisticsController();
         }
 
         // Confirms that the main statistics navigation page is correctly returned

@@ -7,8 +7,8 @@
 <div class="container mt-5 text-start">
     @* Title Row with Cart *@
     <div class="flex-column mb-3 align-items-center">
-        <div class="flex-column flex-sm-row d-flex justify-content-between align-items-center">
-            <h3 class="fw-bold display-5 title-underline mb-2">Bar</h3>
+        <div class="flex-column flex-md-row d-flex justify-content-between align-items-center">
+            <h3 class="fw-bold display-6 title-underline mb-2 mb-md-0">Bar</h3>
             @if (cartTotal != null && cartTotal.TotalQuantity > 0)
             {
                 <div class="d-flex align-items-center bg-light p-2 px-3 rounded-3 shadow-sm border">
@@ -28,8 +28,8 @@
                     </div>
                 </div>
             }
-            @* Return button in larger screen *@
-            <a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold shadow-sm d-none d-md-flex">
+            @* Return button *@
+            <a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold shadow-sm order-first order-md-last mb-3 mb-md-0">
                 <i class="bi bi-arrow-left me-2"></i>Voltar
             </a>
         </div>

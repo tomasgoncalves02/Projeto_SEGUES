@@ -15,14 +15,14 @@ namespace Projeto_SEGUES.Areas.Report;
 /// </remarks>
 [Authorize]
 [Area("Report")]
-public class ReportTicketsController : Controller
+public class ReportTicketController : Controller
 {
     private readonly ITicketService _ticketService;
 
     /// <summary>
     /// Initializes a new instance of the controller with ticket, user, and logging services.
     /// </summary>
-    public ReportTicketsController(
+    public ReportTicketController(
         ITicketService ticketService)
     {
         _ticketService = ticketService;
@@ -44,7 +44,7 @@ public class ReportTicketsController : Controller
 
         model.Results = await _ticketService.QueryHistoryAsync(userId, model);
         
-        ViewBag.CurrentUserId = userId;
+        ViewBag.UserId = userId;
         return View(model);
     }
 
@@ -66,9 +66,9 @@ public class ReportTicketsController : Controller
             return Unauthorized();
         }
         
-        ViewBag.CurrentUserId = userId;
+        ViewBag.UserId = userId;
 
         var history = await _ticketService.QueryHistoryAsync(userId, model);
-        return PartialView("_TicketHistoryRows", history);
+        return PartialView("_TicketHistoryRowsPartial", history);
     }
 }

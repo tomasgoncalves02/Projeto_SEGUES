@@ -21,6 +21,7 @@ public enum UserAction : byte
     
     // Ticket
     TransferTicket,
+    TicketPurchase,
 
     // Employee Actions
     ValidateTicket,

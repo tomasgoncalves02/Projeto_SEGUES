@@ -8,17 +8,15 @@
 <div class="container mt-4">
     @* Header *@
     <div class="d-flex mb-4 align-items-center justify-content-between flex-column flex-md-row">
-        <div class="col-md-7 mb-2 mb-md-0">
-            <h2 class="fw-bold title-underline mb-2">
+        <div class="mb-2 mb-md-0">
+            <h2 class="fw-bold display-6 title-underline mb-1">
                 <i class="bi bi-clock-history me-2 text-color-ips"></i> Histórico de Senhas
             </h2>
-            <p class="text-muted small">Consulta detalhada de todas as tuas movimentações.</p>
+            <p class="text-muted small mt-1 mb-0">Consulta detalhada de todas as tuas movimentações.</p>
         </div>
-        <div class="col-md-5 text-end">
-            <a asp-area="Report" asp-controller="Report" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4">
-                <i class="bi bi-arrow-left me-2"></i>Voltar
-            </a>
-        </div>
+        <a asp-area="Report" asp-controller="Report" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold shadow-sm px-4 order-first order-md-last mb-3 mb-md-0">
+            <i class="bi bi-arrow-left me-2"></i>Voltar
+        </a>
     </div>
 
     @* Filter section with HTMX *@
@@ -26,7 +24,7 @@
         <div class="card-body p-4">
             <form id="filterForm"
                   hx-get="/Report/ReportTickets/GetFilteredHistory"
-                  hx-trigger="change, keyup delay:300ms from:#searchFilter"
+                  hx-trigger="submit, change, keyup delay:300ms from:#searchFilter"
                   hx-target="#historyTableBody"
                   hx-indicator=".loader-spinner"
                   class="row g-3 align-items-end">
@@ -51,18 +49,20 @@
                 <div class="col-md-4 col-xl-2">
                     <label asp-for="FlowFilter" class="small fw-bold"></label>
                     <select asp-for="FlowFilter" asp-items="Html.GetEnumSelectList<TicketFlow>()" class="form-select form-select-sm">
-                        <option value="">Todos</option>
+                        <option value="">Todas</option>
                     </select>
                 </div>
-
-                <div class="col-md-4 col-xl-auto">
-                    <div class="d-flex align-items-center gap-2">
-                        <a asp-action="Index" class="btn btn-sm btn-reset-x">Limpar</a>
-                        <div class="spinner-border spinner-border-sm text-primary htmx-indicator loader-spinner" role="status"></div>
-                        <button type="submit" class="btn btn-ips fw-bold px-3 py-2 shadow-sm d-flex align-items-center">
-                            <i class="bi bi-search me-2"></i> Pesquisar
-                            <div class="spinner-border spinner-border-sm text-white htmx-indicator loader-spinner ms-2" role="status"></div>
-                        </button>
+                <div class="col-xl-auto">
+                    <div class="d-flex align-items-center justify-content-end gap-3 pb-1">
+                        @* HTMX Loading Spinner *@
+                        <div class="d-flex align-items-center text-color-ips htmx-indicator loader-spinner" id="searchSpinner">
+                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                            <span class="small fw-bold">A pesquisar...</span>
+                        </div>
+                        @* Clear button *@
+                        <a asp-action="Index" class="btn btn-sm btn-reset-x btn-ips-outline-secondary fw-bold px-3">
+                            <i class="bi bi-x-circle me-1"></i>Limpar Filtros
+                        </a>
                     </div>
                 </div>
             </form>
@@ -90,7 +90,7 @@
                        hx-trigger="every 30s"
                        hx-include="#filterForm"
                        hx-swap="innerHTML">
-                    <partial name="_TicketHistoryRows" model="Model.Results" />
+                    <partial name="_TicketHistoryRowsPartial" model="Model.Results" />
                 </tbody>
             </table>
         </div>

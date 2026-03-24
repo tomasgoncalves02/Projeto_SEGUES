@@ -6,23 +6,23 @@ namespace Projeto_SEGUES.Areas.Order.ViewModels;
 /// ViewModel que representa o resumo financeiro e quantitativo de uma encomenda ou carrinho.
 /// </summary>
 /// <remarks>
-/// Este modelo È frequentemente utilizado em respostas JSON para atualizar elementos da interface 
-/// em tempo real, como o contador de itens no cabeÁalho e o valor total acumulado.
+/// Este modelo √© frequentemente utilizado em respostas JSON para atualizar elementos da interface 
+/// em tempo real, como o contador de itens no cabe√ßalho e o valor total acumulado.
 /// </remarks>
 public class OrderTotalViewModel
 {
     /// <summary>
     /// Soma total de todos os itens individuais presentes na encomenda ou carrinho.
     /// </summary>
-    /// <value>Valor inteiro n„o negativo.</value>
+    /// <value>Valor inteiro n√£o negativo.</value>
     [Range(0, int.MaxValue)]
     [Display(Name = "Quantidade Total")]
     public int TotalQuantity { get; set; } = 0;
 
     /// <summary>
-    /// Valor monet·rio total da encomenda, somando o preÁo unit·rio multiplicado pela quantidade de cada produto.
+    /// Valor monet√°rio total da encomenda, somando o pre√ßo unit√°rio multiplicado pela quantidade de cada produto.
     /// </summary>
-    /// <value>Valor decimal n„o negativo.</value>
+    /// <value>Valor decimal n√£o negativo.</value>
     [Range(0, double.MaxValue)]
     [Display(Name = "Valor Total")]
     public decimal TotalValue { get; set; } = 0m;

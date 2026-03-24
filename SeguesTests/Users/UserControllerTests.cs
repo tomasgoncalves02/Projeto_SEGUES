@@ -19,10 +19,10 @@ namespace SeguesTests.User
             var store = new Mock<IUserStore<AppUser>>();
             _mockUserManager = new Mock<UserManager<AppUser>>(store.Object, null, null, null, null, null, null, null, null);
 
-            _controller = new UserController(_mockAdminService.Object, _mockUserManager.Object);
+            _ticketController = new UserController(_mockAdminService.Object, _mockUserManager.Object);
 
             var httpContext = new DefaultHttpContext();
-            _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+            _ticketController.ControllerContext = new ControllerContext { HttpContext = httpContext };
         }
 
         // Helper method to create a valid user instance for testing purposes
@@ -54,10 +54,10 @@ namespace SeguesTests.User
             new SelectListItem { Value = "2", Text = "Employee" }
                 });
 
-            var result = await _controller.Index();
+            var result = await _ticketController.Index();
 
             Assert.IsType<ViewResult>(result);
-            Assert.NotNull(_controller.ViewBag.Roles);
+            Assert.NotNull(_ticketController.ViewBag.Roles);
         }
 
         // Verifies that the name update fails if the value contains symbols or numbers
@@ -67,7 +67,7 @@ namespace SeguesTests.User
             var user = CreatePedroUser();
             _mockUserManager.Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(user);
 
-            var result = await _controller.UpdateType("name", "Pedro123");
+            var result = await _ticketController.UpdateType("name", "Pedro123");
 
             var badRequest = Assert.IsType<BadRequestObjectResult>(result);
             Assert.Contains("não pode conter números", badRequest.Value?.ToString());
@@ -81,7 +81,7 @@ namespace SeguesTests.User
             _mockUserManager.Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(user);
             var underageDate = DateTime.Now.AddYears(-17).ToString("yyyy-MM-dd");
 
-            var result = await _controller.UpdateType("birthDate", underageDate);
+            var result = await _ticketController.UpdateType("birthDate", underageDate);
 
             var badRequest = Assert.IsType<BadRequestObjectResult>(result);
             Assert.Contains("pelo menos 18 anos", badRequest.Value?.ToString());
@@ -95,7 +95,7 @@ namespace SeguesTests.User
             _mockUserManager.Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(user);
             _mockUserManager.Setup(u => u.UpdateAsync(user)).ReturnsAsync(IdentityResult.Success);
 
-            var result = await _controller.UpdateType("email", "novo@segues.pt");
+            var result = await _ticketController.UpdateType("email", "novo@segues.pt");
 
             Assert.IsType<OkObjectResult>(result);
             Assert.Equal("novo@segues.pt", user.Email);
@@ -109,7 +109,7 @@ namespace SeguesTests.User
             var user = CreatePedroUser();
             _mockUserManager.Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(user);
 
-            var result = await _controller.UpdatePassword("OldPass123!", "weak");
+            var result = await _ticketController.UpdatePassword("OldPass123!", "weak");
 
             var badRequest = Assert.IsType<BadRequestObjectResult>(result);
             Assert.Contains("mínimo 12 caracteres", badRequest.Value?.ToString());
@@ -124,7 +124,7 @@ namespace SeguesTests.User
             _mockUserManager.Setup(u => u.ChangePasswordAsync(user, "OldPass123!", "NewStrongPass123!"))
                 .ReturnsAsync(IdentityResult.Success);
 
-            var result = await _controller.UpdatePassword("OldPass123!", "NewStrongPass123!");
+            var result = await _ticketController.UpdatePassword("OldPass123!", "NewStrongPass123!");
 
             Assert.IsType<OkObjectResult>(result);
         }
@@ -133,7 +133,7 @@ namespace SeguesTests.User
         [Fact]
         public void GetGenders_ReturnsJsonList()
         {
-            var result = _controller.GetGenders();
+            var result = _ticketController.GetGenders();
 
             var jsonResult = Assert.IsType<JsonResult>(result);
             var list = Assert.IsAssignableFrom<IEnumerable<object>>(jsonResult.Value);

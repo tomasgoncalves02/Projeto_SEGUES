@@ -173,7 +173,7 @@ public class AdminTicketManagementController : Controller
             if (dateFilter.HasValue)
                 query = query.Where(t => t.TicketPurchase.TransactionDate.Date >= dateFilter.Value.Date);
 
-            if (flowFilter.HasValue && flowFilter != TicketFlow.All)
+            if (flowFilter.HasValue)
             {
                 query = flowFilter.Value switch
                 {

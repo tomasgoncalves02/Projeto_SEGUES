@@ -22,7 +22,7 @@ namespace SeguesTests.Payment
         private readonly Mock<UserManager<AppUser>> _mockUserManager;
         private readonly Mock<IHttpClientFactory> _mockHttpClientFactory;
         private readonly AppDbContext _context;
-        private readonly PaymentController _controller;
+        private readonly PaymentController _ticketController;
         private readonly Mock<ILogger<PaymentController>> _mockLogger;
         private readonly Mock<IStringLocalizer<Errors>> _mockLocalizer;
 
@@ -39,11 +39,11 @@ namespace SeguesTests.Payment
             _mockLogger = new Mock<ILogger<PaymentController>>();
             _mockLocalizer = new Mock<IStringLocalizer<Errors>>();
 
-            _controller = new PaymentController(_context, _mockUserManager.Object, _mockLogger.Object, _mockLocalizer.Object);
+            _ticketController = new PaymentController(_context, _mockUserManager.Object, _mockLogger.Object, _mockLocalizer.Object);
 
             var httpContext = new DefaultHttpContext();
-            _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
-            _controller.TempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>());
+            _ticketController.ControllerContext = new ControllerContext { HttpContext = httpContext };
+            _ticketController.TempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>());
         }
 
         private AppUser CreateValidTestUser() => new()
@@ -62,7 +62,7 @@ namespace SeguesTests.Payment
         [Fact]
         public void Deposit_ReturnsView()
         {
-            var result = _controller.Deposit();
+            var result = _ticketController.Deposit();
             Assert.IsType<ViewResult>(result);
         }
 
@@ -70,7 +70,7 @@ namespace SeguesTests.Payment
         [Fact]
         public async Task CreateCheckoutSession_InvalidAmount_ReturnsBadRequest()
         {
-            var result = await _controller.CreateCheckoutSession(new DepositAmountViewModel { Amount = 0 });
+            var result = await _ticketController.CreateCheckoutSession(new DepositAmountViewModel { Amount = 0 });
             Assert.IsType<BadRequestObjectResult>(result);
         }
 
@@ -80,7 +80,7 @@ namespace SeguesTests.Payment
         {
             _mockUserManager.Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync((AppUser)null!);
 
-            var result = await _controller.CreateCheckoutSession(new DepositAmountViewModel { Amount = 10 });
+            var result = await _ticketController.CreateCheckoutSession(new DepositAmountViewModel { Amount = 10 });
 
             Assert.IsType<ChallengeResult>(result);
         }
@@ -102,7 +102,7 @@ namespace SeguesTests.Payment
             _context.Set<Transaction>().Add(transaction);
             await _context.SaveChangesAsync();
 
-            var result = await _controller.SuccessPayment("REF123");
+            var result = await _ticketController.SuccessPayment("REF123");
 
             var updatedUser = await _context.Users.FindAsync(user.Id);
             var updatedTransaction = await _context.Transaction.FirstAsync(t => t.Reference == "REF123");
@@ -117,20 +117,20 @@ namespace SeguesTests.Payment
         [Fact]
         public async Task SuccessPayment_InvalidReference_ShowsError()
         {
-            var result = await _controller.SuccessPayment("INVALID");
+            var result = await _ticketController.SuccessPayment("INVALID");
 
             var redirectResult = Assert.IsType<RedirectToActionResult>(result);
-            Assert.Contains("error", _controller.TempData.Values.FirstOrDefault()?.ToString()?.ToLower());
+            Assert.Contains("error", _ticketController.TempData.Values.FirstOrDefault()?.ToString()?.ToLower());
         }
 
         // Handles payment cancellation by redirecting home with a specific message
         [Fact]
         public void CancelPayment_RedirectsHomeWithMessage()
         {
-            var result = _controller.CancelPayment();
+            var result = _ticketController.CancelPayment();
 
             Assert.IsType<RedirectToActionResult>(result);
-            Assert.Contains("cancelado", _controller.TempData.Values.FirstOrDefault()?.ToString()?.ToLower());
+            Assert.Contains("cancelado", _ticketController.TempData.Values.FirstOrDefault()?.ToString()?.ToLower());
         }
     }*/
 }

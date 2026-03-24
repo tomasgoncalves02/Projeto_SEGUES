@@ -4,22 +4,22 @@ using Microsoft.AspNetCore.Mvc;
 namespace Projeto_SEGUES.Areas.Report;
 
 /// <summary>
-/// Controller respons·vel pela geraÁ„o e visualizaÁ„o de relatÛrios do sistema.
+/// Controller respons√°vel pela gera√ß√£o e visualiza√ß√£o de relat√≥rios do sistema.
 /// </summary>
 /// <remarks>
-/// Este controlador pertence ‡ ·rea "Report" e permite aos utilizadores autenticados 
-/// acederem a dados estatÌsticos, histÛricos de consumo ou exportaÁıes de documentos.
+/// Este controlador pertence √† √°rea "Report" e permite aos utilizadores autenticados 
+/// acederem a dados estat√≠sticos, hist√≥ricos de consumo ou exporta√ß√µes de documentos.
 /// </remarks>
 [Authorize]
 [Area("Report")]
 public class ReportController : Controller
 {
     /// <summary>
-    /// Apresenta a p·gina principal do mÛdulo de relatÛrios.
+    /// Apresenta a p√°gina principal do m√≥dulo de relat√≥rios.
     /// </summary>
-    /// <returns>A View correspondente ao Ìndice de relatÛrios e estatÌsticas.</returns>
+    /// <returns>A View correspondente ao √≠ndice de relat√≥rios e estat√≠sticas.</returns>
     /// <remarks>
-    /// Serve como o painel central onde o utilizador pode escolher o tipo de relatÛrio a gerar.
+    /// Serve como o painel central onde o utilizador pode escolher o tipo de relat√≥rio a gerar.
     /// </remarks>
     public IActionResult Index()
     {

@@ -13,11 +13,9 @@
                 <small class="fw-bold text-uppercase" style="font-size: 0.7rem;">Saldo Atual</small>
                 <span class="fw-bold fs-5">@ViewBag.Balance.ToString("N2") €</span>
             </div >
-            <div class="col-md-5 text-end">
-                <a asp-area="Order" asp-controller="CreateOrder" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4 shadow-sm">
-                    <i class="bi bi-arrow-left me-2"></i> Voltar
-                </a>
-            </div>
+            <a asp-area="Order" asp-controller="CreateOrder" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold shadow-sm order-first order-md-last mb-3 mb-md-0">
+                <i class="bi bi-arrow-left me-2"></i> Voltar
+            </a>
         </div>
     </div>
 

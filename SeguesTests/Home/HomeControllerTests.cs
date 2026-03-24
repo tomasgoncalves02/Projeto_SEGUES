@@ -104,11 +104,11 @@ namespace SeguesTests
                 CanteenDinnerClosingTime = "20:00"
             }));
             
-            var result = await _controller.Schedule();
+            var result = await _ticketController.Schedule();
 
             var viewResult = Assert.IsType<ViewResult>(result);
-            Assert.Equal("08:00", _controller.ViewBag.OpeningTime);
-            Assert.Equal("20:00", _controller.ViewBag.ClosingTime);
+            Assert.Equal("08:00", _ticketController.ViewBag.OpeningTime);
+            Assert.Equal("20:00", _ticketController.ViewBag.ClosingTime);
         }*/
 
         // Returns the error view containing a valid RequestId for debugging

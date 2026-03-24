@@ -17,7 +17,7 @@ namespace SeguesTests.Admin
         public AdminInventoryManagementControllerTests()
         {
             _mockInventoryService = new Mock<IInventoryService>();
-            //_controller = new AdminInventoryManagementController(_mockInventoryService.Object);
+            //_ticketController = new AdminInventoryManagementController(_mockInventoryService.Object);
 
             var httpContext = new DefaultHttpContext();
             _controller.TempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>());

@@ -126,6 +126,7 @@
     <_ContentIncludedByDefault Remove="wwwroot\lib\jquery\dist\jquery.min.js" />
     <_ContentIncludedByDefault Remove="wwwroot\lib\jquery\dist\jquery.min.map" />
     <_ContentIncludedByDefault Remove="wwwroot\lib\jquery\LICENSE.txt" />
+    <_ContentIncludedByDefault Remove="Areas\Statistics\Views\ReportTicketsStatistics\Index.cshtml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -133,7 +134,10 @@
     <AdditionalFiles Include="Areas\Admin\Views\AdminOrderManagement\Index.cshtml" />
     <AdditionalFiles Include="Areas\Order\Views\CreateOrder\Checkout.cshtml" />
     <AdditionalFiles Include="Areas\Order\Views\CreateOrder\Index.cshtml" />
+    <AdditionalFiles Include="Areas\Report\Views\ReportStatisticsOrder\Index.cshtml" />
     <AdditionalFiles Include="Areas\Report\Views\ReportOrder\Index.cshtml" />
+    <AdditionalFiles Include="Areas\Report\Views\ReportStatistics\Index.cshtml" />
+    <AdditionalFiles Include="Areas\Report\Views\ReportStatisticsTicket\Index.cshtml" />
   </ItemGroup>
 
 </Project>

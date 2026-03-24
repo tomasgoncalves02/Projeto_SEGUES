@@ -6,22 +6,19 @@
 
 
 <div class="container-fluid mt-5 px-4">
-    <div class="row align-items-end mb-4 g-3">
-        <div class="col-12 col-md-auto order-1 order-md-2 text-end ms-md-auto">
-            <a asp-area="Admin" asp-controller="AdminBarManagement" asp-action="Index"
-               class="btn btn-ips-outline-secondary fw-bold px-4">
-                <i class="bi bi-arrow-left me-2"></i>Voltar
-            </a>
-        </div>
-
-        <div class="col-12 col-md order-2 order-md-1">
-            <h2 class="fw-bold title-underline mb-2">
+    <div class="d-flex justify-content-between align-items-end mb-4 flex-column flex-md-row">
+        <div class="mb-2 mb-md-0">
+            <h2 class="fw-bold display-6 title-underline mb-1">
                 <i class="bi bi-journal-text me-2 text-color-ips"></i>
                 Histórico Geral de Pedidos
             </h2>
-            <p class="text-muted small mb-0">Controlo total de transações, horários de recolha e fluxo financeiro do Bar.</p>
+            <p class="text-muted small mb-0 mt-1">Controlo total de transações, horários de recolha e fluxo financeiro do Bar.</p>
         </div>
+        <a asp-area="Admin" asp-controller="AdminBarManagement" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold shadow-sm order-first order-md-last mb-3 mb-md-0">
+            <i class="bi bi-arrow-left me-2"></i>Voltar
+        </a>
     </div>
+    
     @* Definição do Hórario de Funcionamento*@
     <div class="card card-ips hover-shadow-ips shadow-sm mb-4 border-0 rounded-3" style="max-width: 580px;">
         <div class="card-body p-4">

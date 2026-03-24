@@ -2,25 +2,25 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Projeto_SEGUES.Areas.Statistics.Controllers;
+using Projeto_SEGUES.Areas.Report;
 using Projeto_SEGUES.Resources;
 using Projeto_SEGUES.Services;
 
 namespace SeguesTests.Statistics
 {
-    public class TicketsStatisticsControllerTests
+    public class ReportStatisticsTicketControllerTests
     {
-        private readonly Mock<IStatisticsService> _mockStatisticsService;
-        private readonly TicketsStatisticsController _controller;
-        private readonly Mock<ILogger<TicketsStatisticsController>> _mockLogger;
+        private readonly Mock<IReportService> _mockStatisticsService;
+        private readonly ReportStatisticsTicketController _ticketController;
+        private readonly Mock<ILogger<ReportStatisticsTicketController>> _mockLogger;
         private readonly Mock<IStringLocalizer<Errors>> _mockLocalizer;
 
-        public TicketsStatisticsControllerTests()
+        public ReportStatisticsTicketControllerTests()
         {
-            _mockStatisticsService = new Mock<IStatisticsService>();
-            _mockLogger = new Mock<ILogger<TicketsStatisticsController>>();
+            _mockStatisticsService = new Mock<IReportService>();
+            _mockLogger = new Mock<ILogger<ReportStatisticsTicketController>>();
             _mockLocalizer = new Mock<IStringLocalizer<Errors>>();
-            _controller = new TicketsStatisticsController(_mockStatisticsService.Object, _mockLogger.Object, _mockLocalizer.Object);
+            _ticketController = new ReportStatisticsTicketController(_mockStatisticsService.Object);
         }
 
 
@@ -28,7 +28,7 @@ namespace SeguesTests.Statistics
         [Fact]
         public void Index_ReturnsView()
         {
-            var result = _controller.Index();
+            var result = _ticketController.Index();
             Assert.IsType<ViewResult>(result);
         }
 
@@ -38,9 +38,9 @@ namespace SeguesTests.Statistics
         public async Task GetTicketsStats_ValidPeriod_ReturnsJsonResult()
         {
             var testData = new { TotalTickets = 50, SalesAmount = 125.00m };
-            _mockStatisticsService.Setup(s => s.GetTicketsStats(1)).ReturnsAsync(testData);
+            //_mockStatisticsService.Setup(s => s.GetTicketsStats(1)).ReturnsAsync(testData);
 
-            var result = await _controller.GetTicketsStats(1);
+            var result = await _ticketController.GetTicketsStats(1);
 
             var jsonResult = Assert.IsType<JsonResult>(result);
             Assert.Equal(testData, jsonResult.Value);
@@ -51,9 +51,9 @@ namespace SeguesTests.Statistics
         [Fact]
         public async Task GetTicketsStats_NoDataFound_ReturnsJsonWithNull()
         {
-            _mockStatisticsService.Setup(s => s.GetTicketsStats(It.IsAny<int>())).ReturnsAsync((object)null!);
+            //_mockStatisticsService.Setup(s => s.GetTicketsStats(It.IsAny<int>())).ReturnsAsync((object)null!);
 
-            var result = await _controller.GetTicketsStats(1);
+            var result = await _ticketController.GetTicketsStats(1);
 
             var jsonResult = Assert.IsType<JsonResult>(result);
             Assert.Null(jsonResult.Value);

@@ -3,8 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Areas.Report.ViewModels;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Extensions;
-using Projeto_SEGUES.Models.Audit;
 using Projeto_SEGUES.Models.Enums;
+using Projeto_SEGUES.Models.Payment;
 using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.User;
 
@@ -92,9 +92,8 @@ public class TicketService : ITicketService
     {
         // Load navigation first and extract the category id into a local variable
         await _context.Entry(user).Reference(u => u.UserCategory).LoadAsync();
-        var userCategoryId = user.UserCategory?.Id;
-        if (userCategoryId == null) return 0m;
-
+        var userCategoryId = user.UserCategory.Id;
+        
         var now = DateTime.Now;
         var price = await _context.TicketPrice
             .Where(p => p.UserCategory.Id == userCategoryId
@@ -123,16 +122,16 @@ public class TicketService : ITicketService
     public async Task<ServiceResult> BuyTicketsAsync(string userId, int quantity)
     {
         if (quantity <= 0) return ServiceResult.Fail("Quantidade inválida.");
-
+        
         var dbUser = await _context.Users
             .Include(u => u.UserCategory)
             .FirstOrDefaultAsync(u => u.Id == userId);
         if (dbUser == null) return ServiceResult.Fail("Utilizador não encontrado.");
-
+        
         var now = DateTime.Now;
         var pricePerUnit = await GetCurrentPriceForUserAsync(dbUser);
         if (pricePerUnit <= 0) return ServiceResult.Fail("Preçário não disponível. Contacte a administração.");
-
+        
         var totalCost = pricePerUnit * quantity;
         if (dbUser.Balance < totalCost)
             return ServiceResult.Fail("Saldo insuficiente para a operação.");
@@ -140,7 +139,7 @@ public class TicketService : ITicketService
         await using var tx = await _context.Database.BeginTransactionAsync();
         try
         {
-            // 1. Criar o Registo de Compra de Senhas (Tabela TicketPurchase)
+            // Create Purchase Record
             var purchase = new TicketPurchase
             {
                 AppUser = dbUser,
@@ -149,26 +148,25 @@ public class TicketService : ITicketService
                 Value = totalCost
             };
             _context.TicketPurchase.Add(purchase);
-
-            // 2. NOVO: Criar o Registo no Histórico de Saldo (Tabela Transactions)
-            // É este registo que fará aparecer a linha no teu histórico de movimentos
-            var saldoMovimento = new Projeto_SEGUES.Models.Payment.Transaction
+            
+            // Register transaction in the Transaction table
+            var saldoMovimento = new Transaction
             {
                 User = dbUser,
-                Amount = -totalCost, // NEGATIVO para indicar saída/gasto
+                Amount = -totalCost,
                 Description = $"Compra de {quantity} senha(s) de refeição",
-                Reference = "COMPRA INTERNA",
+                Reference = "Compra Interna",
                 IsPaid = true,
                 CreatedAt = now
             };
             _context.Transaction.Add(saldoMovimento);
 
-            // 3. Obter validade e gerar as senhas
+            // Create Tickets
             var validity = await _context.AppConfig.Select(c => c.TicketValidityDays).FirstOrDefaultAsync();
-            if (validity == 0) validity = 30; // Valor por defeito caso a config falhe
+            if (validity == 0) validity = 365;
             var expiration = now.AddDays(validity);
             string code;
-
+            
             for (int i = 0; i < quantity; i++)
             {
                 do
@@ -187,16 +185,18 @@ public class TicketService : ITicketService
                 });
             }
 
-            // 4. Atualizar o Saldo do Utilizador
+            // Update User Balance
             dbUser.Balance -= totalCost;
 
             await _context.SaveChangesAsync();
             await tx.CommitAsync();
+            _logger.LogAppUser($"{quantity} ticket(s) bought by {dbUser.UserName} ({totalCost:C}).", UserAction.TicketPurchase);
             return ServiceResult.Ok("Compra realizada.");
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             await tx.RollbackAsync();
+            _logger.LogAppError(AppErrors.DatabaseUpdateError, TableName.Ticket, AppOperation.Create, ex);
             return ServiceResult.Fail("Erro ao processar a compra.");
         }
     }
@@ -248,7 +248,8 @@ public class TicketService : ITicketService
         // State filter (Disponível, Usado, Expirado)
         if (stateFilter.HasValue)
         {
-            query = query.Where(t => t.State == stateFilter.Value);
+            // Exclude transferred tickets from state filter
+            query = query.Where(t => t.State == stateFilter.Value && t.Owner.Id == userId);
         }
 
         var flowFilter = model.FlowFilter;
@@ -258,7 +259,7 @@ public class TicketService : ITicketService
             switch (flowFilter)
             {
                 case TicketFlow.Bought:
-                    query = query.Where(t => t.Owner.Id == userId && t.Transfers.All(tr => tr.Receiver.Id != userId));
+                    query = query.Where(t => t.TicketPurchase.AppUser.Id == userId);
                     break;
                 case TicketFlow.Sent:
                     query = query.Where(t => t.Transfers.Any(tr => tr.Sender.Id == userId));

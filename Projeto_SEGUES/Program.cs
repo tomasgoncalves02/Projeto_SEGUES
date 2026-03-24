@@ -188,7 +188,7 @@ builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IStatisticsService, StatisticsService>();
+builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 //Stripe

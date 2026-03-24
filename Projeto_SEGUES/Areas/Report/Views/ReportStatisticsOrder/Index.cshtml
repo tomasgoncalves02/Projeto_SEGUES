@@ -3,19 +3,16 @@
 }
 
 <div class="container mt-5">
-    <div class="row align-items-end mb-5 g-3">
-        <div class="col-12 col-md-auto order-1 order-md-2 text-end ms-md-auto">
-            <a asp-area="Statistics" asp-controller="Statistics" asp-action="Index"
-               class="btn btn-ips-outline-secondary fw-bold px-4">
-                <i class="bi bi-arrow-left me-2"></i>Voltar
-            </a>
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-column flex-md-row">
+        <div class="mb-2 mb-md-0">
+            <h2 class="fw-bold display-6 title-underline mb-1">Estatísticas do Bar</h2>
         </div>
-        <div class="col-12 col-md order-2 order-md-1">
-            <h2 class="fw-bold title-underline mb-0">Estatísticas do Bar</h2>
-        </div>
+        <a asp-area="Report" asp-controller="ReportStatistics" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold shadow-sm px-4 order-first order-md-last mb-3 mb-md-0">
+            <i class="bi bi-arrow-left me-2"></i>Voltar
+        </a>
     </div>
 
-    @* Filtro Período *@
+    @* Period filter *@
     <div class="row mb-4">
         <div class="col-md-3">
             <div class="card card-ips hover-shadow-ips shadow-sm border-0 rounded-3">
@@ -34,51 +31,50 @@
     </div>
 
     <div class="row g-3 mb-4">
-        @* Total Consumos *@
+        @* Total orders *@
         <div class="col-md-3">
             <div class="card card-ips hover-shadow-ips shadow-sm border-0 rounded-3 h-100">
                 <div class="card-body p-4">
                     <p class="small fw-semibold text-muted mb-1">Total de Pedidos</p>
-                    <h3 class="fw-bold mb-1" style="color: darkcyan;" id="totalOrderBar">—</h3>
+                    <h3 class="fw-bold mb-1 text-color-ips" id="totalOrderBar">—</h3>
                 </div>
             </div>
         </div>
-        @* Receita Total *@
+        @* Total revenue *@
         <div class="col-md-3">
             <div class="card card-ips hover-shadow-ips shadow-sm border-0 rounded-3 h-100">
                 <div class="card-body p-4">
                     <p class="small fw-semibold text-muted mb-1">Receita Total</p>
-                    <h3 class="fw-bold mb-1" style="color: darkcyan;" id="totalIncomeBar">—</h3>
+                    <h3 class="fw-bold mb-1 text-color-ips" id="totalIncomeBar">—</h3>
                 </div>
             </div>
         </div>
-        @* Receita Media *@
+        @* Average revenue *@
         <div class="col-md-3">
             <div class="card card-ips hover-shadow-ips shadow-sm border-0 rounded-3 h-100">
                 <div class="card-body p-4">
-                    <p class="small fw-semibold text-muted mb-1">Compra Media</p>
-                    <h3 class="fw-bold mb-1" style="color: darkcyan;" id="averageIncomeBar">—</h3>
+                    <p class="small fw-semibold text-muted mb-1">Receita Média</p>
+                    <h3 class="fw-bold mb-1 text-color-ips" id="averageIncomeBar">—</h3>
                 </div>
             </div>
         </div>
-        @* Novos Utilizadores *@
+        @* Unique total clients *@
         <div class="col-md-3">
             <div class="card card-ips hover-shadow-ips shadow-sm border-0 rounded-3 h-100">
                 <div class="card-body p-4">
                     <p class="small fw-semibold text-muted mb-1">Total de Clientes</p>
-                    <h3 class="fw-bold mb-1" style="color: darkcyan;" id="totalBuyersBar">—</h3>
+                    <h3 class="fw-bold mb-1 text-color-ips" id="totalBuyersBar">—</h3>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="row g-3 mb-4">
-
-        @* Gráfico *@
+        @* Line Chart *@
         <div class="col-lg-6">
             <div class="card card-ips hover-shadow-ips shadow-sm border-0 rounded-3 h-100">
                 <div class="card-body p-4">
-                    <h6 class="fw-bold mb-1" style="color: darkcyan;">Pedidos ao longo do tempo</h6>
+                    <h6 class="fw-bold mb-1 text-color-ips">Pedidos ao longo do tempo</h6>
                     <p class="text-muted small mb-3" id="orderChartSubtitle">Pedidos por hora hoje</p>
                     <div style="position: relative; height: 260px;">
                         <canvas id="orderChart"></canvas>
@@ -87,11 +83,11 @@
             </div>
         </div>
 
-        @* NOVO: Gráfico Circular (Categorias) *@
+        @* Category Chart *@
         <div class="col-lg-5">
             <div class="card card-ips hover-shadow-ips shadow-sm border-0 rounded-3 h-100">
                 <div class="card-body p-4">
-                    <h6 class="fw-bold mb-1" style="color: darkcyan;">Por categoria</h6>
+                    <h6 class="fw-bold mb-1 text-color-ips">Por categoria</h6>
                     <p class="text-muted small mb-4">Distribuição de produtos</p>
                     <div style="position: relative; height: 240px;">
                         <canvas id="productCategoriesChart"></canvas>
@@ -101,12 +97,12 @@
         </div>
     </div>
 
-    @* Tabela de Produtos Mais Vendidos *@
+    @* Top Products Table *@
     <div class="row g-3 mb-4">
         <div class="col-12">
             <div class="card card-ips hover-shadow-ips shadow-sm border-0 rounded-3">
                 <div class="card-body p-4">
-                    <h6 class="fw-bold mb-3" style="color: var(--ips);">Top Produtos Mais Vendidos</h6>
+                    <h6 class="fw-bold mb-3 text-color-ips">Produtos Mais Vendidos</h6>
                     <div class="table-responsive" style="max-height: 500px;">
                         <table class="table table-hover align-middle mb-0">
                             <thead class="bg-light text-muted small text-uppercase">

@@ -45,13 +45,13 @@ async function loadOrdersSummary() {
     const period = DOM.byId('selectOrdersPeriod')?.value;
     if (!period) return;
     
-    const data = await Api.get('/Statistics/OrdersStatistics/GetOrdersStats', { period });
+    const data = await Api.get('/Report/ReportStatisticsOrder/GetOrdersStats', { period });
     if (!data) return;
     
-    updateText('totalOrderBar', data.totalOrderBar);
-    updateText('totalIncomeBar', data.totalIncomeBar);
-    updateText('averageIncomeBar', data.averageIncomeBar);
-    updateText('totalBuyersBar', data.totalBuyersBar);
+    updateText('totalOrderBar', data.totalOrders);
+    updateText('totalIncomeBar', data.formattedTotalRevenue);
+    updateText('averageIncomeBar', data.formattedAverageRevenue);
+    updateText('totalBuyersBar', data.numberOfBuyers);
     
     renderOrderChart(data.orderChart, period);
     renderCategoriesChart(data.productCategories);
@@ -171,15 +171,15 @@ async function loadTicketsSummary() {
     const period = DOM.byId('selectTicketsPeriod')?.value;
     if (!period) return;
 
-    const data = await Api.get('/Statistics/TicketsStatistics/GetTicketsStats', { period });
+    const data = await Api.get('/Report/ReportStatisticsTicket/GetTicketsStats', { period });
     if (!data) return;
     
     const findCat = name => data.byCategory?.find(c => c.category === name)?.count ?? 0;
 
-    updateText('totalUsedTickets', data.totalMeals);
-    updateText('totalIncomeCanteen', data.totalRevenue);
-    updateText('averageIncomeCanteen', data.averageRevenue);
-    updateText('totalBuyersCanteen', data.newBuyers);
+    updateText('totalUsedTickets', data.totalUsedTickets);
+    updateText('totalIncomeCanteen', data.formattedTotalRevenue);
+    updateText('averageIncomeCanteen', data.formattedAverageRevenue);
+    updateText('totalBuyersCanteen', data.numberOfBuyers);
 
     updateText('usedStudentTickets', findCat('Estudante'));
     updateText('usedExternalTickets', findCat('Externo'));
