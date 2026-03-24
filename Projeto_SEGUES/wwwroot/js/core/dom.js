@@ -2,8 +2,8 @@
  * DOM helper functions
  */
 const DOM = {
-    byId(id, root = document) {
-        return root.getElementById(id);
+    byId(id) {
+        return document.getElementById(id);
     },
     byClass(className, root = document) {
         return Array.from(root.getElementsByClassName(className));

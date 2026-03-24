@@ -1,5 +1,7 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Moq;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.Admin;
 using Projeto_SEGUES.Models.Enums;
@@ -11,6 +13,7 @@ namespace SeguesTests.Services
 {
     public class TicketServiceTests
     {
+        private readonly Mock<ILogger<TicketService>> _mockLogger = new();
         private AppDbContext GetDatabaseContext()
         {
             var connection = new SqliteConnection("Filename=:memory:");
@@ -45,7 +48,8 @@ namespace SeguesTests.Services
         public async Task GetCurrentPriceForUserAsync_ReturnsCorrectPrice()
         {
             var context = GetDatabaseContext();
-            var service = new TicketService(context);
+            
+            var service = new TicketService(context, _mockLogger.Object);
             var cat = new UserCategory { Name = "Student" };
             var user = CreatePedroUser("u1", "p@pt.pt", cat);
 
@@ -66,7 +70,7 @@ namespace SeguesTests.Services
         public async Task BuyTicketsAsync_Success_UpdatesBalanceAndCreatesTickets()
         {
             var context = GetDatabaseContext();
-            var service = new TicketService(context);
+            var service = new TicketService(context, _mockLogger.Object);
             var cat = new UserCategory { Name = "Student" };
             var user = CreatePedroUser("u1", "p@pt.pt", cat, balance: 10m);
             var price = new TicketPrice { Price = 2m, UserCategory = cat, InitialDatePrice = DateTime.Now.AddDays(-1), EndDatePrice = DateTime.Now.AddDays(1) };
@@ -101,7 +105,7 @@ namespace SeguesTests.Services
         public async Task GetUserTicketsAsync_AutoExpiresOverdueTickets()
         {
             var context = GetDatabaseContext();
-            var service = new TicketService(context);
+            var service = new TicketService(context, _mockLogger.Object);
             var cat = new UserCategory { Name = "Student" };
             var user = CreatePedroUser("u1", "p@pt.pt", cat);
 
@@ -133,7 +137,7 @@ namespace SeguesTests.Services
         public async Task ValidateTicketAsync_ValidCode_SetsToUsed()
         {
             var context = GetDatabaseContext();
-            var service = new TicketService(context);
+            var service = new TicketService(context, _mockLogger.Object);
             var cat = new UserCategory { Name = "Employee" };
             var owner = CreatePedroUser("u1", "o@pt.pt", cat);
             var validator = CreatePedroUser("v1", "staff@pt.pt", cat);
@@ -157,7 +161,7 @@ namespace SeguesTests.Services
         public async Task TransferTicketsAsync_Success_ChangesOwnership()
         {
             var context = GetDatabaseContext();
-            var service = new TicketService(context);
+            var service = new TicketService(context, _mockLogger.Object);
             var cat = new UserCategory { Name = "Student" };
             var sender = CreatePedroUser("s1", "sender@pt.pt", cat);
             var receiver = CreatePedroUser("r1", "receiver@pt.pt", cat);
@@ -183,7 +187,7 @@ namespace SeguesTests.Services
         public async Task TransferTicketsAsync_DifferentCategories_FailsValidation()
         {
             var context = GetDatabaseContext();
-            var service = new TicketService(context);
+            var service = new TicketService(context, _mockLogger.Object);
             var cat1 = new UserCategory { Name = "Student" };
             var cat2 = new UserCategory { Name = "Employee" };
 

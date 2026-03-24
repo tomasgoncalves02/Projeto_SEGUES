@@ -15,6 +15,7 @@ using System.Collections.ObjectModel;
 using System.Data;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Middlewares;
+using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -114,6 +115,7 @@ builder.Host.UseSerilog((ctx, configuration) =>
         // Default System Logs
         .WriteTo.Logger(lc => lc
             .Filter.ByExcluding(Matching.WithProperty("LogType"))
+            .Filter.ByIncludingOnly(evt => evt.Level >= LogEventLevel.Error)
             .WriteTo.MSSqlServer(
                 connectionString: connectionString,
                 sinkOptions: new MSSqlServerSinkOptions { TableName = "ErrorLog", AutoCreateSqlTable = false },

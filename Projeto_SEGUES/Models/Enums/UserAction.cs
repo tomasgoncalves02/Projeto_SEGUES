@@ -18,6 +18,9 @@ public enum UserAction : byte
     // Business Actions
     SuccessPayment,
     FailedPayment,
+    
+    // Ticket
+    TransferTicket,
 
     // Employee Actions
     ValidateTicket,

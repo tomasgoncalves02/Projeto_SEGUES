@@ -3,15 +3,15 @@
 }
 
 <div class="container mt-5">
-    <div class="row align-items-end mb-5 g-3">
-        <div class="col-12 col-md-auto order-1 order-md-2 text-end ms-md-auto">
-            <a asp-area="Statistics" asp-controller="Statistics" asp-action="Index"
-               class="btn btn-ips-outline-secondary fw-bold px-4">
+@* Header *@
+    <div class="d-flex mb-5 align-items-center justify-content-between flex-column flex-md-row">
+        <div class="col-md-6 mb-2 mb-md-0">
+            <h2 class="fw-bold title-underline mb-0">Estatísticas do Bar</h2>
+        </div>
+        <div class="col-md-6 text-end">
+            <a asp-area="Statistics" asp-controller="Statistics" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4">
                 <i class="bi bi-arrow-left me-2"></i>Voltar
             </a>
-        </div>
-        <div class="col-12 col-md order-2 order-md-1">
-            <h2 class="fw-bold title-underline mb-0">Estatísticas do Bar</h2>
         </div>
     </div>
 

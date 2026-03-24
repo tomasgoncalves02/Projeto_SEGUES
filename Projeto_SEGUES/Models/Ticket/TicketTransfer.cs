@@ -10,7 +10,7 @@ public class TicketTransfer
     [DataType(DataType.DateTime)]
     [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
     [Display(Name = "Data de Transferência")]
-    public DateTime TransferDate { get; set; }
+    public DateTime TransferDate { get; set; } = DateTime.Now;
 
     [Required]
     public required Ticket Ticket { get; set; } // FK

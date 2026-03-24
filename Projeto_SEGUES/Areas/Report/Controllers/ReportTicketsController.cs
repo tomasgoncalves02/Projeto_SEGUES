@@ -1,10 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Projeto_SEGUES.Extensions;
-using Projeto_SEGUES.Models.Enums;
-using Projeto_SEGUES.Models.User;
-using Projeto_SEGUES.Resources;
+using Projeto_SEGUES.Areas.Report.ViewModels;
 using Projeto_SEGUES.Services;
 
 namespace Projeto_SEGUES.Areas.Report;
@@ -21,20 +18,14 @@ namespace Projeto_SEGUES.Areas.Report;
 public class ReportTicketsController : Controller
 {
     private readonly ITicketService _ticketService;
-    private readonly UserManager<AppUser> _userManager;
-    private readonly ILogger<ReportTicketsController> _logger;
 
     /// <summary>
     /// Initializes a new instance of the controller with ticket, user, and logging services.
     /// </summary>
     public ReportTicketsController(
-        ITicketService ticketService,
-        UserManager<AppUser> userManager,
-        ILogger<ReportTicketsController> logger)
+        ITicketService ticketService)
     {
         _ticketService = ticketService;
-        _userManager = userManager;
-        _logger = logger;
     }
 
     /// <summary>
@@ -46,34 +37,15 @@ public class ReportTicketsController : Controller
     /// <param name="dateFilter">Filter by transaction or usage date.</param>
     /// <returns>The Index View populated with query results. Redirects to error on failure.</returns>
     [HttpGet]
-    public async Task<IActionResult> Index(string? searchString, TicketState? stateFilter, string? flowFilter, DateTime? dateFilter)
+    public async Task<IActionResult> Index(ReportTicketSearchViewModel model)
     {
-        try
-        {
-            var userId = _userManager.GetUserId(User);
-            if (userId == null) return Challenge();
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return Challenge();
 
-            var tickets = await _ticketService.QueryHistoryAsync(userId, searchString, stateFilter, flowFilter, dateFilter);
-
-            ViewData["CurrentSearch"] = searchString;
-            ViewData["CurrentState"] = stateFilter;
-            ViewData["CurrentFlow"] = flowFilter;
-            ViewData["CurrentDate"] = dateFilter;
-            ViewBag.CurrentUserId = userId;
-
-            return View(tickets);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erro fatal ao carregar o histórico de senhas (Index).");
-
-            // Usando a tua chave 'DatabaseQueryError' e o Enum 1001
-            return RedirectToAction("Error", "Home", new
-            {
-                area = "",
-                errorCode = (int)AppErrors.DatabaseQueryError
-            });
-        }
+        model.Results = await _ticketService.QueryHistoryAsync(userId, model);
+        
+        ViewBag.CurrentUserId = userId;
+        return View(model);
     }
 
     /// <summary>
@@ -85,32 +57,18 @@ public class ReportTicketsController : Controller
     /// <param name="searchString">Alphanumeric search term.</param>
     /// <returns>A PartialView containing only the filtered table rows, or 500 on error.</returns>
     [HttpGet]
-    public async Task<IActionResult> GetFilteredHistory(string? stateFilter, DateTime? dateFilter, string? flowFilter, string? searchString)
+    public async Task<IActionResult> GetFilteredHistory(ReportTicketSearchViewModel model)
     {
-        try
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) 
         {
-            var userId = _userManager.GetUserId(User);
-            if (userId == null) return Unauthorized();
-
-            ViewBag.CurrentUserId = userId;
-
-            TicketState? state = null;
-            if (!string.IsNullOrEmpty(stateFilter) && Enum.TryParse<TicketState>(stateFilter, out var parsedState))
-            {
-                state = parsedState;
-            }
-
-            var history = await _ticketService.QueryHistoryAsync(userId, searchString, state, flowFilter, dateFilter);
-
-            return PartialView("_TicketHistoryRows", history);
+            Response.Headers["HX-Redirect"] = Url.Page("/Account/Login", new { area = "Identity" });
+            return Unauthorized();
         }
-        catch (Exception ex)
-        {
-            _logger.LogAppError(AppErrors.DatabaseQueryError, TableName.Ticket, AppOperation.Read, ex);
+        
+        ViewBag.CurrentUserId = userId;
 
-            // Para chamadas parciais (AJAX), devolvemos a mensagem técnica do RESX via JSON/Header
-            var msg = $"{Errors.DatabaseQueryError} [Erro: {(int)AppErrors.DatabaseQueryError}]";
-            return StatusCode(500, new { failMessage = msg });
-        }
+        var history = await _ticketService.QueryHistoryAsync(userId, model);
+        return PartialView("_TicketHistoryRows", history);
     }
 }
