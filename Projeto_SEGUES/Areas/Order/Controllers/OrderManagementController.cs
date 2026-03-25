@@ -1,12 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Localization;
 using Projeto_SEGUES.Areas.Order.ViewModels;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
-using Projeto_SEGUES.Resources;
 using Projeto_SEGUES.Services;
 
 namespace Projeto_SEGUES.Areas.Order;
@@ -24,22 +22,16 @@ public class OrderManagementController : Controller
 {
     private readonly IOrderService _orderService;
     private readonly UserManager<AppUser> _userManager;
-    private readonly ILogger<OrderManagementController> _logger;
-    private readonly IStringLocalizer<Errors> _localizer;
 
     /// <summary>
     /// Initializes a new instance of the controller with order, identity, logging, and localization services.
     /// </summary>
     public OrderManagementController(
         IOrderService orderService,
-        UserManager<AppUser> userManager,
-        ILogger<OrderManagementController> logger,
-        IStringLocalizer<Errors> localizer)
+        UserManager<AppUser> userManager)
     {
         _orderService = orderService;
         _userManager = userManager;
-        _logger = logger;
-        _localizer = localizer;
     }
 
     /// <summary>

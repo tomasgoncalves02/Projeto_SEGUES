@@ -13,6 +13,7 @@ using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.User;
 using System.Security.Cryptography;
 using System.Text;
+using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Resources;
 
 namespace Projeto_SEGUES.Services;
@@ -116,11 +117,8 @@ public class AdminService : IAdminService
         catch (Exception ex)
         {
             await transaction.RollbackAsync();
-            _logger.LogError(ex,
-                Errors.ResourceManager.GetString(nameof(AppErrors.SendActivationEmailError),
-                    System.Globalization.CultureInfo.InvariantCulture),
-                "Error", TableName.All, AppOperation.Other);
-            return ServiceResult.Fail(_localizer[nameof(AppErrors.SendActivationEmailError)].Value);
+            _logger.LogAppError(AppErrors.SendActivationEmailError, TableName.All, AppOperation.Other, ex);
+            return ServiceResult.Fail(AppErrors.SendActivationEmailError.GetViewErrorMessage());
         }
         await transaction.CommitAsync();
         return ServiceResult.Ok();

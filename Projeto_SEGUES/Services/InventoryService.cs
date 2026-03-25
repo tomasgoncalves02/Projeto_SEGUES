@@ -100,8 +100,9 @@ public class InventoryService : IInventoryService
             await _context.SaveChangesAsync();
             return ServiceResult.Ok("Produto editado com sucesso!");
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            _logger.LogAppError(AppErrors.ProductEditError, TableName.Product, AppOperation.Update, ex);
             return ServiceResult.Fail("Ocorreu um erro ao editar o produto.");
         }
     }
@@ -116,8 +117,9 @@ public class InventoryService : IInventoryService
             await _context.SaveChangesAsync();
             return ServiceResult.Ok("Produto eliminado com sucesso!");
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            _logger.LogAppError(AppErrors.ProductDeleteError, TableName.Product, AppOperation.Delete, ex);
             return ServiceResult.Fail("Ocorreu um erro ao eliminar o produto.");
         }
     }

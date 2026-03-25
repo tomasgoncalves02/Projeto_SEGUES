@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Localization;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Enums;
@@ -18,19 +17,16 @@ public class AdminCreateInternalAccountController : Controller
 {
     private readonly IAdminService _adminService;
     private readonly ILogger<AdminCreateInternalAccountController> _logger;
-    private readonly IStringLocalizer<Errors> _localizer;
 
     /// <summary>
     /// Initializes a new instance of the controller with required services.
     /// </summary>
     public AdminCreateInternalAccountController(
         IAdminService adminService,
-        ILogger<AdminCreateInternalAccountController> logger,
-        IStringLocalizer<Errors> localizer)
+        ILogger<AdminCreateInternalAccountController> logger)
     {
         _adminService = adminService;
         _logger = logger;
-        _localizer = localizer;
     }
 
     /// <summary>
@@ -74,14 +70,8 @@ public class AdminCreateInternalAccountController : Controller
         }
         catch (Exception ex)
         {
-            _logger.LogAppError(
-                AppErrors.SendActivationEmailError,
-                TableName.User,
-                AppOperation.Create,
-                ex
-            );
-            var msg = $"{Errors.SendActivationEmailError} [Erro: {(int)AppErrors.SendActivationEmailError}]";
-            TempData.SetSwalError(msg);
+            _logger.LogAppError(AppErrors.SendActivationEmailError, TableName.User, AppOperation.Create, ex);
+            TempData.SetSwalError(AppErrors.SendActivationEmailError.GetViewErrorMessage());
 
             return RedirectToAction(nameof(Index));
         }

@@ -29,7 +29,7 @@ namespace SeguesTests.Orders
             _mockLogger = new Mock<ILogger<OrderManagementController>>();
             _mockLocalizer = new Mock<IStringLocalizer<Errors>>();
 
-            _controller = new OrderManagementController(_mockOrderService.Object, _mockUserManager.Object, _mockLogger.Object, _mockLocalizer.Object);
+            _controller = new OrderManagementController(_mockOrderService.Object, _mockUserManager.Object);
 
             var httpContext = new DefaultHttpContext();
             _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
