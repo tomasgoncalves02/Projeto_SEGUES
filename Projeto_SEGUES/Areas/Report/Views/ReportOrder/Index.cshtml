@@ -1,10 +1,11 @@
 ﻿@using Projeto_SEGUES.Models.Enums
-@model IEnumerable<Projeto_SEGUES.Models.Order.Order>
+@model Projeto_SEGUES.Areas.Report.ViewModels.ReportOrderSearchViewModel
+
 @{
-    ViewData["Title"] = "Histórico de Bar - SEGUES";
+    ViewData["Title"] = "Histórico de Bar";
 }
 
-<div class="container-fluid mt-5 text-start px-4">
+<div class="container mt-4">
     @* Header *@
     <div class="d-flex mb-4 align-items-center justify-content-between flex-column flex-md-row">
         <div class="mb-2 mb-md-0">
@@ -16,142 +17,76 @@
         </a>
     </div>
 
-    @* Barra de Filtros *@
+    @* Filter section with HTMX *@
     <div class="card card-ips hover-shadow-ips shadow-sm mb-4 border-0 rounded-3">
-        <div class="card-body p-4 filter-bar">
-            <div class="row g-3 align-items-end">
-                <div class="col-md-3">
-                    <label class="form-label fw-bold small text-uppercase text-muted">Estado</label>
-                    <select class="form-select shadow-none" id="statusFilter" onchange="filterHistory()">
-                        <option value="todos">Todos os estados</option>
-                        <option value="1">Pendente</option>
-                        <option value="2">Em preparação</option>
-                        <option value="3">Entrega Pendente</option>
-                        <option value="4">Entregue</option>
-                        <option value="5">Cancelado</option>
+        <div class="card-body p-4">
+            <form id="orderFilterForm"
+                  hx-get="/Report/ReportOrder/GetFilteredOrders"
+                  hx-trigger="submit, change, keyup delay:300ms from:#searchFilter"
+                  hx-target="#orderTableBody"
+                  hx-indicator=".loader-spinner"
+                  class="row g-3 align-items-end">
+                
+                @* Search Filter *@
+                <div class="col-md-6 col-xl">
+                    <label asp-for="SearchString" class="small fw-bold">Pesquisar</label>
+                    <input asp-for="SearchString" id="searchFilter" type="text" class="form-control form-control-sm" placeholder="Código do pedido...">
+                </div>
+                
+                @* Date Filter *@
+                <div class="col-md-4 col-xl-2">
+                    <label asp-for="DateFilter" class="small fw-bold">Compradas em</label>
+                    <input asp-for="DateFilter" type="date" class="form-control form-control-sm">
+                </div>
+                
+                @* Status Filter *@
+                <div class="col-md-4 col-xl-3">
+                    <label asp-for="StatusFilter" class="small fw-bold">Estado</label>
+                    <select asp-for="StatusFilter" asp-items="Html.GetEnumSelectList<OrderStatus>()" class="form-select form-select-sm">
+                        <option value="">Todos os estados</option>
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold small text-uppercase text-muted">Compradas em</label>
-                    <input type="date" id="dateFilter" class="form-control shadow-none" onchange="filterHistory()" />
+                
+                @* Actions *@
+                <div class="col-xl-auto">
+                    <div class="d-flex align-items-center justify-content-end gap-3 pb-1">
+                        @* HTMX Loading Spinner *@
+                        <div class="d-flex align-items-center text-color-ips htmx-indicator loader-spinner" id="searchSpinner">
+                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                            <span class="small fw-bold">A pesquisar...</span>
+                        </div>
+                        @* Clear button *@
+                        <a asp-action="Index" class="btn btn-sm btn-reset-x btn-ips-outline-secondary fw-bold px-3">
+                            <i class="bi bi-x-circle me-1"></i>Limpar Filtros
+                        </a>
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold small text-uppercase text-muted">Pesquisar</label>
-                    <input type="text" id="searchInput" class="form-control shadow-none" placeholder="Código do pedido..." onkeyup="filterHistory()" />
-                </div>
-                <div class="col-md-3 d-flex align-items-center gap-2">
-                    <a href="javascript:void(0)" onclick="clearFilters()" class="btn-reset-x text-nowrap small text-decoration-none">
-                        Limpar <i class="bi bi-x-circle ms-1"></i>
-                    </a>
-                    <button type="button" onclick="filterHistory()" class="btn btn-ips w-100 fw-bold shadow-sm text-uppercase">
-                        <i class="bi bi-search me-2"></i>Pesquisar
-                    </button>
-                </div>
-            </div>
+            </form>
         </div>
     </div>
 
-    @* Listagem de Pedidos *@
-    <div class="card card-ips hover-shadow-ips shadow-sm border-0 rounded-3 overflow-hidden">
+    @* Table *@
+    <div class="card card-ips hover-shadow-ips shadow-sm border-0 rounded-3">
         <div class="table-responsive" style="max-height: 500px;">
             <table class="table table-hover align-middle mb-0 text-center" id="historyTable" style="min-width: 1200px;">
-                <thead class="bg-color-ips text-white">
+                <thead class="bg-color-ips text-white" style="position: sticky; top: 0;">
                 <tr>
-                    <th class="py-3 ps-4 text-start">Código Pedido</th>
+                    <th class="py-3 ps-4">Código Pedido</th>
                     <th class="py-3">Nº Pedido</th>
                     <th class="py-3">Data/Hora Compra</th>
                     <th class="py-3">Agendado p/</th>
                     <th class="py-3">Estado</th>
                     <th class="py-3">Recolhido em</th>
                     <th class="py-3">Produtos</th>
-                    <th class="py-3 pe-4 text-end">Preço Total</th>
+                    <th class="py-3 pe-4">Preço Total</th>
                 </tr>
                 </thead>
-                <tbody>
-                @if (Model == null || !Model.Any())
-                {
-                    <tr>
-                        <td colspan="8" class="py-5 text-muted">Nenhum pedido encontrado.</td>
-                    </tr>
-                }
-                else
-                {
-                    @foreach (var item in Model)
-                    {
-                            bool eParaDepois = item.PickupTime.HasValue && item.PickupTime.Value != TimeSpan.Zero;
-
-                            <tr class="history-row" data-estado="@((byte)item.Status)" data-data="@item.OrderDate.ToString("yyyy-MM-dd")">
-                            <td class="fw-bold text-color-ips ps-4 text-start">
-                                <code class="fw-bold text-color-ips">@item.RedemptionCode</code>
-                            </td>
-
-                            <td class="fw-bold text-muted">#@item.Id.ToString("D5")</td>
-
-                            <td class="small">
-                                @item.OrderDate.ToString("dd/MM/yy")<br />
-                                <span class="text-muted">@item.OrderDate.ToString("HH:mm")</span>
-                            </td>
-                                
-                                <td>
-                                    @if (item.DeliveryTime.HasValue && item.DeliveryTime.Value != TimeSpan.Zero)
-                                    {
-                                        <span class="badge bg-light text-dark border fw-normal">
-                                            <i class="bi bi-clock me-1"></i>@item.DeliveryTime.Value.ToString(@"hh\:mm")
-                                        </span>
-                                    }
-                                    else
-                                    {
-                                        <small class="text-muted">Agora</small>
-                                    }
-                                </td>
-
-                            <td>
-                                @switch (item.Status)
-                                {
-                                    case OrderStatus.Pending:
-                                        <span class="badge bg-secondary px-3 py-2">Pendente</span>
-                                        break;
-                                    case OrderStatus.Preparing:
-
-                                        <span class="badge bg-info text-dark px-3 py-2">Em preparação</span>
-                                        break;
-                                    case OrderStatus.ReadyToDeliver:
-
-                                        <span class="badge bg-warning text-dark px-3 py-2">Entrega Pendente</span>
-                                        break;
-                                    case OrderStatus.Delivered:
-
-                                        <span class="badge bg-success px-3 py-2">Entregue</span>
-                                        break;
-
-                                    case OrderStatus.Cancelled:
-
-                                            <span class="badge bg-danger px-3">Cancelado</span>
-                                        break;
-
-                                }
-                            </td>
-
-                            <td class="small">
-                                @if (item.Status == OrderStatus.Delivered && item.PickupTime != null)
-                                {
-                                        <span class="text-success fw-bold">@item.PickupTime.Value.ToString(@"hh\:mm")</span>
-                                }
-                                else
-                                {
-                                    <span class="text-muted">---</span>
-                                }
-                            </td>
-
-                            <td>
-                                <button type="button" class="btn btn-sm btn-ips shadow-sm px-3 showOrderDetails" data-id="@item.Id">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                            </td>
-                            <td class="fw-bold text-color-ips pe-4 text-end">@item.TotalValue.ToString("N2") €</td>
-                        </tr>
-                    }
-                }
+                <tbody id="orderTableBody"
+                       hx-get="/Report/ReportOrder/GetFilteredOrders"
+                       hx-trigger="every 30s"
+                       hx-include="#orderFilterForm"
+                       hx-swap="innerHTML">
+                    <partial name="_OrderHistoryRowsPartial" model="Model.Results" />
                 </tbody>
             </table>
         </div>
@@ -160,32 +95,4 @@
 
 @section Scripts {
     <script type="module" src="~/js/report/reportOrder.js"></script>
-    <script>
-         function filterHistory() {
-            const search = document.getElementById('searchInput').value.toLowerCase().trim();
-            const status = document.getElementById('statusFilter').value;
-            const date = document.getElementById('dateFilter').value;
-            const rows = document.querySelectorAll('.history-row');
-
-            rows.forEach(row => {
-                // .trim() é vital aqui para ignorar espaços à volta do código
-                const codigo = row.cells[0].textContent.toLowerCase().trim();
-                const rowStatus = row.getAttribute('data-estado');
-                const rowDate = row.getAttribute('data-data');
-
-                const matchesSearch = search === "" || codigo.includes(search);
-                const matchesStatus = (status === "todos" || rowStatus === status);
-                const matchesDate = (date === "" || rowDate === date);
-
-                row.style.display = (matchesSearch && matchesStatus && matchesDate) ? "" : "none";
-            });
-        }
-
-        function clearFilters() {
-            document.getElementById('searchInput').value = "";
-            document.getElementById('statusFilter').value = "todos";
-            document.getElementById('dateFilter').value = "";
-            filterHistory();
-        }
-    </script>
 }

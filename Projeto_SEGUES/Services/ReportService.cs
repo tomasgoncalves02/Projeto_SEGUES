@@ -3,6 +3,7 @@ using Projeto_SEGUES.Areas.Report.ViewModels;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Order;
+using Projeto_SEGUES.Models.Payment;
 using Projeto_SEGUES.Models.Ticket;
 
 namespace Projeto_SEGUES.Services;
@@ -32,74 +33,6 @@ public class ReportService : IReportService
         };
     }
     
-    #endregion
-    
-    #region Tickets
-    
-    private async Task<List<Ticket>> GetUsedTicketsAsync(DateTime start)
-    {
-        return await _context.Ticket
-            .Include(t => t.TicketPurchase)
-            .Include(t => t.Owner).ThenInclude(u => u.UserCategory)
-            .Where(t => t.IsUsed && t.UsedDate != null && t.UsedDate >= start)
-            .ToListAsync();
-    }
-    
-    private List<ChartDataDto> GetInfoGraphStatsAsync(List<Ticket> tickets, int period)
-    {
-        if (tickets.Count == 0) return [];
-        
-        return tickets
-            .GroupBy(t => period switch
-            {
-                1 => new { Order = t.UsedDate!.Value.Hour, Label = t.UsedDate!.Value.ToString("HH:00") },
-                2 => new { Order = (int) t.UsedDate!.Value.DayOfWeek, Label = t.UsedDate!.Value.ToString("dd/MM") },
-                3 => new { Order = t.UsedDate!.Value.Day, Label = t.UsedDate!.Value.ToString("dd/MM") },
-                4 => new { Order = t.UsedDate!.Value.Month, Label = t.UsedDate!.Value.ToString("MMMM") },
-                5 => new { Order = t.UsedDate!.Value.Month, Label = t.UsedDate!.Value.ToString("MM/yyyy") },
-                _ => new { Order = t.UsedDate!.Value.Year, Label = t.UsedDate!.Value.Year.ToString() }
-            })
-            .OrderBy(g => g.Key.Order)
-            .Select(g => new ChartDataDto
-            {
-                Label = g.Key.Label,
-                Count = g.Count()
-            })
-            .ToList();
-    }
-
-    private List<CategoryDataDto> GetByCategoryAsync(List<Ticket> tickets)
-    {
-        if (tickets.Count == 0) return [];
-        return tickets
-            .GroupBy(t => t.Owner.UserCategory.Name)
-            .Select(g => new CategoryDataDto
-            {
-                Category = g.Key,
-                Count = g.Count()
-            })
-            .OrderByDescending(g => g.Count)
-            .ToList();
-    }
-
-    public async Task<ReportStatisticsTicketDto> GetTicketsStats(int period = 1)
-    {
-        var start = GetStartDateForPeriod(period);
-        var tickets = await GetUsedTicketsAsync(start);
-        int totalUsedTickets = tickets.Count;
-        decimal totalRevenue = totalUsedTickets == 0 ? 0m : tickets.Sum(t => t.TicketPurchase.Value / t.TicketPurchase.Quantity);
-
-        return new ReportStatisticsTicketDto
-        {
-            TotalUsedTickets = totalUsedTickets,
-            TotalRevenue = totalRevenue,
-            AverageRevenue = totalUsedTickets == 0 ? 0m : totalRevenue / totalUsedTickets,
-            NumberOfBuyers = tickets.Select(t => t.Owner.Id).Distinct().Count(),
-            Chart = GetInfoGraphStatsAsync(tickets, period),
-            ByCategory = GetByCategoryAsync(tickets)
-        };
-    }
-
     #endregion
     
     #region Orders
@@ -186,7 +119,153 @@ public class ReportService : IReportService
             TopProducts = GetTopProductsStatsAsync(orders)
         };
     }
+
+    public async Task<List<Order>> GetOrderHistoryAsync(string userId, ReportOrderSearchViewModel model)
+    {
+        var query = _context.Order
+            .Include(o => o.AppUser)
+            .Where(o => o.AppUser.Id == userId)
+            .AsNoTracking()
+            .AsQueryable();
+        
+        // Search filter
+        var searchString = model.SearchString?.Trim().ToLower();
+        if (!string.IsNullOrWhiteSpace(searchString))
+        {
+            query = query.Where(o => 
+                o.RedemptionCode.ToLower().Contains(searchString) ||
+                o.Id.ToString().Contains(searchString)
+            );
+        }
+        
+        // Status filter
+        var statusFilter = model.StatusFilter;
+        if (statusFilter.HasValue)
+        {
+            query = query.Where(o => o.Status == statusFilter.Value);
+        }
+        
+        var dateFilter = model.DateFilter;
+        if (dateFilter.HasValue)
+        {
+            // Ignores time
+            query = query.Where(o => o.OrderDate.Date == dateFilter.Value.Date);
+        }
+        
+        return await query.OrderByDescending(o => o.OrderDate).ToListAsync();
+    }
     
     #endregion
     
+    #region Tickets
+    
+    private async Task<List<Ticket>> GetUsedTicketsAsync(DateTime start)
+    {
+        return await _context.Ticket
+            .Include(t => t.TicketPurchase)
+            .Include(t => t.Owner).ThenInclude(u => u.UserCategory)
+            .Where(t => t.IsUsed && t.UsedDate != null && t.UsedDate >= start)
+            .ToListAsync();
+    }
+    
+    private List<ChartDataDto> GetInfoGraphStatsAsync(List<Ticket> tickets, int period)
+    {
+        if (tickets.Count == 0) return [];
+        
+        return tickets
+            .GroupBy(t => period switch
+            {
+                1 => new { Order = t.UsedDate!.Value.Hour, Label = t.UsedDate!.Value.ToString("HH:00") },
+                2 => new { Order = (int) t.UsedDate!.Value.DayOfWeek, Label = t.UsedDate!.Value.ToString("dd/MM") },
+                3 => new { Order = t.UsedDate!.Value.Day, Label = t.UsedDate!.Value.ToString("dd/MM") },
+                4 => new { Order = t.UsedDate!.Value.Month, Label = t.UsedDate!.Value.ToString("MMMM") },
+                5 => new { Order = t.UsedDate!.Value.Month, Label = t.UsedDate!.Value.ToString("MM/yyyy") },
+                _ => new { Order = t.UsedDate!.Value.Year, Label = t.UsedDate!.Value.Year.ToString() }
+            })
+            .OrderBy(g => g.Key.Order)
+            .Select(g => new ChartDataDto
+            {
+                Label = g.Key.Label,
+                Count = g.Count()
+            })
+            .ToList();
+    }
+
+    private List<CategoryDataDto> GetByCategoryAsync(List<Ticket> tickets)
+    {
+        if (tickets.Count == 0) return [];
+        return tickets
+            .GroupBy(t => t.Owner.UserCategory.Name)
+            .Select(g => new CategoryDataDto
+            {
+                Category = g.Key,
+                Count = g.Count()
+            })
+            .OrderByDescending(g => g.Count)
+            .ToList();
+    }
+
+    public async Task<ReportStatisticsTicketDto> GetTicketsStats(int period = 1)
+    {
+        var start = GetStartDateForPeriod(period);
+        var tickets = await GetUsedTicketsAsync(start);
+        int totalUsedTickets = tickets.Count;
+        decimal totalRevenue = totalUsedTickets == 0 ? 0m : tickets.Sum(t => t.TicketPurchase.Value / t.TicketPurchase.Quantity);
+
+        return new ReportStatisticsTicketDto
+        {
+            TotalUsedTickets = totalUsedTickets,
+            TotalRevenue = totalRevenue,
+            AverageRevenue = totalUsedTickets == 0 ? 0m : totalRevenue / totalUsedTickets,
+            NumberOfBuyers = tickets.Select(t => t.Owner.Id).Distinct().Count(),
+            Chart = GetInfoGraphStatsAsync(tickets, period),
+            ByCategory = GetByCategoryAsync(tickets)
+        };
+    }
+
+    #endregion
+    
+    #region Transactions
+
+    public async Task<List<Transaction>> GetTransactionHistoryAsync(string userId, ReportTransactionSearchViewModel model)
+    {
+        var query = _context.Transaction
+            .Include(t => t.User)
+            .Where(t => t.User.Id == userId)
+            .AsNoTracking()
+            .AsQueryable();
+        
+        // Text Filter
+        var searchString = model.SearchString?.Trim().ToLower();
+        if (!string.IsNullOrWhiteSpace(searchString))
+        {
+            query = query.Where(t =>
+                (t.Description != null && t.Description.ToLower().Contains(searchString)) 
+                || t.Reference.ToLower().Contains(searchString)
+            );
+        }
+        
+        // Flow filter (Entrada/Saída)
+        var typeFilter = model.TypeFilter;
+        if (!string.IsNullOrWhiteSpace(typeFilter))
+        {
+            query = typeFilter switch
+            {
+                "Entrada" => query.Where(t => t.Amount > 0),
+                "Saida" => query.Where(t => t.Amount < 0),
+                _ => query
+            };
+        }
+        
+        // Date filter
+        var dateFilter = model.DateFilter;
+        if (dateFilter.HasValue)
+        {
+            query = query.Where(t => t.CreatedAt.Date >= dateFilter.Value.Date);
+        }
+        
+        return await query.OrderByDescending(t => t.CreatedAt).ToListAsync();
+    }
+    
+    #endregion
 }

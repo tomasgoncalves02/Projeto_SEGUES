@@ -1,10 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Projeto_SEGUES.Extensions;
-using Projeto_SEGUES.Models.Enums;
-using Projeto_SEGUES.Models.User;
-using Projeto_SEGUES.Resources;
+using Projeto_SEGUES.Areas.Report.ViewModels;
 using Projeto_SEGUES.Services;
 
 namespace Projeto_SEGUES.Areas.Report;
@@ -20,21 +17,14 @@ namespace Projeto_SEGUES.Areas.Report;
 [Authorize]
 public class ReportOrderController : Controller
 {
-    private readonly IOrderService _orderService;
-    private readonly UserManager<AppUser> _userManager;
-    private readonly ILogger<ReportOrderController> _logger;
+    private readonly IReportService _reportService;
 
     /// <summary>
     /// Initializes a new instance of the controller with order, identity, and logging services.
     /// </summary>
-    public ReportOrderController(
-        IOrderService orderService,
-        UserManager<AppUser> userManager,
-        ILogger<ReportOrderController> logger)
+    public ReportOrderController(IReportService orderService)
     {
-        _orderService = orderService;
-        _userManager = userManager;
-        _logger = logger;
+        _reportService = orderService;
     }
 
     /// <summary>
@@ -44,80 +34,26 @@ public class ReportOrderController : Controller
     /// The Index View with the user's order list. 
     /// Redirects to a global error page if the database query fails.
     /// </returns>
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(ReportOrderSearchViewModel model)
     {
-        try
-        {
-            var userId = _userManager.GetUserId(User);
-            if (userId == null) return Challenge();
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return Challenge();
 
-            var history = await _orderService.GetOrderHistoryAsync(userId);
-            return View(history);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erro fatal ao carregar o histórico de pedidos.");
-
-            // Usando a tua chave 'DatabaseQueryError' e o Enum 1001
-            return RedirectToAction("Error", "Home", new
-            {
-                area = "",
-                errorCode = (int)AppErrors.DatabaseQueryError
-            });
-        }
+        model.Results = await _reportService.GetOrderHistoryAsync(userId, model);
+        return View(model);
     }
 
-    /// <summary>
-    /// Provides specific order details in JSON format for client-side consumption.
-    /// </summary>
-    /// <param name="id">Unique order identifier.</param>
-    /// <returns>
-    /// A JSON object containing the redemption code and product list, or authorization/not found error.
-    /// </returns>
-    /// <remarks>
-    /// Includes a security check to prevent regular users from viewing third-party order details.
-    /// </remarks>
     [HttpGet]
-    public async Task<IActionResult> GetOrderDetails(int id)
+    public async Task<IActionResult> GetFilteredOrders(ReportOrderSearchViewModel model)
     {
-        try
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null)
         {
-            var order = await _orderService.GetOrderByIdAsync(id);
-
-            // Usando a tua chave 'NotFound' do Errors.resx
-            if (order == null)
-                return NotFound(new { failMessage = Errors.NotFound });
-
-            var currentUserId = _userManager.GetUserId(User);
-
-            // Verificação de segurança: se não for Admin, só vê o que lhe pertence
-            if (!User.IsInRole("Admin") && order.AppUser.Id != currentUserId)
-            {
-                // Usando a tua chave 'Unauthorized' do Errors.resx
-                return StatusCode(403, new { failMessage = Errors.Unauthorized });
-            }
-
-            return Ok(new
-            {
-                code = order.RedemptionCode,
-                products = order.ProductPurchases.Select(p => new
-                {
-                    name = p.Product.Name,
-                    quantity = p.Quantity,
-                    price = p.ProductValue
-                }).ToList()
-            });
+            Response.Headers["HX-Redirect"] = Url.Page("/Account/Login", new { area = "Identity" });
+            return Challenge();
         }
-        catch (Exception ex)
-        {
-            _logger.LogAppError(AppErrors.InternalServerError,
-                                TableName.Order,
-                                AppOperation.Read, ex);
-
-            // Usando a tua chave 'InternalServerError' e o Enum 1501
-            var msg = $"{Errors.InternalServerError} [Erro: {(int)AppErrors.InternalServerError}]";
-
-            return StatusCode(500, new { failMessage = msg });
-        }
+        
+        var results = await _reportService.GetOrderHistoryAsync(userId, model);
+        return PartialView("_OrderHistoryRowsPartial", results);
     }
 }

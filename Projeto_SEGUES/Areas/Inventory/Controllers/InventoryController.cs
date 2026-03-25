@@ -4,22 +4,22 @@ using Microsoft.AspNetCore.Mvc;
 namespace Projeto_SEGUES.Areas.Inventory.Controllers;
 
 /// <summary>
-/// Controller principal para a gest„o e visualizaÁ„o do invent·rio de produtos.
+/// Controller principal para a gest√£o e visualiza√ß√£o do invent√°rio de produtos.
 /// </summary>
 /// <remarks>
-/// Este controlador pertence ‡ ·rea "Inventory" e exige que o utilizador esteja autenticado 
-/// para aceder ‡s funcionalidades de listagem e consulta de stock.
+/// Este controlador pertence √† √°rea "Inventory" e exige que o utilizador esteja autenticado 
+/// para aceder √†s funcionalidades de listagem e consulta de stock.
 /// </remarks>
 [Authorize]
 [Area("Inventory")]
 public class InventoryController : Controller
 {
     /// <summary>
-    /// Apresenta a p·gina inicial do mÛdulo de invent·rio.
+    /// Apresenta a p√°gina inicial do m√≥dulo de invent√°rio.
     /// </summary>
-    /// <returns>A View correspondente ao Ìndice do invent·rio.</returns>
+    /// <returns>A View correspondente ao √≠ndice do invent√°rio.</returns>
     /// <remarks>
-    /// Geralmente utilizado para carregar a interface base onde os produtos ser„o listados.
+    /// Geralmente utilizado para carregar a interface base onde os produtos ser√£o listados.
     /// </remarks>
     public IActionResult Index()
     {

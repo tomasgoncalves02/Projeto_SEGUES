@@ -15,7 +15,6 @@ public interface IOrderService
     Task<ServiceResult> CancelOrderAsync(int id);
     Task<List<Order>> GetActiveOrdersAsync(string userId);
     Task<Order?> GetOrderByIdAsync(int id);
-    Task<List<Order>> GetOrderHistoryAsync(string userId);
     Task<List<Order>> GetUndeliveredOrdersAsync();
     Task<List<Order>> GetAdminOrderHistoryAsync();
     Task<ServiceResult> UpdateOrderStatusAsync(int id, int newStatusId, AppUser staffMember);

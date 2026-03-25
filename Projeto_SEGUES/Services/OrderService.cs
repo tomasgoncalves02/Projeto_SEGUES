@@ -186,7 +186,7 @@ public class OrderService : IOrderService
                 User = user,
                 Amount = -total,
                 Description = $"Consumo Bar - Pedido #{cart.RedemptionCode}",
-                Reference = "CONSUMO BAR",
+                Reference = "Compra Interna",
                 IsPaid = true,
                 CreatedAt = now
             };
@@ -243,7 +243,7 @@ public class OrderService : IOrderService
                 User = order.AppUser,
                 Amount = order.TotalValue,
                 Description = $"Reembolso Bar - Cancelamento Pedido #{order.RedemptionCode}",
-                Reference = "REEMBOLSO BAR",
+                Reference = "Cancelamento",
                 IsPaid = true,
                 CreatedAt = now
 
@@ -287,15 +287,6 @@ public class OrderService : IOrderService
             .ThenInclude(p => p.Category)
             .Include(o => o.AppUser)
             .FirstOrDefaultAsync(o => o.Id == id);
-    }
-
-    public async Task<List<Order>> GetOrderHistoryAsync(string userId)
-    {
-        // Doesn't include products info
-        return await _context.Order
-            .Where(o => o.AppUser.Id == userId && o.Status != OrderStatus.Cart)
-            .OrderByDescending(o => o.OrderDate)
-            .ToListAsync();
     }
 
     public async Task<List<Order>> GetUndeliveredOrdersAsync()

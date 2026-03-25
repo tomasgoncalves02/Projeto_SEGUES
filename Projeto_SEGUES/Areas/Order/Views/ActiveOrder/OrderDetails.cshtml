@@ -1,6 +1,6 @@
 ﻿@model Projeto_SEGUES.Models.Order.Order
 @{
-    ViewData["Title"] = "Informações do Pedido - SEGUES";
+    ViewData["Title"] = "Informações do Pedido";
     bool isStaff = User.IsInRole("Admin") || User.IsInRole("Employee");
     bool isScheduled = Model.DeliveryTime.HasValue && Model.DeliveryTime.Value != TimeSpan.Zero;
 }

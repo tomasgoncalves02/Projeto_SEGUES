@@ -2,7 +2,7 @@
 @model Projeto_SEGUES.Areas.User.ViewModels.EditUserViewModel
 
 @{
-    ViewData["Title"] = "Perfil - SEGUES";
+    ViewData["Title"] = "Perfil";
     var initialLetter = Model.FirstName[0].ToString().ToUpper();
     
     bool isStudent = Model.Category.Equals("Estudante", StringComparison.OrdinalIgnoreCase);
