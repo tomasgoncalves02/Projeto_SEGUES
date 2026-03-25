@@ -2,10 +2,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Localization;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.User;
-using Projeto_SEGUES.Resources;
 using Projeto_SEGUES.Services;
 
 namespace Projeto_SEGUES.Areas.Order;
@@ -23,22 +21,16 @@ public class OrderTicketController : Controller
 {
     private readonly ITicketService _ticketService;
     private readonly UserManager<AppUser> _userManager;
-    private readonly ILogger<OrderTicketController> _logger;
-    private readonly IStringLocalizer<Errors> _localizer;
 
     /// <summary>
     /// Initializes a new instance of the controller with ticket, user, logging, and localization services.
     /// </summary>
     public OrderTicketController(
         ITicketService ticketService,
-        UserManager<AppUser> userManager,
-        ILogger<OrderTicketController> logger,
-        IStringLocalizer<Errors> localizer)
+        UserManager<AppUser> userManager)
     {
         _ticketService = ticketService;
         _userManager = userManager;
-        _logger = logger;
-        _localizer = localizer;
     }
 
     /// <summary>

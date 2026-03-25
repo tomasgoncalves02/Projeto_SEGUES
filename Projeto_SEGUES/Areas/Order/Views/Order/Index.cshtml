@@ -6,38 +6,39 @@
 
 <div class="container mt-5 text-start">
     @* Title Row with Cart *@
-    <div class="flex-column mb-3 align-items-center">
-        <div class="flex-column flex-md-row d-flex justify-content-between align-items-center">
-            <h3 class="fw-bold display-6 title-underline mb-2 mb-md-0">Bar</h3>
-            @if (cartTotal != null && cartTotal.TotalQuantity > 0)
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+        @* Title *@
+        <div class="mb-3 mb-md-0">
+            <h1 class="fw-bold display-6 title-underline mb-1">Bar</h1>
+            <p class="text-muted small mt-1 mb-0">Selecione uma das opções abaixo para gerir os seus serviços.</p>
+        </div>
+        @* Cart *@
+        <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-sm-center gap-3">
+            @if (cartTotal is { TotalQuantity: > 0 })
             {
-                <div class="d-flex align-items-center bg-light p-2 px-3 rounded-3 shadow-sm border">
-                    <div class="text-center me-3 border-end pe-3">
-                        <span class="fw-bold small d-block text-uppercase text-muted mb-1">Carrinho</span>
+                <div class="d-flex align-items-center justify-content-center bg-light p-2 px-3 rounded-3 shadow-sm border">
+                    <div class="text-center me-2 border-end pe-2">
+                        <span class="fw-bold fs-7 d-block text-muted mb-1">Carrinho</span>
                         <a asp-area="Order" asp-controller="CreateOrder" asp-action="Checkout" class="position-relative d-inline-block text-decoration-none">
                             <i class="bi bi-cart-check fs-2 text-color-ips"></i>
                             <span id="cartCount" class="position-absolute badge rounded-pill bg-danger fs-7"
-                                  style="top: -2px; right: -5px; padding: 0.35em 0.5em; border: 2px solid white;">
+                                  style="top: -5px; right: -10px; padding: 0.35em 0.5em; border: 2px solid white;">
                                 @cartTotal.TotalQuantity
                             </span>
                         </a>
                     </div>
-                    <div class="text-center">
-                        <span class="fw-bold small d-block text-uppercase text-muted">Total</span>
-                        <span id="cartTotal" class="fw-bold text-color-ips fs-5">@cartTotal.TotalValue.ToString("C")</span>
+                    <div class="text-center px-2">
+                        <span class="fw-bold small d-block text-muted mb-1 fs-7">Total</span>
+                        <span id="cartTotal" class="fw-bold text-color-ips text-nowrap fs-5">@cartTotal.TotalValue.ToString("C")</span>
                     </div>
                 </div>
             }
             @* Return button *@
-            <a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold shadow-sm order-first order-md-last mb-3 mb-md-0">
+            <a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold shadow-sm d-flex align-items-center justify-content-center" style="height: fit-content;">
                 <i class="bi bi-arrow-left me-2"></i>Voltar
             </a>
         </div>
-        <div class="mt-2">
-            <p class="text-muted fs-5">Selecione uma das opções abaixo para gerir os seus serviços.</p>
-        </div>
     </div>
-
     @* Schedule Card *@
     <div class="row mb-4">
         <div class="col-12">
@@ -57,7 +58,7 @@
     </div>
 
     <div class="row g-4">
-        @* Card Saldo *@
+        @* Balance Card *@
         <div class="col-md-6 col-lg-3">
             <div class="card h-100 shadow-sm card-ips hover-shadow-ips bg-color-ips text-white hover-translate d-flex flex-column">
                 <div class="card-body text-center d-flex flex-column p-4">
@@ -70,7 +71,7 @@
             </div>
         </div>
 
-        @* Card Loja *@
+        @* Create Order Card *@
         <div class="col-md-6 col-lg-3">
             <div class="card h-100 shadow-sm card-ips hover-shadow-ips hover-translate d-flex flex-column">
                 <div class="card-body text-center d-flex flex-column p-4">
@@ -86,7 +87,7 @@
             </div>
         </div>
 
-        @* Card Pedidos *@
+        @* Active Orders Card *@
         <div class="col-md-6 col-lg-3">
             <div class="card h-100 shadow-sm card-ips hover-shadow-ips hover-translate d-flex flex-column">
                 <div class="card-body text-center d-flex flex-column p-4">
@@ -99,6 +100,7 @@
                 </div>
             </div>
         </div>
+        
         @* Menu Card *@
         <div class="col-md-6 col-lg-3">
             <div class="card h-100 shadow-sm card-ips hover-translate hover-shadow-ips d-flex flex-column border-primary">
@@ -113,7 +115,7 @@
             </div>
         </div>
 
-        @* Card Voltar *@
+        @* Return Card *@
         <div class="col-md-6 col-lg-3">
             <div class="card h-100 shadow-sm card-ips hover-shadow-ips hover-translate d-flex flex-column">
                 <div class="card-body text-center d-flex flex-column p-4">

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.Enums;
@@ -15,11 +16,13 @@ namespace SeguesTests.Services
     {
         private readonly Mock<IAdminService> _mockAdminService;
         private readonly Mock<IEmailSender> _mockEmailSender;
+        private readonly Mock<ILogger<OrderService>> _mockLogger;
 
         public OrderServiceTests()
         {
             _mockAdminService = new Mock<IAdminService>();
             _mockEmailSender = new Mock<IEmailSender>();
+            _mockLogger = new Mock<ILogger<OrderService>>();
         }
 
         private AppDbContext GetDatabaseContext()
@@ -48,7 +51,7 @@ namespace SeguesTests.Services
         public async Task AddToCartAsync_NewItem_CalculatesTotalValue()
         {
             var context = GetDatabaseContext();
-            var service = new OrderService(context, _mockAdminService.Object, _mockEmailSender.Object);
+            var service = new OrderService(context, _mockAdminService.Object, _mockEmailSender.Object, _mockLogger.Object);
 
             var user = CreatePedroUser("u-1");
             var category = new ProductCategory { Id = 10, Name = "Bar", Description = "Bar Products" };
@@ -82,7 +85,7 @@ namespace SeguesTests.Services
         public async Task SubmitOrderAsync_BarClosed_ReturnsFailure()
         {
             var context = GetDatabaseContext();
-            var service = new OrderService(context, _mockAdminService.Object, _mockEmailSender.Object);
+            var service = new OrderService(context, _mockAdminService.Object, _mockEmailSender.Object, _mockLogger.Object);
 
             var user = CreatePedroUser("u-1");
             var category = new ProductCategory { Name = "Geral", Description = "General items" };
@@ -118,7 +121,7 @@ namespace SeguesTests.Services
         public async Task SubmitOrderAsync_InsufficientBalance_ReturnsFailure()
         {
             var context = GetDatabaseContext();
-            var service = new OrderService(context, _mockAdminService.Object, _mockEmailSender.Object);
+            var service = new OrderService(context, _mockAdminService.Object, _mockEmailSender.Object, _mockLogger.Object);
 
             var user = CreatePedroUser("u-1", balance: 1.0m);
             var category = new ProductCategory { Name = "Refeição", Description = "Canteen items" };
@@ -152,7 +155,7 @@ namespace SeguesTests.Services
         public async Task SubmitOrderAsync_Success_UpdatesStockAndBalance()
         {
             var context = GetDatabaseContext();
-            var service = new OrderService(context, _mockAdminService.Object, _mockEmailSender.Object);
+            var service = new OrderService(context, _mockAdminService.Object, _mockEmailSender.Object, _mockLogger.Object);
 
             var user = CreatePedroUser("u-1", balance: 20m);
             var category = new ProductCategory { Name = "Bar", Description = "Snacks" };
@@ -188,7 +191,7 @@ namespace SeguesTests.Services
         public async Task CancelOrderAsync_PendingOrder_RefundsUser()
         {
             var context = GetDatabaseContext();
-            var service = new OrderService(context, _mockAdminService.Object, _mockEmailSender.Object);
+            var service = new OrderService(context, _mockAdminService.Object, _mockEmailSender.Object, _mockLogger.Object);
 
             var user = CreatePedroUser("u-1", balance: 10m);
             var category = new ProductCategory { Name = "Misc", Description = "Miscellaneous" };

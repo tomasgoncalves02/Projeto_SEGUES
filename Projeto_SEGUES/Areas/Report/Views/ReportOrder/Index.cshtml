@@ -42,7 +42,9 @@
                 @* Status Filter *@
                 <div class="col-md-4 col-xl-3">
                     <label asp-for="StatusFilter" class="small fw-bold">Estado</label>
-                    <select asp-for="StatusFilter" asp-items="Html.GetEnumSelectList<OrderStatus>()" class="form-select form-select-sm">
+                    <select asp-for="StatusFilter" 
+                            asp-items="Html.GetEnumSelectList<OrderStatus>().Where(s => s.Value != ((int) OrderStatus.Cart).ToString()).ToList()" 
+                            class="form-select form-select-sm">
                         <option value="">Todos os estados</option>
                     </select>
                 </div>

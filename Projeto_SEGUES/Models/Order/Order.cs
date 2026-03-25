@@ -19,12 +19,12 @@ public class Order
     public DateTime OrderDate { get; set; } = DateTime.Now;
 
     [DataType(DataType.Duration)]
-    [DisplayFormat(DataFormatString = @"{0:HH\:mm}", ApplyFormatInEditMode = true)]
+    [DisplayFormat(DataFormatString = @"{0:hh\:mm}", ApplyFormatInEditMode = true)]
     [Display(Name = "Data de Entrega")]
     public TimeSpan? DeliveryTime { get; set; }
 
     [DataType(DataType.Duration)]
-    [DisplayFormat(DataFormatString = @"{0:HH\:mm}", ApplyFormatInEditMode = true)]
+    [DisplayFormat(DataFormatString = @"{0:hh\:mm}", ApplyFormatInEditMode = true)]
     [Display(Name = "Data de Recolha")]
     public TimeSpan? PickupTime { get; set; }
 

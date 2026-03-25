@@ -27,6 +27,34 @@ async function addToCart(id, name) {
     Notifications.success(data.successMessage);
 }
 
+function toggleTimePicker() {
+    let nowBtn = DOM.byId('now');
+    let nowLabel = DOM.byId('nowLabel');
+    let laterBtn = DOM.byId('later');
+    let laterLabel = DOM.byId('laterLabel');
+    let timePicker = DOM.byId('pickup-time-wrapper');
+    let timePickerInput = DOM.byId('pickupTime');
+    if (laterBtn.checked || !nowBtn.checked) {
+        let now = new Date();
+        timePickerInput.value = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+        timePicker.classList.remove('d-none');
+        
+        laterLabel.classList.add('btn-ips')
+        laterLabel.classList.remove('btn-ips-outline-secondary', 'border-secondary-subtle')
+        
+        nowLabel.classList.remove('btn-ips')
+        nowLabel.classList.add('btn-ips-outline-secondary', 'border-secondary-subtle')
+    } else {
+        timePicker.classList.add('d-none');
+        
+        laterLabel.classList.remove('btn-ips')
+        laterLabel.classList.add('btn-ips-outline-secondary', 'border-secondary-subtle')
+        
+        nowLabel.classList.add('btn-ips')
+        nowLabel.classList.remove('btn-ips-outline-secondary', 'border-secondary-subtle')
+    }
+}
+
 async function removeFromCart(id, name) {
     Notifications.confirm(`Desejas remover ${name} do carrinho?`).then(async res => {
         if (res.isConfirmed) {
@@ -43,6 +71,11 @@ async function removeFromCart(id, name) {
 }
 
 function confirmOrder() {
+    let nowBtn = DOM.byId('now');
+    if (nowBtn.checked) {
+        let now = new Date();
+        DOM.byId('pickupTime').value = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+    }
     Notifications.confirm("Tem a certeza que deseja efetuar este pedido?")
         .then((result) => {
             if (result.isConfirmed) {
@@ -61,6 +94,7 @@ const CreateOrder = {
             await removeFromCart(this.dataset.id, this.dataset.name);
         });
         DOM.bind('confirmOrder', 'click', confirmOrder);
+        DOM.bindAll('receiveNow', 'click', toggleTimePicker);
     }
 }
 

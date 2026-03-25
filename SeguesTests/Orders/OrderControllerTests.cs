@@ -7,9 +7,7 @@ using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using System.Security.Claims;
-using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
-using Projeto_SEGUES.Resources;
 
 namespace SeguesTests.Orders
 {
@@ -29,7 +27,7 @@ namespace SeguesTests.Orders
             _mockOrderService = new Mock<IOrderService>();
             _mockLogger = new Mock<ILogger<OrderController>>();
 
-            _controller = new OrderController(_mockUserManager.Object, _mockAdminService.Object, _mockOrderService.Object, _mockLogger.Object);
+            _controller = new OrderController(_mockUserManager.Object, _mockAdminService.Object, _mockOrderService.Object);
 
             var httpContext = new DefaultHttpContext();
             _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };

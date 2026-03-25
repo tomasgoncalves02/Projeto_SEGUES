@@ -124,7 +124,7 @@ public class ReportService : IReportService
     {
         var query = _context.Order
             .Include(o => o.AppUser)
-            .Where(o => o.AppUser.Id == userId)
+            .Where(o => o.AppUser.Id == userId && o.Status != OrderStatus.Cart)
             .AsNoTracking()
             .AsQueryable();
         

@@ -39,10 +39,7 @@ namespace SeguesTests.Orders
             _controller = new CreateOrderController(
                 _mockInventoryService.Object,
                 _mockOrderService.Object,
-                _mockUserManager.Object,
-                _mockAdminService.Object,
-                _mockLogger.Object,
-                _mockLocalizer.Object);
+                _mockUserManager.Object);
 
             var httpContext = new DefaultHttpContext();
             _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };

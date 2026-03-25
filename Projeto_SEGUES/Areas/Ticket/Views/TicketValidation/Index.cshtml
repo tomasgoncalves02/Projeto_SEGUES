@@ -54,7 +54,7 @@
 
         @* Right column *@
         <div class="col-xl-7 col-lg-6">
-            <div class="card card-ips shadow-sm">
+            <div class="card card-ips shadow-sm h-100">
                 <div class="card-header bg-white py-3 border-bottom d-flex align-items-center">
                     <h5 class="mb-0 fw-bold">
                         <i class="bi bi-clock-history me-2 text-color-ips"></i>Histórico Recente
@@ -91,7 +91,7 @@
                                         <div class="fw-bold text-truncate" style="max-width: 250px;">
                                             @ticket.UsedDate?.ToString("dd/MM/yyyy")
                                         </div>
-                                        <div class="text-muted small">@ticket.UsedDate?.ToString("HH:mm")</div>
+                                        <div class="text-muted small">@ticket.UsedDate?.ToString(@"HH\:mm")</div>
                                     </td>
                                     <td>
                                         <span class="badge bg-success px-3">

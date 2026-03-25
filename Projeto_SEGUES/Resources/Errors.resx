@@ -192,9 +192,6 @@
   <data name="TicketNotAvailable" xml:space="preserve">
     <value>Ticket not available (cancelled or pending).</value>
   </data>
-  <data name="SenderNotFound" xml:space="preserve">
-    <value>Sender not found.</value>
-  </data>
   <data name="RecipientNotFound" xml:space="preserve">
     <value>Recipient not found with the given email.</value>
   </data>
@@ -287,5 +284,8 @@
   </data>
   <data name="RecipientEmailRequired" xml:space="preserve">
     <value>The recipient's email is required</value>
+  </data>
+  <data name="OrderCreationError" xml:space="preserve">
+      <value>Error creating a new order.</value>
   </data>
 </root>

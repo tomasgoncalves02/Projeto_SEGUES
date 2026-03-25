@@ -19,6 +19,10 @@ public enum UserAction : byte
     SuccessPayment,
     FailedPayment,
     
+    // Order
+    OrderSubmitted,
+    OrderCancelled,
+    
     // Ticket
     TransferTicket,
     TicketPurchase,

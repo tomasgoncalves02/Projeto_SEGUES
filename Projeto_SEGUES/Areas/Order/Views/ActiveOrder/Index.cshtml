@@ -3,6 +3,7 @@
     ViewData["Title"] = "Os Meus Pedidos";
 }
 
+@* Header *@
 <div class="container mt-4 text-start">
     <div class="d-flex mb-4 align-items-center justify-content-between flex-column flex-md-row">
         <div class="mb-2 mb-md-0">
@@ -17,21 +18,12 @@
         </a>
     </div>
 
-    @* Contentor HTMX: Verifica mudanças a cada 60 segundos *@
+    @* HTMX *@
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4"
          hx-get="/Order/ActiveOrder/GetUpdatedActiveOrders"
          hx-trigger="every 60s"
          hx-swap="innerHTML">
 
-        <partial name="_ActiveOrdersCards" model="@Model"/>
-    </div>
-</div>
-
-@* Modal de Detalhes *@
-<div class="modal fade" id="modalDetalhes" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
-            <div id="modalContentBody"></div>
-        </div>
+        <partial name="_ActiveOrdersCardsPartial" model="@Model"/>
     </div>
 </div>

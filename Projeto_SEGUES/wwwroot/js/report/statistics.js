@@ -3,7 +3,6 @@ import { DOM, Api } from "../core/core.js";
 /*
  * Generic functions
  */
-
 function updateText(id, value = '') {
     const el = DOM.byId(id);
     if (el) el.textContent = value;
@@ -243,7 +242,6 @@ function renderTicketChart(data, period) {
 /*
  * Export
  */
-
 const Statistics = { 
     init() {
         DOM.bind('selectTicketsPeriod', 'change', loadTicketsSummary, true);

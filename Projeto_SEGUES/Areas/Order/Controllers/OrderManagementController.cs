@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
+using Projeto_SEGUES.Areas.Order.ViewModels;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
@@ -47,15 +48,7 @@ public class OrderManagementController : Controller
     /// <returns>The Index View with the list of pending orders. Redirects to error on failure.</returns>
     public async Task<IActionResult> Index()
     {
-        try
-        {
-            return View(await _orderService.GetUndeliveredOrdersAsync());
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erro fatal ao carregar gestão de pedidos.");
-            return RedirectToAction("Error", "Home", new { area = "", errorCode = (int)AppErrors.DatabaseQueryError });
-        }
+        return View(await _orderService.GetUndeliveredOrdersAsync());
     }
 
     /// <summary>
@@ -65,19 +58,7 @@ public class OrderManagementController : Controller
     [HttpGet]
     public async Task<IActionResult> GetOrdersTable()
     {
-        try
-        {
-            return PartialView("_ManageOrdersTablePartial", await _orderService.GetUndeliveredOrdersAsync());
-        }
-        catch (Exception ex)
-        {
-            _logger.LogAppError(AppErrors.DatabaseQueryError, TableName.Order, AppOperation.Read, ex);
-
-            var erroEnum = AppErrors.DatabaseQueryError;
-            var msg = $"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";
-
-            return StatusCode(500, new { failMessage = msg });
-        }
+        return PartialView("_ManageOrdersTablePartial", await _orderService.GetUndeliveredOrdersAsync());
     }
 
     /// <summary>
@@ -88,19 +69,54 @@ public class OrderManagementController : Controller
     [HttpGet]
     public async Task<IActionResult> GetOrderDetailsSide(int id)
     {
-        try
+        var order = await _orderService.GetOrderByIdAsync(id);
+        if (order == null)
         {
-            var order = await _orderService.GetOrderByIdAsync(id);
-            if (order == null) return NotFound();
+            Response.Headers["HX-Redirect"] = Url.Page("/Account/Login", new { area = "Identity" });
+            return Challenge();
+        }
+        bool isStaff = User.IsInRole("Admin") || User.IsInRole("Employee");
+        
+        OrderManagementSideViewModel vm = new OrderManagementSideViewModel
+        {
+            Id = order.Id,
+            FormattedTotalValue = order.TotalValue.ToString("C"),
+            TotalQuantity = _orderService.GetOrderTotal(order).TotalQuantity,
+            BuyerName = $"{order.AppUser.FirstName} {order.AppUser.LastName}",
 
-            ViewBag.TotalQuantity = _orderService.GetOrderTotal(order).TotalQuantity;
-            return PartialView("_ManageOrderDetailsSideCardPartial", order);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Erro ao carregar side card do pedido {id}.");
-            return StatusCode(500);
-        }
+            // Status
+            CurrentStatusId = (int)order.Status,
+            StatusDisplayName = order.Status.ToDisplayName(),
+            StatusBadgeClass = order.Status.ToString().ToBadgeClass(),
+        
+            PrevStatusId = (int)order.Status - 1,
+            CanGoBack = order.Status is > OrderStatus.Pending and < OrderStatus.Delivered,
+        
+            NextStatusId = (int)order.Status + 1,
+            CanGoForward = order.Status is >= OrderStatus.Pending and < OrderStatus.Delivered,
+
+            // Map products
+            Items = order.ProductPurchases.Select(p => new OrderProductDto
+            {
+                Id = p.ProductId,
+                Name = p.Product.Name,
+                Price = p.ProductValue,
+                Quantity = p.Quantity,
+                CategoryName = p.Product.Category.Name,
+                ModalInfo = new 
+                {
+                    name = p.Product.Name,
+                    description = p.Product.Description,
+                    price = p.ProductValue.ToString("C"),
+                    categoryName = p.Product.Category.Name,
+                    categoryDescription = p.Product.Category.Description,
+                    stock = isStaff ? (int?)p.Product.Stock : null,
+                    minStock = isStaff ? (int?)p.Product.MinimumStock : null
+                }
+            }).ToList()
+        };
+        
+        return PartialView("_ManageOrderDetailsSideCardPartial", vm);
     }
 
     /// <summary>
@@ -113,27 +129,19 @@ public class OrderManagementController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateStatus(int id, int newStatus)
     {
-        try
+        var staffMember = await _userManager.GetUserAsync(User);
+        if (staffMember == null || (!User.IsInRole("Admin") && !User.IsInRole("Employee")))
         {
-            var staffMember = await _userManager.GetUserAsync(User);
-            if (staffMember == null) return Unauthorized();
-
-            var result = await _orderService.UpdateOrderStatusAsync(id, newStatus, staffMember);
-
-            if (!result.Success)
-                return BadRequest(new { failMessage = result.Message });
-
-            return Ok(new { successMessage = result.Message });
+            Response.Headers["HX-Redirect"] = Url.Page("/Account/Login", new { area = "Identity" });
+            return Challenge();
         }
-        catch (Exception ex)
-        {
-            _logger.LogAppError(AppErrors.DatabaseUpdateError, TableName.Order, AppOperation.Update, ex);
 
-            var erroEnum = AppErrors.DatabaseUpdateError;
-            var msg = $"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";
+        var result = await _orderService.UpdateOrderStatusAsync(id, newStatus, staffMember);
 
-            return StatusCode(500, new { failMessage = msg });
-        }
+        if (!result.Success)
+            return BadRequest(new { failMessage = result.Message });
+
+        return Ok(new { successMessage = result.Message });
     }
 
     /// <summary>
@@ -146,26 +154,18 @@ public class OrderManagementController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ValidateOrderCode(int id, string enteredCode)
     {
-        try
+        var staffMember = await _userManager.GetUserAsync(User);
+        if (staffMember == null || (!User.IsInRole("Admin") && !User.IsInRole("Employee")))
         {
-            var staffMember = await _userManager.GetUserAsync(User);
-            if (staffMember == null) return Unauthorized();
-
-            var result = await _orderService.ValidateOrderCodeAsync(id, enteredCode, staffMember);
-
-            if (!result.Success)
-                return BadRequest(new { failMessage = result.Message });
-
-            return Ok(new { successMessage = result.Message });
+            Response.Headers["HX-Redirect"] = Url.Page("/Account/Login", new { area = "Identity" });
+            return Challenge();
         }
-        catch (Exception ex)
-        {
-            _logger.LogAppError(AppErrors.DatabaseUpdateError, TableName.Order, AppOperation.Update, ex);
 
-            var erroEnum = AppErrors.DatabaseUpdateError;
-            var msg = $"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";
+        var result = await _orderService.ValidateOrderCodeAsync(id, enteredCode, staffMember);
 
-            return StatusCode(500, new { failMessage = msg });
-        }
+        if (!result.Success)
+            return BadRequest(new { failMessage = result.Message });
+
+        return Ok(new { successMessage = result.Message });
     }
 }

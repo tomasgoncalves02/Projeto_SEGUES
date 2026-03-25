@@ -1,14 +1,12 @@
-﻿//using Castle.Core.Smtp;
-using Microsoft.AspNetCore.Identity.UI.Services;
+﻿using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Areas.Order.ViewModels;
 using Projeto_SEGUES.Data;
-using Projeto_SEGUES.Models.Audit;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Order;
 using Projeto_SEGUES.Models.User;
-using System.ComponentModel.DataAnnotations;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
+using Projeto_SEGUES.Extensions;
 
 namespace Projeto_SEGUES.Services;
 
@@ -18,14 +16,18 @@ public class OrderService : IOrderService
     private readonly IAdminService _adminService;
     private static readonly OrderStatus[] _activeStatus = Enum.GetValues<OrderStatus>().Where(s => s.IsActive()).ToArray();
     private readonly IEmailSender _emailSender;
+    private readonly ILogger<OrderService> _logger;
 
-    public OrderService(AppDbContext context, IAdminService adminService, IEmailSender emailSender)
+    public OrderService(AppDbContext context, IAdminService adminService, IEmailSender emailSender, ILogger<OrderService> logger)
     {
         _context = context;
         _adminService = adminService;
         _emailSender = emailSender;
+        _logger = logger;
     }
 
+    #region Create Order
+    
     public async Task<Order?> GetCartAsync(string userId, bool createIfNotFound = true)
     {
         var cart = await _context.Order
@@ -112,7 +114,6 @@ public class OrderService : IOrderService
         _context.OrderLine.Remove(line);
 
         await _context.SaveChangesAsync();
-
         return ServiceResult<OrderTotalViewModel>.Ok("Produto removido do carrinho.", GetOrderTotal(cart));
     }
 
@@ -140,14 +141,14 @@ public class OrderService : IOrderService
             }
             else
             {
-                return ServiceResult.Fail("Horário de pickup inválido.");
+                return ServiceResult.Fail("Horário de recolha inválido.");
             }
         }
 
         if (!await _adminService.IsBarOpenAsync(timeToValidate))
         {
             BarCanteenConfigViewModel barCanteenConfig = await _adminService.GetScheduleAsync();
-            return ServiceResult.Fail($"O Bar encontra-se encerrado para o horário selecionado. Funcionamento: {barCanteenConfig.BarOpeningTime} às {barCanteenConfig.BarClosingTime}.");
+            return ServiceResult.Fail($"O Bar encontra-se encerrado para o horário selecionado. Funcionamento: {barCanteenConfig.BarOpeningTime:hh\\:mm} às {barCanteenConfig.BarClosingTime:hh\\:mm}.");
         }
 
         decimal total = ApplyDiscount(cart.TotalValue, cart.Discount);
@@ -181,11 +182,11 @@ public class OrderService : IOrderService
 
             user.Balance -= total;
 
-            var barTransaction = new Projeto_SEGUES.Models.Payment.Transaction
+            var barTransaction = new Models.Payment.Transaction
             {
                 User = user,
                 Amount = -total,
-                Description = $"Consumo Bar - Pedido #{cart.RedemptionCode}",
+                Description = $"Compra no Bar - Pedido #{cart.RedemptionCode}",
                 Reference = "Compra Interna",
                 IsPaid = true,
                 CreatedAt = now
@@ -194,27 +195,31 @@ public class OrderService : IOrderService
 
             await _context.SaveChangesAsync();
             await dbTransaction.CommitAsync();
+            _logger.LogAppUser($"Order #{cart.Id} submitted with total value {total:C}.", UserAction.OrderSubmitted);
 
-            // Envio de email após sucesso total
+            // Send email
             try
             {
                 await SendStatusUpdateEmailAsync(cart);
-                // Se correr bem, mensagem normal de sucesso
                 return ServiceResult.Ok("Encomenda realizada com sucesso! Acompanhe o estado do pedido no seu email");
             }
             catch (Exception)
             {
-                // Se falhar o email (sem net), avisamos o utilizador mas confirmamos o sucesso do pedido
                 return ServiceResult.Ok("Encomenda realizada com sucesso! (Nota: Não foi possível enviar o email de confirmação devido a uma falha de rede).");
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             await dbTransaction.RollbackAsync();
+            _logger.LogAppError(AppErrors.OrderCreationError, TableName.Order, AppOperation.Create, ex);
             return ServiceResult.Fail("Ocorreu um erro ao processar a encomenda.");
         }
     }
 
+    #endregion
+    
+    #region Active Orders
+    
     public async Task<ServiceResult> CancelOrderAsync(int id)
     {
         var order = await GetOrderByIdAsync(id);
@@ -234,11 +239,10 @@ public class OrderService : IOrderService
             {
                 item.Product.Stock += item.Quantity;
             }
-
-
+            
             order.AppUser.Balance += order.TotalValue;
 
-            var refundTransaction = new Projeto_SEGUES.Models.Payment.Transaction
+            var refundTransaction = new Models.Payment.Transaction
             {
                 User = order.AppUser,
                 Amount = order.TotalValue,
@@ -252,20 +256,23 @@ public class OrderService : IOrderService
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
+            
+            // Send email
             try
             {
                 await SendStatusUpdateEmailAsync(order);
+                _logger.LogAppUser($"Order #{order.Id} cancelled and refunded {order.TotalValue:C} to user {order.AppUser.UserName}.", UserAction.OrderCancelled);
                 return ServiceResult.Ok("Pedido cancelado com sucesso e saldo reembolsado.");
             }
             catch (Exception)
             {
-                // Se falhar a net aqui, o user sabe que o cancelamento foi feito mas o email falhou
                 return ServiceResult.Ok("Pedido cancelado com sucesso e saldo reembolsado! (Nota: O email de confirmação não pôde ser enviado por falha de rede).");
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             await transaction.RollbackAsync();
+            _logger.LogAppError(AppErrors.OrderCancelError, TableName.Order, AppOperation.Update, ex);
             return ServiceResult.Fail("Ocorreu um erro ao cancelar o pedido.");
         }
     }
@@ -298,10 +305,13 @@ public class OrderService : IOrderService
             .OrderBy(o => o.PickupTime == TimeSpan.Zero ? o.OrderDate.TimeOfDay : o.PickupTime)
             .ToListAsync();
     }
-
+    
+    #endregion
+    
+    #region Admin Logs
+    
     public async Task<List<Order>> GetAdminOrderHistoryAsync()
     {
-        // Removido o parâmetro 'string userId' pois o Admin quer ver TUDO
         return await _context.Order
             .Include(o => o.AppUser) // Importante para saber quem fez o pedido
             .Include(o => o.ProductPurchases) // Adicionado para poderes ver os produtos na View/PDF
@@ -310,7 +320,11 @@ public class OrderService : IOrderService
             .OrderByDescending(o => o.OrderDate)
             .ToListAsync();
     }
-
+    
+    #endregion
+    
+    #region Validate Order
+    
     public async Task<ServiceResult> UpdateOrderStatusAsync(int id, int newStatusId, AppUser staffMember)
     {
         var order = await GetOrderByIdAsync(id);
@@ -336,24 +350,17 @@ public class OrderService : IOrderService
         {
             var oldStatus = order.Status;
             order.Status = newStatus;
-
-            // --- ADICIONADO: REGISTO DE LOG NO HISTÓRICO ---
-            var log = new UserLog
-            {
-                UserAction = UserAction.UpdateStatus,
-                Message = $"Alterou o estado do pedido #{order.RedemptionCode} de {oldStatus} para {newStatus}.",
-                TimeStamp = DateTime.Now,
-                AppUser = staffMember,
-                RequestPath = "/Order/UpdateStatus"
-            };
-            _context.UserLog.Add(log);
+            
+            _logger.LogAppUser($"Order #{order.Id} status changed from {oldStatus} to {newStatus} by {staffMember.UserName}.", UserAction.UpdateStatus);
             await _context.SaveChangesAsync();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            _logger.LogAppError(AppErrors.OrderProcessingError, TableName.Order, AppOperation.Update, ex);
             return ServiceResult.Fail("Erro ao atualizar o estado na base de dados.");
         }
 
+        // Send email
         try
         {
             await SendStatusUpdateEmailAsync(order);
@@ -382,23 +389,16 @@ public class OrderService : IOrderService
             order.Status = OrderStatus.Delivered;
             order.PickupTime = DateTime.Now.TimeOfDay;
 
-            var log = new UserLog
-            {
-                UserAction = UserAction.ValidateOrder,
-                Message = $"Entregou o pedido #{order.RedemptionCode} ao utilizador {order.AppUser.UserName}.",
-                TimeStamp = DateTime.Now,
-                AppUser = staffMember,
-                RequestPath = "/Order/ValidateCode"
-            };
-            _context.UserLog.Add(log);
-
+            _logger.LogAppUser($"Order #{order.RedemptionCode} delivered by {staffMember.UserName}.", UserAction.ValidateOrder);
             await _context.SaveChangesAsync();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            _logger.LogAppError(AppErrors.OrderProcessingError, TableName.Order, AppOperation.Update, ex);
             return ServiceResult.Fail("Erro ao registar a entrega na base de dados.");
         }
-
+        
+        // Send email
         try
         {
             await SendStatusUpdateEmailAsync(order);
@@ -409,24 +409,17 @@ public class OrderService : IOrderService
             return ServiceResult.Ok("Código validado e pedido entregue! (Nota: Falha ao enviar o email de confirmação de entrega).");
         }
     }
-
+    
     private async Task SendStatusUpdateEmailAsync(Order order)
     {
         try
         {
-            if (order.AppUser == null || string.IsNullOrEmpty(order.AppUser.Email)) return;
+            if (string.IsNullOrEmpty(order.AppUser.Email)) return;
 
-            // Obtém o nome amigável do Enum (ex: "Em Preparação")
-            var displayStatus = order.Status.GetType()
-                .GetField(order.Status.ToString())?
-                .GetCustomAttributes(typeof(DisplayAttribute), false)
-                .Cast<DisplayAttribute>()
-                .FirstOrDefault()?.Name ?? order.Status.ToString();
+            var displayStatus = order.Status.ToDisplayName();
 
             string title = "Atualização do Pedido";
-            string name = order.AppUser.FirstName ?? "Cliente";
-
-            // Mensagem personalizada conforme o estado
+            string name = order.AppUser.FirstName;
             string customMessage = order.Status switch
             {
                 OrderStatus.Pending => "Recebemos o teu pedido e em breve começaremos a prepará-lo.",
@@ -443,7 +436,7 @@ public class OrderService : IOrderService
         <p>{customMessage}</p>
         """;
 
-            // Se estiver pronto, destaca o código de levantamento para facilitar a vida ao utilizador
+            // If ready to deliver, highlight redemption code
             if (order.Status == OrderStatus.ReadyToDeliver)
             {
                 content += $"""
@@ -453,17 +446,16 @@ public class OrderService : IOrderService
             </div>
             """;
             }
-
-            var emailService = (EmailSender)_emailSender;
+            
             var body = ((EmailSender)_emailSender).GetEmailBody(title, name, content);
-
-            // Envio assíncrono
             await _emailSender.SendEmailAsync(order.AppUser.Email, $"SEGUES - Pedido #{order.RedemptionCode}", body);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[Email Service Failure]: {ex.Message}");
+            _logger.LogAppError(AppErrors.EmailSenderError, TableName.All, AppOperation.Other, ex);
             throw;
         }
     }
+    
+    #endregion
 }

@@ -1,8 +1,7 @@
-﻿@model IEnumerable<Projeto_SEGUES.Models.Inventory.Product>
+﻿@model Projeto_SEGUES.Areas.Order.ViewModels.CreateOrderViewModel
 
 @{
     ViewData["Title"] = "Efetuar Pedido";
-    bool isStaff = User.IsInRole("Admin") || User.IsInRole("Employee");
 }
 
 <div class="container mt-4 text-start">
@@ -28,11 +27,11 @@
                         <a asp-area="Order" asp-controller="CreateOrder" asp-action="Checkout" class="position-relative d-inline-block text-decoration-none">
                             <i class="bi bi-cart-check fs-2 text-color-ips"></i>
                             <span id="cartCount" class="position-absolute badge rounded-pill bg-danger fs-7"
-                                  style="display: @(ViewBag.CartTotal.TotalQuantity > 0 ? "block" : "none"); top: -2px; right: -5px; padding: 0.35em 0.5em; border: 2px solid white;">
-                                @ViewBag.CartTotal.TotalQuantity
+                                  style="display: @(Model.CartTotal.TotalQuantity > 0 ? "block" : "none"); top: -2px; right: -5px; padding: 0.35em 0.5em; border: 2px solid white;">
+                                @Model.CartTotal.TotalQuantity
                             </span>
                         </a>
-                        <span class="fw-bold small d-block text-uppercase text-muted mt-2">Total: <span id="cartTotal">@ViewBag.CartTotal.TotalValue €</span></span>
+                        <span class="fw-bold small d-block text-uppercase text-muted mt-2">Total: <span id="cartTotal">@Model.CartTotal.TotalValue €</span></span>
                     </div>
                 </div>
 
@@ -41,7 +40,7 @@
                     <label for="categoryFilter" class="form-label small fw-bold text-muted mb-1">Categoria</label>
                     <select id="categoryFilter" class="form-select form-select-sm border-secondary-subtle">
                         <option value="">Todas</option>
-                        @foreach (SelectListItem cat in ViewBag.Categories)
+                        @foreach (SelectListItem cat in Model.Categories)
                         {
                             <option value="@cat.Value">@cat.Text</option>
                         }
@@ -68,7 +67,7 @@
     <div class="card card-ips hover-shadow-ips shadow-sm border-0 rounded-3">
         <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
             <h5 class="mb-0 fw-bold text-color-ips"><i class="bi bi-list-ul me-2"></i>Lista de Produtos</h5>
-            <span class="badge bg-light text-dark border"><span id="productsCountBadge">@Model.Count()</span> registos</span>
+            <span class="badge bg-light text-dark border"><span id="productsCountBadge">@Model.Products.Count()</span> registos</span>
         </div>
         <div class="table-responsive" style="max-height: 550px;">
             <table class="table table-hover align-middle mb-0 text-center">
@@ -82,7 +81,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @if (Model == null || !Model.Any())
+                    @if (!Model.Products.Any())
                     {
                         <tr>
                             <td colspan="5" class="text-center py-5 text-muted">
@@ -93,22 +92,12 @@
                     }
                     else
                     {
-                        @foreach (var p in Model)
+                        @foreach (var p in Model.Products)
                         {
-                            var productInfo = new
-                            {
-                                name = p.Name,
-                                description = p.Description,
-                                price = p.Price.ToString("C"),
-                                categoryName = p.Category.Name,
-                                categoryDescription = p.Category.Description,
-                                stock = isStaff ? (int?) p.Stock : null,
-                                minStock = isStaff ? (int?) p.MinimumStock : null
-                            };
-                            <tr class="productRow" data-name="@p.Name" data-categoryid="@p.Category.Id">
+                            <tr class="productRow" data-name="@p.Name" data-categoryid="@p.CategoryId">
                                 <td class="ps-4 text-start fw-bold">@p.Name</td>
-                                <td>@p.Category.Name</td> 
-                                <td class="text-color-ips fw-bold">@p.Price.ToString("C")</td>
+                                <td>@p.CategoryName</td> 
+                                <td class="text-color-ips fw-bold">@p.FormattedPrice</td>
                                 <td>
                                     <input type="number" id="qty-@p.Id" min="1" max="10" value="1" class="form-control form-control-sm border-secondary-subtle" />
                                 </td>
@@ -117,7 +106,7 @@
                                         <button class="btn btn-ips btn-sm px-3 fw-bold addToCart" data-id="@p.Id" data-name="@p.Name">
                                             <i class="bi bi-cart-plus me-1"></i> Adicionar
                                         </button>
-                                        <button class="btn btn-sm btn-ips-outline-secondary shadow-sm showProductDetails" data-product='@Html.Raw(Json.Serialize(productInfo))'>
+                                        <button class="btn btn-sm btn-ips-outline-secondary shadow-sm showProductDetails" data-product='@Html.Raw(Json.Serialize(p.ModalInfo))'>
                                             <i class="bi bi-eye"></i>
                                         </button>
                                     </div>

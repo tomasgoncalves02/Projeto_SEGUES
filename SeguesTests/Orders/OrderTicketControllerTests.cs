@@ -31,7 +31,7 @@ namespace SeguesTests.Orders
             _mockLogger = new Mock<ILogger<OrderTicketController>>();
             _mockLocalizer = new Mock<IStringLocalizer<Errors>>();
 
-            _controller = new OrderTicketController(_mockTicketService.Object, _mockUserManager.Object, _mockLogger.Object, _mockLocalizer.Object);
+            _controller = new OrderTicketController(_mockTicketService.Object, _mockUserManager.Object);
 
             var httpContext = new DefaultHttpContext();
             _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };

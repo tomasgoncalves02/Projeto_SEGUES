@@ -1,6 +1,6 @@
 ﻿@model IEnumerable<Projeto_SEGUES.Models.Order.Order>
 
-<div class="card shadow-sm border-0">
+<div class="card shadow-sm border-0 h-100">
     <div class="table-responsive rounded-3" style="max-height: 500px;">
         <table class="table align-middle mb-0 text-center">
             <thead class="bg-color-ips text-white">
@@ -37,7 +37,7 @@
                             </td>
 
                             @* Order date *@
-                            <td>@order.OrderDate.ToString("HH:mm")</td>
+                            <td>@order.OrderDate.ToString(@"HH\:mm")</td>
 
                             @* Pickup time *@
                             <td class="align-middle">

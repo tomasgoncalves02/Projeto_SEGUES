@@ -121,10 +121,7 @@ const Inventory = {
         DOM.bind('clearProductsTableFilters', 'click', clearProductsTableFilters);
         DOM.bindAll('confirmDeleteProduct', 'click', confirmDeleteProduct);
         DOM.bindAll('confirmReactivateProduct', 'click', confirmReactivateProduct);
-        const editForm = DOM.byId('editForm');
-        if (editForm) {
-            editForm.addEventListener('submit', handleEditFormSubmit);
-        }
+        DOM.bind('editForm', 'submit', handleEditFormSubmit);
     }
 };
 

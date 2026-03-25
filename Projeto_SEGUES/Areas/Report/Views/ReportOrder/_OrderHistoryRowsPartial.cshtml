@@ -17,17 +17,17 @@ else
     {
         <tr class="align-middle">
             @* Order code *@
-            <td class="fw-bold ps-4 text-start">
+            <td class="fw-bold ps-4">
                 <code class="fw-bold text-color-ips bg-color-ips-light px-2 py-1 border rounded">@item.RedemptionCode</code>
             </td>
 
             @* Order Id *@
-            <td class="fw-bold text-muted">#@item.Id.ToString("D5")</td>
+            <td class="fw-bold">#@item.Id.ToString("D5")</td>
 
             @* Date *@
             <td class="small">
                 <div class="fw-bold text-dark">@item.OrderDate.ToString("dd/MM/yyyy")</div>
-                <div class="text-muted"><i class="bi bi-clock me-1"></i>@item.OrderDate.ToString("HH:mm")</div>
+                <div class="text-muted"><i class="bi bi-clock me-1"></i>@item.OrderDate.ToString(@"HH\:mm")</div>
             </td>
 
             @* Scheduled to be delivered *@
@@ -40,7 +40,7 @@ else
                 }
                 else
                 {
-                    <span class="small text-muted fw-bold">Agora</span>
+                    <span class="small fw-bold">Agora</span>
                 }
             </td>
 
@@ -69,7 +69,7 @@ else
             </td>
             
             @* Price *@
-            <td class="fw-bold text-color-ips pe-4 text-end fs-6">
+            <td class="fw-bold text-color-ips pe-4 fs-6">
                 @item.TotalValue.ToString("C")
             </td>
         </tr>

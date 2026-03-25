@@ -45,6 +45,7 @@ public enum AppErrors
     ProductDeleteError = 1404,
     
     // Order errors
+    OrderCreationError = 1500,
     OrderProcessingError = 1501,
     OrderCancelError = 1502,
     InvalidStatusTransition = 1503,
