@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace Projeto_SEGUES.Areas.Admin.ViewModels;
+﻿namespace Projeto_SEGUES.Areas.Admin.ViewModels;
 
 public class BarCanteenConfigViewModel
 {

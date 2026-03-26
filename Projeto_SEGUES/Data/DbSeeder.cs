@@ -88,8 +88,7 @@ public static class DbSeeder
             {
                 UserCategory = catDb,
                 Price = price,
-                InitialDatePrice = DateTime.Now,
-                EndDatePrice = DateTime.Now.AddYears(1)
+                InitialDatePrice = DateTime.Now
             });
         }
         await context.SaveChangesAsync();
@@ -472,7 +471,8 @@ public static class DbSeeder
         /* 10 orders in the same year in different months */
         for (int i = 0; i < 10; i++)
         {
-            var date = new DateTime(now.Year, (i % now.Month) + 1, now.Day).AddHours((i + 8) % now.Hour);
+            var hourDivisor = Math.Max(1, now.Hour);
+            var date = new DateTime(now.Year, (i % now.Month) + 1, now.Day).AddHours((i + 8) % hourDivisor);
             orders.Add(CreateOrder(date));
         }
 

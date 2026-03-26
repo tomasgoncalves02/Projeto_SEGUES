@@ -57,7 +57,7 @@ namespace SeguesTests.Admin
         public async Task Create_InvalidModel_RedirectsWithErrorMessage()
         {
             _controller.ModelState.AddModelError("Name", "Required");
-            var model = new ProductViewModel
+            var model = new CreateProductViewModel
             {
                 Name = "test product",
                 Description = "tset edscription",
@@ -86,7 +86,7 @@ namespace SeguesTests.Admin
             Assert.IsType<NotFoundResult>(result);
         }
 
-        // Correctly maps Product entity to ProductViewModel for editing
+        // Correctly maps Product entity to CreateProductViewModel for editing
         [Fact]
         public async Task Edit_Get_ValidId_ReturnsViewWithViewModel()
         {
@@ -105,7 +105,7 @@ namespace SeguesTests.Admin
             var result = await _controller.Edit(1);
 
             var viewResult = Assert.IsType<ViewResult>(result);
-            var model = Assert.IsType<ProductViewModel>(viewResult.Model);
+            var model = Assert.IsType<CreateProductViewModel>(viewResult.Model);
             Assert.Equal("Coffee", model.Name);
         }
 

@@ -10,8 +10,8 @@ public interface IInventoryService
     Task<List<Product>> GetAvailableProductsAsync();
     Task<List<Product>> GetAllProductsAsync();
     Task<List<SelectListItem>> GetAllCategoriesForDropdownAsync();
-    Task<ServiceResult> CreateProductAsync(ProductViewModel productViewModel);
-    Task<ServiceResult> EditProductAsync(ProductViewModel productViewModel);
+    Task<ServiceResult> CreateProductAsync(CreateProductViewModel createProductViewModel);
+    Task<ServiceResult> EditProductAsync(CreateProductViewModel createProductViewModel);
     Task<ServiceResult> DeleteProductAsync(int id);
     Task<ServiceResult> ReactivateProductAsync(int id);
 }

@@ -29,7 +29,7 @@ namespace SeguesTests.Services
             context.ProductCategory.Add(category);
             await context.SaveChangesAsync();
 
-            var model = new ProductViewModel
+            var model = new CreateProductViewModel
             {
                 Name = "Sumo de Laranja",
                 CategoryId = 1,
@@ -65,7 +65,7 @@ namespace SeguesTests.Services
             });
             await context.SaveChangesAsync();
 
-            var model = new ProductViewModel { Name = "Pedro-Snack", Description = "Very Good", MinimumStock = 1, Price = 20, Stock = 1, CategoryId = 1 };
+            var model = new CreateProductViewModel { Name = "Pedro-Snack", Description = "Very Good", MinimumStock = 1, Price = 20, Stock = 1, CategoryId = 1 };
 
             var result = await service.CreateProductAsync(model);
 
@@ -108,7 +108,7 @@ namespace SeguesTests.Services
             context.Product.Add(product);
             await context.SaveChangesAsync();
 
-            var model = new ProductViewModel
+            var model = new CreateProductViewModel
             {
                 Id = 10,
                 MinimumStock = 1,

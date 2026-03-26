@@ -98,7 +98,7 @@ public class TicketService : ITicketService
         var price = await _context.TicketPrice
             .Where(p => p.UserCategory.Id == userCategoryId
                         && now >= p.InitialDatePrice
-                        && now <= p.EndDatePrice)
+                        && (p.EndDatePrice == null || now <= p.EndDatePrice))
             .OrderByDescending(p => p.InitialDatePrice)
             .FirstOrDefaultAsync();
 

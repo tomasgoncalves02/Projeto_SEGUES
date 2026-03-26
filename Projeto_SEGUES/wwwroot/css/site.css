@@ -289,6 +289,9 @@ html {
 }
 
 @media (min-width: 768px) {
+    .fs-md-5 {
+        font-size: 1.25rem !important;
+    }
     .mx-lg-6 {
         margin-left: 4rem !important;
         margin-right: 4rem !important;

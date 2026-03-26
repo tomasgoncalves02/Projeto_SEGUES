@@ -45,18 +45,18 @@ public class InventoryService : IInventoryService
         return categories.Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name }).ToList();
     }
 
-    public async Task<ServiceResult> CreateProductAsync(ProductViewModel productViewModel)
+    public async Task<ServiceResult> CreateProductAsync(CreateProductViewModel createProductViewModel)
     {
-        var category = await _context.ProductCategory.FindAsync(productViewModel.CategoryId);
+        var category = await _context.ProductCategory.FindAsync(createProductViewModel.CategoryId);
         if (category == null) return ServiceResult.Fail("Categoria não encontrada.");
         Product product = new Product
         {
-            Name = productViewModel.Name,
-            Description = productViewModel.Description,
+            Name = createProductViewModel.Name,
+            Description = createProductViewModel.Description,
             Category = category,
-            Price = productViewModel.Price,
-            Stock = productViewModel.Stock,
-            MinimumStock = productViewModel.MinimumStock,
+            Price = createProductViewModel.Price,
+            Stock = createProductViewModel.Stock,
+            MinimumStock = createProductViewModel.MinimumStock,
             IsActive = true
         };
         if (await _context.Product.AnyAsync(p => p.Name == product.Name))
@@ -76,27 +76,27 @@ public class InventoryService : IInventoryService
         }
     }
 
-    public async Task<ServiceResult> EditProductAsync(ProductViewModel productViewModel)
+    public async Task<ServiceResult> EditProductAsync(CreateProductViewModel createProductViewModel)
     {
-        var category = await _context.ProductCategory.FindAsync(productViewModel.CategoryId);
+        var category = await _context.ProductCategory.FindAsync(createProductViewModel.CategoryId);
 
-        var existingProduct = await _context.Product.FindAsync(productViewModel.Id);
+        var existingProduct = await _context.Product.FindAsync(createProductViewModel.Id);
         if (existingProduct == null) return ServiceResult.Fail("Produto não encontrado.");
 
-        if (await _context.Product.AnyAsync(p => p.Name == productViewModel.Name && p.Id != productViewModel.Id))
+        if (await _context.Product.AnyAsync(p => p.Name == createProductViewModel.Name && p.Id != createProductViewModel.Id))
         {
             return ServiceResult.Fail("Já existe um produto com esse nome.");
         }
 
         try
         {
-            existingProduct.Name = productViewModel.Name;
-            existingProduct.Description = productViewModel.Description;
+            existingProduct.Name = createProductViewModel.Name;
+            existingProduct.Description = createProductViewModel.Description;
             existingProduct.Category = category!;
-            existingProduct.Price = productViewModel.Price;
-            existingProduct.Stock = productViewModel.Stock;
-            existingProduct.MinimumStock = productViewModel.MinimumStock;
-            existingProduct.IsActive = productViewModel.IsActive;
+            existingProduct.Price = createProductViewModel.Price;
+            existingProduct.Stock = createProductViewModel.Stock;
+            existingProduct.MinimumStock = createProductViewModel.MinimumStock;
+            existingProduct.IsActive = createProductViewModel.IsActive;
             await _context.SaveChangesAsync();
             return ServiceResult.Ok("Produto editado com sucesso!");
         }

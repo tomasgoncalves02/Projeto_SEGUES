@@ -63,7 +63,7 @@
             <div class="card h-100 shadow-sm card-ips hover-shadow-ips bg-color-ips text-white hover-translate d-flex flex-column">
                 <div class="card-body text-center d-flex flex-column p-4">
                     <small class="d-block opacity-75 fw-bold mb-2 fs-4">Saldo Disponível</small>
-                    <h2 class="display-6 fw-bold my-auto">@ViewBag.UserBalance.ToString("C")</h2>
+                    <h2 class="display-6 fw-bold mb-2">@ViewBag.UserBalance.ToString("C")</h2>
                     <div class="mt-auto">
                         <a asp-area="Payment" asp-controller="Payment" asp-action="Deposit" class="btn btn-ips fw-bold w-100 py-2" style="border: 1px solid white !important">Carregar Saldo</a>
                     </div>
@@ -77,7 +77,7 @@
                 <div class="card-body text-center d-flex flex-column p-4">
                     <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-cart-plus"></i></div>
                     <h5 class="fw-bold">Efetuar Pedido</h5>
-                    <p class="text-muted small mb-4">Adquire aqui o teu snack.</p>
+                    <p class="text-muted small mb-4">Realize aqui um pedido.</p>
                     <div class="mt-auto">
                         <a asp-area="Order" asp-controller="CreateOrder" asp-for asp-action="Index" class="btn w-100 py-2 fw-bold btn-ips">
                             Ir para a Loja
@@ -93,7 +93,7 @@
                 <div class="card-body text-center d-flex flex-column p-4">
                     <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-qr-code-scan"></i></div>
                     <h5 class="fw-bold">Pedidos</h5>
-                    <p class="text-muted small mb-4">Visualiza os teus pedidos.</p>
+                    <p class="text-muted small mb-4">Visualize os seus pedidos.</p>
                     <div class="mt-auto">
                         <a asp-area="Order" asp-controller="ActiveOrder" asp-action="Index" class="btn w-100 py-2 fw-bold btn-ips">Ver Pedidos</a>
                     </div>
@@ -107,23 +107,9 @@
                 <div class="card-body text-center d-flex flex-column p-4">
                     <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-journal-richtext"></i></div>
                     <h5 class="fw-bold">Ementa</h5>
-                    <p class="text-muted small mb-4">Consulta o que há para o almoço esta semana.</p>
+                    <p class="text-muted small mb-4">Consulte a ementa do bar.</p>
                     <div class="mt-auto">
                         <a href="@ViewBag.BarMenuLink" target="_blank" class="btn w-100 py-2 fw-bold btn-ips">Ver Ementa</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        @* Return Card *@
-        <div class="col-md-6 col-lg-3">
-            <div class="card h-100 shadow-sm card-ips hover-shadow-ips hover-translate d-flex flex-column">
-                <div class="card-body text-center d-flex flex-column p-4">
-                    <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-arrow-left-circle"></i></div>
-                    <h5 class="fw-bold">Voltar</h5>
-                    <p class="text-muted small mb-4">Voltar à página anterior.</p>
-                    <div class="mt-auto">
-                        <a href="/" class="btn w-100 py-2 fw-bold btn-ips">Voltar</a>
                     </div>
                 </div>
             </div>

@@ -74,11 +74,9 @@ public class OrderTicketController : Controller
         if (result.Success)
         {
             TempData.SetSwalSuccess(result.Message);
+            return RedirectToAction("Index", "ActiveOrder", new { area = "Order" });
         }
-        else
-        {
-            TempData.SetSwalError(result.Message);
-        }
+        TempData.SetSwalError(result.Message);
         return RedirectToAction(nameof(Index));
     }
 }

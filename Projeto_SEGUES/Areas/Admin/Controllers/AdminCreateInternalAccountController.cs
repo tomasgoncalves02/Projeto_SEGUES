@@ -2,8 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Extensions;
-using Projeto_SEGUES.Models.Enums;
-using Projeto_SEGUES.Resources;
 using Projeto_SEGUES.Services;
 
 namespace Projeto_SEGUES.Areas.Admin;
@@ -16,17 +14,13 @@ namespace Projeto_SEGUES.Areas.Admin;
 public class AdminCreateInternalAccountController : Controller
 {
     private readonly IAdminService _adminService;
-    private readonly ILogger<AdminCreateInternalAccountController> _logger;
 
     /// <summary>
     /// Initializes a new instance of the controller with required services.
     /// </summary>
-    public AdminCreateInternalAccountController(
-        IAdminService adminService,
-        ILogger<AdminCreateInternalAccountController> logger)
+    public AdminCreateInternalAccountController(IAdminService adminService)
     {
         _adminService = adminService;
-        _logger = logger;
     }
 
     /// <summary>
@@ -52,30 +46,15 @@ public class AdminCreateInternalAccountController : Controller
             ViewBag.Roles = await _adminService.GetNonClientRolesForDropdownAsync();
             return View("Index", model);
         }
-        try
-        {
-            var result = await _adminService.CreateInternalUserAsync(model);
+        
+        var result = await _adminService.CreateInternalUserAsync(model);
 
-            if (result.Success)
-            {
-                TempData.SetSwalSuccess($"Conta criada para {model.FirstName}!");
-                return RedirectToAction(nameof(Index));
-            }
-            var rawErrors = result.Message.Split("; ");
-            foreach (var error in rawErrors)
-            {
-                var translatedError = Errors.ResourceManager.GetString(error) ?? error;
-                ModelState.AddModelError(string.Empty, translatedError);
-            }
-        }
-        catch (Exception ex)
+        if (result.Success)
         {
-            _logger.LogAppError(AppErrors.SendActivationEmailError, TableName.User, AppOperation.Create, ex);
-            TempData.SetSwalError(AppErrors.SendActivationEmailError.GetViewErrorMessage());
-
+            TempData.SetSwalSuccess(result.Message);
             return RedirectToAction(nameof(Index));
         }
-
+        TempData.SetSwalError(result.Message);
         ViewBag.Roles = await _adminService.GetNonClientRolesForDropdownAsync();
         return View("Index", model);
     }

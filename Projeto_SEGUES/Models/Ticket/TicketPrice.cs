@@ -24,5 +24,5 @@ public class TicketPrice
     [DataType(DataType.Date)]
     [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
     [Display(Name = "Data de Fim")]
-    public DateTime EndDatePrice { get; set; }
+    public DateTime? EndDatePrice { get; set; } = null;
 }

@@ -1,12 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Localization;
+using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Areas.Inventory.ViewModels;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Enums;
-using Projeto_SEGUES.Resources;
 using Projeto_SEGUES.Services;
-using System.Diagnostics;
 
 namespace Projeto_SEGUES.Areas.Admin;
 
@@ -23,19 +21,16 @@ public class AdminInventoryManagementController : Controller
 {
     private readonly IInventoryService _inventoryService;
     private readonly ILogger<AdminInventoryManagementController> _logger;
-    private readonly IStringLocalizer<Errors> _localizer;
 
     /// <summary>
     /// Initializes a new instance of the controller with inventory, logging, and localization services.
     /// </summary>
     public AdminInventoryManagementController(
         IInventoryService inventoryService,
-        ILogger<AdminInventoryManagementController> logger,
-        IStringLocalizer<Errors> localizer)
+        ILogger<AdminInventoryManagementController> logger)
     {
         _inventoryService = inventoryService;
         _logger = logger;
-        _localizer = localizer;
     }
 
     /// <summary>
@@ -44,9 +39,33 @@ public class AdminInventoryManagementController : Controller
     /// <returns>The index View populated with current categories and products.</returns>
     public async Task<IActionResult> Index()
     {
-        ViewBag.Categories = await _inventoryService.GetAllCategoriesForDropdownAsync();
-        ViewBag.Products = await _inventoryService.GetAllProductsAsync();
-        return View();
+        var rawProducts = await _inventoryService.GetAllProductsAsync();
+        InventoryManagementViewModel vm = new InventoryManagementViewModel
+        {
+            Categories = await _inventoryService.GetAllCategoriesForDropdownAsync(),
+            Products = rawProducts.Select(p => new ProductDto
+            {
+                Id = p.Id,
+                Name = p.Name,
+                CategoryId = p.Category.Id,
+                CategoryName = p.Category.Name,
+                Price = p.Price,
+                Stock = p.Stock,
+                MinimumStock = p.MinimumStock,
+                IsActive = p.IsActive,
+                ModalInfo = new
+                {
+                    name = p.Name,
+                    description = p.Description,
+                    price = p.Price.ToString("C2"),
+                    categoryName = p.Category.Name,
+                    categoryDescription = p.Category.Description,
+                    stock = p.Stock,
+                    minStock = p.MinimumStock
+                }
+            }).ToList()
+        };
+        return View(vm);
     }
 
     /// <summary>
@@ -55,7 +74,28 @@ public class AdminInventoryManagementController : Controller
     /// <returns>A PartialView containing the products table.</returns>
     public async Task<IActionResult> GetProducts()
     {
-        var products = await _inventoryService.GetAllProductsAsync();
+        var rawProducts = await _inventoryService.GetAllProductsAsync();
+        List<ProductDto> products = rawProducts.Select(p => new ProductDto
+        {
+            Id = p.Id,
+            Name = p.Name,
+            CategoryId = p.Category.Id,
+            CategoryName = p.Category.Name,
+            Price = p.Price,
+            Stock = p.Stock,
+            MinimumStock = p.MinimumStock,
+            IsActive = p.IsActive,
+            ModalInfo = new
+            {
+                name = p.Name,
+                description = p.Description,
+                price = p.Price.ToString("C2"),
+                categoryName = p.Category.Name,
+                categoryDescription = p.Category.Description,
+                stock = p.Stock,
+                minStock = p.MinimumStock
+            }
+        }).ToList();
         return PartialView("_ProductListPartial", products);
     }
 
@@ -64,7 +104,7 @@ public class AdminInventoryManagementController : Controller
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(ProductViewModel productViewModel)
+    public async Task<IActionResult> Create(CreateProductViewModel createProductViewModel)
     {
         if (!ModelState.IsValid)
         {
@@ -72,7 +112,7 @@ public class AdminInventoryManagementController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        var result = await _inventoryService.CreateProductAsync(productViewModel);
+        var result = await _inventoryService.CreateProductAsync(createProductViewModel);
         if (result.Success)
         {
             TempData.SetSwalSuccess(result.Message);
@@ -98,7 +138,7 @@ public class AdminInventoryManagementController : Controller
 
             ViewBag.Categories = await _inventoryService.GetAllCategoriesForDropdownAsync();
 
-            ProductViewModel productViewModel = new ProductViewModel
+            CreateProductViewModel createProductViewModel = new CreateProductViewModel
             {
                 Id = product.Id,
                 Name = product.Name,
@@ -109,7 +149,7 @@ public class AdminInventoryManagementController : Controller
                 MinimumStock = product.MinimumStock,
                 IsActive = product.IsActive
             };
-            return View(productViewModel);
+            return View(createProductViewModel);
         }
         catch (Exception ex)
         {
@@ -123,19 +163,19 @@ public class AdminInventoryManagementController : Controller
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(ProductViewModel productViewModel)
+    public async Task<IActionResult> Edit(CreateProductViewModel createProductViewModel)
     {
         ViewBag.Categories = await _inventoryService.GetAllCategoriesForDropdownAsync();
 
         if (!ModelState.IsValid)
         {
             TempData.SetSwalError("Não foi possível atualizar o produto. Verifique os campos.");
-            return View(productViewModel);
+            return View(createProductViewModel);
         }
 
         try
         {
-            var result = await _inventoryService.EditProductAsync(productViewModel);
+            var result = await _inventoryService.EditProductAsync(createProductViewModel);
             if (result.Success)
             {
                 TempData.SetSwalSuccess(result.Message);
@@ -152,7 +192,7 @@ public class AdminInventoryManagementController : Controller
             return RedirectToAction("Error", "Home", new { area = "", errorCode = AppErrors.ProductEditError });
         }
 
-        return View(productViewModel);
+        return View(createProductViewModel);
     }
 
     /// <summary>

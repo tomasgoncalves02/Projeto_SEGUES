@@ -9,7 +9,7 @@ namespace Projeto_SEGUES.Areas.Inventory.ViewModels;
 /// Este modelo transporta os dados de um produto entre a interface de utilizador e os serviços de inventário,
 /// garantindo que as regras de stock e preços sejam validadas antes da persistência.
 /// </remarks>
-public class ProductViewModel
+public class CreateProductViewModel
 {
     /// <summary>
     /// Identificador único do produto.
@@ -20,8 +20,8 @@ public class ProductViewModel
     /// Nome descritivo do produto.
     /// </summary>
     /// <value>Obrigatório, máximo de 100 caracteres.</value>
-    [Required]
-    [MaxLength(100)]
+    [Required(ErrorMessage = "O nome do produto é obrigatório.")]
+    [MaxLength(100, ErrorMessage = "O nome do produto não pode exceder {1} caracteres.")]
     [Display(Name = "Nome")]
     public required string Name { get; set; }
 
@@ -29,8 +29,8 @@ public class ProductViewModel
     /// Explicação detalhada sobre o produto.
     /// </summary>
     /// <value>Obrigatório, máximo de 250 caracteres.</value>
-    [Required]
-    [MaxLength(250)]
+    [Required(ErrorMessage = "A descrição do produto é obrigatória.")]
+    [MaxLength(250, ErrorMessage = "A descrição do produto não pode exceder {1} caracteres.")]
     [Display(Name = "Descrição")]
     public required string Description { get; set; }
 
@@ -38,7 +38,7 @@ public class ProductViewModel
     /// Identificador da categoria à qual o produto pertence.
     /// </summary>
     /// <value>Chave estrangeira (FK) obrigatória.</value>
-    [Required]
+    [Required(ErrorMessage = "A categoria do produto é obrigatória.")]
     [Display(Name = "Categoria")]
     public required int CategoryId { get; set; } // FK
 
@@ -46,7 +46,7 @@ public class ProductViewModel
     /// Valor monetário unitário do produto.
     /// </summary>
     /// <value>Obrigatório, deve ser um valor positivo.</value>
-    [Required]
+    [Required(ErrorMessage = "O preço do produto é obrigatório.")]
     [Range(0, double.MaxValue)]
     [Display(Name = "Preço")]
     public required decimal Price { get; set; }
@@ -55,7 +55,7 @@ public class ProductViewModel
     /// Quantidade atual disponível em armazém.
     /// </summary>
     /// <value>Obrigatório, valor inteiro não negativo.</value>
-    [Required]
+    [Required(ErrorMessage = "O stock do produto é obrigatório.")]
     [Range(0, int.MaxValue)]
     [Display(Name = "Stock")]
     public required int Stock { get; set; }
@@ -64,7 +64,7 @@ public class ProductViewModel
     /// Limite de segurança para alerta de reposição de stock.
     /// </summary>
     /// <value>Obrigatório, utilizado para monitorização de rutura de stock.</value>
-    [Required]
+    [Required(ErrorMessage = "O stock mínimo do produto é obrigatório.")]
     [Range(0, int.MaxValue)]
     [Display(Name = "Stock mínimo")]
     public required int MinimumStock { get; set; }

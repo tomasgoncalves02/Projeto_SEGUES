@@ -5,44 +5,44 @@ function showProductDetails() {
     Notifications.show({
         title: 'Detalhes do Produto',
         html:
-            `<div class="text-start p-3">
-                <h4 class="text-color-ips fw-bold">Nome do Produto</h4>
-                <p class="mb-4">${product.name}</p>
-                <h4 class="text-color-ips fw-bold">Descrição</h4>
-                <p class="mb-4">${product.description}</p>
-                <div class="row g-3">
-                    <div class="col-12 col-md-6">
+            `<div class="text-start p-1 p-md-2">
+                <h6 class="text-color-ips fw-bold mb-1 mb-md-2 fs-5">Nome do Produto</h6>
+                <p class="mb-2 mb-md-4 fs-7">${product.name}</p>
+                <h6 class="text-color-ips fw-bold mb-1 mb-md-2 fs-5">Descrição</h6>
+                <p class="mb-2 mb-md-4 fs-7">${product.description}</p>
+                <div class="row g-2 g-md-3">
+                    <div class="col-6">
                         <div class="card bg-light border-0 shadow-sm rounded-3 h-100">
-                            <div class="card-body text-center py-3">
-                                <h4 class="text-color-ips fw-bold">Categoria</h4>
-                                <p class="mb-4" title='${product.categoryDescription}'>${product.categoryName}</p>
+                            <div class="card-body text-center py-2 py-md-3 px-2">
+                                <h6 class="text-color-ips fw-bold mb-1 fs-5">Categoria</h6>
+                                <p class="mb-1 mb-md-2 fs-7 lh-sm" title='${product.categoryDescription}'>${product.categoryName}</p>
                             </div>
                         </div>
                     </div>
-                    <div class="col-12 col-md-6">
+                    <div class="col-6">
                         <div class="card bg-light border-0 shadow-sm rounded-3 h-100">
-                            <div class="card-body text-center py-3">
-                                <h4 class="text-color-ips fw-bold">Preço</h4>
-                                <p class="mb-4">${product.price}</p>
+                            <div class="card-body text-center py-2 py-md-3 px-2">
+                                <h6 class="text-color-ips fw-bold mb-1 fs-5">Preço</h6>
+                                <p class="mb-1 mb-md-2 fs-7 lh-sm">${product.price}</p>
                             </div>
                         </div>
                     </div>
                 </div>
                 ${ product.stock && product.minStock ? 
-                `<div class="row g-3 mt-1">
-                    <div class="col-12 col-md-6">
+                `<div class="row g-2 g-md-3 mt-1 mt-md-2">
+                    <div class="col-6">
                         <div class="card bg-light border-0 shadow-sm rounded-3 h-100">
-                            <div class="card-body text-center py-3">
-                                <h4 class="text-color-ips fw-bold">Stock</h4>
-                                <p class="mb-4">${product.stock}</p>
+                            <div class="card-body text-center py-2 py-md-3 px-2">
+                                <h6 class="text-color-ips fw-bold mb-1 fs-5">Stock</h6>
+                                <p class="mb-1 mb-md-2 fs-7 lh-sm">${product.stock}</p>
                             </div>
                         </div>
                     </div>
-                    <div class="col-12 col-md-6">
+                    <div class="col-6">
                         <div class="card bg-light border-0 shadow-sm rounded-3 h-100">
-                            <div class="card-body text-center py-3">
-                                <h4 class="text-color-ips fw-bold">Stock Mínimo</h4>
-                                <p class="mb-4">${product.minStock}</p>
+                            <div class="card-body text-center py-2 py-md-3 px-2">
+                                <h6 class="text-color-ips fw-bold mb-1 fs-5">Stock Mínimo</h6>
+                                <p class="mb-1 mb-md-2 fs-7 lh-sm">${product.minStock}</p>
                             </div>
                         </div>
                     </div>

@@ -108,7 +108,6 @@ public class AdminService : IAdminService
         if (!result.Succeeded) return ServiceResult.Fail(string.Join("; ", result.Errors.Select(e => e.Description)));
         
         await _userManager.AddToRoleAsync(user, model.AccountType);
-
         try
         {
             // If net fails, throws exception
@@ -121,7 +120,7 @@ public class AdminService : IAdminService
             return ServiceResult.Fail(AppErrors.SendActivationEmailError.GetViewErrorMessage());
         }
         await transaction.CommitAsync();
-        return ServiceResult.Ok();
+        return ServiceResult.Ok($"Conta criada para {model.FirstName}!");
     }
     
     private static string GenerateSecurePassword(int length = 12)
@@ -364,7 +363,10 @@ public class AdminService : IAdminService
     
     public async Task<List<TicketPrice>> GetTicketPricesAsync()
     {
-        return await _context.TicketPrice.Include(tp => tp.UserCategory).ToListAsync();
+        return await _context.TicketPrice
+            .Include(tp => tp.UserCategory)
+            .Where(tp => tp.EndDatePrice == null || tp.EndDatePrice > DateTime.Today)
+            .ToListAsync();
     }
     
     public async Task UpdateTicketPricesAsync(List<TicketPrice> prices)
@@ -374,8 +376,13 @@ public class AdminService : IAdminService
             var dbPrice = await _context.TicketPrice.FindAsync(p.Id);
             if (dbPrice != null && p.Price > 0)
             {
-                dbPrice.Price = p.Price;
-                dbPrice.EndDatePrice = DateTime.Today.AddDays(1).AddTicks(-1);
+                dbPrice.EndDatePrice = DateTime.Now;
+                _context.TicketPrice.Add(new TicketPrice
+                {
+                    UserCategory = p.UserCategory,
+                    Price = p.Price,
+                    InitialDatePrice = DateTime.Now
+                });
             }
         }
         await _context.SaveChangesAsync();
