@@ -81,7 +81,7 @@ public static class DbSeeder
                 .FirstOrDefaultAsync(c => c.Name == category);
             if (catDb == null) continue;
 
-            if (await context.TicketPrice.AnyAsync(tp => tp.UserCategory.Id == catDb.Id && tp.EndDatePrice > DateTime.Now))
+            if (await context.TicketPrice.AnyAsync(tp => tp.UserCategory.Id == catDb.Id && (tp.EndDatePrice == null || tp.EndDatePrice > DateTime.Now)))
                 continue;
 
             context.TicketPrice.Add(new TicketPrice

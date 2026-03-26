@@ -7,15 +7,15 @@ function showProductDetails() {
         html:
             `<div class="text-start p-1 p-md-2">
                 <h6 class="text-color-ips fw-bold mb-1 mb-md-2 fs-5">Nome do Produto</h6>
-                <p class="mb-2 mb-md-4 fs-7">${product.name}</p>
+                <p class="mb-2 mb-md-4 fs-7 fs-md-5">${product.name}</p>
                 <h6 class="text-color-ips fw-bold mb-1 mb-md-2 fs-5">Descrição</h6>
-                <p class="mb-2 mb-md-4 fs-7">${product.description}</p>
+                <p class="mb-2 mb-md-4 fs-7 fs-md-5">${product.description}</p>
                 <div class="row g-2 g-md-3">
                     <div class="col-6">
                         <div class="card bg-light border-0 shadow-sm rounded-3 h-100">
                             <div class="card-body text-center py-2 py-md-3 px-2">
                                 <h6 class="text-color-ips fw-bold mb-1 fs-5">Categoria</h6>
-                                <p class="mb-1 mb-md-2 fs-7 lh-sm" title='${product.categoryDescription}'>${product.categoryName}</p>
+                                <p class="mb-1 mb-md-2 fs-7 fs-md-5 lh-sm" title='${product.categoryDescription}'>${product.categoryName}</p>
                             </div>
                         </div>
                     </div>
@@ -23,7 +23,7 @@ function showProductDetails() {
                         <div class="card bg-light border-0 shadow-sm rounded-3 h-100">
                             <div class="card-body text-center py-2 py-md-3 px-2">
                                 <h6 class="text-color-ips fw-bold mb-1 fs-5">Preço</h6>
-                                <p class="mb-1 mb-md-2 fs-7 lh-sm">${product.price}</p>
+                                <p class="mb-1 mb-md-2 fs-7 fs-md-5 lh-sm">${product.price}</p>
                             </div>
                         </div>
                     </div>
@@ -34,7 +34,7 @@ function showProductDetails() {
                         <div class="card bg-light border-0 shadow-sm rounded-3 h-100">
                             <div class="card-body text-center py-2 py-md-3 px-2">
                                 <h6 class="text-color-ips fw-bold mb-1 fs-5">Stock</h6>
-                                <p class="mb-1 mb-md-2 fs-7 lh-sm">${product.stock}</p>
+                                <p class="mb-1 mb-md-2 fs-7 fs-md-5 lh-sm">${product.stock}</p>
                             </div>
                         </div>
                     </div>
@@ -42,7 +42,7 @@ function showProductDetails() {
                         <div class="card bg-light border-0 shadow-sm rounded-3 h-100">
                             <div class="card-body text-center py-2 py-md-3 px-2">
                                 <h6 class="text-color-ips fw-bold mb-1 fs-5">Stock Mínimo</h6>
-                                <p class="mb-1 mb-md-2 fs-7 lh-sm">${product.minStock}</p>
+                                <p class="mb-1 mb-md-2 fs-7 fs-md-5 lh-sm">${product.minStock}</p>
                             </div>
                         </div>
                     </div>
