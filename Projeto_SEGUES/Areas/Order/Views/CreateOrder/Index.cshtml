@@ -15,50 +15,59 @@
             <i class="bi bi-arrow-left me-2"></i>Voltar
         </a>
     </div>
-    
     @* Filters Bar *@
-    <div class="card card-ips hover-shadow-ips shadow-sm mb-4 border-0 rounded-3">
-        <div class="card-body p-3 p-md-4 filter-bar">
-            <div class="row g-3 align-items-end">
-                @* Checkout Cart *@
-                <div class="col-6 col-md-2 order-1 border-end pe-2 d-flex align-items-center justify-content-center">
-                    <div class="text-center">
-                        <span class="fw-bold small d-inline d-md-block text-muted mb-1">Carrinho</span>
-                        <a asp-area="Order" asp-controller="CreateOrder" asp-action="Checkout" class="position-relative d-inline d-md-inline-block text-decoration-none">
+    <div class="card card-ips shadow-sm mb-4 border-0 rounded-3">
+        <div class="card-body p-3 p-md-4 bg-light rounded-3">
+            <div class="row g-3 align-items-center">
+
+                @* Checkout Cart Section *@
+                <div class="col-12 col-md-auto d-flex align-items-center justify-content-center justify-content-md-start mb-3 mb-md-0">
+                    <div class="text-center px-3">
+                        <span class="fw-bold small d-block text-muted mb-2" style="font-size: 0.8rem;">Carrinho</span>
+                        <a asp-area="Order" asp-controller="CreateOrder" asp-action="Checkout" class="position-relative d-inline-block text-decoration-none">
                             <i class="bi bi-cart-check fs-2 text-color-ips"></i>
-                            <span id="cartCount" class="position-absolute badge rounded-pill bg-danger fs-7"
-                                  style="display: @(Model.CartTotal.TotalQuantity > 0 ? "block" : "none"); top: -2px; right: -5px; padding: 0.35em 0.5em; border: 2px solid white;">
+                            <span id="cartCount" class="position-absolute badge rounded-pill bg-danger"
+                                  style="display: @(Model.CartTotal.TotalQuantity > 0 ? "block" : "none"); top: -5px; right: -10px; border: 2px solid white; font-size: 0.65rem;">
                                 @Model.CartTotal.TotalQuantity
                             </span>
                         </a>
-                        <span class="fw-bold small d-block text-muted mt-2">Total: <span id="cartTotal">@Model.CartTotal.TotalValue €</span></span>
+                        <div class="mt-2">
+                            <span class="fw-bold text-muted small">Total: </span>
+                            <span id="cartTotal" class="fw-bold text-dark small">@(Model.CartTotal.TotalValue.ToString("C"))</span>
+                        </div>
                     </div>
                 </div>
-                
-                @* Clear button *@
-                <div class="col-6 col-md-auto order-2 order-md-4 d-flex align-items-center justify-content-center justify-content-md-end pb-1 pb-md-0">
-                    <button type="button" id="clearProductsTableFilters" class="btn btn-sm btn-ips-outline-secondary fw-bold px-3 py-2">
-                        <i class="bi bi-x-circle me-1"></i> Limpar
-                    </button>
+
+                @* Filtros com a linha separadora *@
+                <div class="col col-md border-start ps-md-4">
+                    <div class="row g-2 g-md-3 align-items-end">
+
+                        @* Categoria e Pesquisa *@
+                        <div class="col-6 col-md-4">
+                            <label for="categoryFilter" class="form-label small fw-bold text-muted mb-1">Categoria</label>
+                            <select id="categoryFilter" class="form-select form-select-sm border-secondary-subtle">
+                                <option value="">Todas</option>
+                                @foreach (SelectListItem cat in Model.Categories)
+                                {
+                                    <option value="@cat.Value">@cat.Text</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-6 col-md">
+                            <label for="nameFilter" class="form-label small fw-bold text-muted mb-1">Pesquisar</label>
+                            <input id="nameFilter" type="text" class="form-control form-control-sm border-secondary-subtle" placeholder="Nome do produto...">
+                        </div>
+
+                        @* Botão Limpar *@
+                        <div class="col-12 col-md-auto text-center text-md-end">
+                            <button type="button" id="clearProductsTableFilters" class="btn btn-sm btn-ips-outline-secondary fw-bold px-3 w-100 w-md-auto" style="height: 31px;">
+                                <i class="bi bi-x-circle me-1"></i> Limpar
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
-                @* Category filter *@
-                <div class="col-6 col-md-3 col-xl-2 ms-md-2 order-3 order-md-2 mt-2 mt-md-0">
-                    <label for="categoryFilter" class="form-label small fw-bold text-muted mb-1">Categoria</label>
-                    <select id="categoryFilter" class="form-select form-select-sm border-secondary-subtle">
-                        <option value="">Todas</option>
-                        @foreach (SelectListItem cat in Model.Categories)
-                        {
-                            <option value="@cat.Value">@cat.Text</option>
-                        }
-                    </select>
-                </div>
-
-                @* Search filter *@
-                <div class="col-6 col-md order-4 order-md-3 mt-2 mt-md-0">
-                    <label for="nameFilter" class="form-label small fw-bold text-muted mb-1">Pesquisar</label>
-                    <input id="nameFilter" type="text" class="form-control form-control-sm border-secondary-subtle" placeholder="Nome do produto...">
-                </div>
             </div>
         </div>
     </div>
@@ -76,7 +85,7 @@
                         <th class="ps-4 py-2 py-md-3 text-start">Nome</th>
                         <th class="py-2 py-md-3 d-none d-md-table-cell">Categoria</th>
                         <th class="py-2 py-md-3">Preço</th>
-                        <th class="py-2 py-md-3">Quantidade</th>
+                        <th class="py-2 py-md-3" style="width: 80px;">Quantidade</th>
                         <th class="pe-4 py-2 py-md-3">Ação</th>
                     </tr>
                 </thead>
@@ -96,18 +105,22 @@
                         {
                             <tr class="productRow" data-name="@p.Name" data-categoryid="@p.CategoryId">
                                 <td class="ps-4 text-start fw-bold">@p.Name</td>
-                                <td class="d-none d-md-table-cell">@p.CategoryName</td> 
+                                <td class="d-none d-md-table-cell">@p.CategoryName</td>
                                 <td class="text-color-ips fw-bold text-nowrap">@p.FormattedPrice</td>
                                 <td>
-                                    <input type="number" id="qty-@p.Id" min="1" max="10" value="1" class="form-control form-control-sm border-secondary-subtle" />
+                                    <input type="number" id="qty-@p.Id" min="1" max="99" value="1"
+                                           class="form-control form-control-sm border-secondary-subtle px-1 text-center no-spinners"
+                                           style="min-width: 50px;"
+                                           oninput="if(this.value.length > 2) this.value = this.value.slice(0,2);" />
                                 </td>
-                                <td class="pe-4">
-                                    <div class="d-flex justify-content-center gap-2">
-                                        <button class="btn btn-ips btn-sm px-3 fw-bold addToCart" data-id="@p.Id" data-name="@p.Name">
-                                            <i class="bi bi-cart-plus me-0 me-md-1"></i><span class="d-none d-md-inline">Adicionar</span>
+                                <td class="pe-3 pe-md-4">
+                                    <div class="d-flex justify-content-center gap-1 gap-md-2">
+                                        <button class="btn btn-ips btn-sm px-2 px-md-3 fw-bold addToCart" data-id="@p.Id" data-name="@p.Name" title="Adicionar ao Carrinho">
+                                            <i class="bi bi-cart-plus fs-6"></i>
+                                            <span class="d-none d-md-inline ms-1">Adicionar</span>
                                         </button>
-                                        <button class="btn btn-sm btn-ips-outline-secondary shadow-sm showProductDetails" data-product='@Html.Raw(Json.Serialize(p.ModalInfo))'>
-                                            <i class="bi bi-eye"></i>
+                                        <button class="btn btn-sm btn-ips-outline-secondary shadow-sm showProductDetails px-2" data-product='@Html.Raw(Json.Serialize(p.ModalInfo))'>
+                                            <i class="bi bi-eye fs-6"></i>
                                         </button>
                                     </div>
                                 </td>

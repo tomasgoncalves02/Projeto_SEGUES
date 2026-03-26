@@ -7,6 +7,8 @@ namespace Projeto_SEGUES.Models.Enums;
 /// </summary>
 public enum TicketFlow : byte
 {
+    [Display(Name = "Todos")]
+    All,
     [Display(Name = "Compradas")]
     Bought,
     [Display(Name = "Enviadas")]

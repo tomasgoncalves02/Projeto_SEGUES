@@ -1,10 +1,22 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 
 namespace Projeto_SEGUES.Extensions;
 
+/// <summary>
+/// Static utility class providing extension methods for string and enum transformations.
+/// </summary>
+/// <remarks>
+/// Focuses on UI-related conversions, such as mapping status strings to CSS classes 
+/// and retrieving localized display names from DataAnnotations.
+/// </remarks>
 public static class StringExtensions
 {
+    /// <summary>
+    /// Maps a string value (Role, Category, or Status) to its corresponding Bootstrap badge CSS class.
+    /// </summary>
+    /// <param name="value">The status or role string to be styled.</param>
+    /// <returns>A string containing one or more CSS classes (e.g., "bg-success").</returns>
     public static string ToBadgeClass(this string? value)
     {
         if (string.IsNullOrEmpty(value)) return "bg-secondary";
@@ -35,14 +47,22 @@ public static class StringExtensions
             "Preparing" => "bg-info",
             "ReadyToDeliver" => "bg-warning",
             "Delivered" => "bg-success",
-            "Canceled" => "bg-danger",
+            "Cancelled" => "bg-danger",
 
             // Default
             _ => "bg-secondary"
         };
     }
 
-    // Read Display(Name) do Enum value
+    /// <summary>
+    /// Retrieves the value of the [Display(Name = "...")] attribute for a given Enum value.
+    /// </summary>
+    /// <remarks>
+    /// This uses Reflection to read metadata at runtime. If no Display attribute is found, 
+    /// it returns the standard string representation of the Enum.
+    /// </remarks>
+    /// <param name="enumValue">The Enum value to inspect.</param>
+    /// <returns>The localized or descriptive name of the enum member.</returns>
     public static string ToDisplayName(this Enum enumValue)
     {
         var displayAttribute = enumValue.GetType()

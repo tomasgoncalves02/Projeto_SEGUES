@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Models.Admin;
 using Projeto_SEGUES.Models.Audit;
@@ -10,6 +10,14 @@ using Projeto_SEGUES.Models.User;
 
 namespace Projeto_SEGUES.Data
 {
+    /// <summary>
+    /// The primary Database Context for the application, inheriting from IdentityDbContext 
+    /// to support integrated User and Role management.
+    /// </summary>
+    /// <remarks>
+    /// This class orchestrates the Object-Relational Mapping (ORM) for all system modules: 
+    /// Auditing, Administration, Inventory, Orders, Payments, and Ticketing.
+    /// </remarks>
     public class AppDbContext : IdentityDbContext<AppUser, Role, string>
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
