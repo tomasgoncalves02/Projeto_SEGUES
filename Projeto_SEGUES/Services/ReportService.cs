@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Areas.Report.ViewModels;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.Enums;
@@ -120,45 +120,51 @@ public class ReportService : IReportService
         };
     }
 
-    public async Task<List<Order>> GetOrderHistoryAsync(string userId, ReportOrderSearchViewModel model)
+    public async Task<List<Order>> GetOrderHistoryAsync(string? userId, ReportOrderSearchViewModel model)
     {
         var query = _context.Order
             .Include(o => o.AppUser)
-            .Where(o => o.AppUser.Id == userId && o.Status != OrderStatus.Cart)
+            .Where(o => o.Status != OrderStatus.Cart)
             .AsNoTracking()
             .AsQueryable();
-        
-        // Search filter
+        if (!string.IsNullOrEmpty(userId))
+        {
+            query = query.Where(o => o.AppUser.Id == userId);
+        }
         var searchString = model.SearchString?.Trim().ToLower();
         if (!string.IsNullOrWhiteSpace(searchString))
         {
-            query = query.Where(o => 
+            query = query.Where(o =>
                 o.RedemptionCode.ToLower().Contains(searchString) ||
-                o.Id.ToString().Contains(searchString)
+                o.Id.ToString().Contains(searchString) ||
+                (o.AppUser.FirstName + " " + o.AppUser.LastName).ToLower().Contains(searchString)
             );
         }
-        
-        // Status filter
-        var statusFilter = model.StatusFilter;
-        if (statusFilter.HasValue)
+        if (model.StatusFilter.HasValue)
         {
-            query = query.Where(o => o.Status == statusFilter.Value);
+            query = query.Where(o => o.Status == model.StatusFilter.Value);
         }
-        
-        var dateFilter = model.DateFilter;
-        if (dateFilter.HasValue)
+        if (model.DateFilter.HasValue)
         {
-            // Ignores time
-            query = query.Where(o => o.OrderDate.Date == dateFilter.Value.Date);
+            query = query.Where(o => o.OrderDate.Date == model.DateFilter.Value.Date);
         }
-        
+
         return await query.OrderByDescending(o => o.OrderDate).ToListAsync();
     }
-    
+
+    public async Task<Order?> GetOrderByIdAsync(int id)
+    {
+        return await _context.Order
+            .Include(o => o.AppUser)
+            .Include(o => o.ProductPurchases)
+                .ThenInclude(pp => pp.Product)
+            .FirstOrDefaultAsync(o => o.Id == id);
+    }
+
     #endregion
-    
+
     #region Tickets
-    
+
     private async Task<List<Ticket>> GetUsedTicketsAsync(DateTime start)
     {
         return await _context.Ticket

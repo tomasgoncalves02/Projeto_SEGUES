@@ -56,4 +56,37 @@ public class ReportOrderController : Controller
         var results = await _reportService.GetOrderHistoryAsync(userId, model);
         return PartialView("_OrderHistoryRowsPartial", results);
     }
+
+    /// <summary>
+    /// Returns detailed information about a specific order in JSON format.
+    /// </summary>
+    /// <param name="id">The unique identifier of the order.</param>
+    /// <returns>
+    /// A JSON object containing the redemption code and product list, 
+    /// or an error message if the order is not found or access is denied.
+    /// </returns>
+
+    [HttpGet]
+    public async Task<IActionResult> GetOrderDetails(int id)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return Unauthorized();
+        var order = await _reportService.GetOrderByIdAsync(id);
+
+        if (order == null || (!User.IsInRole("Admin") && order.AppUser.Id != userId))
+        {
+            return Ok(new { failMessage = "Encomenda não encontrada ou sem permissão." });
+        }
+
+        return Json(new
+        {
+            code = order.RedemptionCode,
+            products = order.ProductPurchases.Select(pp => new
+            {
+                name = pp.Product.Name,
+                quantity = pp.Quantity,
+                price = pp.ProductValue
+            }).ToList()
+        });
+    }
 }
