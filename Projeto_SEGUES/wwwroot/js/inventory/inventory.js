@@ -1,4 +1,4 @@
-﻿import { DOM, Notifications } from "../core/core.js";
+﻿import { DOM, Notifications, StringUtils } from "../core/core.js";
 
 function showProductDetails() {
     let product = JSON.parse(this.dataset.product);
@@ -12,7 +12,7 @@ function showProductDetails() {
                 <p class="mb-2 mb-md-4 fs-7 fs-md-5">${product.description}</p>
                 <div class="row g-2 g-md-3">
                     <div class="col-6">
-                        <div class="card bg-light border-0 shadow-sm rounded-3 h-100">
+                        <div class="card bg-color-ips-very-light border-0 shadow-sm rounded-3 h-100">
                             <div class="card-body text-center py-2 py-md-3 px-2">
                                 <h6 class="text-color-ips fw-bold mb-1 fs-5">Categoria</h6>
                                 <p class="mb-1 mb-md-2 fs-7 fs-md-5 lh-sm" title='${product.categoryDescription}'>${product.categoryName}</p>
@@ -20,7 +20,7 @@ function showProductDetails() {
                         </div>
                     </div>
                     <div class="col-6">
-                        <div class="card bg-light border-0 shadow-sm rounded-3 h-100">
+                        <div class="card bg-color-ips-very-light border-0 shadow-sm rounded-3 h-100">
                             <div class="card-body text-center py-2 py-md-3 px-2">
                                 <h6 class="text-color-ips fw-bold mb-1 fs-5">Preço</h6>
                                 <p class="mb-1 mb-md-2 fs-7 fs-md-5 lh-sm">${product.price}</p>
@@ -31,7 +31,7 @@ function showProductDetails() {
                 ${ product.stock && product.minStock ? 
                 `<div class="row g-2 g-md-3 mt-1 mt-md-2">
                     <div class="col-6">
-                        <div class="card bg-light border-0 shadow-sm rounded-3 h-100">
+                        <div class="card bg-color-ips-very-light border-0 shadow-sm rounded-3 h-100">
                             <div class="card-body text-center py-2 py-md-3 px-2">
                                 <h6 class="text-color-ips fw-bold mb-1 fs-5">Stock</h6>
                                 <p class="mb-1 mb-md-2 fs-7 fs-md-5 lh-sm">${product.stock}</p>
@@ -39,7 +39,7 @@ function showProductDetails() {
                         </div>
                     </div>
                     <div class="col-6">
-                        <div class="card bg-light border-0 shadow-sm rounded-3 h-100">
+                        <div class="card bg-color-ips-very-light border-0 shadow-sm rounded-3 h-100">
                             <div class="card-body text-center py-2 py-md-3 px-2">
                                 <h6 class="text-color-ips fw-bold mb-1 fs-5">Stock Mínimo</h6>
                                 <p class="mb-1 mb-md-2 fs-7 fs-md-5 lh-sm">${product.minStock}</p>
@@ -54,15 +54,48 @@ function showProductDetails() {
 }
 
 function filterProductsTable() {
-    const categoryFilter = (DOM.byId('categoryFilter')?.value ?? '').toLowerCase();
-    const nameFilter = (DOM.byId('nameFilter')?.value ?? '').toLowerCase();
+    // Filter values
+    const categoryFilter = (DOM.byId('categoryFilter').value ?? '').toLowerCase();
+    const nameFilter = StringUtils.normalize(DOM.byId('nameFilter').value ?? '');
+    const maxPriceVal = DOM.byId('maxPriceFilter').value;
+    const maxPrice = maxPriceVal ? parseFloat(maxPriceVal) : null;
+    const stockFilter = DOM.byId('stockFilter').value ?? '';
+    const activeOnly = DOM.byId('activeOnlyFilter').checked ?? false;
     
     let count = 0;
     DOM.byClass('productRow').forEach(row => {
-        const rowName = (row.dataset.name ?? '').toLowerCase();
+        // Data attributes
+        const rowName = StringUtils.normalize(row.dataset.name ?? '');
         const rowCategory = (row.dataset.categoryid ?? '').toLowerCase();
+        const rowPrice = parseFloat(row.dataset.price ?? '0');
+        const rowStock = parseInt(row.dataset.stock ?? '0', 10);
+        const rowMinStock = parseInt(row.dataset.minstock ?? '0', 10);
+        const rowIsActive = row.dataset.isactive === 'true';
+
+        let matches = true;
         
-        const matches = rowName.includes(nameFilter) && rowCategory.includes(categoryFilter);
+        // Name and Category
+        if (!rowName.includes(nameFilter) || !rowCategory.includes(categoryFilter)) {
+            matches = false;
+        }
+
+        // Max Price
+        if (matches && maxPrice !== null && !isNaN(maxPrice)) {
+            if (rowPrice > maxPrice) matches = false;
+        }
+
+        // Stock
+        if (matches && stockFilter !== '') {
+            if (stockFilter === 'inStock' && rowStock <= 0) matches = false;
+            if (stockFilter === 'lowStock' && (rowStock >= rowMinStock || rowStock === 0)) matches = false;
+            if (stockFilter === 'outOfStock' && rowStock > 0) matches = false;
+        }
+        
+        // Active only
+        if (matches && activeOnly && !rowIsActive) {
+            matches = false;
+        }
+        
         row.style.display = matches ? '' : 'none';
         if (matches) count++;
     });
@@ -72,6 +105,9 @@ function filterProductsTable() {
 function clearProductsTableFilters() {
     DOM.byId('categoryFilter').value = '';
     DOM.byId('nameFilter').value = '';
+    DOM.byId('maxPriceFilter').value = '';
+    DOM.byId('stockFilter').value = '';
+    DOM.byId('activeOnlyFilter').checked = false;
     filterProductsTable();
 }
 
@@ -116,8 +152,12 @@ function handleEditFormSubmit(e) {
 const Inventory = {
     init() {
         DOM.delegate('showProductDetails', 'click', showProductDetails);
-        DOM.bind('categoryFilter', 'change', filterProductsTable);
         DOM.bind('nameFilter', 'keyup', filterProductsTable);
+        DOM.bind('categoryFilter', 'change', filterProductsTable);
+        DOM.bind('maxPriceFilter', 'keyup', filterProductsTable);
+        DOM.bind('maxPriceFilter', 'change', filterProductsTable);
+        DOM.bind('stockFilter', 'change', filterProductsTable);
+        DOM.bind('activeOnlyFilter', 'change', filterProductsTable);
         DOM.bind('clearProductsTableFilters', 'click', clearProductsTableFilters);
         DOM.bindAll('confirmDeleteProduct', 'click', confirmDeleteProduct);
         DOM.bindAll('confirmReactivateProduct', 'click', confirmReactivateProduct);

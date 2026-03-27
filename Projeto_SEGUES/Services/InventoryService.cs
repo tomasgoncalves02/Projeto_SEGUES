@@ -79,7 +79,8 @@ public class InventoryService : IInventoryService
     public async Task<ServiceResult> EditProductAsync(CreateProductViewModel createProductViewModel)
     {
         var category = await _context.ProductCategory.FindAsync(createProductViewModel.CategoryId);
-
+        if (category == null) return ServiceResult.Fail("Categoria não encontrada.");
+        
         var existingProduct = await _context.Product.FindAsync(createProductViewModel.Id);
         if (existingProduct == null) return ServiceResult.Fail("Produto não encontrado.");
 
@@ -93,9 +94,9 @@ public class InventoryService : IInventoryService
             existingProduct.Name = createProductViewModel.Name;
             existingProduct.Description = createProductViewModel.Description;
             existingProduct.Category = category!;
-            existingProduct.Price = createProductViewModel.Price;
-            existingProduct.Stock = createProductViewModel.Stock;
-            existingProduct.MinimumStock = createProductViewModel.MinimumStock;
+            existingProduct.Price = createProductViewModel.Price >= 0 ? createProductViewModel.Price : 0;
+            existingProduct.Stock = createProductViewModel.Stock >= 0 ? createProductViewModel.Stock : 0;
+            existingProduct.MinimumStock = createProductViewModel.MinimumStock >= 0 ? createProductViewModel.MinimumStock : 0;
             existingProduct.IsActive = createProductViewModel.IsActive;
             await _context.SaveChangesAsync();
             return ServiceResult.Ok("Produto editado com sucesso!");
@@ -111,6 +112,7 @@ public class InventoryService : IInventoryService
     {
         var product = await _context.Product.FindAsync(id);
         if (product == null) return ServiceResult.Fail("Produto não encontrado.");
+        
         try
         {
             product.IsActive = false;
@@ -127,12 +129,18 @@ public class InventoryService : IInventoryService
     public async Task<ServiceResult> ReactivateProductAsync(int id)
     {
         var product = await _context.Product.FindAsync(id);
-        if (product == null)
-            return ServiceResult.Fail("Produto não encontrado.");
+        if (product == null) return ServiceResult.Fail("Produto não encontrado.");
 
-        product.IsActive = true;
-        await _context.SaveChangesAsync();
-
-        return ServiceResult.Ok($"Produto \"{product.Name}\" reativado com sucesso.");
+        try
+        {
+            product.IsActive = true;
+            await _context.SaveChangesAsync();
+            return ServiceResult.Ok("Produto reativado com sucesso!");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogAppError(AppErrors.ProductEditError, TableName.Product, AppOperation.Update, ex);
+            return ServiceResult.Fail("Ocorreu um erro ao reativar o produto.");
+        }
     }
 }

@@ -20,23 +20,26 @@ async function showOrderDetails(id) {
 
     // Generate table rows
     const rows = data.products.map(p => `
-        <tr>
-            <td class="text-start fw-bold">${p.name}</td>
-            <td class="fw-bold text-center">${p.quantity}</td>
-            <td class="text-color-ips fw-bold">${p.price.toFixed(2)}€</td>
+        <tr class="align-middle">
+            <td class="text-start">
+                <div class="fw-bold">${p.name}</div>
+                <div class="small text-muted" title="${p.categoryDescription}">${p.categoryName}</div>
+            </td>
+            <td class="fw-bold">${p.quantity}</td>
+            <td class="text-color-ips fw-bold">${p.price}</td>
         </tr>
         `).join('');
     Notifications.loadingSuccess(
-        '<h2 class="fw-bold mb-0">Detalhes do Pedido</h2>', `
-        <div class="text-start mb-3 mt-4">
-            <p class="mb-0 text-muted fw-bold">Código de Recolha</p>
-            <h4 class="text-color-ips fw-bold" style="letter-spacing: 2px;">${data.code}</h4>
+        'Detalhes do Pedido', `
+        <div class="my-2">
+            <p class="mb-2 text-muted fw-bold small fs-md-5">Código de Recolha</p>
+            <h4 class="text-color-ips fw-bold bg-color-ips-light d-inline-block px-3 py-2 rounded border" style="letter-spacing: 2px;">${data.code}</h4>
         </div>
         <div class="table-responsive border rounded-3 shadow-sm">
             <table class="table table-hover mb-0">
-                <thead class="bg-color-ips text-white small">
+                <thead class="bg-color-ips text-white">
                     <tr>
-                        <th class="text-start">Produto</th>
+                        <th class="text-start ps-3">Produto</th>
                         <th>Qtd</th>
                         <th>Preço</th>
                     </tr>

@@ -131,31 +131,26 @@ public class AdminInventoryManagementController : Controller
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
-        try
+        var product = await _inventoryService.GetProductByIdAsync(id);
+        if (product == null)
         {
-            var product = await _inventoryService.GetProductByIdAsync(id);
-            if (product == null) return NotFound();
-
-            ViewBag.Categories = await _inventoryService.GetAllCategoriesForDropdownAsync();
-
-            CreateProductViewModel createProductViewModel = new CreateProductViewModel
-            {
-                Id = product.Id,
-                Name = product.Name,
-                Description = product.Description,
-                CategoryId = product.Category.Id,
-                Price = product.Price,
-                Stock = product.Stock,
-                MinimumStock = product.MinimumStock,
-                IsActive = product.IsActive
-            };
-            return View(createProductViewModel);
+            TempData.SetSwalError("Produto não encontrado.");
+            return RedirectToAction(nameof(Index));
         }
-        catch (Exception ex)
+
+        ViewBag.Categories = await _inventoryService.GetAllCategoriesForDropdownAsync();
+        CreateProductViewModel createProductViewModel = new CreateProductViewModel
         {
-            _logger.LogAppError(AppErrors.DatabaseQueryError, TableName.Product, AppOperation.Read, ex);
-            return RedirectToAction("Error", "Home", new { area = "", errorCode = AppErrors.DatabaseQueryError });
-        }
+            Id = product.Id,
+            Name = product.Name,
+            Description = product.Description,
+            CategoryId = product.Category.Id,
+            Price = product.Price,
+            Stock = product.Stock,
+            MinimumStock = product.MinimumStock,
+            IsActive = product.IsActive
+        };
+        return View(createProductViewModel);
     }
 
     /// <summary>
@@ -172,26 +167,15 @@ public class AdminInventoryManagementController : Controller
             TempData.SetSwalError("Não foi possível atualizar o produto. Verifique os campos.");
             return View(createProductViewModel);
         }
-
-        try
+        
+        var result = await _inventoryService.EditProductAsync(createProductViewModel);
+        if (result.Success)
         {
-            var result = await _inventoryService.EditProductAsync(createProductViewModel);
-            if (result.Success)
-            {
-                TempData.SetSwalSuccess(result.Message);
-                return RedirectToAction(nameof(Index));
-            }
-            else
-            {
-                TempData.SetSwalError(result.Message);
-            }
+            TempData.SetSwalSuccess(result.Message);
+            return RedirectToAction(nameof(Index));
         }
-        catch (Exception ex)
-        {
-            _logger.LogAppError(AppErrors.ProductEditError, TableName.Product, AppOperation.Update, ex);
-            return RedirectToAction("Error", "Home", new { area = "", errorCode = AppErrors.ProductEditError });
-        }
-
+        
+        TempData.SetSwalError(result.Message);
         return View(createProductViewModel);
     }
 
@@ -201,25 +185,16 @@ public class AdminInventoryManagementController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id)
-    {
-        try
+    { 
+        var result = await _inventoryService.DeleteProductAsync(id);
+        if (result.Success)
         {
-            var result = await _inventoryService.DeleteProductAsync(id);
-            if (!result.Success)
-            {
-                TempData.SetSwalError(result.Message);
-            }
-            else
-            {
-                TempData.SetSwalSuccess(result.Message);
-            }
+            TempData.SetSwalSuccess(result.Message);
         }
-        catch (Exception ex)
+        else
         {
-            _logger.LogAppError(AppErrors.ProductDeleteError, TableName.Product, AppOperation.Update, ex);
-            return RedirectToAction("Error", "Home", new { area = "", errorCode = (int)AppErrors.ProductDeleteError });
+            TempData.SetSwalError(result.Message);
         }
-
         return RedirectToAction(nameof(Index));
     }
 
@@ -230,24 +205,15 @@ public class AdminInventoryManagementController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Reactivate(int id)
     {
-        try
+        var result = await _inventoryService.ReactivateProductAsync(id);
+        if (result.Success)
         {
-            var result = await _inventoryService.ReactivateProductAsync(id);
-            if (!result.Success)
-            {
-                TempData.SetSwalError(result.Message);
-            }
-            else
-            {
-                TempData.SetSwalSuccess(result.Message);
-            }
+            TempData.SetSwalSuccess(result.Message);
         }
-        catch (Exception ex)
+        else
         {
-            _logger.LogAppError(AppErrors.DatabaseUpdateError, TableName.Product, AppOperation.Update);
-            return RedirectToAction("Error", "Home", new { area = "", errorCode = AppErrors.DatabaseUpdateError });
+            TempData.SetSwalError(result.Message);
         }
-
         return RedirectToAction(nameof(Index));
     }
 }

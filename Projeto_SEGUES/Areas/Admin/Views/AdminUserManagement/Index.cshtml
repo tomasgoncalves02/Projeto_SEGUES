@@ -31,7 +31,7 @@
                 <div class="col-md-6">
                     <div class="input-group">
                         <label for="searchFilter" class="col-form-label fw-bold small me-3">Pesquisar:</label>
-                        <input id="searchFilter" type="text" name="searchString" class="form-control border-0 bg-light"
+                        <input id="searchFilter" type="text" name="searchString" class="form-control border-0 bg-color-ips-very-light"
                                placeholder="Nome ou email..."
                                value="@ViewData["SearchString"]" style="border-radius: 8px 0 0 8px; min-width: 9em"/>
                         <button class="btn btn-ips fw-bold px-4" type="submit"
@@ -44,7 +44,7 @@
                 <div class="col-md-auto">
                     <div class="input-group">
                         <label for="roleFilter" class="col-form-label fw-bold small me-3">Role:</label>
-                        <select id="roleFilter" name="roleFilter" class="form-select border-0 bg-light"
+                        <select id="roleFilter" name="roleFilter" class="form-select border-0 bg-color-ips-very-light"
                                 onchange="this.form.submit()" style="border-radius: 8px;">
                             <option value="" selected=@(string.IsNullOrEmpty(currentRole) ? "selected" : null)>Todos os Roles</option>
                             @foreach (var r in roles)
@@ -58,7 +58,7 @@
                 <div class="col-md-auto">
                     <div class="input-group">
                         <label for="categoryFilter" class="col-form-label fw-bold small me-3">Categoria:</label>
-                        <select id="categoryFilter" name="categoryFilter" class="form-select border-0 bg-light"
+                        <select id="categoryFilter" name="categoryFilter" class="form-select border-0 bg-color-ips-very-light"
                                 onchange="this.form.submit()" style="border-radius: 8px;">
                             <option value="" selected=@(string.IsNullOrEmpty(currentCategory) ? "selected" : null)>Todas as Categorias</option>
                             @foreach (var r in categories)

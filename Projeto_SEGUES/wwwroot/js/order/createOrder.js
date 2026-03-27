@@ -9,9 +9,9 @@ function updateCartElement(id, value, isCurrency = false) {
     }
 }
 
-async function addToCart(id, name) {
+async function addToCart(id) {
     const qty = DOM.byId('qty-' + id).value;
-    if (!qty || qty <= 0)
+    if (!qty || qty <= 0 || qty > 99)
     {
         Notifications.error("Quantidade inválida.");
         return;
@@ -88,7 +88,7 @@ function confirmOrder() {
 const CreateOrder = {
     init() {
         DOM.bindAll('addToCart', 'click', async function() {
-            await addToCart(this.dataset.id, this.dataset.name);
+            await addToCart(this.dataset.id);
         });
         DOM.bindAll('removeFromCart', 'click', async function() {
             await removeFromCart(this.dataset.id, this.dataset.name);

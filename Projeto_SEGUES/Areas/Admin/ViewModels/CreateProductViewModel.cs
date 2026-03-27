@@ -48,7 +48,7 @@ public class CreateProductViewModel
     /// <value>Obrigatório, deve ser um valor positivo.</value>
     [Required(ErrorMessage = "O preço do produto é obrigatório.")]
     [Range(0, double.MaxValue)]
-    [Display(Name = "Preço")]
+    [Display(Name = "Preço (€)")]
     public required decimal Price { get; set; }
 
     /// <summary>

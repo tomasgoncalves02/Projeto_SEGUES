@@ -5,10 +5,10 @@
     /* IPS Colors */
     --ips: #009697;
     --ips-hover: #007f80;
+    --ips-shadow-very-soft: rgba(0, 150, 151, 0.05);
     --ips-shadow-soft: rgba(0, 150, 151, 0.15);
     --ips-shadow-heavy: rgba(0, 150, 151, 0.35);
     --ips-dark: #212529;
-    --ips-bg-light: #f8f9fa;
     --ips-border: #dee2e6;
     /* Buttons */
     --deny: #dc3545;
@@ -19,7 +19,6 @@
 /* ============
    Global Overrides
    ============ */
-
 /* Links */
 a {
     color: var(--ips);
@@ -37,7 +36,7 @@ button:hover {
 
 .dropdown-item:hover {
     color: var(--ips-hover);
-    background-color: var(--ips-bg-light);
+    background-color: var(--ips-shadow-very-soft);
 }
 
 /* Forms */
@@ -60,7 +59,6 @@ button:hover {
 }
 
 /* Table */
-
 .table>thead>tr>* {
     color: white;
     background-color: var(--ips);
@@ -82,7 +80,7 @@ button:hover {
 }
 
 ::-webkit-scrollbar-track {
-    background-color: var(--ips-bg-light);
+    background-color: var(--ips-shadow-very-soft);
 }
 
 ::-webkit-scrollbar-thumb {
@@ -92,7 +90,7 @@ button:hover {
 
 html {
     scrollbar-width: auto;
-    scrollbar-color: var(--ips) var(--ips-bg-light);
+    scrollbar-color: var(--ips) var(--ips-shadow-very-soft);
 }
 
 /* =========
@@ -120,7 +118,6 @@ html {
 /* =========
    Body
    ========= */
-
 .icon-fork-knife {
     display: inline-block;
     width: 32px;
@@ -134,6 +131,10 @@ html {
 }
 
 /* Typography */
+.fs-7 {
+    font-size: 0.75rem !important;
+}
+
 .text-color-ips {
     color: var(--ips) !important;
 }
@@ -143,11 +144,11 @@ html {
 }
 
 .bg-color-ips-light {
-    background-color: var(--ips-shadow-soft);
+    background-color: var(--ips-shadow-soft) !important;
 }
 
-.fs-7 {
-    font-size: 0.75rem !important;
+.bg-color-ips-very-light {
+    background-color: var(--ips-shadow-very-soft) !important;
 }
 
 /* Cards */
@@ -238,7 +239,7 @@ html {
 }
 
 .btn-disabled-light {
-    background-color: var(--ips-bg-light) !important;
+    background-color: var(--ips-shadow-very-soft) !important;
     color: var(--ips) !important;
     opacity: 0.65;
     text-decoration: none !important;
@@ -252,10 +253,6 @@ html {
 }
 
 /* Tables */
-.filter-bar {
-    background-color: var(--ips-bg-light);
-}
-
 .badge {
     padding: 0.5em 0.8em;
     border-radius: 6px;
@@ -286,10 +283,6 @@ html {
 .mx-lg-6, .mx-lg-7 {
     margin-left: 0 !important;
     margin-right: 0 !important;
-}
-
-.fs-md-5, .fs-md-6 {
-    font-size: 1rem !important;
 }
 
 @media (min-width: 768px) {

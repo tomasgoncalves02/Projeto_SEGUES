@@ -12,5 +12,4 @@ public interface IReportService
     // History
     Task<List<Order>> GetOrderHistoryAsync(string userId, ReportOrderSearchViewModel model);
     Task<List<Transaction>> GetTransactionHistoryAsync(string userId, ReportTransactionSearchViewModel model);
-    Task<Order?> GetOrderByIdAsync(int id);
 }

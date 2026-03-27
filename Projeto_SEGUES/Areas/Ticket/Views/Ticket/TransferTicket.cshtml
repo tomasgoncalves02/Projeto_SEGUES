@@ -29,12 +29,12 @@
                         </h6>
                         <hr class="my-2 my-md-4 opacity-75">
 
-                        <p class="text-muted small mb-2">
+                        <p class="text-muted small mb-3">
                             Selecione as senhas na tabela e insira o e-mail da pessoa que as vai receber.
                         </p>
 
                         @* Selection counter *@
-                        <div class="p-2 p-md-3 mb-2 rounded-3 text-center bg-color-ips-light border border-info border-opacity-10">
+                        <div class="p-2 p-md-3 mb-3 rounded-3 text-center bg-color-ips-light border border-info border-opacity-10">
                             <span class="fs-6 fs-md-5">
                                 Senhas Selecionadas: <span id="selectedCounter" class="text-color-ips fw-bold">0</span>
                             </span>
@@ -50,7 +50,7 @@
                                     </div>
                                     <span asp-validation-for="RecipientEmail" class="text-danger small text-start d-block mt-1"></span>
                                 </div>
-                                <button id="transferFormSubmit" type="submit" class="btn btn-ips w-100 fw-bold py-3 fs-5 shadow-sm">
+                                <button id="transferFormSubmit" type="submit" class="btn btn-ips w-100 fw-bold py-2 py-md-3 fs-6 fs-md-5 shadow-sm">
                                     <i class="bi bi-send me-2"></i> Enviar Senhas
                                 </button>
                             }
@@ -67,7 +67,7 @@
 
             @* Right/bottom: Active Tickets Table *@
             <div class="col-lg-7">
-                <div class="card card-ips shadow-sm border-0 rounded-3 hover-shadow-ips h-100">
+                <div class="card card-ips shadow-sm border-0 rounded-3 hover-shadow-ips h-100 small fs-md-6">
                     <div class="card-header bg-white py-3 border-bottom d-flex align-items-center">
                         <h5 class="mb-0 fw-bold text-color-ips">
                             <i class="bi bi-list-check me-2"></i>Senhas disponíveis
@@ -78,9 +78,9 @@
                         <table class="table table-hover align-middle text-center mb-0" id="ticketsTable">
                             <thead class="bg-color-ips text-white position-sticky top-0">
                             <tr>
-                                <th class="py-3">Selecionar</th>
-                                <th class="py-3">Código</th>
-                                <th class="py-3">Data Expiração</th>
+                                <th class="py-2 py-md-3">Selecionar</th>
+                                <th class="py-2 py-md-3">Código</th>
+                                <th class="py-2 py-md-3">Data Expiração</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -89,12 +89,12 @@
                                 @foreach (var ticket in Model.AvailableTickets)
                                 {
                                     <tr class="table-row-ips-hover ticket-row">
-                                        <td class="py-3">
+                                        <td class="py-2 py-md-3">
                                             <input type="checkbox" class="form-check-input ticket-checkbox border-secondary"
                                                    style="transform: scale(1.25); cursor: pointer;" name="SelectedTickets"
                                                    value="@ticket.ValidationCode">
                                         </td>
-                                        <td class="fw-bold text-color-ips">@ticket.ValidationCode</td>
+                                        <td><code class="badge bg-color-ips-light fw-bold text-color-ips px-2 py-1">@ticket.ValidationCode</code></td>
                                         <td>@ticket.ExpirationDate.ToString("dd/MM/yyyy")</td>
                                     </tr>
                                 }

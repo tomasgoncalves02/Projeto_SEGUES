@@ -5,7 +5,7 @@
 
 <div class="container py-4 py-md-5">
     @* Top row *@
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-column flex-md-row">
+    <div class="d-flex justify-content-between align-items-center mb-3 mb-md-4 flex-column flex-md-row">
         <div class="mb-2 mb-md-0 col-12 col-md-auto">
             <h1 class="fw-bold display-6 mb-1 title-underline">Editar Produto</h1>
             <p class="text-muted small mt-1 mb-0">Altere as informações, preço ou stock do produto selecionado.</p>
@@ -18,69 +18,63 @@
 
     <div class="row justify-content-center">
         <div class="col-12 col-lg-8">
-            <div class="card card-ips hover-shadow-ips shadow-sm border-0 rounded-3 overflow-hidden">
+            <div class="card card-ips hover-shadow-ips shadow-sm border-0 rounded-3 overflow-hidden small fs-md-6">
                 <div class="card-body p-4 p-md-5 text-start">
                     <form asp-action="Edit" method="post" id="editForm">
                         @Html.AntiForgeryToken()
                         <input type="hidden" asp-for="@Model.Id" />
                         <input type="hidden" asp-for="@Model.IsActive" />
-
                         <div class="row g-4">
-                            @* Nome *@
-                            <div class="col-12">
-                                <label class="form-label fw-bold small text-muted text-uppercase">Nome do Produto</label>
-                                <input asp-for="@Model.Name" class="form-control" placeholder="Ex: Sandes de Atum" />
+                            @* Name *@
+                            <div class="col-12 my-2 my-md-3">
+                                <label asp-for="@Model.Name" class="fw-bold small text-muted"></label>
+                                <input asp-for="@Model.Name" class="form-control" placeholder="Ex: Sandes de Atum"/>
                                 <span asp-validation-for="@Model.Name" class="text-danger small"></span>
                             </div>
-
-                            @* Descrição *@
-                            <div class="col-12">
-                                <label class="form-label fw-bold small text-muted text-uppercase">Descrição Detalhada</label>
+                            @* Description *@
+                            <div class="col-12 my-2 my-md-3">
+                                <label asp-for="@Model.Description" class="fw-bold small text-muted"></label>
                                 <textarea asp-for="@Model.Description" class="form-control" rows="3" placeholder="Breve descrição..."></textarea>
                                 <span asp-validation-for="@Model.Description" class="text-danger small"></span>
                             </div>
-
-                            @* Categoria *@
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold small text-muted text-uppercase">Categoria</label>
+                            @* Category *@
+                            <div class="col-md-6 my-2 my-md-3">
+                                <label asp-for="@Model.CategoryId" class="fw-bold small text-muted"></label>
                                 <select asp-for="@Model.CategoryId" class="form-select" asp-items="ViewBag.Categories">
                                     <option value="">Selecione uma categoria</option>
                                 </select>
                                 <span asp-validation-for="@Model.CategoryId" class="text-danger small"></span>
                             </div>
-
-                            @* Stocks agrupados como no outro form *@
-                            <div class="col-6 col-md-3">
-                                <label class="form-label fw-bold small text-muted text-uppercase">Stock</label>
-                                <input asp-for="@Model.Stock" type="number" class="form-control fw-bold" />
+                            @* Stock *@
+                            <div class="col-6 col-md-3 my-2 my-md-3">
+                                <label asp-for="@Model.Stock" class="fw-bold small text-muted"></label>
+                                <input asp-for="@Model.Stock" type="number" class="form-control fw-bold" min="0"/>
                                 <span asp-validation-for="@Model.Stock" class="text-danger small"></span>
                             </div>
-
-                            <div class="col-6 col-md-3">
-                                <label class="form-label fw-bold small text-muted text-uppercase">Mínimo</label>
-                                <input asp-for="@Model.MinimumStock" type="number" class="form-control fw-bold" />
+                            @* Minimum Stock *@
+                            <div class="col-6 col-md-3 my-2 my-md-3">
+                                <label asp-for="@Model.MinimumStock" class="fw-bold small text-muted"></label>
+                                <input asp-for="@Model.MinimumStock" type="number" class="form-control fw-bold" min="0"/>
                                 <span asp-validation-for="@Model.MinimumStock" class="text-danger small"></span>
                             </div>
-
-                            @* Campo de Preço Estilizado com as classes do teu site.css *@
-                            <div class="col-12">
-                                <div class="p-4 bg-light rounded border shadow-sm">
-                                    <label class="form-label fw-bold small text-muted text-uppercase d-block mb-3">Preço Unitário (€)</label>
+                            @* Price *@
+                            <div class="col-12 my-2 my-md-3">
+                                <div class="p-3 p-md-4 bg-color-ips-light rounded border shadow-sm">
+                                    <label asp-for="@Model.Price" class="fw-bold small text-muted d-block mb-2 mb-md-3"></label>
                                     <div class="input-group">
-                                        @* Uso de bg-color-ips e text-white como no formulário de gestão *@
                                         <span class="input-group-text bg-color-ips text-white border-0 px-3 fw-bold">€</span>
-                                        <input asp-for="@Model.Price" type="number" step="0.01" class="form-control border-0 fw-bold fs-5 px-3" />
+                                        <input asp-for="@Model.Price" type="number" step="0.01" class="form-control border-0 fw-bold px-3" min="0"/>
                                     </div>
                                     <span asp-validation-for="@Model.Price" class="text-danger small mt-2 d-block"></span>
                                 </div>
                             </div>
                         </div>
-
-                        @* Botões Responsivos *@
-                        <div class="d-flex flex-column flex-md-row justify-content-center gap-3 mt-5">
-                            <a asp-action="Index" class="btn btn-outline-secondary px-5 fw-bold order-2 order-md-1">Cancelar</a>
-                            <button type="submit" class="btn btn-ips px-5 fw-bold shadow-sm text-uppercase order-1 order-md-2">
-                                <i class="bi bi-save me-2"></i>Guardar Alterações
+                        
+                        @* Buttons *@
+                        <div class="d-flex flex-column flex-md-row justify-content-center gap-3 mt-3">
+                            <a asp-area="Admin" asp-controller="AdminInventoryManagement" asp-action="Index" class="btn btn-ips-outline-secondary px-5 fw-bold order-2 order-md-1">Cancelar</a>
+                            <button type="submit" class="btn btn-ips px-5 fw-bold shadow-sm order-1 order-md-2">
+                                <i class="bi bi-save me-2"></i>Guardar
                             </button>
                         </div>
                     </form>
@@ -91,8 +85,6 @@
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    <partial name="_ValidationScriptsPartial" />
     <script type="module" src="~/js/inventory/inventory.js"></script>
 }

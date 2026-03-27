@@ -120,17 +120,14 @@ public class ReportService : IReportService
         };
     }
 
-    public async Task<List<Order>> GetOrderHistoryAsync(string? userId, ReportOrderSearchViewModel model)
+    public async Task<List<Order>> GetOrderHistoryAsync(string userId, ReportOrderSearchViewModel model)
     {
         var query = _context.Order
             .Include(o => o.AppUser)
-            .Where(o => o.Status != OrderStatus.Cart)
+            .Where(o => o.AppUser.Id == userId && o.Status != OrderStatus.Cart)
             .AsNoTracking()
             .AsQueryable();
-        if (!string.IsNullOrEmpty(userId))
-        {
-            query = query.Where(o => o.AppUser.Id == userId);
-        }
+        
         var searchString = model.SearchString?.Trim().ToLower();
         if (!string.IsNullOrWhiteSpace(searchString))
         {
@@ -150,15 +147,6 @@ public class ReportService : IReportService
         }
 
         return await query.OrderByDescending(o => o.OrderDate).ToListAsync();
-    }
-
-    public async Task<Order?> GetOrderByIdAsync(int id)
-    {
-        return await _context.Order
-            .Include(o => o.AppUser)
-            .Include(o => o.ProductPurchases)
-                .ThenInclude(pp => pp.Product)
-            .FirstOrDefaultAsync(o => o.Id == id);
     }
 
     #endregion

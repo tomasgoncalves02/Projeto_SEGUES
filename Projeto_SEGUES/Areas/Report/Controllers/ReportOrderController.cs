@@ -18,13 +18,15 @@ namespace Projeto_SEGUES.Areas.Report;
 public class ReportOrderController : Controller
 {
     private readonly IReportService _reportService;
+    private readonly IOrderService _orderService;
 
     /// <summary>
     /// Initializes a new instance of the controller with order, identity, and logging services.
     /// </summary>
-    public ReportOrderController(IReportService orderService)
+    public ReportOrderController(IReportService reportService, IOrderService orderService)
     {
-        _reportService = orderService;
+        _reportService = reportService;
+        _orderService = orderService;
     }
 
     /// <summary>
@@ -65,17 +67,16 @@ public class ReportOrderController : Controller
     /// A JSON object containing the redemption code and product list, 
     /// or an error message if the order is not found or access is denied.
     /// </returns>
-
     [HttpGet]
     public async Task<IActionResult> GetOrderDetails(int id)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (userId == null) return Unauthorized();
-        var order = await _reportService.GetOrderByIdAsync(id);
+        var order = await _orderService.GetOrderByIdAsync(id);
 
         if (order == null || (!User.IsInRole("Admin") && order.AppUser.Id != userId))
         {
-            return Ok(new { failMessage = "Encomenda não encontrada ou sem permissão." });
+            return Json(new { failMessage = "O pedido solicitado não foi encontrado ou não tem permissão para o ver." });
         }
 
         return Json(new
@@ -85,7 +86,9 @@ public class ReportOrderController : Controller
             {
                 name = pp.Product.Name,
                 quantity = pp.Quantity,
-                price = pp.ProductValue
+                price = pp.ProductValue.ToString("C"),
+                categoryName = pp.Product.Category.Name,
+                categoryDescription = pp.Product.Category.Description
             }).ToList()
         });
     }

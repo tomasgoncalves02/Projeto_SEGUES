@@ -5,70 +5,55 @@
 }
 
 <div class="container mt-5">
-    @* Cabeçalho *@
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-column flex-md-row">
+    @* Header *@
+    <div class="d-flex justify-content-between align-items-center mb-3 mb-md-4 flex-column flex-md-row">
         <div class="mb-2 mb-md-0 col-12 col-md-auto">
-            <h2 class="fw-bold title-underline mb-0">Gestão de Ementas Externas</h2>
-            <p class="text-muted small mb-0 mt-2">Define os destinos dos links para as ementas da empresa externa.</p>
+            <h2 class="fw-bold display-6 title-underline mb-1">Gestão de Ementas Externas</h2>
+            <p class="text-muted small mb-0 mt-1">Define os destinos dos links para as ementas da empresa externa.</p>
         </div>
         <a asp-area="Admin" asp-controller="Admin" asp-action="Index" class="btn btn-ips-outline-secondary col-12 col-md-auto fw-bold shadow-sm order-first order-md-last mb-3 mb-md-0">
             <i class="bi bi-arrow-left me-2"></i>Voltar
         </a>
     </div>
 
-    @* Alerta de Sucesso *@
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
-            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-
     <div class="row justify-content-center">
         <div class="col-lg-10">
             <div class="card shadow-sm card-ips hover-shadow-ips p-4">
                 <form asp-action="SaveLinks" method="post">
                     <div class="row g-4">
-
-                        @* Ementa Refeitório *@
+                        @* Canteen Menu *@
                         <div class="col-md-6">
-                            <div class="p-3 border rounded bg-light shadow-sm">
+                            <div class="p-3 border rounded bg-color-ips-light shadow-sm">
                                 <label class="form-label fw-bold text-color-ips">
-                                    <i class="bi bi-egg-fried me-2"></i>Ementa do Refeitório
+                                    <i class="icon-fork-knife bg-color-ips" style="mask-size: 40px 47px; width: 40px; height: 47px; zoom: 0.5"></i>
+                                    Ementa do Refeitório
                                 </label>
-                                @* asp-for preenche automaticamente o link que está na BD *@
-                                <input asp-for="CanteenUrl" class="form-control form-control-lg"
-                                       placeholder="https://exemplo.com/refeitorio">
+                                <input asp-for="CanteenUrl" class="form-control form-control-lg" placeholder="https://exemplo.com/refeitorio"/>
                                 <div class="form-text">
                                     <strong>Atual:</strong>
                                     <span class="text-break">@(string.IsNullOrEmpty(Model.CanteenUrl) ? "Nenhum link definido" : Model.CanteenUrl)</span>
                                 </div>
                             </div>
                         </div>
-
-                        @* Ementa Bar *@
+                        @* Bar Menu *@
                         <div class="col-md-6">
-                            <div class="p-3 border rounded bg-light shadow-sm">
+                            <div class="p-3 border rounded bg-color-ips-light shadow-sm">
                                 <label class="form-label fw-bold text-color-ips">
                                     <i class="bi bi-cup-hot me-2"></i>Ementa do Bar
                                 </label>
-                                <input asp-for="BarUrl" class="form-control form-control-lg"
-                                       placeholder="https://exemplo.com/bar">
+                                <input asp-for="BarUrl" class="form-control form-control-lg" placeholder="https://exemplo.com/bar">
                                 <div class="form-text">
                                     <strong>Atual:</strong>
                                     <span class="text-break">@(string.IsNullOrEmpty(Model.BarUrl) ? "Nenhum link definido" : Model.BarUrl)</span>
                                 </div>
                             </div>
                         </div>
-
-                        @* Botão de Gravar *@
-                        <div class="col-12 text-center mt-4">
-                            <button type="submit" class="btn btn-ips px-5 py-3 fw-bold shadow-sm">
+                        @* Save *@
+                        <div class="col-12 text-center mt-3 mt-md-4">
+                            <button type="submit" class="btn btn-ips px-5 py-2 py-md-3 fw-bold shadow-sm">
                                 <i class="bi bi-save me-2"></i>Guardar Alterações
                             </button>
                         </div>
-
                     </div>
                 </form>
             </div>          

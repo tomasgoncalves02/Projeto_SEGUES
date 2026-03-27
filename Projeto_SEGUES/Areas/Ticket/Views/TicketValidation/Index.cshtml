@@ -18,14 +18,15 @@
     <div class="row g-4">
         @* Left/top column (input) *@
         <div class="col-xl-5 col-lg-6">
-            <div class="card card-ips hover-shadow-ips h-100 shadow-sm">
-                <div class="card-body text-center p-5 d-flex flex-column justify-content-center">
-                    <div class="mb-4">
+            <div class="card card-ips hover-shadow-ips h-100 shadow-sm small fs-md-6">
+                <div class="card-body text-center p-3 pd-md-4 d-flex flex-column justify-content-center">
+                    <div class="mb-3 mb-md-4">
                         <div class="card-ips-icon mb-3">
                             <i class="bi bi-qr-code-scan fs-1"></i>
                         </div>
                         <h4 class="fw-bold text-color-ips">Leitura do Código</h4>
-                        <div id="qr-reader" class="mx-auto mt-4 mb-3 w-100 rounded-3 overflow-hidden" style="max-width: 300px;"></div>                    <div class="mt-4 p-3 bg-light rounded-3 border border-light">
+                        <div id="qr-reader" class="mx-auto mt-4 mb-3 w-100 rounded-3 overflow-hidden" style="max-width: 300px;"></div>
+                        <div class="mt-4 p-3 bg-color-ips-very-light rounded-3 border border-light">
                             <small class="text-muted d-block fw-bold">
                                 <i class="bi bi-info-circle me-1 text-color-ips"></i> Instruções:
                             </small>
@@ -38,7 +39,7 @@
                     <form asp-action="Index" method="post" id="validationForm" autocomplete="off">
                         <div class="mb-4">
                             <input asp-for="Code" id="ticketCodeInput"
-                                   class="form-control form-control-lg text-center code-input py-3"
+                                   class="form-control form-control-lg text-center code-input py-2 py-md-3"
                                    placeholder="XXXXXXXX" maxlength="8"
                                    autofocus />
                             <span asp-validation-for="Code" class="text-danger mt-2 d-block small fw-bold"></span>
@@ -54,7 +55,7 @@
 
         @* Right column *@
         <div class="col-xl-7 col-lg-6">
-            <div class="card card-ips shadow-sm h-100">
+            <div class="card card-ips shadow-sm h-100 small fs-md-6">
                 <div class="card-header bg-white py-3 border-bottom d-flex align-items-center">
                     <h5 class="mb-0 fw-bold">
                         <i class="bi bi-clock-history me-2 text-color-ips"></i>Histórico Recente
@@ -64,10 +65,9 @@
                     <table class="table table-hover align-middle mb-0 text-center">
                         <thead>
                             <tr>
-                                <th class="ps-4 py-3">Código</th>
-                                <th class="ps-4 py-3">Cliente</th>
-                                <th class="ps-4 py-3">Hora</th>
-                                <th class="ps-4 py-3">Estado</th>
+                                <th class="ps-3 ps-md-4 py-2 py-md-3">Código</th>
+                                <th class="py-2 py-md-3">Cliente</th>
+                                <th class="pe-3 pe-md-4 py-2 py-md-3">Hora</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -76,8 +76,8 @@
                             @foreach (var ticket in Model.RecentTickets)
                             {
                                 <tr>
-                                    <td class="ps-4">
-                                        <code class="badge bg-color-ips-light fw-bold fs-6 text-color-ips px-2 py-1">
+                                    <td class="ps-3 ps-md-4">
+                                        <code class="badge bg-color-ips-light fw-bold text-color-ips px-2 py-1">
                                             @ticket.ValidationCode
                                         </code>
                                     </td>
@@ -93,18 +93,13 @@
                                         </div>
                                         <div class="text-muted small">@ticket.UsedDate?.ToString(@"HH\:mm")</div>
                                     </td>
-                                    <td>
-                                        <span class="badge bg-success px-3">
-                                            Utilizada
-                                        </span>
-                                    </td>
                                 </tr>
                             }
                         }
                         else
                         {
                             <tr>
-                                <td colspan="4" class="text-center text-muted py-5">
+                                <td colspan="3" class="text-center text-muted py-5">
                                     <div class="py-4">
                                         <i class="bi bi-inbox fs-1 d-block mb-3 opacity-25"></i>
                                         <span class="fw-bold">Nenhuma validação recente.</span>

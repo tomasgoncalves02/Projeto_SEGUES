@@ -1,15 +1,15 @@
 ﻿@model IEnumerable<Projeto_SEGUES.Models.Order.Order>
 
-<div class="card shadow-sm border-0 h-100">
+<div class="card shadow-sm border-0 h-100 small fs-md-6">
     <div class="table-responsive rounded-3" style="max-height: 500px;">
         <table class="table align-middle mb-0 text-center">
             <thead class="bg-color-ips text-white">
                 <tr>
-                    <th class="ps-4 py-3">Selecionar</th>
-                    <th class="py-3">Utilizador</th>
-                    <th class="py-3">Pedido efetuado</th>
-                    <th class="py-3">Hora de entregar</th>
-                    <th class="pe-4 py-3">Estado</th>
+                    <th class="ps-3 ps-md-4 py-2 py-md-3">Ver</th>
+                    <th class="py-2 py-md-3">Utilizador</th>
+                    <th class="py-2 py-md-3">Pedido efetuado</th>
+                    <th class="py-2 py-md-3">Hora de entregar</th>
+                    <th class="pe-3 pe-md-4 py-2 py-md-3">Estado</th>
                 </tr>
             </thead>
             <tbody>
@@ -29,7 +29,7 @@
                             </td>
 
                             @* User *@
-                            <td class="ps-4">
+                            <td class="ps-3 ps-md-4">
                                 <div class="d-flex align-items-center flex-column">
                                     <div class="fw-bold text-dark">@order.AppUser.FirstName @order.AppUser.LastName</div>
                                     <div class="text-muted small">@order.AppUser.UserName</div>
@@ -47,14 +47,14 @@
                                 }
                                 else
                                 {
-                                    <span class="badge p-2 bg-color-ips text-white fs-7" style="min-width: fit-content;">
+                                    <span class="badge p-2 bg-color-ips text-white" style="min-width: fit-content;">
                                         AGORA
                                     </span>
                                 }
                             </td>
 
                             @* Status *@
-                            <td class="pe-4">
+                            <td class="pe-3 pe-md-4">
                                 <span class="badge @order.Status.ToString().ToBadgeClass() p-2" style="min-width: fit-content;">
                                     @order.Status.ToDisplayName().ToUpper()
                                 </span>

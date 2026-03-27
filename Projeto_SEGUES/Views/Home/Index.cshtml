@@ -65,7 +65,7 @@ else
                 <h3 class="fw-bold display-5 mb-2">Olá, @ViewBag.FirstName! 👋</h3>
                 @if (cartTotal is { TotalQuantity: > 0 })
                 {
-                    <div class="d-flex align-items-center bg-light p-2 px-3 rounded-3 shadow-sm border">
+                    <div class="d-flex align-items-center bg-color-ips-very-light p-2 px-3 rounded-3 shadow-sm border">
                         <div class="text-center me-3 border-end pe-3">
                             <span class="fw-bold small d-block text-uppercase text-muted mb-1">Carrinho</span>
                             <a asp-area="Order" asp-controller="CreateOrder" asp-action="Checkout" class="position-relative d-inline-block text-decoration-none">

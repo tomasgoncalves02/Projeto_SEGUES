@@ -21,7 +21,7 @@ else
                 <div class="fw-bold text-dark">@item.Owner.FirstName @item.Owner.LastName</div>
                 <div class="text-muted small">@item.Owner.Email</div>
             </td>
-            <td><code class="fw-bold text-color-ips bg-light px-2 py-1 rounded">@item.ValidationCode</code></td>
+            <td><code class="fw-bold text-color-ips bg-color-ips-very-light px-2 py-1 rounded">@item.ValidationCode</code></td>
             <td>
                 <span class="badge @item.State.ToString().ToBadgeClass()">
                     @item.State.ToDisplayName()
@@ -48,7 +48,7 @@ else
                 }
                 else
                 {
-                    <span class="badge bg-light text-muted border">Compra Direta</span>
+                    <span class="badge bg-color-ips-very-light text-muted border">Compra Direta</span>
                 }
             </td>
             <td class="small fw-bold">
