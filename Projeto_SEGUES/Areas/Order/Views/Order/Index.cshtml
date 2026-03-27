@@ -2,6 +2,10 @@
 @{
     ViewData["Title"] = "Bar";
     OrderTotalViewModel cartTotal = ViewBag.CartTotal;
+
+    var today = DateTime.Now.DayOfWeek;
+    bool isClosed = ViewBag.IsClosed ?? false;
+    bool isWeekend = ViewBag.IsWeekend ?? false;
 }
 
 <div class="container mt-5 text-start">
@@ -42,15 +46,44 @@
     @* Schedule Card *@
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card border-0 shadow-sm bg-color-ips-light" style="border-left: 5px solid var(--ips) !important;">
-                <div class="card-body py-2 d-flex flex-column flex-md-row align-items-start align-items-md-center">
-                    <div class="me-md-4 mb-2 mb-md-0 d-flex align-items-center">
-                        <i class="bi bi-clock text-color-ips fs-4 me-2"></i>
-                        <span class="fw-bold small text-muted">Horário</span>
-                    </div>
-                    <div class="d-flex align-items-center">
-                        <span class="badge bg-color-ips text-white me-2">Bar</span>
-                        <span class="fw-bold text-color-ips">@ViewBag.BarOpeningTimeString - @ViewBag.BarClosingTimeString</span>
+            <div class="card border-0 shadow-sm @(isClosed ? "bg-light" : "bg-color-ips-light")"
+                 style="border-left: 5px solid @(isClosed ? "#dc3545" : "var(--ips)") !important;">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                        <div class="d-flex align-items-center">
+                            <div class="text-center me-3" style="width: 40px;">
+                                <i class="bi @(isClosed ? "bi-calendar-x text-danger" : "bi-clock text-color-ips") fs-2"></i>
+                            </div>
+
+                            <div>
+                                <div class="text-uppercase fw-bold text-muted mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                                    Horário de Funcionamento
+                                </div>
+                                <div class="d-flex align-items-center flex-wrap gap-2">
+                                    <span class="badge @(isClosed ? "bg-danger" : "bg-color-ips") text-white px-2 py-1">Bar</span>
+
+                                    @if (isClosed)
+                                    {
+                                        <span class="fw-bold text-danger d-flex align-items-center">
+                                            <i class="bi bi-x-circle-fill me-1 small"></i> Encerrado
+                                            <span class="text-muted fw-bold ms-2 small">
+                                                (Dias Úteis: @ViewBag.BarOpeningTimeString - @ViewBag.BarClosingTimeString)
+                                            </span>
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="fw-bold text-color-ips fs-5">
+                                            @ViewBag.BarOpeningTimeString - @ViewBag.BarClosingTimeString
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white bg-opacity-50 px-3 py-1 rounded-pill border border-ips-light small fw-bold text-muted shadow-sm">
+                            <i class="bi bi-info-circle me-1 text-color-ips"></i> Aberto aos dias úteis
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -73,15 +106,28 @@
 
         @* Create Order Card *@
         <div class="col-md-6 col-lg-3">
-            <div class="card h-100 shadow-sm card-ips hover-shadow-ips hover-translate d-flex flex-column">
+            <div class="card h-100 shadow-sm card-ips @(isClosed ? "" : "hover-shadow-ips hover-translate") d-flex flex-column @(isClosed ? "opacity-75" : "")">
                 <div class="card-body text-center d-flex flex-column p-4">
-                    <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-cart-plus"></i></div>
+                    <div class="fs-1 mb-3 @(isClosed ? "text-muted" : "text-color-ips")">
+                        <i class="bi @(isClosed ? "bi-cart-x" : "bi-cart-plus")"></i>
+                    </div>
                     <h5 class="fw-bold">Efetuar Pedido</h5>
-                    <p class="text-muted small mb-4">Realize aqui um pedido.</p>
+                    <p class="text-muted small mb-4">
+                        @(isClosed ? "O bar encontra-se fechado para pedidos hoje." : "Realize aqui um pedido.")
+                    </p>
                     <div class="mt-auto">
-                        <a asp-area="Order" asp-controller="CreateOrder" asp-for asp-action="Index" class="btn w-100 py-2 fw-bold btn-ips">
-                            Ir para a Loja
-                        </a>
+                        @if (isClosed)
+                        {
+                            <button class="btn btn-secondary w-100 py-2 fw-bold" disabled>
+                                Bar Encerrado
+                            </button>
+                        }
+                        else
+                        {
+                            <a asp-area="Order" asp-controller="CreateOrder" asp-action="Index" class="btn w-100 py-2 fw-bold btn-ips">
+                                Ir para a Loja
+                            </a>
+                        }
                     </div>
                 </div>
             </div>
@@ -100,7 +146,7 @@
                 </div>
             </div>
         </div>
-        
+
         @* Menu Card *@
         <div class="col-md-6 col-lg-3">
             <div class="card h-100 shadow-sm card-ips hover-translate hover-shadow-ips d-flex flex-column border-primary">

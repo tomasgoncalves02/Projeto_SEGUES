@@ -49,19 +49,29 @@ public class OrderController : Controller
     {
         var user = await _userManager.GetUserAsync(User);
         if (user == null) return Challenge();
-            
+
         ViewBag.UserBalance = user.Balance;
+
+        BarCanteenConfigViewModel config = await _adminService.GetScheduleAsync();
+        var now = DateTime.Now;
+        var currentTime = now.TimeOfDay;
+        var today = now.DayOfWeek;
+
+        bool isWeekend = (today == DayOfWeek.Saturday || today == DayOfWeek.Sunday);
+        bool isOutsideHours = (currentTime < config.BarOpeningTime || currentTime > config.BarClosingTime);
+
+        ViewBag.IsClosed = isWeekend || isOutsideHours;
+        ViewBag.IsWeekend = isWeekend; 
+
+        ViewBag.BarOpeningTimeString = config.BarOpeningTimeString;
+        ViewBag.BarClosingTimeString = config.BarClosingTimeString;
+        ViewBag.BarMenuLink = config.BarMenuLink;
 
         var cart = await _orderService.GetCartAsync(user.Id, false);
         if (cart != null)
         {
             ViewBag.CartTotal = _orderService.GetOrderTotal(cart);
         }
-            
-        BarCanteenConfigViewModel barCanteenConfig = await _adminService.GetScheduleAsync();
-        ViewBag.BarOpeningTimeString = barCanteenConfig.BarOpeningTimeString;
-        ViewBag.BarClosingTimeString = barCanteenConfig.BarClosingTimeString;
-        ViewBag.BarMenuLink = barCanteenConfig.BarMenuLink;
 
         return View();
     }

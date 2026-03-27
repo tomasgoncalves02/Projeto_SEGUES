@@ -119,6 +119,11 @@ public class OrderService : IOrderService
 
     public async Task<ServiceResult> SubmitOrderAsync(AppUser user, bool receiveNow, string? pickupTime)
     {
+        var today = DateTime.Now.DayOfWeek;
+        if (today == DayOfWeek.Saturday || today == DayOfWeek.Sunday)
+        {
+            return ServiceResult.Fail("O bar encontra-se encerrado aos fins de semana.");
+        }
         var cart = await GetCartAsync(user.Id);
         if (cart.ProductPurchases.Count == 0) return ServiceResult.Fail("O carrinho está vazio.");
 
