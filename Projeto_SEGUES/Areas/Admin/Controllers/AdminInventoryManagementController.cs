@@ -104,7 +104,7 @@ public class AdminInventoryManagementController : Controller
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(CreateProductViewModel createProductViewModel)
+    public async Task<IActionResult> Create([Bind(Prefix = "NewProduct")] CreateProductViewModel createProductViewModel)
     {
         if (!ModelState.IsValid)
         {

@@ -50,13 +50,36 @@ async function showOrderDetails(id) {
     `);
 }
 
+function updateOrdersCount() {
+    const rowCount = DOM.byClass('showOrderDetails')?.length || 0;
+    const badge = DOM.byId('ordersCountBadge');
+    if (!badge) return;
+    
+    badge.textContent = rowCount.toString(10);
+}
+
+function syncExportData(e) {
+    e.preventDefault();
+    const form = DOM.byId('exportPdfForm');
+    if (!form) return;
+    
+    // Sync filter values to hidden inputs in the export form
+    DOM.byId('exportPdfSearch').value = DOM.byId('searchFilter')?.value || '';
+    DOM.byId('exportPdfDate').value = DOM.byId('dateFilter')?.value || '';
+    DOM.byId('exportPdfStatus').value = DOM.byId('statusFilter')?.value || '';
+    
+    form.submit();
+}
+
 const ReportOrder = {
     init() {
         DOM.bindAll('showOrderDetails', 'click', async function() {
             await showOrderDetails(this.dataset.id);
         });
+        DOM.bind('exportPdfForm', 'submit', syncExportData);
     }
 };
 
 DOM.bindDocumentLoad(ReportOrder.init);
+window.updateOrdersCount = updateOrdersCount; // Global exposure for HTMX
 export { ReportOrder };

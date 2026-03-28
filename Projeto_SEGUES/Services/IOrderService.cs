@@ -18,8 +18,6 @@ public interface IOrderService
     Task<List<Order>> GetActiveOrdersAsync(string userId);
     Task<Order?> GetOrderByIdAsync(int id);
     Task<List<Order>> GetUndeliveredOrdersAsync();
-    // Admin Logs
-    Task<List<Order>> GetAdminOrderHistoryAsync();
     // Validate Order
     Task<ServiceResult> UpdateOrderStatusAsync(int id, int newStatusId, AppUser staffMember);
     Task<ServiceResult> ValidateOrderCodeAsync(int id, string enteredCode, AppUser staffMember);

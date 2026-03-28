@@ -6,6 +6,7 @@ using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Order;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
+using Projeto_SEGUES.Areas.Report.ViewModels;
 using Projeto_SEGUES.Extensions;
 
 namespace Projeto_SEGUES.Services;
@@ -308,21 +309,6 @@ public class OrderService : IOrderService
             .Include(o => o.AppUser)
             .Where(o => _activeStatus.Contains(o.Status))
             .OrderBy(o => o.PickupTime == TimeSpan.Zero ? o.OrderDate.TimeOfDay : o.PickupTime)
-            .ToListAsync();
-    }
-    
-    #endregion
-    
-    #region Admin Logs
-    
-    public async Task<List<Order>> GetAdminOrderHistoryAsync()
-    {
-        return await _context.Order
-            .Include(o => o.AppUser) // Importante para saber quem fez o pedido
-            .Include(o => o.ProductPurchases) // Adicionado para poderes ver os produtos na View/PDF
-                .ThenInclude(p => p.Product)
-            .Where(o => o.Status != OrderStatus.Cart)
-            .OrderByDescending(o => o.OrderDate)
             .ToListAsync();
     }
     

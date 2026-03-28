@@ -11,5 +11,6 @@ public interface IReportService
     Task<ReportStatisticsOrderDto> GetOrdersStats(int period = 1);
     // History
     Task<List<Order>> GetOrderHistoryAsync(string userId, ReportOrderSearchViewModel model);
+    Task<List<Order>> GetAdminOrderHistoryAsync(ReportOrderSearchViewModel model, bool includeProducts = false);
     Task<List<Transaction>> GetTransactionHistoryAsync(string userId, ReportTransactionSearchViewModel model);
 }

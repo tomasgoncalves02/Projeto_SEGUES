@@ -17,11 +17,8 @@ namespace SeguesTests.Admin
     public class AdminOrderManagementControllerTests
     {
         private readonly Mock<IAdminService> _mockAdminService;
-        private readonly Mock<IOrderService> _mockOrderService;
-        private readonly Mock<UserManager<AppUser>> _mockUserManager;
-        private readonly AppDbContext _context;
-        private readonly Mock<ILogger<AdminOrderManagementController>> _mockLogger;
-        private readonly Mock<IStringLocalizer<Errors>> _mocklocalizer;
+        private readonly Mock<IReportService> _mockReportService;
+        private readonly Mock<IPdfService> _mockPdfService;
         private readonly AdminOrderManagementController _controller;
 
         public AdminOrderManagementControllerTests()
@@ -29,23 +26,15 @@ namespace SeguesTests.Admin
             var options = new DbContextOptionsBuilder<AppDbContext>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString())
                 .Options;
-            _context = new AppDbContext(options);
-
             _mockAdminService = new Mock<IAdminService>();
-            _mockOrderService = new Mock<IOrderService>();
-            _mockLogger = new Mock<ILogger<AdminOrderManagementController>>();
-            _mocklocalizer = new Mock<IStringLocalizer<Errors>>();
+            _mockReportService = new Mock<IReportService>();
+            _mockPdfService = new Mock<IPdfService>();
 
             var store = new Mock<IUserStore<AppUser>>();
-            _mockUserManager = new Mock<UserManager<AppUser>>(store.Object, null, null, null, null, null, null, null, null);
-
             _controller = new AdminOrderManagementController(
                 _mockAdminService.Object,
-                _mockOrderService.Object,
-                _mockUserManager.Object,
-                _context,
-                _mockLogger.Object,
-                _mocklocalizer.Object
+                _mockReportService.Object,
+                _mockPdfService.Object
                 );
 
             var httpContext = new DefaultHttpContext();

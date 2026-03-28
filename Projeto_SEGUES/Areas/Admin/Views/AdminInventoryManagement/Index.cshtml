@@ -28,7 +28,7 @@
                     <form asp-area="Admin" asp-controller="AdminInventoryManagement" asp-action="Create" method="post">
                         <div class="mb-2 mb-md-3">
                             <label asp-for="@Model.NewProduct.Name" class="fw-bold small text-muted"></label>
-                            <input asp-for="@Model.NewProduct.Name" class="form-control" placeholder="Ex: Sandes de Atum" required />
+                            <input asp-for="@Model.NewProduct.Name" class="form-control" placeholder="Ex: Sandes de Atum" required/>
                             <span asp-validation-for="@Model.NewProduct.Name" class="text-danger small"></span>
                         </div>
                         <div class="mb-2 mb-md-3">
@@ -41,17 +41,17 @@
                         <div class="row g-2 mb-2 mb-md-3">
                             <div class="col-6">
                                 <label asp-for="@Model.NewProduct.Price" class="fw-bold small text-muted">Preço (€)</label>
-                                <input asp-for="@Model.NewProduct.Price" type="number" step="0.01" class="form-control fw-bold" />
+                                <input asp-for="@Model.NewProduct.Price" type="number" step="0.01" class="form-control fw-bold"/>
                                 <span asp-validation-for="@Model.NewProduct.Price" class="text-danger small"></span>
                             </div>
                             <div class="col-6">
                                 <label asp-for="@Model.NewProduct.Stock" class="fw-bold small text-muted">Stock</label>
-                                <input asp-for="@Model.NewProduct.Stock" type="number" class="form-control fw-bold" />
+                                <input asp-for="@Model.NewProduct.Stock" type="number" class="form-control fw-bold"/>
                                 <span asp-validation-for="@Model.NewProduct.Stock" class="text-danger small"></span>
                             </div>
                             <div class="col-12">
                                 <label asp-for="@Model.NewProduct.MinimumStock" class="fw-bold small text-muted">Stock mínimo</label>
-                                <input asp-for="@Model.NewProduct.MinimumStock" type="number" class="form-control fw-bold" />
+                                <input asp-for="@Model.NewProduct.MinimumStock" type="number" class="form-control fw-bold"/>
                                 <span asp-validation-for="@Model.NewProduct.MinimumStock" class="text-danger small"></span>
                             </div>
                         </div>

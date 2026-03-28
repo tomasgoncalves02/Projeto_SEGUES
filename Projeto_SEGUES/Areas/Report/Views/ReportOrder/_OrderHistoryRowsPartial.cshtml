@@ -1,10 +1,14 @@
 ﻿@using Projeto_SEGUES.Models.Enums
 @model IEnumerable<Projeto_SEGUES.Models.Order.Order>
 
+@{
+    bool showUser = (ViewBag.ShowUser as bool?) ?? false;
+}
+
 @if (!Model.Any())
 {
     <tr>
-        <td colspan="8" class="text-center py-5 text-muted">
+        <td colspan="@(showUser ? 9 : 8)" class="text-center py-5 text-muted">
             <i class="bi bi-cup-straw display-4 d-block mb-3 opacity-25 text-color-ips"></i>
             <span class="fw-bold text-dark">Nenhum pedido encontrado.</span>
             <p class="small mt-2 mb-0">Tente alterar os filtros de pesquisa.</p>
@@ -16,13 +20,24 @@ else
     @foreach (var item in Model)
     {
         <tr class="align-middle">
+            @* User name *@
+            @if (showUser)
+            {
+                <td class="ps-3 ps-md-4 text-start">
+                    <div class="d-flex flex-column">
+                        <span class="fw-bold">@item.AppUser.FirstName @item.AppUser.LastName</span>
+                        <small class="text-muted fs-7">@item.AppUser.Email</small>
+                    </div>
+                </td>
+            }
+            
+            @* Order Id *@
+            <td class="fw-bold @(showUser ? "" : "ps-3 ps-md-4 text-start")">#@item.Id.ToString("D5")</td>
+
             @* Order code *@
-            <td class="fw-bold ps-3 ps-md-4">
+            <td class="fw-bold">
                 <code class="fw-bold text-color-ips bg-color-ips-light px-2 py-1 border rounded">@item.RedemptionCode</code>
             </td>
-
-            @* Order Id *@
-            <td class="fw-bold">#@item.Id.ToString("D5")</td>
 
             @* Date *@
             <td class="small">
@@ -53,7 +68,7 @@ else
             <td class="small">
                 @if (item.Status == OrderStatus.Delivered && item.PickupTime != null)
                 {
-                    <span class="text-success fw-bold"><i class="bi bi-check-circle me-1"></i>@item.PickupTime.Value.ToString(@"hh\:mm")</span>
+                    <span class="fw-bold">@item.PickupTime.Value.ToString(@"hh\:mm")</span>
                 }
                 else
                 {
@@ -67,7 +82,7 @@ else
                     <i class="bi bi-eye"></i>
                 </button>
             </td>
-            
+
             @* Price *@
             <td class="fw-bold text-color-ips pe-3 pe-md-4 text-nowrap">
                 @item.TotalValue.ToString("C")

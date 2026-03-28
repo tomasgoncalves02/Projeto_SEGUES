@@ -1,11 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Projeto_SEGUES.Areas.Inventory.ViewModels;
 
 namespace Projeto_SEGUES.Areas.Admin.ViewModels;
 
 public class InventoryManagementViewModel
 {
+    [ValidateNever]
     public List<ProductDto> Products { get; set; } = new();
+    [ValidateNever]
     public List<SelectListItem> Categories { get; set; } = new();
     
     // For new product registration form

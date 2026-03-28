@@ -119,15 +119,26 @@ public class ReportService : IReportService
             TopProducts = GetTopProductsStatsAsync(orders)
         };
     }
-
-    public async Task<List<Order>> GetOrderHistoryAsync(string userId, ReportOrderSearchViewModel model)
+    
+    private IQueryable<Order> BuildOrderHistoryBaseQuery(string? userId = null, bool includeProducts = false)
     {
         var query = _context.Order
             .Include(o => o.AppUser)
-            .Where(o => o.AppUser.Id == userId && o.Status != OrderStatus.Cart)
-            .AsNoTracking()
-            .AsQueryable();
+            .Where(o => o.Status != OrderStatus.Cart);
         
+        if (includeProducts)
+            query = query.Include(o => o.ProductPurchases).ThenInclude(ol => ol.Product);
+    
+        if (!string.IsNullOrEmpty(userId))
+        {
+            query = query.Where(o => o.AppUser.Id == userId);
+        }
+    
+        return query.AsNoTracking().AsQueryable();
+    }
+    
+    private IQueryable<Order> ApplyOrderHistorySearchFilters(IQueryable<Order> query, ReportOrderSearchViewModel model)
+    {
         var searchString = model.SearchString?.Trim().ToLower();
         if (!string.IsNullOrWhiteSpace(searchString))
         {
@@ -137,18 +148,34 @@ public class ReportService : IReportService
                 (o.AppUser.FirstName + " " + o.AppUser.LastName).ToLower().Contains(searchString)
             );
         }
+        
         if (model.StatusFilter.HasValue)
         {
             query = query.Where(o => o.Status == model.StatusFilter.Value);
         }
+        
         if (model.DateFilter.HasValue)
         {
             query = query.Where(o => o.OrderDate.Date == model.DateFilter.Value.Date);
         }
-
+    
+        return query;
+    }
+    
+    public async Task<List<Order>> GetOrderHistoryAsync(string userId, ReportOrderSearchViewModel model)
+    {
+        var query = BuildOrderHistoryBaseQuery(userId);
+        query = ApplyOrderHistorySearchFilters(query, model);
         return await query.OrderByDescending(o => o.OrderDate).ToListAsync();
     }
-
+    
+    public async Task<List<Order>> GetAdminOrderHistoryAsync(ReportOrderSearchViewModel model, bool includeProducts = false)
+    {
+        var query = BuildOrderHistoryBaseQuery(null, includeProducts);
+        query = ApplyOrderHistorySearchFilters(query, model);
+        return await query.OrderByDescending(o => o.OrderDate).ToListAsync();
+    }
+    
     #endregion
 
     #region Tickets
