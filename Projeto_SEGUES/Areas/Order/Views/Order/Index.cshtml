@@ -126,7 +126,7 @@
                     </div>
                     <h5 class="fw-bold">Efetuar Pedido</h5>
                     <p class="text-muted small mb-4">
-                        @(isClosed ? (closedByWeekend ? "O bar não aceita pedidos ao fim de semana." : "O bar encontra-se fechado de momento.") : "Realize aqui um pedido.")
+                        @(isClosed ? (closedByWeekend ? "O bar não aceita pedidos hoje." : "O bar encontra-se fechado de momento.") : "Realize aqui um pedido.")
                     </p>
                     <div class="mt-auto">
                         @if (isClosed)
