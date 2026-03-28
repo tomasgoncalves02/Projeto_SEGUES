@@ -1,24 +1,25 @@
-﻿using Microsoft.AspNetCore.Mvc.Testing;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Data;
-using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Services;
+using SeguesTests.Helpers;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace SeguesTests.RegressionTests.Home
+namespace SeguesTests.IntegrationTests.Inventory
 {
-    public class HomeControllerRegressionTests : IClassFixture<WebApplicationFactory<Program>>
+    public class InventoryControllerIntegrationTests : IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly WebApplicationFactory<Program> _factory;
-        private readonly HttpClient _client;
 
-        public HomeControllerRegressionTests(WebApplicationFactory<Program> factory)
+        public InventoryControllerIntegrationTests(WebApplicationFactory<Program> factory)
         {
             _factory = factory.WithWebHostBuilder(builder =>
             {
@@ -27,7 +28,7 @@ namespace SeguesTests.RegressionTests.Home
                     var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
                     if (descriptor != null) services.Remove(descriptor);
 
-                    services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("HomeRegDb"));
+                    services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("InventoryIntDb"));
 
                     var adminDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IAdminService));
                     if (adminDescriptor != null) services.Remove(adminDescriptor);
@@ -36,29 +37,35 @@ namespace SeguesTests.RegressionTests.Home
                     mockAdmin.Setup(s => s.GetMenuLinksAsync())
                              .ReturnsAsync(new BarCanteenConfigViewModel { CanteenMenuLink = "/canteen", BarMenuLink = "/bar" });
                     services.AddSingleton<IAdminService>(mockAdmin.Object);
+
+                    services.AddAuthentication("Test")
+                        .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", null);
                 });
             });
-
-            _client = _factory.CreateClient();
         }
 
         [Fact]
-        public async Task Error_Default_ReturnsSuccessStatusCodeAndHtml()
+        public async Task Index_AuthenticatedUser_ReturnsSuccessStatusCode()
         {
-            var response = await _client.GetAsync("/Home/Error");
+            var client = _factory.CreateClient();
+            var response = await client.GetAsync("/Inventory/Inventory/Index");
 
             response.EnsureSuccessStatusCode();
             Assert.Equal("text/html; charset=utf-8", response.Content.Headers.ContentType?.ToString());
         }
 
         [Fact]
-        public async Task Error_WithSpecificCode_ReturnsSuccessStatusCodeAndHtml()
+        public async Task Index_UnauthenticatedUser_ReturnsRedirectToLogin()
         {
-            var errorCode = (int)AppErrors.UserNotFound;
-            var response = await _client.GetAsync($"/Home/Error?errorCode={errorCode}");
+            var client = _factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+            client.DefaultRequestHeaders.Authorization = null;
 
-            response.EnsureSuccessStatusCode();
-            Assert.Equal("text/html; charset=utf-8", response.Content.Headers.ContentType?.ToString());
+            var response = await client.GetAsync("/Inventory/Inventory/Index");
+
+            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+
+            var location = response.Headers.Location?.ToString() ?? "";
+            Assert.Contains("ReturnUrl", location, System.StringComparison.OrdinalIgnoreCase);
         }
     }
 }

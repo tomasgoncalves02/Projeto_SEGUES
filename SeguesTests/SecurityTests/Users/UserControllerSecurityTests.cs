@@ -1,5 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Projeto_SEGUES.Data;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -10,16 +14,29 @@ namespace Tests.SecurityTests.User;
 public class UserControllerSecurityTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly HttpClient _client;
+    private readonly WebApplicationFactory<Program> _factory;
 
     public UserControllerSecurityTests(WebApplicationFactory<Program> factory)
     {
-        _client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        _factory = factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
+                if (descriptor != null) services.Remove(descriptor);
+
+                services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("UserSecurityTestDb"));
+            });
+        });
+
+        _client = _factory.CreateClient(new WebApplicationFactoryClientOptions
         {
             AllowAutoRedirect = false
         });
     }
 
     [Fact]
+    [Trait("Category", "Security")]
     public async Task Index_UnauthenticatedUser_ReturnsRedirectToLogin()
     {
         _client.DefaultRequestHeaders.Authorization = null;
@@ -40,13 +57,14 @@ public class UserControllerSecurityTests : IClassFixture<WebApplicationFactory<P
     }
 
     [Fact]
+    [Trait("Category", "Security")]
     public async Task UpdateProfile_MissingAntiForgeryToken_ReturnsBadRequestOrInternalError()
     {
         var formData = new Dictionary<string, string>
-    {
-        { "FirstName", "Pedro" },
-        { "Email", "pedro@evil.com" }
-    };
+        {
+            { "FirstName", "Pedro" },
+            { "Email", "pedro@evil.com" }
+        };
         var content = new FormUrlEncodedContent(formData);
 
         var response = await _client.PostAsync("/User/User/UpdateProfile", content);
@@ -62,6 +80,7 @@ public class UserControllerSecurityTests : IClassFixture<WebApplicationFactory<P
     }
 
     [Theory]
+    [Trait("Category", "Security")]
     [InlineData("Pedro'; DROP TABLE Users; --")]
     [InlineData("Pedro' OR '1'='1")]
     [InlineData("Pedro'; WAITFOR DELAY '0:0:5'--")]

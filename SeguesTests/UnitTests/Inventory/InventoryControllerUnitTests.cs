@@ -1,20 +1,20 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Projeto_SEGUES.Areas.Inventory.Controllers;
+using Xunit;
 
-namespace SeguesTests.Inventory
+namespace SeguesTests.UnitTests.Inventory
 {
-    public class InventoryControllerTests
+    public class InventoryControllerUnitTests
     {
         private readonly InventoryController _controller;
 
-        public InventoryControllerTests()
+        public InventoryControllerUnitTests()
         {
             _controller = new InventoryController();
         }
 
-        // Confirms that the Index action successfully returns the default inventory view
         [Fact]
-        public void Index_ReturnsView()
+        public void Index_ReturnsViewResult()
         {
             var result = _controller.Index();
 
