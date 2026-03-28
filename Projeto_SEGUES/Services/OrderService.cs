@@ -119,12 +119,7 @@ public class OrderService : IOrderService
     }
 
     public async Task<ServiceResult> SubmitOrderAsync(AppUser user, bool receiveNow, string? pickupTime)
-    {
-        var today = DateTime.Now.DayOfWeek;
-        if (today == DayOfWeek.Saturday || today == DayOfWeek.Sunday)
-        {
-            return ServiceResult.Fail("O bar encontra-se encerrado aos fins de semana.");
-        }
+    {       
         var cart = await GetCartAsync(user.Id);
         if (cart.ProductPurchases.Count == 0) return ServiceResult.Fail("O carrinho está vazio.");
 
@@ -153,8 +148,20 @@ public class OrderService : IOrderService
 
         if (!await _adminService.IsBarOpenAsync(timeToValidate))
         {
-            BarCanteenConfigViewModel barCanteenConfig = await _adminService.GetScheduleAsync();
-            return ServiceResult.Fail($"O Bar encontra-se encerrado para o horário selecionado. Funcionamento: {barCanteenConfig.BarOpeningTime:hh\\:mm} às {barCanteenConfig.BarClosingTime:hh\\:mm}.");
+            BarCanteenConfigViewModel config = await _adminService.GetScheduleAsync();
+            var today = DateTime.Now.DayOfWeek;
+
+            if (today == DayOfWeek.Saturday && !config.IsOpenSaturday)
+            {
+                return ServiceResult.Fail("O Bar encontra-se encerrado aos Sábados.");
+            }
+
+            if (today == DayOfWeek.Sunday && !config.IsOpenSunday)
+            {
+                return ServiceResult.Fail("O Bar encontra-se encerrado aos Domingos.");
+            }
+
+            return ServiceResult.Fail($"O Bar encontra-se encerrado para o horário selecionado. Funcionamento: {config.BarOpeningTimeString} às {config.BarClosingTimeString}.");
         }
 
         decimal total = ApplyDiscount(cart.TotalValue, cart.Discount);

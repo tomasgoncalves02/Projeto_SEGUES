@@ -6,6 +6,8 @@ public class AdminOrderManagementViewModel
 {
     public string BarOpeningTimeString { get; set; } = "";
     public string BarClosingTimeString { get; set; } = "";
-    
+    public bool IsOpenSaturday { get; set; }
+    public bool IsOpenSunday { get; set; }
+
     public ReportOrderSearchViewModel SearchModel { get; set; } = new ();
 }

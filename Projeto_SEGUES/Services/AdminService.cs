@@ -302,10 +302,44 @@ public class AdminService : IAdminService
             CanteenDinnerOpeningTimeString = config.CanteenDinnerOpeningTime.ToString(@"hh\:mm"),
             CanteenDinnerClosingTime = config.CanteenDinnerClosingTime,
             CanteenDinnerClosingTimeString = config.CanteenDinnerClosingTime.ToString(@"hh\:mm"),
-            CanteenMenuLink = config.CanteenLink
+            CanteenMenuLink = config.CanteenLink,
+            IsOpenSaturday = config.IsOpenSaturday,
+            IsOpenSunday = config.IsOpenSunday
         };
     }
-    
+
+    public async Task<ServiceResult> UpdateSpecificDayStatusAsync(string day, bool isOpen)
+    {
+        try
+        {
+            var config = await GetAppConfigAsync();
+
+            switch (day.ToLower())
+            {
+                case "saturday":
+                    config.IsOpenSaturday = isOpen;
+                    break;
+                case "sunday":
+                    config.IsOpenSunday = isOpen;
+                    break;
+                default:
+                    return ServiceResult.Fail("Dia da semana inválido.");
+            }
+
+            await _context.SaveChangesAsync();
+
+            string diaTraduzido = day.ToLower() == "saturday" ? "Sábado" : "Domingo";
+            string estado = isOpen ? "aberto" : "fechado";
+
+            return ServiceResult.Ok($"{diaTraduzido} está agora {estado} para pedidos.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao atualizar estado de funcionamento do fim de semana.");
+            return ServiceResult.Fail("Erro ao guardar a alteração no servidor.");
+        }
+    }
+
     public async Task<ServiceResult> UpdateScheduleAsync(BarCanteenConfigViewModel model)
     {
         var config = await GetAppConfigAsync();
@@ -348,19 +382,24 @@ public class AdminService : IAdminService
         await _context.SaveChangesAsync();
         return ServiceResult.Ok("Horario de funcionamento do Bar alterado com sucessso");
     }
-    
+
     public async Task<bool> IsBarOpenAsync(TimeSpan? requestedTime)
     {
         if (requestedTime == null) return false;
-        
+
         var config = await GetAppConfigAsync();
+        var today = DateTime.Now.DayOfWeek;
+
+        if (today == DayOfWeek.Saturday && !config.IsOpenSaturday) return false;
+        if (today == DayOfWeek.Sunday && !config.IsOpenSunday) return false;
+
         return requestedTime >= config.BarOpeningTime && requestedTime <= config.BarClosingTime;
     }
-    
+
     #endregion
-    
+
     #region Ticket Management
-    
+
     public async Task<List<TicketPrice>> GetTicketPricesAsync()
     {
         return await _context.TicketPrice

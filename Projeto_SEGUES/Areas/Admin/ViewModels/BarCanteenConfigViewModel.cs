@@ -19,4 +19,6 @@ public class BarCanteenConfigViewModel
     public TimeSpan? CanteenDinnerClosingTime { get; set; }
     public string? CanteenDinnerClosingTimeString { get; set; }
     public string? CanteenMenuLink { get; set; }
+    public bool IsOpenSaturday { get; set; }
+    public bool IsOpenSunday { get; set; }
 }

@@ -32,4 +32,5 @@ public interface IAdminService
     Task UpdateTicketPricesAsync(List<TicketPrice> prices);
     Task<int> GetTicketValidityDaysAsync();
     Task UpdateTicketValidityDaysAsync(int days);
+    Task<ServiceResult> UpdateSpecificDayStatusAsync(string day, bool isOpen);
 }

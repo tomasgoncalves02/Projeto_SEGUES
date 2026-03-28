@@ -5,18 +5,21 @@
 
     var today = DateTime.Now.DayOfWeek;
     bool isClosed = ViewBag.IsClosed ?? false;
-    bool isWeekend = ViewBag.IsWeekend ?? false;
+
+    bool isOpenSaturday = ViewBag.IsOpenSaturday ?? false;
+    bool isOpenSunday = ViewBag.IsOpenSunday ?? false;
+
+    bool closedByWeekend = (today == DayOfWeek.Saturday && !isOpenSaturday) ||
+                          (today == DayOfWeek.Sunday && !isOpenSunday);
 }
 
 <div class="container mt-5 text-start">
-    @* Title Row with Cart *@
+    @* Title Row with Cart - Mantém-se igual *@
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
-        @* Title *@
         <div class="mb-3 mb-md-0">
             <h1 class="fw-bold display-6 title-underline mb-1">Bar</h1>
             <p class="text-muted small mt-1 mb-0">Selecione uma das opções abaixo para gerir os seus serviços.</p>
         </div>
-        @* Cart *@
         <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-sm-center gap-3">
             @if (cartTotal is { TotalQuantity: > 0 })
             {
@@ -37,17 +40,17 @@
                     </div>
                 </div>
             }
-            @* Return button *@
             <a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold shadow-sm d-flex align-items-center justify-content-center" style="height: fit-content;">
                 <i class="bi bi-arrow-left me-2"></i>Voltar
             </a>
         </div>
     </div>
-    @* Schedule Card *@
+
+    @* Schedule Card Atualizado *@
     <div class="row mb-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm @(isClosed ? "bg-light" : "bg-color-ips-light")"
-                 style="border-left: 5px solid @(isClosed ? "#dc3545" : "var(--ips)") !important;">
+                 style="border-left: 5px solid @(isClosed ? "var(--deny)" : "var(--ips)") !important;">
                 <div class="card-body py-3">
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                         <div class="d-flex align-items-center">
@@ -56,7 +59,7 @@
                             </div>
 
                             <div>
-                                <div class="text-uppercase fw-bold text-muted mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                                <div class="text-uppercase fw-bold text-muted mb-1 fs-7" style="letter-spacing: 0.5px;">
                                     Horário de Funcionamento
                                 </div>
                                 <div class="d-flex align-items-center flex-wrap gap-2">
@@ -65,9 +68,10 @@
                                     @if (isClosed)
                                     {
                                         <span class="fw-bold text-danger d-flex align-items-center">
-                                            <i class="bi bi-x-circle-fill me-1 small"></i> Encerrado
+                                            <i class="bi bi-x-circle-fill me-1 small"></i>
+                                            Encerrado
                                             <span class="text-muted fw-bold ms-2 small">
-                                                (Dias Úteis: @ViewBag.BarOpeningTimeString - @ViewBag.BarClosingTimeString)
+                                                (Geral: @ViewBag.BarOpeningTimeString - @ViewBag.BarClosingTimeString)
                                             </span>
                                         </span>
                                     }
@@ -81,7 +85,16 @@
                             </div>
                         </div>
                         <div class="bg-white bg-opacity-50 px-3 py-1 rounded-pill border border-ips-light small fw-bold text-muted shadow-sm">
-                            <i class="bi bi-info-circle me-1 text-color-ips"></i> Aberto aos dias úteis
+                            <i class="bi bi-info-circle me-1 text-color-ips"></i>
+                            Aberto aos dias úteis
+                            @if (isOpenSaturday)
+                            {
+                                <span class="text-success">, Sáb</span>
+                            }
+                            @if (isOpenSunday)
+                            {
+                                <span class="text-success">, Dom</span>
+                            }
                         </div>
 
                     </div>
@@ -113,7 +126,7 @@
                     </div>
                     <h5 class="fw-bold">Efetuar Pedido</h5>
                     <p class="text-muted small mb-4">
-                        @(isClosed ? "O bar encontra-se fechado para pedidos hoje." : "Realize aqui um pedido.")
+                        @(isClosed ? (closedByWeekend ? "O bar não aceita pedidos ao fim de semana." : "O bar encontra-se fechado de momento.") : "Realize aqui um pedido.")
                     </p>
                     <div class="mt-auto">
                         @if (isClosed)
@@ -133,7 +146,7 @@
             </div>
         </div>
 
-        @* Active Orders Card *@
+        @* Pedidos & Ementa *@
         <div class="col-md-6 col-lg-3">
             <div class="card h-100 shadow-sm card-ips hover-shadow-ips hover-translate d-flex flex-column">
                 <div class="card-body text-center d-flex flex-column p-4">
@@ -147,7 +160,6 @@
             </div>
         </div>
 
-        @* Menu Card *@
         <div class="col-md-6 col-lg-3">
             <div class="card h-100 shadow-sm card-ips hover-translate hover-shadow-ips d-flex flex-column border-primary">
                 <div class="card-body text-center d-flex flex-column p-4">

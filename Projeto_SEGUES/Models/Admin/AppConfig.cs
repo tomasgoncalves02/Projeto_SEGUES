@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Projeto_SEGUES.Models.Admin;
 
@@ -45,4 +45,6 @@ public class AppConfig
     [Url]
     [Display(Name = "Link do Refeitório")]
     public string CanteenLink { get; set; } = "https://www.ips.pt";
+    public bool IsOpenSaturday { get; set; }
+    public bool IsOpenSunday { get; set; }
 }

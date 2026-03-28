@@ -57,11 +57,15 @@ public class OrderController : Controller
         var currentTime = now.TimeOfDay;
         var today = now.DayOfWeek;
 
-        bool isWeekend = (today == DayOfWeek.Saturday || today == DayOfWeek.Sunday);
+        bool closedByWeekendConfig = (today == DayOfWeek.Saturday && !config.IsOpenSaturday) ||
+                                     (today == DayOfWeek.Sunday && !config.IsOpenSunday);
+
         bool isOutsideHours = (currentTime < config.BarOpeningTime || currentTime > config.BarClosingTime);
 
-        ViewBag.IsClosed = isWeekend || isOutsideHours;
-        ViewBag.IsWeekend = isWeekend; 
+        ViewBag.IsClosed = isOutsideHours || closedByWeekendConfig;
+
+        ViewBag.IsOpenSaturday = config.IsOpenSaturday;
+        ViewBag.IsOpenSunday = config.IsOpenSunday;
 
         ViewBag.BarOpeningTimeString = config.BarOpeningTimeString;
         ViewBag.BarClosingTimeString = config.BarClosingTimeString;

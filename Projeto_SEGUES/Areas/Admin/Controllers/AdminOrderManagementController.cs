@@ -50,6 +50,10 @@ public class AdminOrderManagementController : Controller
         {
             BarOpeningTimeString = barCanteenConfig.BarOpeningTimeString!,
             BarClosingTimeString = barCanteenConfig.BarClosingTimeString!,
+
+            IsOpenSaturday = barCanteenConfig.IsOpenSaturday,
+            IsOpenSunday = barCanteenConfig.IsOpenSunday,
+
             SearchModel = new ReportOrderSearchViewModel()
         };
         vm.SearchModel.Results = await _reportService.GetAdminOrderHistoryAsync(vm.SearchModel);
@@ -118,5 +122,29 @@ public class AdminOrderManagementController : Controller
         byte[] pdfBytes = await _pdfService.GenerateAdminOrderHistoryPdfAsync(orders, logoPath);
 
         return File(pdfBytes, "application/pdf", $"Historico_Pedidos_{DateTime.Now:yyyyMMdd}.pdf");
+    }
+
+    /// <summary>
+    /// Updates the bar's availability during weekends.
+    /// </summary>
+    /// <param name="isOpenWeekend">True if the bar should be open on weekends, false otherwise.</param>
+    /// <returns>Redirects to Index with a success or error message.</returns>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateWeekendStatus(string day, bool isOpen)
+    {
+        // O seu serviço deve lidar com a lógica de qual dia atualizar (Saturday ou Sunday)
+        var result = await _adminService.UpdateSpecificDayStatusAsync(day, isOpen);
+
+        if (result.Success)
+        {
+            TempData.SetSwalSuccess(result.Message);
+        }
+        else
+        {
+            TempData.SetSwalError(result.Message);
+        }
+
+        return RedirectToAction(nameof(Index));
     }
 }
