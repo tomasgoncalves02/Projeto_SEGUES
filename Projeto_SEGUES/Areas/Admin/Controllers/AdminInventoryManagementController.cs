@@ -20,17 +20,13 @@ namespace Projeto_SEGUES.Areas.Admin;
 public class AdminInventoryManagementController : Controller
 {
     private readonly IInventoryService _inventoryService;
-    private readonly ILogger<AdminInventoryManagementController> _logger;
 
     /// <summary>
     /// Initializes a new instance of the controller with inventory, logging, and localization services.
     /// </summary>
-    public AdminInventoryManagementController(
-        IInventoryService inventoryService,
-        ILogger<AdminInventoryManagementController> logger)
+    public AdminInventoryManagementController(IInventoryService inventoryService)
     {
         _inventoryService = inventoryService;
-        _logger = logger;
     }
 
     /// <summary>
@@ -72,9 +68,9 @@ public class AdminInventoryManagementController : Controller
     /// Retrieves the product list formatted for a partial interface update via AJAX.
     /// </summary>
     /// <returns>A PartialView containing the products table.</returns>
-    public async Task<IActionResult> GetProducts()
+    public async Task<IActionResult> GetProducts([Bind(Prefix = "SearchModel")] InventorySearchViewModel model)
     {
-        var rawProducts = await _inventoryService.GetAllProductsAsync();
+        var rawProducts = await _inventoryService.GetFilteredProductsAsync(model);
         List<ProductDto> products = rawProducts.Select(p => new ProductDto
         {
             Id = p.Id,

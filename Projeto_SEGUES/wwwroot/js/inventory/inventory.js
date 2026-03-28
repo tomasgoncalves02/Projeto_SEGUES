@@ -53,62 +53,12 @@ function showProductDetails() {
     });
 }
 
-function filterProductsTable() {
-    // Filter values
-    const categoryFilter = (DOM.byId('categoryFilter').value ?? '').toLowerCase();
-    const nameFilter = StringUtils.normalize(DOM.byId('nameFilter').value ?? '');
-    const maxPriceVal = DOM.byId('maxPriceFilter').value;
-    const maxPrice = maxPriceVal ? parseFloat(maxPriceVal) : null;
-    const stockFilter = DOM.byId('stockFilter').value ?? '';
-    const activeOnly = DOM.byId('activeOnlyFilter').checked ?? false;
-    
-    let count = 0;
-    DOM.byClass('productRow').forEach(row => {
-        // Data attributes
-        const rowName = StringUtils.normalize(row.dataset.name ?? '');
-        const rowCategory = (row.dataset.categoryid ?? '').toLowerCase();
-        const rowPrice = parseFloat(row.dataset.price ?? '0');
-        const rowStock = parseInt(row.dataset.stock ?? '0', 10);
-        const rowMinStock = parseInt(row.dataset.minstock ?? '0', 10);
-        const rowIsActive = row.dataset.isactive === 'true';
+function updateProductsCount() {
+    const rowCount = DOM.byClass('showProductDetails')?.length || 0;
+    const badge = DOM.byId('productsCountBadge');
+    if (!badge) return;
 
-        let matches = true;
-        
-        // Name and Category
-        if (!rowName.includes(nameFilter) || !rowCategory.includes(categoryFilter)) {
-            matches = false;
-        }
-
-        // Max Price
-        if (matches && maxPrice !== null && !isNaN(maxPrice)) {
-            if (rowPrice > maxPrice) matches = false;
-        }
-
-        // Stock
-        if (matches && stockFilter !== '') {
-            if (stockFilter === 'inStock' && rowStock <= 0) matches = false;
-            if (stockFilter === 'lowStock' && (rowStock >= rowMinStock || rowStock === 0)) matches = false;
-            if (stockFilter === 'outOfStock' && rowStock > 0) matches = false;
-        }
-        
-        // Active only
-        if (matches && activeOnly && !rowIsActive) {
-            matches = false;
-        }
-        
-        row.style.display = matches ? '' : 'none';
-        if (matches) count++;
-    });
-    DOM.byId('productsCountBadge').textContent = count;
-}
-
-function clearProductsTableFilters() {
-    DOM.byId('categoryFilter').value = '';
-    DOM.byId('nameFilter').value = '';
-    DOM.byId('maxPriceFilter').value = '';
-    DOM.byId('stockFilter').value = '';
-    DOM.byId('activeOnlyFilter').checked = false;
-    filterProductsTable();
+    badge.textContent = rowCount.toString(10);
 }
 
 function confirmDeleteProduct(e) {
@@ -152,13 +102,6 @@ function handleEditFormSubmit(e) {
 const Inventory = {
     init() {
         DOM.delegate('showProductDetails', 'click', showProductDetails);
-        DOM.bind('nameFilter', 'keyup', filterProductsTable);
-        DOM.bind('categoryFilter', 'change', filterProductsTable);
-        DOM.bind('maxPriceFilter', 'keyup', filterProductsTable);
-        DOM.bind('maxPriceFilter', 'change', filterProductsTable);
-        DOM.bind('stockFilter', 'change', filterProductsTable);
-        DOM.bind('activeOnlyFilter', 'change', filterProductsTable);
-        DOM.bind('clearProductsTableFilters', 'click', clearProductsTableFilters);
         DOM.bindAll('confirmDeleteProduct', 'click', confirmDeleteProduct);
         DOM.bindAll('confirmReactivateProduct', 'click', confirmReactivateProduct);
         DOM.bind('editForm', 'submit', handleEditFormSubmit);
@@ -166,4 +109,5 @@ const Inventory = {
 };
 
 DOM.bindDocumentLoad(Inventory.init);
+window.updateProductsCount = updateProductsCount; // Global exposure for HTMX
 export { Inventory };

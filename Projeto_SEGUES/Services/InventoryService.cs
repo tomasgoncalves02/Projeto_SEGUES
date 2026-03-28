@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Areas.Inventory.ViewModels;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Extensions;
@@ -29,6 +30,7 @@ public class InventoryService : IInventoryService
         return await _context.Product
             .Include(p => p.Category)
             .Where(p => p.IsActive && p.Stock > 0)
+            .OrderBy(p => p.Name)
             .ToListAsync();
     }
 
@@ -36,7 +38,61 @@ public class InventoryService : IInventoryService
     {
         return await _context.Product
             .Include(p => p.Category)
+            .OrderBy(p => p.Name)
             .ToListAsync();
+    }
+    
+    public async Task<List<Product>> GetFilteredProductsAsync(InventorySearchViewModel model)
+    {
+        var query = _context.Product
+            .Include(p => p.Category)
+            .AsNoTracking()
+            .AsQueryable();
+
+        // Name
+        if (!string.IsNullOrWhiteSpace(model.SearchString))
+        {
+            var searchLower = model.SearchString.ToLower();
+            query = query.Where(p => p.Name.ToLower().Contains(searchLower));
+        }
+
+        // Category
+        if (model.CategoryId is > 0)
+        {
+            query = query.Where(p => p.Category.Id == model.CategoryId.Value);
+        }
+
+        // Max Price
+        if (model.MaxPrice is > 0)
+        {
+            query = query.Where(p => p.Price <= model.MaxPrice.Value);
+        }
+        
+        // Stock Level
+        if (model.StockLevel.HasValue)
+        {
+            switch (model.StockLevel.Value)
+            {
+                case StockLevel.InStock:
+                    query = query.Where(p => p.Stock > 0);
+                    break;
+                case StockLevel.LowStock:
+                    query = query.Where(p => p.Stock > 0 && p.Stock < p.MinimumStock);
+                    break;
+                case StockLevel.OutOfStock:
+                    query = query.Where(p => p.Stock == 0);
+                    break;
+            }
+        }
+
+        // Only active products
+        if (model.ActiveOnly)
+        {
+            query = query.Where(p => p.IsActive);
+        }
+
+        // Order by Name
+        return await query.OrderBy(p => p.Name).ToListAsync();
     }
 
     public async Task<List<SelectListItem>> GetAllCategoriesForDropdownAsync()

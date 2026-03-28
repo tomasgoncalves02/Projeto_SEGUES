@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Moq;
 using Projeto_SEGUES.Areas.Admin;
+using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Areas.Inventory.ViewModels;
 using Projeto_SEGUES.Models.Inventory;
 using Projeto_SEGUES.Services;
@@ -45,7 +46,7 @@ namespace SeguesTests.Admin
                 Stock = 50, Category = new ProductCategory { Name = "Bar", Description = "descripitiontets" } } };
             _mockInventoryService.Setup(s => s.GetAllProductsAsync()).ReturnsAsync(products);
 
-            var result = await _controller.GetProducts();
+            var result = await _controller.GetProducts(new InventorySearchViewModel());
 
             var partialResult = Assert.IsType<PartialViewResult>(result);
             Assert.Equal("_ProductListPartial", partialResult.ViewName);

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Areas.Inventory.ViewModels;
 using Projeto_SEGUES.Models.Inventory;
 
@@ -9,6 +10,7 @@ public interface IInventoryService
     Task<Product?> GetProductByIdAsync(int id);
     Task<List<Product>> GetAvailableProductsAsync();
     Task<List<Product>> GetAllProductsAsync();
+    Task<List<Product>> GetFilteredProductsAsync(InventorySearchViewModel model);
     Task<List<SelectListItem>> GetAllCategoriesForDropdownAsync();
     Task<ServiceResult> CreateProductAsync(CreateProductViewModel createProductViewModel);
     Task<ServiceResult> EditProductAsync(CreateProductViewModel createProductViewModel);

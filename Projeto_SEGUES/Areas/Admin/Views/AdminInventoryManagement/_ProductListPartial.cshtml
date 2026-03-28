@@ -14,13 +14,7 @@ else
 {
     @foreach (var p in Model)
     {
-        <tr class="table-row-ips-hover productRow @p.InactiveRowClass" 
-            data-name="@p.Name" 
-            data-categoryid="@p.CategoryId"
-            data-price="@p.Price.ToString(System.Globalization.CultureInfo.InvariantCulture)"
-            data-stock="@p.Stock"
-            data-minstock="@p.MinimumStock"
-            data-isactive="@p.IsActive.ToString().ToLower()">
+        <tr class="table-row-ips-hover productRow @p.InactiveRowClass">
             <td class="fw-bold text-start ps-3 ps-md-4">@p.Name</td>
             <td class="text-color-ips fw-bold">@p.CategoryName</td>
             <td class="text-color-ips fw-bold text-nowrap">@p.FormattedPrice</td>
