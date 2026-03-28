@@ -6,27 +6,20 @@ using System.Text.Encodings.Web;
 
 namespace SeguesTests.Helpers;
 
-public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+public class TestAuthHandlerWithRole : AuthenticationHandler<AuthenticationSchemeOptions>
 {
-    public TestAuthHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,
+    public TestAuthHandlerWithRole(IOptionsMonitor<AuthenticationSchemeOptions> options,
         ILoggerFactory logger, UrlEncoder encoder) : base(options, logger, encoder) { }
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        var authHeader = Context.Request.Headers["Authorization"].ToString();
-
-        var claims = new List<Claim>
+        var claims = new[]
         {
             new Claim(ClaimTypes.Name, "Pedro"),
-            new Claim(ClaimTypes.NameIdentifier, "pedro-77")
+            new Claim(ClaimTypes.NameIdentifier, "pedro-77"),
+            new Claim(ClaimTypes.Role, "Employee"),
+            new Claim(ClaimTypes.Role, "Admin")
         };
-
-        var parts = authHeader.Split(' ');
-        if (parts.Length > 1)
-        {
-            string requestedRole = parts[1];
-            claims.Add(new Claim(ClaimTypes.Role, requestedRole));
-        }
 
         var identity = new ClaimsIdentity(claims, "Test");
         var principal = new ClaimsPrincipal(identity);
