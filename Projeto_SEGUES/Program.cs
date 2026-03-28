@@ -246,9 +246,16 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<AppDbContext>();
-        // Create the database if it doesn't exist and migrate
-        await context.Database.MigrateAsync();
-        // Seed initial data
+
+        if (context.Database.IsRelational())
+        {
+            await context.Database.MigrateAsync();
+        }
+        else
+        {
+            await context.Database.EnsureCreatedAsync();
+        }
+
         await DbSeeder.SeedInitialDataAsync(services);
     }
     catch (Exception ex)
@@ -283,3 +290,6 @@ app.MapControllerRoute(
 app.MapRazorPages();
 
 app.Run();
+
+//Makes it readable for Security Tests
+public partial class Program { }
