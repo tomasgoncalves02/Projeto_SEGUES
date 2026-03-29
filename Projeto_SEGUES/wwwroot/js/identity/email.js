@@ -1,6 +1,6 @@
 import { DOM } from "../core/dom.js";
 
-function autoSubmitVerificationCode(event) {
+function autoSubmitVerificationCode() {
     const validationForm = DOM.byId('verificationCodeForm');
     const inputField = DOM.byId('verificationCodeInput');
     if (!validationForm || !inputField) return;

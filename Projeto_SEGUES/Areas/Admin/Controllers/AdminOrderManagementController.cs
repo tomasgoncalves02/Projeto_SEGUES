@@ -119,7 +119,7 @@ public class AdminOrderManagementController : Controller
     {
         var orders = await _reportService.GetAdminOrderHistoryAsync(model, true);
         var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo-ips.png");
-        byte[] pdfBytes = await _pdfService.GenerateAdminOrderHistoryPdfAsync(orders, logoPath);
+        byte[] pdfBytes = _pdfService.GenerateAdminOrderHistoryPdfAsync(orders, logoPath);
 
         return File(pdfBytes, "application/pdf", $"Historico_Pedidos_{DateTime.Now:yyyyMMdd}.pdf");
     }
@@ -127,15 +127,15 @@ public class AdminOrderManagementController : Controller
     /// <summary>
     /// Updates the bar's availability during weekends.
     /// </summary>
-    /// <param name="isOpenWeekend">True if the bar should be open on weekends, false otherwise.</param>
+    /// <param name="day">The specific day to update (e.g., "Saturday" or "Sunday").</param>
+    /// <param name="isOpen">Indicates whether the bar should be open or closed on the specified day.</param>
     /// <returns>Redirects to Index with a success or error message.</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateWeekendStatus(string day, bool isOpen)
     {
-        // O seu serviço deve lidar com a lógica de qual dia atualizar (Saturday ou Sunday)
         var result = await _adminService.UpdateSpecificDayStatusAsync(day, isOpen);
-
+        
         if (result.Success)
         {
             TempData.SetSwalSuccess(result.Message);
@@ -144,7 +144,7 @@ public class AdminOrderManagementController : Controller
         {
             TempData.SetSwalError(result.Message);
         }
-
+        
         return RedirectToAction(nameof(Index));
     }
 }

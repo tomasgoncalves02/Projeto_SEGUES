@@ -44,6 +44,13 @@ const DOM = {
             if (!el) return;
             fn.call(el, e);
         })
+    },
+    // After htmx swap executes the given functions
+    executeAfterHtmx(...fns)
+    {
+        for (const f of fns) {
+            if (typeof f === 'function') document.addEventListener('htmx:afterSwap', f);
+        }
     }
 };
 

@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Areas.Order.ViewModels;
 using Projeto_SEGUES.Extensions;
+using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 
@@ -23,6 +25,7 @@ public class CreateOrderController : Controller
     private readonly IInventoryService _inventoryService;
     private readonly IOrderService _orderService;
     private readonly UserManager<AppUser> _userManager;
+    private readonly IAdminService _adminService;
 
     /// <summary>
     /// Initializes the controller with inventory, order, identity, administration, logging, and localization services.
@@ -30,11 +33,13 @@ public class CreateOrderController : Controller
     public CreateOrderController(
         IInventoryService inventoryService,
         IOrderService orderService,
-        UserManager<AppUser> userManager)
+        UserManager<AppUser> userManager,
+        IAdminService adminService)
     {
         _inventoryService = inventoryService;
         _orderService = orderService;
         _userManager = userManager;
+        _adminService = adminService;
     }
 
     /// <summary>
@@ -45,6 +50,13 @@ public class CreateOrderController : Controller
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userId)) return Challenge();
+
+        bool isOpen = await _adminService.IsBarOpenAsync(DateTime.Now.TimeOfDay);
+        if (!isOpen)
+        {
+            TempData.SetSwalInfo("O bar está fechado. Por favor, volte mais tarde.");
+            return RedirectToAction("Index", "Home", new { area = "" });
+        }
 
         var cart = await _orderService.GetCartAsync(userId);
         bool isStaff = User.IsInRole("Admin") || User.IsInRole("Employee");
@@ -57,27 +69,65 @@ public class CreateOrderController : Controller
             CartTotal = cart != null
                 ? _orderService.GetOrderTotal(cart)
                 : new OrderTotalViewModel { TotalQuantity = 0, TotalValue = 0m },
-            Products = rawProducts.Select(p => new OrderProductDto
+            SearchModel = new OrderProductSearchViewModel
             {
-                Id = p.Id,
-                Name = p.Name,
-                Price = p.Price,
-                CategoryId = p.Category.Id,
-                CategoryName = p.Category.Name,
-                ModalInfo = new
+                Results = rawProducts.Select(p => new OrderProductDto
                 {
-                    name = p.Name,
-                    description = p.Description,
-                    price = p.Price.ToString("C"),
-                    categoryName = p.Category.Name,
-                    categoryDescription = p.Category.Description,
-                    stock = isStaff ? (int?) p.Stock : null,
-                    minStock = isStaff ? (int?) p.MinimumStock : null
-                }
-            }).ToList()
+                    Id = p.Id,
+                    Name = p.Name,
+                    Price = p.Price,
+                    CategoryId = p.Category.Id,
+                    CategoryName = p.Category.Name,
+                    ModalInfo = new
+                    {
+                        name = p.Name,
+                        description = p.Description,
+                        price = p.Price.ToString("C"),
+                        categoryName = p.Category.Name,
+                        categoryDescription = p.Category.Description,
+                        stock = isStaff ? (int?) p.Stock : null,
+                        minStock = isStaff ? (int?) p.MinimumStock : null
+                    }
+                }).ToList()
+            }
         };
         
         return View(vm);
+    }
+    
+    [HttpGet]
+    public async Task<IActionResult> GetFilteredProducts([Bind(Prefix = "SearchModel")] OrderProductSearchViewModel searchModel)
+    {
+        bool isStaff = User.IsInRole("Admin") || User.IsInRole("Employee");
+        var products = await _inventoryService.GetFilteredProductsAsync(
+            new InventorySearchViewModel
+            {
+                CategoryId = searchModel.CategoryId,
+                SearchString = searchModel.SearchString,
+                StockLevel = StockLevel.InStock,
+                ActiveOnly = true
+            });
+        
+        searchModel.Results = products.Select(p => new OrderProductDto
+        {
+            Id = p.Id,
+            Name = p.Name,
+            Price = p.Price,
+            CategoryId = p.Category.Id,
+            CategoryName = p.Category.Name,
+            ModalInfo = new
+            {
+                name = p.Name,
+                description = p.Description,
+                price = p.Price.ToString("C"),
+                categoryName = p.Category.Name,
+                categoryDescription = p.Category.Description,
+                stock = isStaff ? (int?) p.Stock : null,
+                minStock = isStaff ? (int?) p.MinimumStock : null
+            }
+        }).ToList();
+
+        return PartialView("_ProductListPartial", searchModel.Results);
     }
 
     /// <summary>
@@ -134,6 +184,13 @@ public class CreateOrderController : Controller
     {
         var user = await _userManager.GetUserAsync(User);
         if (user == null) return Challenge();
+        
+        bool isOpen = await _adminService.IsBarOpenAsync(DateTime.Now.TimeOfDay);
+        if (!isOpen)
+        {
+            TempData.SetSwalInfo("O bar está fechado. Por favor, volte mais tarde.");
+            return RedirectToAction("Index", "Home", new { area = "" });
+        }
 
         ViewBag.Balance = user.Balance;
         var cart = await _orderService.GetCartAsync(user.Id);

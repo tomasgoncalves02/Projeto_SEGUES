@@ -87,16 +87,20 @@ function confirmOrder() {
 
 const CreateOrder = {
     init() {
-        DOM.bindAll('addToCart', 'click', async function() {
-            await addToCart(this.dataset.id);
-        });
+        CreateOrder.rebind();
         DOM.bindAll('removeFromCart', 'click', async function() {
             await removeFromCart(this.dataset.id, this.dataset.name);
         });
         DOM.bind('confirmOrder', 'click', confirmOrder);
         DOM.bindAll('receiveNow', 'click', toggleTimePicker);
+    },
+    rebind() {
+        DOM.bindAll('addToCart', 'click', async function() {
+            await addToCart(this.dataset.id);
+        });
     }
 }
 
 DOM.bindDocumentLoad(CreateOrder.init);
+DOM.executeAfterHtmx(CreateOrder.rebind);
 export { CreateOrder };

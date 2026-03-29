@@ -1,27 +1,20 @@
-﻿@using Projeto_SEGUES.Areas.Order.ViewModels
+﻿@model Projeto_SEGUES.Areas.Order.ViewModels.OrderPageViewModel
+
 @{
     ViewData["Title"] = "Bar";
-    OrderTotalViewModel cartTotal = ViewBag.CartTotal;
-
-    var today = DateTime.Now.DayOfWeek;
-    bool isClosed = ViewBag.IsClosed ?? false;
-
-    bool isOpenSaturday = ViewBag.IsOpenSaturday ?? false;
-    bool isOpenSunday = ViewBag.IsOpenSunday ?? false;
-
-    bool closedByWeekend = (today == DayOfWeek.Saturday && !isOpenSaturday) ||
-                          (today == DayOfWeek.Sunday && !isOpenSunday);
 }
 
 <div class="container mt-5 text-start">
-    @* Title Row with Cart - Mantém-se igual *@
+    @* Title Row with Cart *@
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+        @* Title *@
         <div class="mb-3 mb-md-0">
             <h1 class="fw-bold display-6 title-underline mb-1">Bar</h1>
             <p class="text-muted small mt-1 mb-0">Selecione uma das opções abaixo para gerir os seus serviços.</p>
         </div>
+        @* Cart *@
         <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-sm-center gap-3">
-            @if (cartTotal is { TotalQuantity: > 0 })
+            @if (Model.CartTotalQuantity > 0)
             {
                 <div class="d-flex align-items-center justify-content-center bg-color-ips-very-light p-2 px-3 rounded-3 shadow-sm border">
                     <div class="text-center me-2 border-end pe-2">
@@ -30,73 +23,73 @@
                             <i class="bi bi-cart-check fs-2 text-color-ips"></i>
                             <span id="cartCount" class="position-absolute badge rounded-pill bg-danger fs-7"
                                   style="top: -5px; right: -10px; padding: 0.35em 0.5em; border: 2px solid white;">
-                                @cartTotal.TotalQuantity
+                                @Model.CartTotalQuantity
                             </span>
                         </a>
                     </div>
                     <div class="text-center px-2">
                         <span class="fw-bold small d-block text-muted mb-1 fs-7">Total</span>
-                        <span id="cartTotal" class="fw-bold text-color-ips text-nowrap fs-5">@cartTotal.TotalValue.ToString("C")</span>
+                        <span id="cartTotal" class="fw-bold text-color-ips text-nowrap fs-5">@Model.CartTotalValueString</span>
                     </div>
                 </div>
             }
+            @* Return button *@
             <a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold shadow-sm d-flex align-items-center justify-content-center" style="height: fit-content;">
                 <i class="bi bi-arrow-left me-2"></i>Voltar
             </a>
         </div>
     </div>
 
-    @* Schedule Card Atualizado *@
+    @* Schedule Card *@
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card border-0 shadow-sm @(isClosed ? "bg-light" : "bg-color-ips-light")"
-                 style="border-left: 5px solid @(isClosed ? "var(--deny)" : "var(--ips)") !important;">
+            <div class="card border-0 shadow-sm @(Model.IsClosed ? " bg-color-danger-light" : "bg-color-ips-light")"
+                 style="border-left: 5px solid @(Model.IsClosed ? "var(--deny)" : "var(--ips)") !important;">
                 <div class="card-body py-3">
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                         <div class="d-flex align-items-center">
                             <div class="text-center me-3" style="width: 40px;">
-                                <i class="bi @(isClosed ? "bi-calendar-x text-danger" : "bi-clock text-color-ips") fs-2"></i>
+                                <i class="bi @(Model.IsClosed ? "bi-calendar-x text-danger" : "bi-clock text-color-ips") fs-2"></i>
                             </div>
 
                             <div>
-                                <div class="text-uppercase fw-bold text-muted mb-1 fs-7" style="letter-spacing: 0.5px;">
+                                <div class="fw-bold text-muted mb-1 fs-7" style="letter-spacing: 1px;">
                                     Horário de Funcionamento
                                 </div>
                                 <div class="d-flex align-items-center flex-wrap gap-2">
-                                    <span class="badge @(isClosed ? "bg-danger" : "bg-color-ips") text-white px-2 py-1">Bar</span>
+                                    <span class="badge @(Model.IsClosed ? "bg-danger" : "bg-color-ips") text-white px-2 py-1">Bar</span>
 
-                                    @if (isClosed)
+                                    @if (Model.IsClosed)
                                     {
                                         <span class="fw-bold text-danger d-flex align-items-center">
                                             <i class="bi bi-x-circle-fill me-1 small"></i>
                                             Encerrado
                                             <span class="text-muted fw-bold ms-2 small">
-                                                (Geral: @ViewBag.BarOpeningTimeString - @ViewBag.BarClosingTimeString)
+                                                (Geral: @Model.BarOpeningTimeString - @Model.BarClosingTimeString)
                                             </span>
                                         </span>
                                     }
                                     else
                                     {
                                         <span class="fw-bold text-color-ips fs-5">
-                                            @ViewBag.BarOpeningTimeString - @ViewBag.BarClosingTimeString
+                                            @Model.BarOpeningTimeString - @Model.BarClosingTimeString
                                         </span>
                                     }
                                 </div>
                             </div>
                         </div>
-                        <div class="bg-white bg-opacity-50 px-3 py-1 rounded-pill border border-ips-light small fw-bold text-muted shadow-sm">
+                        <div class="bg-white bg-opacity-50 px-3 py-1 rounded-pill border card-ips small fw-bold text-muted shadow-sm">
                             <i class="bi bi-info-circle me-1 text-color-ips"></i>
-                            Aberto aos dias úteis
-                            @if (isOpenSaturday)
+                            <span>Aberto aos dias úteis</span>
+                            @if (Model.IsOpenSaturday)
                             {
-                                <span class="text-success">, Sáb</span>
+                                <span class="text-color-ips">, Sáb</span>
                             }
-                            @if (isOpenSunday)
+                            @if (Model.IsOpenSunday)
                             {
-                                <span class="text-success">, Dom</span>
+                                <span class="text-color-ips">, Dom</span>
                             }
                         </div>
-
                     </div>
                 </div>
             </div>
@@ -109,7 +102,7 @@
             <div class="card h-100 shadow-sm card-ips hover-shadow-ips bg-color-ips text-white hover-translate d-flex flex-column">
                 <div class="card-body text-center d-flex flex-column p-4">
                     <small class="d-block opacity-75 fw-bold mb-2 fs-4">Saldo Disponível</small>
-                    <h2 class="display-6 fw-bold my-auto mb-2">@ViewBag.UserBalance.ToString("C")</h2>
+                    <h2 class="display-6 fw-bold my-auto mb-2">@Model.UserBalance</h2>
                     <div class="mt-auto">
                         <a asp-area="Payment" asp-controller="Payment" asp-action="Deposit" class="btn btn-ips fw-bold w-100 py-2" style="border: 1px solid white !important">Carregar Saldo</a>
                     </div>
@@ -119,17 +112,17 @@
 
         @* Create Order Card *@
         <div class="col-md-6 col-lg-3">
-            <div class="card h-100 shadow-sm card-ips @(isClosed ? "" : "hover-shadow-ips hover-translate") d-flex flex-column @(isClosed ? "opacity-75" : "")">
+            <div class="card h-100 shadow-sm card-ips @(Model.IsClosed ? "" : "hover-shadow-ips hover-translate") d-flex flex-column @(Model.IsClosed ? "opacity-75" : "")">
                 <div class="card-body text-center d-flex flex-column p-4">
-                    <div class="fs-1 mb-3 @(isClosed ? "text-muted" : "text-color-ips")">
-                        <i class="bi @(isClosed ? "bi-cart-x" : "bi-cart-plus")"></i>
+                    <div class="fs-1 mb-3 @(Model.IsClosed ? "text-muted" : "text-color-ips")">
+                        <i class="bi @(Model.IsClosed ? "bi-cart-x" : "bi-cart-plus")"></i>
                     </div>
                     <h5 class="fw-bold">Efetuar Pedido</h5>
                     <p class="text-muted small mb-4">
-                        @(isClosed ? (closedByWeekend ? "O bar não aceita pedidos hoje." : "O bar encontra-se fechado de momento.") : "Realize aqui um pedido.")
+                        @(Model.IsClosed ? (Model.IsClosedByWeekend ? "O bar não aceita pedidos hoje." : "O bar encontra-se fechado de momento.") : "Realize aqui um pedido.")
                     </p>
                     <div class="mt-auto">
-                        @if (isClosed)
+                        @if (Model.IsClosed)
                         {
                             <button class="btn btn-secondary w-100 py-2 fw-bold" disabled>
                                 Bar Encerrado
@@ -146,7 +139,7 @@
             </div>
         </div>
 
-        @* Pedidos & Ementa *@
+        @* Active Orders Card *@
         <div class="col-md-6 col-lg-3">
             <div class="card h-100 shadow-sm card-ips hover-shadow-ips hover-translate d-flex flex-column">
                 <div class="card-body text-center d-flex flex-column p-4">
@@ -159,7 +152,7 @@
                 </div>
             </div>
         </div>
-
+        @* Menu Card *@
         <div class="col-md-6 col-lg-3">
             <div class="card h-100 shadow-sm card-ips hover-translate hover-shadow-ips d-flex flex-column border-primary">
                 <div class="card-body text-center d-flex flex-column p-4">
@@ -167,7 +160,7 @@
                     <h5 class="fw-bold">Ementa</h5>
                     <p class="text-muted small mb-4">Consulte a ementa do bar.</p>
                     <div class="mt-auto">
-                        <a href="@ViewBag.BarMenuLink" target="_blank" class="btn w-100 py-2 fw-bold btn-ips">Ver Ementa</a>
+                        <a href="@Model.BarMenuLink" target="_blank" class="btn w-100 py-2 fw-bold btn-ips">Ver Ementa</a>
                     </div>
                 </div>
             </div>

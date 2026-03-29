@@ -1,53 +1,34 @@
-﻿import { DOM } from "../core/core.js";
+﻿import { DOM } from "../core/dom.js";
 
-function resetFilters() {
-    const form = document.getElementById('filterForm');
-    if (form) {
-        form.reset();
-        if (typeof htmx !== 'undefined') {
-            htmx.trigger(form, 'change');
-        }
-    }
+function updateTicketsCount() {
+    const rowCount = DOM.byClass('ticketRow')?.length || 0;
+    const badge = DOM.byId('ticketCountBadge');
+    if (!badge) return;
+
+    badge.textContent = rowCount.toString(10);
 }
 
-function exportPdfWithFilters() {
-    const form = document.getElementById('filterForm');
-    if (form) {
-        const formData = new FormData(form);
-        const params = new URLSearchParams(formData).toString();
-        window.location.href = `/Admin/AdminTicketManagement/ExportTicketsPDF?${params}`;
-    }
-}
-function handlePriceFormatting(e) {
-    const decimalInputs = e.target.querySelectorAll('.decimal-input');
+function syncExportData(e) {
+    e.preventDefault();
+    const form = DOM.byId('exportPdfForm');
+    if (!form) return;
 
-    decimalInputs.forEach(input => {
-        if (input.value.includes(',')) {
-            input.value = input.value.replace(',', '.');
-        }
-    });
+    // Sync filter values to hidden inputs in the export form
+    DOM.byId('exportPdfSearch').value = DOM.byId('searchFilter')?.value || '';
+    DOM.byId('exportPdfDate').value = DOM.byId('dateFilter')?.value || '';
+    DOM.byId('exportPdfState').value = DOM.byId('stateFilter')?.value || '';
+    DOM.byId('exportPdfFlow').value = DOM.byId('flowFilter')?.value || '';
+
+    form.submit();
 }
 
 const AdminTicket = {
     init() {
-        window.resetFilters = resetFilters;
-        window.exportPdfWithFilters = exportPdfWithFilters;
-        const pricesForm = document.getElementById('pricesForm');
-
-        if (pricesForm) {
-            pricesForm.addEventListener('submit', function (e) {
-                const inputs = pricesForm.querySelectorAll('.decimal-input');
-
-                inputs.forEach(input => {
-                    if (input.value) {
-                        input.value = input.value.replace(',', '.');
-                    }
-                });
-                console.log("Preços convertidos para ponto decimal.");
-            });
-        }
+        DOM.bind('exportPdfForm', 'submit', syncExportData);
     }
 };
 
 DOM.bindDocumentLoad(AdminTicket.init);
+DOM.executeAfterHtmx(updateTicketsCount);
+
 export { AdminTicket };

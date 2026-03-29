@@ -10,16 +10,13 @@ public interface ITicketService
     // Active Tickets
     Task<List<Ticket>> GetActiveTicketsAsync(string userId);
     
-    // Admin Logs
-    Task<List<Ticket>> GetAllTicketsAsync();
-    
     // Order Tickets
     Task<decimal> GetCurrentPriceForUserAsync(AppUser user);
     Task<List<Ticket>> GetUserTicketsAsync(string userId);
     Task<ServiceResult> BuyTicketsAsync(string userId, int quantity);
     
     // Report Tickets
-    Task<List<Ticket>> QueryHistoryAsync(string userId, ReportTicketSearchViewModel model);
+    Task<List<Ticket>> GetTicketHistoryAsync(string? userId, ReportTicketSearchViewModel model);
     
     // Transfer Tickets
     Task<ServiceResult<string>> CheckTransferEligibilityAsync(string senderId, string recipientEmail);

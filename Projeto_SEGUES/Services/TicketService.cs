@@ -38,27 +38,6 @@ public class TicketService : ITicketService
     
     #endregion
     
-    #region Admin Logs
-    
-    // Get All Tickets (admin)
-    [Authorize(Roles = "Admin")]
-    public async Task<List<Ticket>> GetAllTicketsAsync()
-    {
-        await ExpireTicketsGlobalAsync();
-
-        return await _context.Ticket
-            .Include(t => t.Owner)
-            .Include(t => t.TicketPurchase)
-            .Include(t => t.Transfers)
-            .ThenInclude(tr => tr.Sender)
-            .Include(t => t.Transfers)
-            .ThenInclude(tr => tr.Receiver)
-            .OrderByDescending(t => t.TicketPurchase.TransactionDate)
-            .ToListAsync();
-    }
-    
-    #endregion
-    
     #region Expire Tickets
     
     // Set expired tickets state to expired
@@ -204,72 +183,114 @@ public class TicketService : ITicketService
     #endregion
     
     #region Report Tickets
-    
-    // Query History (Search/Filter)
-    public async Task<List<Ticket>> QueryHistoryAsync(string userId, ReportTicketSearchViewModel model)
+
+    private async Task<IQueryable<Ticket>> BuildTicketHistoryBaseQuery(string? userId = null)
     {
         // Ensure we update expired tickets before fetching
-        await ExpireUserTicketsAsync(userId);
-
-        // Get tickets owned by the user or transferred to/from the user
-        var query = _context.Ticket
+        if (userId == null)
+        {
+            await ExpireTicketsGlobalAsync();
+        }
+        else
+        {
+            await ExpireUserTicketsAsync(userId);
+        }
+        
+        var query =  _context.Ticket
             .Include(t => t.Owner)
             .Include(t => t.TicketPurchase)
             .Include(t => t.Transfers).ThenInclude(tr => tr.Sender)
             .Include(t => t.Transfers).ThenInclude(tr => tr.Receiver)
-            .Where(t => t.Owner.Id == userId || t.Transfers.Any(tr => tr.Sender.Id == userId || tr.Receiver.Id == userId))
+            .AsNoTracking()
             .AsQueryable();
+        
+        // Get tickets owned by the user or transferred to/from the user
+        if (userId != null)
+            query = query.Where(t => t.Owner.Id == userId || t.Transfers.Any(tr => tr.Sender.Id == userId || tr.Receiver.Id == userId));
+        
+        return query;
+    }
 
-        var dateFilter = model.DateFilter;
-        // PurchaseDate filter
-        if (dateFilter.HasValue)
+    private IQueryable<Ticket> ApplyTicketHistorySearchFilters(IQueryable<Ticket> query, ReportTicketSearchViewModel model, string? userId = null)
+    {
+        bool isAdminLog = (userId == null);
+        var searchString = model.SearchString?.Trim().ToLower();
+        if (!string.IsNullOrWhiteSpace(searchString))
         {
-            // Show PurchaseDate >= date
-            query = query.Where(t => t.TicketPurchase.TransactionDate.Date >= dateFilter.Value.Date);
-        }
-
-        var searchString = model.SearchString;
-        // Search filter for code
-        if (!string.IsNullOrEmpty(searchString))
-        {
-            var upperSearch = searchString.ToUpper();
             query = query.Where(t =>
-                t.ValidationCode.Contains(upperSearch) ||
+                t.ValidationCode.ToLower().Contains(searchString) ||
+                (isAdminLog && (t.Owner.FirstName + " " + t.Owner.LastName).ToLower().Contains(searchString)) ||
+                (isAdminLog && (t.Owner.Email!.ToLower().Contains(searchString))) ||
                 t.Transfers.Any(tr =>
-                    tr.Receiver.FirstName.Contains(searchString) ||
-                    tr.Receiver.LastName.Contains(searchString) ||
-                    tr.Sender.FirstName.Contains(searchString) ||
-                    tr.Sender.LastName.Contains(searchString)
+                    (tr.Sender.FirstName + " " + tr.Sender.LastName).ToLower().Contains(searchString) ||
+                    (tr.Receiver.FirstName + " " + tr.Receiver.LastName).ToLower().Contains(searchString)
                 )
             );
         }
-
-        var stateFilter = model.StateFilter;
-        // State filter (Disponível, Usado, Expirado)
-        if (stateFilter.HasValue)
+        
+        if (model.DateFilter.HasValue)
         {
-            // Exclude transferred tickets from state filter
-            query = query.Where(t => t.State == stateFilter.Value && t.Owner.Id == userId);
+            // From date forward
+            query = query.Where(t => t.TicketPurchase.TransactionDate.Date >= model.DateFilter.Value.Date);
         }
 
-        var flowFilter = model.FlowFilter;
-        // Flow filter (Compradas, Enviadas, Recebidas)
-        if (flowFilter.HasValue)
+        if (model.StateFilter.HasValue)
         {
-            switch (flowFilter)
+            if (isAdminLog)
+            {
+                query = query.Where(t => t.State == model.StateFilter.Value);
+            }
+            else
+            {
+                // Exclude transferred tickets from state filter
+                query = query.Where(t => t.State == model.StateFilter.Value && t.Owner.Id == userId);
+            }
+        }
+        
+        if (model.FlowFilter.HasValue)
+        {
+            switch (model.FlowFilter.Value)
             {
                 case TicketFlow.Bought:
-                    query = query.Where(t => t.TicketPurchase.AppUser.Id == userId);
+                    if (isAdminLog)
+                    {
+                        query = query.Where(t => t.TicketPurchase.AppUser.Id == t.Owner.Id);
+                    }
+                    else
+                    {
+                        query = query.Where(t => t.TicketPurchase.AppUser.Id == userId);
+                    }
                     break;
                 case TicketFlow.Sent:
-                    query = query.Where(t => t.Transfers.Any(tr => tr.Sender.Id == userId));
+                    if (isAdminLog)
+                    {
+                        query = query.Where(t => t.Transfers.Any(tr => tr.Sender.Id == t.Owner.Id));
+                    }
+                    else
+                    {
+                        query = query.Where(t => t.Transfers.Any(tr => tr.Sender.Id == userId));
+                    }
                     break;
                 case TicketFlow.Received:
-                    query = query.Where(t => t.Transfers.Any(tr => tr.Receiver.Id == userId));
+                    if (isAdminLog)
+                    {
+                        query = query.Where(t => t.Transfers.Any(tr => tr.Receiver.Id == t.Owner.Id));
+                    }
+                    else
+                    {
+                        query = query.Where(t => t.Transfers.Any(tr => tr.Receiver.Id == userId));
+                    }
                     break;
             }
         }
 
+        return query;
+    }
+    
+    public async Task<List<Ticket>> GetTicketHistoryAsync(string? userId, ReportTicketSearchViewModel model)
+    {
+        var query = await BuildTicketHistoryBaseQuery(userId);
+        query = ApplyTicketHistorySearchFilters(query, model, userId);
         return await query.OrderByDescending(t => t.TicketPurchase.TransactionDate).ToListAsync();
     }
     

@@ -40,32 +40,34 @@
 
                 @* Filters with border left *@
                 <div class="col col-md border-start ps-md-4">
-                    <div class="row g-2 g-md-3 align-items-end">
+                    <form id="productFilterForm"
+                          hx-get="/Order/CreateOrder/GetFilteredProducts"
+                          hx-trigger="submit, change, keyup delay:300ms from:#nameFilter"
+                          hx-target="#productListContainer"
+                          hx-indicator=".loader-spinner"
+                          class="row g-2 g-md-3 align-items-end">
 
                         @* Category and Search *@
                         <div class="col-6 col-md-4">
-                            <label for="categoryFilter" class="form-label small fw-bold text-muted mb-1">Categoria</label>
-                            <select id="categoryFilter" class="form-select form-select-sm border-secondary-subtle">
+                            <label asp-for="SearchModel.CategoryId" class="small fw-bold text-muted mb-1"></label>
+                            <select asp-for="SearchModel.CategoryId" class="form-select form-select-sm border-secondary-subtle" asp-items="Model.Categories">
                                 <option value="">Todas</option>
-                                @foreach (SelectListItem cat in Model.Categories)
-                                {
-                                    <option value="@cat.Value">@cat.Text</option>
-                                }
                             </select>
                         </div>
 
                         <div class="col-6 col-md">
-                            <label for="nameFilter" class="form-label small fw-bold text-muted mb-1">Pesquisar</label>
-                            <input id="nameFilter" type="text" class="form-control form-control-sm border-secondary-subtle" placeholder="Nome do produto...">
+                            <label asp-for="SearchModel.SearchString" class="small fw-bold text-muted mb-1"></label>
+                            <input asp-for="SearchModel.SearchString" id="nameFilter" type="text" class="form-control form-control-sm border-secondary-subtle" placeholder="Nome do produto...">
                         </div>
 
                         @* Clear button *@
-                        <div class="col-12 col-md-auto text-center text-md-end">
-                            <button type="button" id="clearProductsTableFilters" class="btn btn-sm btn-ips-outline-secondary fw-bold px-3 w-100 w-md-auto" style="height: 31px;">
+                        <div class="col-12 col-md-auto text-center text-md-end d-flex gap-2">
+                            <div class="spinner-border spinner-border-sm text-color-ips htmx-indicator loader-spinner align-self-center me-2" role="status"></div>
+                            <a asp-action="Index" class="btn btn-sm btn-ips-outline-secondary fw-bold px-3 w-100 w-md-auto" style="height: 31px;">
                                 <i class="bi bi-x-circle me-1"></i> Limpar
-                            </button>
+                            </a>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -75,55 +77,21 @@
     <div class="card card-ips hover-shadow-ips shadow-sm border-0 rounded-3">
         <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
             <h5 class="mb-0 fw-bold text-color-ips"><i class="bi bi-list-ul me-2"></i>Lista de Produtos</h5>
-            <span class="badge bg-color-ips-very-light text-dark border"><span id="productsCountBadge">@Model.Products.Count()</span> registos</span>
+            <span class="badge bg-color-ips-light text-color-ips border"><span id="productsCountBadge">@Model.SearchModel.Results.Count</span> produtos</span>
         </div>
         <div class="table-responsive" style="max-height: 550px;">
             <table class="table table-hover align-middle mb-0 text-center small fs-md-6">
                 <thead class="bg-color-ips text-white position-sticky top-0">
-                    <tr>
-                        <th class="ps-4 py-2 py-md-3 text-start">Nome</th>
-                        <th class="py-2 py-md-3 d-none d-md-table-cell">Categoria</th>
-                        <th class="py-2 py-md-3">Preço</th>
-                        <th class="py-2 py-md-3" style="width: 4rem">Quantidade</th>
-                        <th class="pe-4 py-2 py-md-3">Ação</th>
-                    </tr>
+                <tr>
+                    <th class="ps-4 py-2 py-md-3 text-start">Nome</th>
+                    <th class="py-2 py-md-3 d-none d-md-table-cell">Categoria</th>
+                    <th class="py-2 py-md-3">Preço</th>
+                    <th class="py-2 py-md-3" style="width: 4rem">Quantidade</th>
+                    <th class="pe-4 py-2 py-md-3">Ação</th>
+                </tr>
                 </thead>
-                <tbody>
-                    @if (!Model.Products.Any())
-                    {
-                        <tr>
-                            <td colspan="5" class="text-center py-5 text-muted">
-                                <i class="bi bi-box-seam display-4 d-block mb-3 opacity-25"></i>
-                                <span class="fw-bold">Não existem produtos disponíveis no momento.</span>
-                            </td>
-                        </tr>
-                    }
-                    else
-                    {
-                        @foreach (var p in Model.Products)
-                        {
-                            <tr class="productRow" data-name="@p.Name" data-categoryid="@p.CategoryId">
-                                <td class="ps-4 text-start fw-bold">@p.Name</td>
-                                <td class="d-none d-md-table-cell">@p.CategoryName</td>
-                                <td class="text-color-ips fw-bold text-nowrap">@p.FormattedPrice</td>
-                                <td>
-                                    <input type="number" id="qty-@p.Id" min="1" max="99" value="1"
-                                           class="form-control form-control-sm border-secondary-subtle px-1 text-center" />
-                                </td>
-                                <td class="pe-3 pe-md-4">
-                                    <div class="d-flex justify-content-center gap-1 gap-md-2">
-                                        <button class="btn btn-ips btn-sm px-2 px-md-3 fw-bold addToCart" data-id="@p.Id" data-name="@p.Name" title="Adicionar ao Carrinho">
-                                            <i class="bi bi-cart-plus fs-6"></i>
-                                            <span class="d-none d-md-inline ms-1">Adicionar</span>
-                                        </button>
-                                        <button class="btn btn-sm btn-ips-outline-secondary shadow-sm showProductDetails px-2" data-product='@Html.Raw(Json.Serialize(p.ModalInfo))'>
-                                            <i class="bi bi-eye fs-6"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        }
-                    }
+                <tbody id="productListContainer">
+                    <partial name="_ProductListPartial" model="Model.SearchModel.Results" />
                 </tbody>
             </table>
         </div>

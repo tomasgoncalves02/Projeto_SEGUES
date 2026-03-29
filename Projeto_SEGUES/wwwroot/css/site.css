@@ -14,6 +14,9 @@
     --deny: #dc3545;
     --cancel: #ffc107;
     --disabled: #6c757d;
+    /* Other */
+    --deny-light: rgba(220, 53, 69, 0.1);
+    --cancel-light: rgba(255, 193, 7, 0.1);
 }
 
 /* ============
@@ -149,6 +152,10 @@ html {
 
 .bg-color-ips-very-light {
     background-color: var(--ips-shadow-very-soft) !important;
+}
+
+.bg-color-danger-light {
+    background-color: var(--deny-light) !important;
 }
 
 /* Cards */

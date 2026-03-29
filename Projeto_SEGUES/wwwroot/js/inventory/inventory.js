@@ -1,4 +1,4 @@
-﻿import { DOM, Notifications, StringUtils } from "../core/core.js";
+﻿import { DOM, Notifications } from "../core/core.js";
 
 function showProductDetails() {
     let product = JSON.parse(this.dataset.product);
@@ -101,13 +101,16 @@ function handleEditFormSubmit(e) {
 
 const Inventory = {
     init() {
-        DOM.delegate('showProductDetails', 'click', showProductDetails);
+        Inventory.rebind();
+        DOM.bind('editForm', 'submit', handleEditFormSubmit);
+    },
+    rebind() {
+        DOM.bindAll('showProductDetails', 'click', showProductDetails);
         DOM.bindAll('confirmDeleteProduct', 'click', confirmDeleteProduct);
         DOM.bindAll('confirmReactivateProduct', 'click', confirmReactivateProduct);
-        DOM.bind('editForm', 'submit', handleEditFormSubmit);
     }
 };
 
 DOM.bindDocumentLoad(Inventory.init);
-window.updateProductsCount = updateProductsCount; // Global exposure for HTMX
+DOM.executeAfterHtmx(Inventory.rebind, updateProductsCount);
 export { Inventory };

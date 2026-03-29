@@ -13,12 +13,7 @@ public class AppConfig
 {
     /// <summary>Unique identifier for the configuration record.</summary>
     public int Id { get; init; }
-
-    /// <summary>Maximum number of active tickets a single user is allowed to hold at once.</summary>
-    [Required]
-    [Range(1, int.MaxValue, ErrorMessage = "Número máximo de bilhetes por utilizador deve ser pelo menos 1.")]
-    public int MaxTicketsPerUser { get; set; } = 100;
-
+    
     /// <summary>The duration (in days) before a purchased ticket is marked as expired.</summary>
     [Required]
     [Range(1, int.MaxValue, ErrorMessage = "Número de dias de validade dos bilhetes deve ser pelo menos 1.")]

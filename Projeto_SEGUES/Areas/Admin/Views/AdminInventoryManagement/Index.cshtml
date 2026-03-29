@@ -79,7 +79,6 @@
                           hx-trigger="submit, change, keyup delay:300ms from:#nameFilter"
                           hx-target="#productListContainer"
                           hx-indicator=".loader-spinner"
-                          hx-on::after-request="updateProductsCount()"
                           class="row g-3 align-items-end">
                         
                         @* Search Filter *@
@@ -160,8 +159,7 @@
                                hx-get="/Admin/AdminInventoryManagement/GetProducts"
                                hx-include="#inventoryFilterForm"
                                hx-trigger="every 30s"
-                               hx-swap="innerHTML"
-                               hx-on::after-request="updateProductsCount()">
+                               hx-swap="innerHTML">
                             <partial name="_ProductListPartial" model="@Model.Products"/>
                         </tbody>
                     </table>

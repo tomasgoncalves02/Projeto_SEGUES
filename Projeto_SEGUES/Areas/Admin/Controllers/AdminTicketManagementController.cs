@@ -1,17 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Localization;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
+using Projeto_SEGUES.Areas.Report.ViewModels;
 using Projeto_SEGUES.Extensions;
-using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Ticket;
-using Projeto_SEGUES.Models.User;
-using Projeto_SEGUES.Resources;
 using Projeto_SEGUES.Services;
-using QuestPDF.Fluent;
-using QuestPDF.Helpers;
-using QuestPDF.Infrastructure;
 
 namespace Projeto_SEGUES.Areas.Admin;
 
@@ -27,31 +20,22 @@ namespace Projeto_SEGUES.Areas.Admin;
 public class AdminTicketManagementController : Controller
 {
     private readonly IAdminService _adminService;
-    private readonly UserManager<AppUser> _userManager;
     private readonly ITicketService _ticketService;
-    private readonly ILogger<AdminTicketManagementController> _logger;
-    private readonly IStringLocalizer<Errors> _localizer;
+    private readonly IPdfService _pdfService;
 
     /// <summary>
     /// Initializes a new instance of the controller with administration, user, ticket, logging, and localization services.
     /// </summary>
     /// <param name="adminService">Administrative configuration service.</param>
-    /// <param name="userManager">Identity user manager.</param>
     /// <param name="ticketService">Ticket operations service.</param>
-    /// <param name="logger">Logger for error tracking and auditing.</param>
-    /// <param name="localizer">Localizer for translating error messages.</param>
     public AdminTicketManagementController(
-        IAdminService adminService,
-        UserManager<AppUser> userManager,
+        IAdminService adminService, 
         ITicketService ticketService,
-        ILogger<AdminTicketManagementController> logger,
-        IStringLocalizer<Errors> localizer)
+        IPdfService pdfService)
     {
         _adminService = adminService;
-        _userManager = userManager;
         _ticketService = ticketService;
-        _logger = logger;
-        _localizer = localizer;
+        _pdfService = pdfService;
     }
 
     /// <summary>
@@ -60,28 +44,64 @@ public class AdminTicketManagementController : Controller
     /// <returns>The index View with the complete ticket history and configuration data in the ViewBag.</returns>
     public async Task<IActionResult> Index()
     {
-        try
+        BarCanteenConfigViewModel barCanteenConfig = await _adminService.GetScheduleAsync();
+        
+        AdminTicketManagementViewModel vm = new AdminTicketManagementViewModel
         {
-            ViewBag.CurrentUserId = _userManager.GetUserId(User);
-            ViewBag.Prices = await _adminService.GetTicketPricesAsync();
-            ViewBag.CurrentValidityDays = await _adminService.GetTicketValidityDaysAsync();
-
-            BarCanteenConfigViewModel barCanteenConfig = await _adminService.GetScheduleAsync();
-            ViewBag.CanteenLunchOpeningTimeString = barCanteenConfig.CanteenLunchOpeningTimeString;
-            ViewBag.CanteenLunchClosingTimeString = barCanteenConfig.CanteenLunchClosingTimeString;
-            ViewBag.CanteenDinnerOpeningTimeString = barCanteenConfig.CanteenDinnerOpeningTimeString;
-            ViewBag.CanteenDinnerClosingTimeString = barCanteenConfig.CanteenDinnerClosingTimeString;
-
-            var history = await _ticketService.GetAllTicketsAsync();
-            return View(history);
-        }
-        catch (Exception ex)
-        {
-            // REDIRECT: Falha fatal no carregamento. Redirecionamos para a página de erro global.
-            _logger.LogError(ex, "Erro fatal ao carregar gestão de senhas.");
-            return RedirectToAction("Error", "Home", new { area = "", errorCode = (int)AppErrors.DatabaseQueryError });
-        }
+            LunchOpeningTime = barCanteenConfig.CanteenLunchOpeningTimeString,
+            LunchClosingTime = barCanteenConfig.CanteenLunchClosingTimeString,
+            DinnerOpeningTime = barCanteenConfig.CanteenDinnerOpeningTimeString,
+            DinnerClosingTime = barCanteenConfig.CanteenDinnerClosingTimeString,
+            Prices = await _adminService.GetTicketPricesAsync(),
+            CurrentValidityDays = await _adminService.GetTicketValidityDaysAsync(),
+            SearchModel = new ReportTicketSearchViewModel
+            {
+                Results = await _ticketService.GetTicketHistoryAsync(null, new ReportTicketSearchViewModel())
+            }
+        };
+        return View(vm);
     }
+    
+    /// <summary>
+    /// Filters the ticket history for dynamic updates of the audit table.
+    /// </summary>
+    /// <param name="model">ReportTicketSearchViewModel containing the filter criteria.</param>
+    /// <returns>A PartialView containing the filtered table rows.</returns>
+    [HttpGet]
+    public async Task<IActionResult> GetUpdatedAuditTable([Bind(Prefix = "SearchModel")] ReportTicketSearchViewModel model)
+    {
+        var history = await _ticketService.GetTicketHistoryAsync(null, model);
+        return PartialView("_AuditTableRows", history);
+    }
+    
+    /// <summary>
+    /// Updates the operating hours of a specific service (Lunch or Dinner).
+    /// </summary>
+    /// <param name="serviceName">Name of the service to update.</param>
+    /// <param name="openTime">Opening hour.</param>
+    /// <param name="closeTime">Closing hour.</param>
+    /// <returns>Redirects to Index informing success or validation error.</returns>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateSchedule(string serviceName, TimeSpan openTime, TimeSpan closeTime)
+    {
+        BarCanteenConfigViewModel vm = serviceName == "Almoço"
+            ? new() { CanteenLunchOpeningTime = openTime, CanteenLunchClosingTime = closeTime }
+            : new() { CanteenDinnerOpeningTime = openTime, CanteenDinnerClosingTime = closeTime };
+        
+        var result = await _adminService.UpdateScheduleAsync(vm);
+        if (result.Success)
+        {
+            TempData.SetSwalSuccess(result.Message);
+        }
+        else
+        {
+            TempData.SetSwalError(result.Message);
+        }
+
+        return RedirectToAction(nameof(Index));
+    }
+    
 
     /// <summary>
     /// Updates the ticket pricing values in the system.
@@ -93,28 +113,18 @@ public class AdminTicketManagementController : Controller
     /// </remarks>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> UpdatePrices(List<TicketPrice> updatedPrices)
+    public async Task<IActionResult> UpdatePrices([Bind(Prefix = "Prices")] List<TicketPrice> updatedPrices)
     {
-        if (updatedPrices == null || !updatedPrices.Any()) return RedirectToAction(nameof(Index));
-
-        System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
-
-        foreach (var key in ModelState.Keys.ToList()) ModelState.Remove(key);
-
-        try
+        if (!updatedPrices.Any()) return RedirectToAction(nameof(Index));
+        
+        var result = await _adminService.UpdateTicketPricesAsync(updatedPrices);
+        if (result.Success)
         {
-            await _adminService.UpdateTicketPricesAsync(updatedPrices);
-            TempData.SetSwalSuccess("Preçário atualizado com sucesso!");
+            TempData.SetSwalSuccess(result.Message);
         }
-        catch (Exception ex)
+        else
         {
-            _logger.LogAppError(AppErrors.DatabaseUpdateError, TableName.TicketPrice, AppOperation.Update, ex);
-            var erroEnum = AppErrors.DatabaseUpdateError;
-            var mensagemTraduzida = string.Format(Errors.DatabaseUpdateError, "Preço de Senha");
-            var mensagemFinal = $"{mensagemTraduzida} [Erro: {(int)erroEnum}]";
-
-            TempData.SetSwalError(mensagemFinal);
-            return RedirectToAction(nameof(Index));
+            TempData.SetSwalError(result.Message);
         }
         return RedirectToAction(nameof(Index));
     }
@@ -128,116 +138,18 @@ public class AdminTicketManagementController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateValidity(int validityDays)
     {
-        if (validityDays < 1)
+        var result = await _adminService.UpdateTicketValidityDaysAsync(validityDays);
+        if (result.Success)
         {
-            TempData.SetSwalError("A validade deve ser de pelo menos 1 dia.");
-            return RedirectToAction(nameof(Index));
+            TempData.SetSwalSuccess(result.Message);
         }
-
-        try
+        else
         {
-            await _adminService.UpdateTicketValidityDaysAsync(validityDays);
-            TempData.SetSwalSuccess($"Validade global alterada para {validityDays} dias.");
+            TempData.SetSwalError(result.Message);
         }
-        catch (Exception ex)
-        {
-            _logger.LogAppError(AppErrors.DatabaseUpdateError, TableName.AppConfig, AppOperation.Update, ex);
-
-            var erroEnum = AppErrors.DatabaseUpdateError;
-            var mensagemFinal = $"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";
-            TempData.SetSwalError(mensagemFinal);
-        }
-
         return RedirectToAction(nameof(Index));
     }
-
-    /// <summary>
-    /// Filters the ticket history for dynamic updates of the audit table.
-    /// </summary>
-    /// <param name="searchString">Search term (owner name or validation code).</param>
-    /// <param name="stateFilter">Optional filter by ticket state.</param>
-    /// <param name="dateFilter">Optional filter by purchase date.</param>
-    /// <param name="flowFilter">Optional filter by ticket flow (Bought, Sent, Received).</param>
-    /// <returns>A PartialView containing the filtered table rows.</returns>
-    [HttpGet]
-    public async Task<IActionResult> GetUpdatedAuditTable(string searchString, TicketState? stateFilter, DateTime? dateFilter, TicketFlow? flowFilter)
-    {
-        try
-        {
-            var history = await _ticketService.GetAllTicketsAsync();
-            var query = history.AsQueryable();
-
-            if (stateFilter.HasValue)
-                query = query.Where(t => t.State == stateFilter.Value);
-
-            if (dateFilter.HasValue)
-                query = query.Where(t => t.TicketPurchase.TransactionDate.Date >= dateFilter.Value.Date);
-
-            if (flowFilter.HasValue)
-            {
-                query = flowFilter.Value switch
-                {
-                    TicketFlow.Bought => query.Where(t => !t.Transfers.Any()),
-                    TicketFlow.Sent => query.Where(t => t.Transfers.Any()),
-                    TicketFlow.Received => query.Where(t => t.Transfers.Any()),
-                    _ => query
-                };
-            }
-
-            if (!string.IsNullOrEmpty(searchString))
-            {
-                query = query.Where(t => t.Owner.FirstName.Contains(searchString, StringComparison.OrdinalIgnoreCase) ||
-                                         t.Owner.LastName.Contains(searchString, StringComparison.OrdinalIgnoreCase) ||
-                                         t.ValidationCode.Contains(searchString.ToUpper()));
-            }
-
-            return PartialView("_AuditTableRows", query.OrderByDescending(t => t.TicketPurchase.TransactionDate).ToList());
-        }
-        catch (Exception ex)
-        {
-            _logger.LogAppError(AppErrors.DatabaseQueryError, TableName.Ticket, AppOperation.Read, ex);
-            return StatusCode(500); // Erro para chamadas assíncronas
-        }
-    }
-
-    /// <summary>
-    /// Updates the operating hours of a specific service (Lunch or Dinner).
-    /// </summary>
-    /// <param name="serviceName">Name of the service to update.</param>
-    /// <param name="openTime">Opening hour.</param>
-    /// <param name="closeTime">Closing hour.</param>
-    /// <returns>Redirects to Index informing success or validation error.</returns>
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> UpdateSchedule(string serviceName, TimeSpan openTime, TimeSpan closeTime)
-    {
-        if (openTime >= closeTime)
-        {
-            TempData.SetSwalError($"No serviço de {serviceName}, a abertura deve ser antes do fecho.");
-            return RedirectToAction(nameof(Index));
-        }
-
-        try
-        {
-            BarCanteenConfigViewModel vm = serviceName == "Almoço"
-                ? new() { CanteenLunchOpeningTime = openTime, CanteenLunchClosingTime = closeTime }
-                : new() { CanteenDinnerOpeningTime = openTime, CanteenDinnerClosingTime = closeTime };
-
-            await _adminService.UpdateScheduleAsync(vm);
-            TempData.SetSwalSuccess($"Horário de {serviceName} atualizado com sucesso!");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogAppError(AppErrors.DatabaseUpdateError, TableName.AppConfig, AppOperation.Update);
-
-            var erroEnum = AppErrors.DatabaseUpdateError;
-            var mensagemFinal = $"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";
-            TempData.SetSwalError(mensagemFinal);
-        }
-
-        return RedirectToAction(nameof(Index));
-    }
-
+    
     /// <summary>
     /// Generates a detailed PDF report for auditing all tickets in the system.
     /// </summary>
@@ -246,120 +158,11 @@ public class AdminTicketManagementController : Controller
     /// Uses Landscape orientation to accommodate 9 data columns and includes official Teal styling.
     /// </remarks>
     [HttpGet]
-    public async Task<IActionResult> ExportTicketsPDF()
+    public async Task<IActionResult> ExportTicketsPdf([Bind(Prefix = "SearchModel")] ReportTicketSearchViewModel model)
     {
-        try
-        {
-            // 1. Busca os dados (Certifica-te que o Service usa AsNoTracking para ser rápido)
-            var history = await _ticketService.GetAllTicketsAsync();
-
-            // 2. Caminho do logo
-            var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo-ips.png");
-
-            var document = Document.Create(container =>
-            {
-                container.Page(page =>
-                {
-                    
-                    page.Size(PageSizes.A4.Landscape());
-                    page.Margin(20);
-                    page.PageColor(Colors.White);                   
-                    page.DefaultTextStyle(x => x.FontFamily("Roboto").FontSize(9));
-
-                    // Cabeçalho
-                    page.Header().PaddingBottom(10).Row(row =>
-                    {
-                        if (System.IO.File.Exists(logoPath))
-                        {
-                            row.ConstantItem(150).Image(logoPath);
-                        }
-
-                        row.RelativeItem().Column(col =>
-                        {
-                            col.Item().AlignRight().Text("Auditoria Geral de Senhas").FontSize(20).SemiBold().FontColor(Color.FromHex("#009697"));
-                            col.Item().AlignRight().Text($"Gerado em: {DateTime.Now:dd/MM/yyyy HH:mm}").FontSize(10).Italic();
-                        });
-                    });
-
-                    // Conteúdo / Tabela
-                    page.Content().Table(table =>
-                    {
-                        table.ColumnsDefinition(columns =>
-                        {
-                            columns.RelativeColumn(2.5f); // Dono Atual
-                            columns.ConstantColumn(60);   // Código
-                            columns.ConstantColumn(70);   // Estado
-                            columns.ConstantColumn(80);   // Compra
-                            columns.ConstantColumn(60);   // Data Transf.
-                            columns.RelativeColumn(1.5f); // Enviado Por
-                            columns.RelativeColumn(1.5f); // Recebido Por
-                            columns.ConstantColumn(60);   // Uso
-                            columns.ConstantColumn(70);   // Expiração
-                        });
-
-                        table.Header(header =>
-                        {
-                            string[] colNames = { "Dono Atual", "Código", "Estado", "Compra", "Data Transf.", "Enviado Por", "Recebido Por", "Uso", "Expiração" };
-                            foreach (var name in colNames)
-                            {
-                                header.Cell().Background(Color.FromHex("#009697")).Padding(5).AlignCenter()
-                                      .Text(name).FontColor(Colors.White).FontSize(8).SemiBold();
-                            }
-                        });
-
-                        foreach (var t in history)
-                        {
-                            var lastTrans = t.Transfers?.OrderByDescending(x => x.TransferDate).FirstOrDefault();
-
-                            
-                            table.Cell().Element(ContentStyle).AlignLeft().Column(c =>
-                            {
-                                c.Item().Text($"{t.Owner?.FirstName} {t.Owner?.LastName}").FontSize(8).SemiBold();
-                                c.Item().Text(t.Owner?.Email).FontSize(7).FontColor(Colors.Grey.Medium);
-                            });
-               
-                            table.Cell().Element(ContentStyle).AlignCenter().Text(t.ValidationCode).FontSize(8);
-                            table.Cell().Element(ContentStyle).AlignCenter().Text(t.IsUsed ? "Utilizada" : (t.ExpirationDate < DateTime.Now ? "Expirada" : "Disponível")).FontSize(8);
-                            table.Cell().Element(ContentStyle).AlignCenter().Text(t.TicketPurchase?.TransactionDate.ToString("dd/MM/yy HH:mm") ?? "-").FontSize(8);
-                            table.Cell().Element(ContentStyle).AlignCenter().Text(lastTrans?.TransferDate.ToString("dd/MM/yy") ?? "-").FontSize(8);
-                            table.Cell().Element(ContentStyle).AlignCenter().Text(lastTrans?.Sender?.UserName ?? "-").FontSize(8);
-                            table.Cell().Element(ContentStyle).AlignCenter().Text(lastTrans?.Receiver?.UserName ?? "Compra Direta").FontSize(8);
-                            table.Cell().Element(ContentStyle).AlignCenter().Text(t.IsUsed ? t.UsedDate?.ToString("dd/MM/yy") : "-").FontSize(8);
-                            table.Cell().Element(ContentStyle).AlignCenter().Text(t.ExpirationDate.ToString("dd/MM/yy")).FontSize(8);
-                        }
-                    });
-
-                    // Rodapé
-                    page.Footer().PaddingTop(5).AlignCenter().Text(x =>
-                    {
-                        x.Span("Página ");
-                        x.CurrentPageNumber();
-                        x.Span(" de ");
-                        x.TotalPages();
-                    });
-                });
-            });
-
-            return File(document.GeneratePdf(), "application/pdf", $"Auditoria_Senhas_{DateTime.Now:yyyyMMdd}.pdf");
-        }
-        catch (Exception ex)
-        {
-            // Restauro dos teus logs originais
-            _logger.LogError(ex, "Erro ao exportar PDF de auditoria de senhas.");
-
-            var erroEnum = AppErrors.InternalServerError;
-            var mensagemFinal = $"Não foi possível gerar o PDF. {_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";
-            TempData.SetSwalError(mensagemFinal);
-
-            return RedirectToAction(nameof(Index));
-        }
+        var tickets = await _ticketService.GetTicketHistoryAsync(null, model);
+        var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo-ips.png");
+        byte[] pdfBytes =  _pdfService.GenerateAdminTicketHistoryPdfAsync(tickets, logoPath);
+        return File(pdfBytes, "application/pdf", $"Historico_Senhas_{DateTime.Now:yyyyMMdd}.pdf");
     }
-
-    /// <summary>
-    /// Applies visual content styling to audit table cells.
-    /// </summary>
-    /// <param name="container">QuestPDF container to style.</param>
-    /// <returns>The container with applied borders, padding, and alignment.</returns>
-    static IContainer ContentStyle(IContainer container) =>
-        container.PaddingVertical(4).BorderBottom(1).BorderColor(Colors.Grey.Lighten3).AlignCenter().AlignMiddle();
 }

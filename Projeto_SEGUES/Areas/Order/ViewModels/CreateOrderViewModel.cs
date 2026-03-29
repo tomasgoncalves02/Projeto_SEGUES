@@ -12,9 +12,9 @@ namespace Projeto_SEGUES.Areas.Order.ViewModels;
 public class CreateOrderViewModel
 {
     /// <summary>
-    /// Collection of products available for selection in the current order context.
+    /// Model used to filter and search the product list.
     /// </summary>
-    public IEnumerable<OrderProductDto> Products { get; set; } = new List<OrderProductDto>();
+    public OrderProductSearchViewModel SearchModel { get; set; } = new();
 
     /// <summary>
     /// List of categories used to filter the product display in the UI.

@@ -73,13 +73,22 @@ function syncExportData(e) {
 
 const ReportOrder = {
     init() {
+        ReportOrder.rebind();
+        DOM.bind('exportPdfForm', 'submit', syncExportData);
+        DOM.bind('switchSat', 'change', function() {
+            DOM.byId('formSat').submit();
+        });
+        DOM.bind('switchSun', 'change', function() {
+            DOM.byId('formSun').submit();
+        });
+    },
+    rebind() {
         DOM.bindAll('showOrderDetails', 'click', async function() {
             await showOrderDetails(this.dataset.id);
         });
-        DOM.bind('exportPdfForm', 'submit', syncExportData);
     }
 };
 
 DOM.bindDocumentLoad(ReportOrder.init);
-window.updateOrdersCount = updateOrdersCount; // Global exposure for HTMX
+DOM.executeAfterHtmx(ReportOrder.rebind, updateOrdersCount);
 export { ReportOrder };

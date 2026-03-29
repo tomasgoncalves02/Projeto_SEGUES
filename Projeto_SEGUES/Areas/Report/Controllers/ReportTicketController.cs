@@ -31,10 +31,7 @@ public class ReportTicketController : Controller
     /// <summary>
     /// Displays the main ticket history page with support for multiple filters.
     /// </summary>
-    /// <param name="searchString">Search term for codes or related users.</param>
-    /// <param name="stateFilter">Filter by ticket state (TicketState Enum).</param>
-    /// <param name="flowFilter">Flow filter (e.g., "Sent", "Received").</param>
-    /// <param name="dateFilter">Filter by transaction or usage date.</param>
+    /// <param name="model">The search model containing filter criteria.</param>
     /// <returns>The Index View populated with query results. Redirects to error on failure.</returns>
     [HttpGet]
     public async Task<IActionResult> Index(ReportTicketSearchViewModel model)
@@ -42,7 +39,7 @@ public class ReportTicketController : Controller
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (userId == null) return Challenge();
 
-        model.Results = await _ticketService.QueryHistoryAsync(userId, model);
+        model.Results = await _ticketService.GetTicketHistoryAsync(userId, model);
         
         ViewBag.UserId = userId;
         return View(model);
@@ -51,10 +48,7 @@ public class ReportTicketController : Controller
     /// <summary>
     /// Endpoint for dynamic (AJAX/HTMX) updates of the ticket history table.
     /// </summary>
-    /// <param name="stateFilter">Ticket state in string format for conversion.</param>
-    /// <param name="dateFilter">Selected date for filtering.</param>
-    /// <param name="flowFilter">Transaction flow type.</param>
-    /// <param name="searchString">Alphanumeric search term.</param>
+    /// <param name="model">The search model containing filter criteria.</param>
     /// <returns>A PartialView containing only the filtered table rows, or 500 on error.</returns>
     [HttpGet]
     public async Task<IActionResult> GetFilteredHistory(ReportTicketSearchViewModel model)
@@ -67,8 +61,7 @@ public class ReportTicketController : Controller
         }
         
         ViewBag.UserId = userId;
-
-        var history = await _ticketService.QueryHistoryAsync(userId, model);
+        var history = await _ticketService.GetTicketHistoryAsync(userId, model);
         return PartialView("_TicketHistoryRowsPartial", history);
     }
 }

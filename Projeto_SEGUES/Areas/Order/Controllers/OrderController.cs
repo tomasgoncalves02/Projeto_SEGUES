@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
+using Projeto_SEGUES.Areas.Order.ViewModels;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 
@@ -49,34 +50,31 @@ public class OrderController : Controller
     {
         var user = await _userManager.GetUserAsync(User);
         if (user == null) return Challenge();
-
-        ViewBag.UserBalance = user.Balance;
-
+        
         BarCanteenConfigViewModel config = await _adminService.GetScheduleAsync();
+        var cart = await _orderService.GetCartAsync(user.Id, false);
+        
         var now = DateTime.Now;
         var currentTime = now.TimeOfDay;
         var today = now.DayOfWeek;
-
+        
         bool closedByWeekendConfig = (today == DayOfWeek.Saturday && !config.IsOpenSaturday) ||
                                      (today == DayOfWeek.Sunday && !config.IsOpenSunday);
-
         bool isOutsideHours = (currentTime < config.BarOpeningTime || currentTime > config.BarClosingTime);
 
-        ViewBag.IsClosed = isOutsideHours || closedByWeekendConfig;
-
-        ViewBag.IsOpenSaturday = config.IsOpenSaturday;
-        ViewBag.IsOpenSunday = config.IsOpenSunday;
-
-        ViewBag.BarOpeningTimeString = config.BarOpeningTimeString;
-        ViewBag.BarClosingTimeString = config.BarClosingTimeString;
-        ViewBag.BarMenuLink = config.BarMenuLink;
-
-        var cart = await _orderService.GetCartAsync(user.Id, false);
-        if (cart != null)
+        OrderPageViewModel vm = new OrderPageViewModel
         {
-            ViewBag.CartTotal = _orderService.GetOrderTotal(cart);
-        }
-
-        return View();
+            UserBalance = user.Balance.ToString("C"),
+            CartTotal = cart != null ? _orderService.GetOrderTotal(cart) : new OrderTotalViewModel(),
+            BarOpeningTimeString = config.BarOpeningTimeString!,
+            BarClosingTimeString = config.BarClosingTimeString!,
+            BarMenuLink = config.BarMenuLink!,
+            IsOpenSaturday = config.IsOpenSaturday,
+            IsOpenSunday = config.IsOpenSunday,
+            IsClosedByWeekend = closedByWeekendConfig,
+            IsOutsideHours = isOutsideHours
+        };
+        
+        return View(vm);
     }
 }

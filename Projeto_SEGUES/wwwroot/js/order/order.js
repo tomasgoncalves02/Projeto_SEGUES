@@ -79,13 +79,17 @@ function validateDelivery(orderId) {
 
 const Order = { 
     init() {
+        Order.rebind();
+        DOM.bind("confirmOrderCancellation", "click", confirmOrderCancellation);
+        DOM.delegate("changeOrderState", "click", changeOrderState);
+    },
+    rebind() {
         DOM.bindAll('showCode', 'click', function() {
             showCode(this.dataset.code);
         });
-        DOM.bind("confirmOrderCancellation", "click", confirmOrderCancellation);
-        DOM.delegate("changeOrderState", "click", changeOrderState);
     }
 };
 
 DOM.bindDocumentLoad(Order.init);
+DOM.executeAfterHtmx(Order.rebind);
 export { Order };

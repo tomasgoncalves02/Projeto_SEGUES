@@ -367,7 +367,7 @@ public static class DbSeeder
                 TicketPurchase = ticketPurchase
             });
         }
-        // --- CORREÇÃO TICKETS ANUAIS ---
+        /* 10 tickets in the same year spread by months */
         for (int i = 0; i < 10; i++)
         {
             var targetMonth = (i % Math.Max(1, now.Month)) + 1;
@@ -387,10 +387,12 @@ public static class DbSeeder
         }
         await context.SaveChangesAsync();
 
+        // Create Orders
         var orders = new List<Order>();
         var products = context.Product.ToList();
         var rnd = new Random();
 
+        // Local auxilliary function to create orders
         Order CreateOrder(DateTime orderDate)
         {
             var order = new Order { OrderDate = orderDate, AppUser = employeeUser!, Status = OrderStatus.Delivered, PickupTime = orderDate.TimeOfDay };
@@ -416,12 +418,14 @@ public static class DbSeeder
             return order;
         }
 
+        /* 10 orders in the same day with different time */
         for (int i = 0; i < 10; i++)
         {
             var hour = 8 + (i % hourRange);
             orders.Add(CreateOrder(now.Date.AddHours(hour)));
         }
 
+        /* 10 orders in the same week, in different days */
         for (int i = 0; i < 10; i++)
         {
             var day = (i % dayOfWeekRange) + 1;
@@ -430,6 +434,7 @@ public static class DbSeeder
             orders.Add(CreateOrder(date));
         }
 
+        /* 10 orders in the same month in different days */
         for (int i = 0; i < 10; i++)
         {
             var day = ((i * 3) % dayOfMonthRange) + 1;
@@ -438,6 +443,7 @@ public static class DbSeeder
             orders.Add(CreateOrder(date));
         }
 
+        /* 10 orders in the same year in different months */
         for (int i = 0; i < 10; i++)
         {
             var targetMonth = (i % Math.Max(1, now.Month)) + 1;

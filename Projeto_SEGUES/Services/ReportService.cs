@@ -137,7 +137,7 @@ public class ReportService : IReportService
         return query.AsNoTracking().AsQueryable();
     }
     
-    private IQueryable<Order> ApplyOrderHistorySearchFilters(IQueryable<Order> query, ReportOrderSearchViewModel model)
+    private IQueryable<Order> ApplyOrderHistorySearchFilters(IQueryable<Order> query, ReportOrderSearchViewModel model, bool filterOwner = false)
     {
         var searchString = model.SearchString?.Trim().ToLower();
         if (!string.IsNullOrWhiteSpace(searchString))
@@ -145,7 +145,7 @@ public class ReportService : IReportService
             query = query.Where(o =>
                 o.RedemptionCode.ToLower().Contains(searchString) ||
                 o.Id.ToString().Contains(searchString) ||
-                (o.AppUser.FirstName + " " + o.AppUser.LastName).ToLower().Contains(searchString)
+                (filterOwner && (o.AppUser.FirstName + " " + o.AppUser.LastName).ToLower().Contains(searchString))
             );
         }
         
@@ -172,7 +172,7 @@ public class ReportService : IReportService
     public async Task<List<Order>> GetAdminOrderHistoryAsync(ReportOrderSearchViewModel model, bool includeProducts = false)
     {
         var query = BuildOrderHistoryBaseQuery(null, includeProducts);
-        query = ApplyOrderHistorySearchFilters(query, model);
+        query = ApplyOrderHistorySearchFilters(query, model, true);
         return await query.OrderByDescending(o => o.OrderDate).ToListAsync();
     }
     

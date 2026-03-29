@@ -41,7 +41,7 @@ else
 
             @* Date *@
             <td class="small">
-                <div class="fw-bold text-dark">@item.OrderDate.ToString("dd/MM/yyyy")</div>
+                <div class="fw-bold">@item.OrderDate.ToString("dd/MM/yyyy")</div>
                 <div class="text-muted"><i class="bi bi-clock me-1"></i>@item.OrderDate.ToString(@"HH\:mm")</div>
             </td>
 
@@ -61,7 +61,9 @@ else
 
             @* Status *@
             <td>
-                <span class="badge @item.Status.ToString().ToBadgeClass() px-3 py-2 shadow-sm">@item.Status.ToDisplayName()</span>
+                <span class="badge @item.Status.ToString().ToBadgeClass() px-3 py-2 shadow-sm">
+                    @item.Status.ToDisplayName()
+                </span>
             </td>
 
             @* Delivery time *@

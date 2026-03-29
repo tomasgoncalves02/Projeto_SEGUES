@@ -16,6 +16,9 @@ function showQr(code) {
 
 const Ticket = {
     init() {
+        Ticket.rebind();
+    },
+    rebind() {
         DOM.bindAll('showQr', 'click', function() {
             showQr(this.dataset.code);
         });
@@ -23,4 +26,5 @@ const Ticket = {
 };
 
 DOM.bindDocumentLoad(Ticket.init);
+DOM.executeAfterHtmx(Ticket.rebind);
 export { Ticket };

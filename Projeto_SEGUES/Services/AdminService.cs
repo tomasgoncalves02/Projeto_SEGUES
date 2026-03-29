@@ -328,14 +328,14 @@ public class AdminService : IAdminService
 
             await _context.SaveChangesAsync();
 
-            string diaTraduzido = day.ToLower() == "saturday" ? "Sábado" : "Domingo";
-            string estado = isOpen ? "aberto" : "fechado";
+            string dayTranslated = day.ToLower() == "saturday" ? "Sábado" : "Domingo";
+            string state = isOpen ? "aberto" : "fechado";
 
-            return ServiceResult.Ok($"{diaTraduzido} está agora {estado} para pedidos.");
+            return ServiceResult.Ok($"{dayTranslated} está agora {state} para pedidos.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro ao atualizar estado de funcionamento do fim de semana.");
+            _logger.LogAppError(AppErrors.DatabaseUpdateError, TableName.AppConfig, AppOperation.Update, ex);
             return ServiceResult.Fail("Erro ao guardar a alteração no servidor.");
         }
     }
@@ -380,7 +380,7 @@ public class AdminService : IAdminService
         config.CanteenDinnerClosingTime = model.CanteenDinnerClosingTime ?? config.CanteenDinnerClosingTime;
         
         await _context.SaveChangesAsync();
-        return ServiceResult.Ok("Horario de funcionamento do Bar alterado com sucessso");
+        return ServiceResult.Ok("Horario de funcionamento alterado com sucessso");
     }
 
     public async Task<bool> IsBarOpenAsync(TimeSpan? requestedTime)
@@ -407,24 +407,37 @@ public class AdminService : IAdminService
             .Where(tp => tp.EndDatePrice == null || tp.EndDatePrice > DateTime.Today)
             .ToListAsync();
     }
-
-    public async Task UpdateTicketPricesAsync(List<TicketPrice> prices)
+    
+    public async Task<ServiceResult> UpdateTicketPricesAsync(List<TicketPrice> prices)
     {
-        foreach (var p in prices)
+        var currentPrices = await GetTicketPricesAsync();
+
+        try
         {
-            var dbPrice = await _context.TicketPrice.FindAsync(p.Id);
-
-            if (dbPrice != null)
+            foreach (var p in prices)
             {
-                dbPrice.Price = p.Price;
-                dbPrice.InitialDatePrice = DateTime.Now;
-
-                _context.Entry(dbPrice).State = EntityState.Modified;
+                if (p.Price <= 0) continue;
+                var dbPrice = currentPrices.FirstOrDefault(tp => tp.Id == p.Id);
+                if (dbPrice == null) continue;
+            
+                dbPrice.EndDatePrice = DateTime.Now;
+                _context.TicketPrice.Add(new TicketPrice
+                {
+                    UserCategory = p.UserCategory,
+                    Price = p.Price,
+                    InitialDatePrice = DateTime.Now
+                });
             }
+            await _context.SaveChangesAsync();
+            return ServiceResult.Ok("Preços atualizados com sucesso.");
         }
-        await _context.SaveChangesAsync();
+        catch (Exception ex)
+        {
+            _logger.LogAppError(AppErrors.PricingNotAvailable, TableName.TicketPrice, AppOperation.Update, ex);
+            return ServiceResult.Fail(AppErrors.PricingNotAvailable.GetViewErrorMessage());
+        }
     }
-
+    
     public async Task<int> GetTicketValidityDaysAsync()
     {
         var config = await GetAppConfigAsync();
@@ -432,11 +445,22 @@ public class AdminService : IAdminService
         return days > 0 ? days : 365;
     }
     
-    public async Task UpdateTicketValidityDaysAsync(int days)
+    public async Task<ServiceResult> UpdateTicketValidityDaysAsync(int days)
     {
-        var config = await GetAppConfigAsync();
-        config.TicketValidityDays = days;
-        await _context.SaveChangesAsync();
+        if (days <= 0) return ServiceResult.Fail("O prazo de validade das senhas deve ser maior que zero.");
+        
+        try
+        {
+            var config = await GetAppConfigAsync();
+            config.TicketValidityDays = days;
+            await _context.SaveChangesAsync();
+            return ServiceResult.Ok("Prazo de validade das senhas atualizado com sucesso. Só se aplica a senhas emitidas a partir de agora.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogAppError(AppErrors.PricingNotAvailable, TableName.TicketPrice, AppOperation.Update, ex);
+            return ServiceResult.Fail(AppErrors.PricingNotAvailable.GetViewErrorMessage());
+        }
     }
     
     #endregion
