@@ -165,7 +165,7 @@ namespace SeguesTests.Services
         new TicketPrice { Id = 1, Price = 4.5m, UserCategory = cat }
     };
 
-            await service.UpdateTicketPricesAsync(updateList);
+            await service.UpdateTicketPricesAsync(updateList.Select(p => new TicketPriceUpdateDto { Id = p.Id, Price = p.Price }).ToList());
 
             var updated = await context.TicketPrice.FindAsync(1);
             Assert.Equal(4.5m, updated!.Price);

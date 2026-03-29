@@ -48,10 +48,10 @@ public class AdminTicketManagementController : Controller
         
         AdminTicketManagementViewModel vm = new AdminTicketManagementViewModel
         {
-            LunchOpeningTime = barCanteenConfig.CanteenLunchOpeningTimeString,
-            LunchClosingTime = barCanteenConfig.CanteenLunchClosingTimeString,
-            DinnerOpeningTime = barCanteenConfig.CanteenDinnerOpeningTimeString,
-            DinnerClosingTime = barCanteenConfig.CanteenDinnerClosingTimeString,
+            LunchOpeningTime = barCanteenConfig.CanteenLunchOpeningTimeString!,
+            LunchClosingTime = barCanteenConfig.CanteenLunchClosingTimeString!,
+            DinnerOpeningTime = barCanteenConfig.CanteenDinnerOpeningTimeString!,
+            DinnerClosingTime = barCanteenConfig.CanteenDinnerClosingTimeString!,
             Prices = await _adminService.GetTicketPricesAsync(),
             CurrentValidityDays = await _adminService.GetTicketValidityDaysAsync(),
             SearchModel = new ReportTicketSearchViewModel
@@ -113,7 +113,7 @@ public class AdminTicketManagementController : Controller
     /// </remarks>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> UpdatePrices([Bind(Prefix = "Prices")] List<TicketPrice> updatedPrices)
+    public async Task<IActionResult> UpdatePrices([Bind(Prefix = "Prices")] List<TicketPriceUpdateDto> updatedPrices)
     {
         if (!updatedPrices.Any()) return RedirectToAction(nameof(Index));
         

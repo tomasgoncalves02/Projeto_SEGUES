@@ -84,12 +84,12 @@ namespace Projeto_SEGUES.Data
             modelBuilder.Entity<AppUser>()
                 .HasOne(u => u.UserCategory)
                 .WithMany()
-                .IsRequired();
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<UserCategory>()
                 .HasMany(uc => uc.TicketPrices)
                 .WithOne(tp => tp.UserCategory)
-                .HasForeignKey(tp => tp.Id)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Order>()
@@ -103,7 +103,8 @@ namespace Projeto_SEGUES.Data
             modelBuilder.Entity<OrderLine>()
                 .HasOne(ol => ol.Product)
                 .WithMany(p => p.ProductPurchases)
-                .HasForeignKey(ol => ol.ProductId);
+                .HasForeignKey(ol => ol.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<OrderLine>()
                 .HasOne(ol => ol.Order)
@@ -114,6 +115,7 @@ namespace Projeto_SEGUES.Data
                 .HasOne(t => t.Owner)
                 .WithMany()
                 .OnDelete(DeleteBehavior.Restrict); // Prevent multiple cascade
+            
             modelBuilder.Entity<Ticket>()
                 .HasIndex(t => t.ValidationCode)
                 .IsUnique();
@@ -126,6 +128,11 @@ namespace Projeto_SEGUES.Data
             modelBuilder.Entity<TicketTransfer>()
                 .HasOne(tt => tt.Receiver)
                 .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            modelBuilder.Entity<TicketPrice>()
+                .HasOne(tp => tp.UserCategory)
+                .WithMany(uc => uc.TicketPrices)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Global configuration for Decimals

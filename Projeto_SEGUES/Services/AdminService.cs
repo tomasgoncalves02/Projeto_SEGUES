@@ -405,10 +405,12 @@ public class AdminService : IAdminService
         return await _context.TicketPrice
             .Include(tp => tp.UserCategory)
             .Where(tp => tp.EndDatePrice == null || tp.EndDatePrice > DateTime.Today)
+            .GroupBy(tp => tp.UserCategory.Id)
+            .Select(group => group.OrderByDescending(tp => tp.InitialDatePrice).First())
             .ToListAsync();
     }
     
-    public async Task<ServiceResult> UpdateTicketPricesAsync(List<TicketPrice> prices)
+    public async Task<ServiceResult> UpdateTicketPricesAsync(List<TicketPriceUpdateDto> prices)
     {
         var currentPrices = await GetTicketPricesAsync();
 
@@ -417,13 +419,14 @@ public class AdminService : IAdminService
             foreach (var p in prices)
             {
                 if (p.Price <= 0) continue;
+                
                 var dbPrice = currentPrices.FirstOrDefault(tp => tp.Id == p.Id);
-                if (dbPrice == null) continue;
-            
+                if (dbPrice == null || dbPrice.Price == p.Price) continue;
+                
                 dbPrice.EndDatePrice = DateTime.Now;
                 _context.TicketPrice.Add(new TicketPrice
                 {
-                    UserCategory = p.UserCategory,
+                    UserCategory = dbPrice.UserCategory,
                     Price = p.Price,
                     InitialDatePrice = DateTime.Now
                 });

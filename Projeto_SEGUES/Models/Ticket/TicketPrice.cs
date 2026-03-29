@@ -16,7 +16,7 @@ public class TicketPrice
 {
     /// <summary>Unique identifier for the price rule.</summary>
     public int Id { get; set; }
-
+    
     /// <summary>The user group this price applies to (e.g., "Aluno Escalão A", "Funcionário").</summary>
     [Required]
     public required UserCategory UserCategory { get; set; } // FK

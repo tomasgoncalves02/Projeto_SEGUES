@@ -15,6 +15,7 @@ public class OrderPageViewModel
     public string BarMenuLink { get; set; } = "";
     public bool IsOpenSaturday { get; set; }
     public bool IsOpenSunday { get; set; }
+    public string ExtraDays { get; set; } = "";
     
     public bool IsClosedByWeekend { get; set; }
     public bool IsOutsideHours { get; set; }

@@ -71,6 +71,7 @@ public class OrderController : Controller
             BarMenuLink = config.BarMenuLink!,
             IsOpenSaturday = config.IsOpenSaturday,
             IsOpenSunday = config.IsOpenSunday,
+            ExtraDays = "" + (config.IsOpenSaturday ? ", Sáb" : "") + (config.IsOpenSunday ? ", Dom" : ""),
             IsClosedByWeekend = closedByWeekendConfig,
             IsOutsideHours = isOutsideHours
         };
