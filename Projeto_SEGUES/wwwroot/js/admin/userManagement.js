@@ -1,14 +1,14 @@
 ﻿import { DOM, Notifications } from "../core/core.js";
 
 /**
- * Função para confirmar a desativação de um utilizador
+ * Confirm user deactivation
  */
 function confirmDeactivateUser(e) {
     const btn = e.currentTarget;
     const { id, name } = btn.dataset;
 
     Notifications.confirm(
-        '',
+        null,
         `Tem a certeza que deseja desativar o utilizador <b>${name}</b>?<br>` +
         `<small class='text-muted'>O utilizador deixará de ter acesso à plataforma.</small>`
     ).then((result) => {
@@ -19,7 +19,7 @@ function confirmDeactivateUser(e) {
 }
 
 /**
- * Função para confirmar a reativação de um utilizador
+ * Confirm user activation
  */
 function confirmActivateUser(e) {
     const { id, name } = e.currentTarget.dataset;
@@ -35,36 +35,38 @@ function confirmActivateUser(e) {
 }
 
 /**
- * Filtros da tabela de utilizadores (Search, Role e Category)
+ * Updates the user count badge in the UI.
  */
-function filterUsersTable() {
-    const searchFilter = (DOM.byId('searchFilter')?.value ?? '').toLowerCase();
-    const roleFilter = (DOM.byId('roleFilter')?.value ?? '').toLowerCase();
-    const categoryFilter = (DOM.byId('categoryFilter')?.value ?? '').toLowerCase();
+function updateUsersCount() {
+    const rowCount = DOM.byClass('userRow')?.length || 0;
+    const badge = DOM.byId('usersCountBadge');
+    if (!badge) return;
 
-    DOM.byClass('user-row').forEach(row => {
-        const userName = (row.dataset.name ?? '').toLowerCase();
-        const userEmail = (row.dataset.email ?? '').toLowerCase();
-        const userRole = (row.dataset.role ?? '').toLowerCase();
-        const userCategory = (row.dataset.category ?? '').toLowerCase();
+    badge.textContent = rowCount.toString(10);
+}
 
-        const matchesSearch = userName.includes(searchFilter) || userEmail.includes(searchFilter);
-        const matchesRole = roleFilter === '' || userRole === roleFilter;
-        const matchesCategory = categoryFilter === '' || userCategory === categoryFilter;
+function syncExportData(e) {
+    e.preventDefault();
+    const form = DOM.byId('exportPdfForm');
+    if (!form) return;
 
-        row.style.display = (matchesSearch && matchesRole && matchesCategory) ? '' : 'none';
-    });
+    // Sync filter values to hidden inputs in the export form
+    DOM.byId('exportPdfSearch').value = DOM.byId('searchFilter')?.value || '';
+    DOM.byId('exportPdfRole').value = DOM.byId('roleFilter')?.value || '';
+    DOM.byId('exportPdfCategory').value = DOM.byId('categoryFilter')?.value || '';
+
+    form.submit();
 }
 
 const UserManagement = {
     init() {
-        DOM.bindAll('confirmDeactivateUser', 'click', confirmDeactivateUser);
-        DOM.bindAll('confirmActivateUser', 'click', confirmActivateUser);
-        DOM.bind('searchFilter', 'keyup', filterUsersTable);
-        DOM.bind('roleFilter', 'change', filterUsersTable);
-        DOM.bind('categoryFilter', 'change', filterUsersTable);
+        DOM.delegate('confirmDeactivateUser', 'click', confirmDeactivateUser);
+        DOM.delegate('confirmActivateUser', 'click', confirmActivateUser);
+        DOM.bind('exportPdfForm', 'submit', syncExportData);
     }
 };
 
 DOM.bindDocumentLoad(UserManagement.init);
+DOM.executeAfterHtmx(updateUsersCount);
+
 export { UserManagement };

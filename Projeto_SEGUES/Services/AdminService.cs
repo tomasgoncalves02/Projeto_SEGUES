@@ -172,13 +172,51 @@ public class AdminService : IAdminService
     
     #region User Management
     
-    public async Task<List<AppUser>> GetFilteredUsersAsync(string? searchString, string? roleFilter, string? categoryFilter)
+    private async Task<List<UserDto>> MapUsersToDtoAsync(List<AppUser> users, List<Role> roles)
+    {
+        if (users.Count == 0) return [];
+        
+        var userIds = users.Select(u => u.Id).ToList();
+        var userRoleMapping = await _context.UserRoles
+            .Where(ur => userIds.Contains(ur.UserId))
+            .ToDictionaryAsync(ur => ur.UserId, ur => roles.First(r => r.Id == ur.RoleId));
+        
+        return users.Select(user =>
+        {
+            var categoryName = user.UserCategory.Name;
+            var role = userRoleMapping[user.Id];
+            return new UserDto
+            {
+                Id = user.Id,
+                FullName = $"{user.FirstName} {user.LastName}".Trim(),
+                Initial = string.IsNullOrEmpty(user.FirstName) ? "?" : user.FirstName[..1].ToUpper(),
+                Email = user.Email!,
+                
+                RoleName = role.DisplayName,
+                RoleBadgeClass = role.Name.ToBadgeClass(),
+                
+                CategoryName = categoryName,
+                CategoryBadgeClass = categoryName.ToBadgeClass(),
+                
+                IsActive = user.Status == UserStatus.Active,
+                BalanceFormatted = user.Balance.ToString("C")
+            };
+        }).ToList();
+    }
+    
+    public async Task<List<UserDto>> GetFilteredUsersAsync(string? searchString = null, string? roleFilter = null, string? categoryFilter = null)
     {
         // All users
-        var query = _userManager.Users.Include(u => u.UserCategory).AsQueryable();
-
+        var query = _userManager.Users
+            .Include(u => u.UserCategory)
+            .AsNoTracking()
+            .AsQueryable();
+        
+        // Roles
+        var roles = await _roleManager.Roles.ToListAsync();
+        
         // Filter users by name or email
-        if (!string.IsNullOrEmpty(searchString))
+        if (!string.IsNullOrWhiteSpace(searchString))
         {
             searchString = searchString.Trim().ToLower();
             query = query.Where(u => u.FirstName.ToLower().Contains(searchString)
@@ -187,9 +225,9 @@ public class AdminService : IAdminService
         }
 
         // Role
-        if (!string.IsNullOrEmpty(roleFilter))
+        if (!string.IsNullOrWhiteSpace(roleFilter))
         {
-            var role = await _roleManager.FindByNameAsync(roleFilter.Trim());
+            var role = roles.FirstOrDefault(r => r.Name == roleFilter.Trim());
             if (role != null)
             {
                 var userIdsInRole = _context.UserRoles
@@ -200,12 +238,13 @@ public class AdminService : IAdminService
         }
 
         // Category
-        if (!string.IsNullOrEmpty(categoryFilter))
+        if (!string.IsNullOrWhiteSpace(categoryFilter))
         {
             query = query.Where(u => u.UserCategory.Name == categoryFilter.Trim());
         }
         
-        return await query.ToListAsync();
+        var users = await query.ToListAsync();
+        return await MapUsersToDtoAsync(users, roles);
     }
 
     public Task<UserCategory?> GetCategoryByNameAsync(string modelCategory)

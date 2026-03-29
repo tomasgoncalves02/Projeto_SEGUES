@@ -13,7 +13,7 @@ public interface IAdminService
     Task<ServiceResult> CreateInternalUserAsync(CreateInternalUserViewModel model);
     
     // User Management
-    Task<List<AppUser>> GetFilteredUsersAsync(string? searchString, string? roleFilter, string? categoryFilter);
+    Task<List<UserDto>> GetFilteredUsersAsync(string? searchString = null, string? roleFilter = null, string? categoryFilter = null);
     Task<UserCategory?> GetCategoryByNameAsync(string modelCategory);
     Task RequestEmailChangeAsync(AppUser user, string newEmail, IUrlHelper urlHelper, string scheme);
     Task<List<SelectListItem>> GetNonClientRolesForDropdownAsync();

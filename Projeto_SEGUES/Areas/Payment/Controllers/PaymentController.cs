@@ -89,7 +89,7 @@ public class PaymentController : Controller
     [HttpGet]
     public async Task<IActionResult> SuccessPayment(string reference, string sessionId)
     {
-        if (string.IsNullOrEmpty(reference) || string.IsNullOrEmpty(sessionId))
+        if (string.IsNullOrWhiteSpace(reference) || string.IsNullOrWhiteSpace(sessionId))
         {
             _logger.LogAppError(AppErrors.BadRequest, TableName.All, AppOperation.Other);
             return RedirectToAction("Error", "Home", new { area = "", errorCode = AppErrors.BadRequest });

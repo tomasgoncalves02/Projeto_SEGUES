@@ -53,7 +53,7 @@ public class LogoutModel : PageModel
 
         _logger.LogInformation("Utilizador efetuou logout com sucesso.");
 
-        if (!string.IsNullOrEmpty(returnUrl))
+        if (!string.IsNullOrWhiteSpace(returnUrl))
         {
             return LocalRedirect(returnUrl);
         }

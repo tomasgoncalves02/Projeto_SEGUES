@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
+using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Areas.User.ViewModels;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Extensions;
@@ -49,20 +50,36 @@ public class AdminUserManagementController : Controller
     /// <summary>
     /// Lists the system users with support for search and filters.
     /// </summary>
-    /// <param name="searchString">Search term (name or email).</param>
-    /// <param name="roleFilter">Filter by role type (Admin, Staff, Client).</param>
-    /// <param name="categoryFilter">Filter by user category (Student, Faculty, etc.).</param>
     /// <returns>The index View with the filtered collection of users.</returns>
-    public async Task<IActionResult> Index(string? searchString, string? roleFilter, string? categoryFilter)
+    public async Task<IActionResult> Index()
     {
-        var users = await _adminService.GetFilteredUsersAsync(searchString, roleFilter, categoryFilter);
-        ViewData["SearchString"] = searchString;
-        ViewData["CurrentRole"] = roleFilter;
-        ViewData["CurrentCategory"] = categoryFilter;
+        AdminUserManagementViewModel vm = new AdminUserManagementViewModel
+        {
+            Roles = await _adminService.GetAllRolesForDropdownAsync(),
+            Categories = await _adminService.GetAllCategoriesForDropdownAsync(),
+            SearchModel = new UserSearchViewModel
+            {
+                Results = await _adminService.GetFilteredUsersAsync()
+            }
+        };
+        
+        return View(vm);
+    }
+    
+    /// <summary>
+    /// Returns the filtered user table rows via HTMX.
+    /// <param name="model">The search and filter parameters bound from the request.</param>
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> GetFilteredUsers([Bind(Prefix = "SearchModel")] UserSearchViewModel model)
+    {
+        model.Results = await _adminService.GetFilteredUsersAsync(
+            model.SearchString, 
+            model.RoleFilter, 
+            model.CategoryFilter
+        );
 
-        ViewBag.Roles = await _adminService.GetAllRolesForDropdownAsync();
-        ViewBag.Categories = await _adminService.GetAllCategoriesForDropdownAsync();
-        return View(users);
+        return PartialView("_UserTableRowsPartial", model.Results);
     }
 
     /// <summary>
@@ -192,7 +209,7 @@ public class AdminUserManagementController : Controller
             await _userManager.AddToRoleAsync(user, model.Role);
             await _userManager.UpdateSecurityStampAsync(user);
 
-            if (!string.IsNullOrEmpty(pendingEmail))
+            if (!string.IsNullOrWhiteSpace(pendingEmail))
             {
                 try
                 {
@@ -322,13 +339,13 @@ public class AdminUserManagementController : Controller
                 .Where(l => l.AppUser != null && employeeIds.Contains(l.AppUser.Id))
                 .AsQueryable();
 
-            if (!string.IsNullOrEmpty(search))
+            if (!string.IsNullOrWhiteSpace(search))
             {
                 query = query.Where(l => l.AppUser.UserName.Contains(search) ||
                                          l.Message.Contains(search) ||
                                          l.AppUser.FirstName.Contains(search));
             }
-            if (!string.IsNullOrEmpty(date) && DateTime.TryParse(date, out DateTime parsedDate))
+            if (!string.IsNullOrWhiteSpace(date) && DateTime.TryParse(date, out DateTime parsedDate))
             {
                 query = query.Where(l => l.TimeStamp.Date == parsedDate.Date);
             }

@@ -138,7 +138,7 @@ namespace SeguesTests.Services
             var result = await service.GetFilteredUsersAsync("pedro", null, null);
 
             Assert.Single(result);
-            Assert.Equal("Pedro", result[0].FirstName);
+            Assert.Equal("Pedro Silva", result[0].FullName);
         }
 
         // Confirms that ticket prices are updated and the expiration date is set to the end of the next day

@@ -105,27 +105,21 @@ function syncExportData(e) {
  */
 const ReportOrder = {
     init() {
-        ReportOrder.rebind();
-        DOM.bind('exportPdfForm', 'submit', syncExportData);      
+        DOM.delegate('showOrderDetails', 'click', async function () {
+            await showOrderDetails(this.dataset.id);
+        });
+        DOM.bind('exportPdfForm', 'submit', syncExportData);
         DOM.bind('switchSat', 'change', function () {
             DOM.byId('formSat').submit();
         });
         DOM.bind('switchSun', 'change', function () {
             DOM.byId('formSun').submit();
         });
-    },
-    /**
-     * Rebinds event listeners for dynamic content loaded via HTMX.
-     */
-    rebind() {
-        DOM.bindAll('showOrderDetails', 'click', async function () {
-            await showOrderDetails(this.dataset.id);
-        });
     }
 };
 
 // Application Lifecycle
 DOM.bindDocumentLoad(ReportOrder.init);
-DOM.executeAfterHtmx(ReportOrder.rebind, updateOrdersCount);
+DOM.executeAfterHtmx(updateOrdersCount);
 
 export { ReportOrder };

@@ -78,8 +78,8 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="bg-white bg-opacity-50 px-3 py-1 rounded-pill border card-ips small fw-bold text-muted shadow-sm">
-                            <i class="bi bi-info-circle me-1 text-color-ips"></i>
+                        <div class="bg-white bg-opacity-50 px-3 py-1 rounded-pill border small fw-bold text-muted shadow-sm" style="border-top: 6px solid @(Model.IsClosed ? "var(--deny) ": "var(--ips)") !important;">
+                            <i class="bi bi-info-circle me-1 text-color-ips @(Model.IsClosed ? "text-danger" : "text-color-ips")"></i>
                             <span>Aberto aos dias úteis</span><span class="text-color-ips">@Model.ExtraDays</span>
                         </div>
                     </div>

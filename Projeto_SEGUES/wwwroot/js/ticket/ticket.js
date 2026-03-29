@@ -35,14 +35,7 @@ const Ticket = {
      * Entry point for the module. Triggers the initial binding of events.
      */
     init() {
-        Ticket.rebind();
-    },
-    /**
-     * Attaches click listeners to all elements with the 'showQr' class.
-     * Essential for handling dynamic content injected via HTMX in ticket lists.
-     */
-    rebind() {
-        DOM.bindAll('showQr', 'click', function () {
+        DOM.delegate('showQr', 'click', function() {
             // Retrieves the unique ticket code from the element's data-code attribute
             showQr(this.dataset.code);
         });
@@ -51,6 +44,5 @@ const Ticket = {
 
 // Application Lifecycle Hooks
 DOM.bindDocumentLoad(Ticket.init);
-DOM.executeAfterHtmx(Ticket.rebind);
 
 export { Ticket };

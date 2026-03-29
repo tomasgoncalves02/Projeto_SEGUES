@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Areas.Report.ViewModels;
 using Projeto_SEGUES.Extensions;
-using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Services;
 
 namespace Projeto_SEGUES.Areas.Admin;

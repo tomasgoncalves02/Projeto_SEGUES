@@ -130,22 +130,14 @@ function handleEditFormSubmit(e) {
  */
 const Inventory = {
     init() {
-        Inventory.rebind();
+        DOM.delegate('showProductDetails', 'click', showProductDetails);
+        DOM.delegate('confirmDeleteProduct', 'click', confirmDeleteProduct);
+        DOM.delegate('confirmReactivateProduct', 'click', confirmReactivateProduct);
         DOM.bind('editForm', 'submit', handleEditFormSubmit);
-    },
-    /**
-     * Reattaches event listeners to interactive elements.
-     * Essential for maintaining functionality after dynamic table updates.
-     */
-    rebind() {
-        DOM.bindAll('showProductDetails', 'click', showProductDetails);
-        DOM.bindAll('confirmDeleteProduct', 'click', confirmDeleteProduct);
-        DOM.bindAll('confirmReactivateProduct', 'click', confirmReactivateProduct);
     }
 };
 
 // Lifecycle Hooks
 DOM.bindDocumentLoad(Inventory.init);
-DOM.executeAfterHtmx(Inventory.rebind, updateProductsCount);
-
+DOM.executeAfterHtmx(updateProductsCount);
 export { Inventory };

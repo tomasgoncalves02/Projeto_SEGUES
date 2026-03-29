@@ -79,8 +79,7 @@
 
                         <form id="orderCancellationForm" asp-area="Order" asp-controller="ActiveOrder" asp-action="CancelOrder" asp-route-id="@Model.Order.Id" method="post" class="w-100">
                             @Html.AntiForgeryToken()
-                            <button type="button" id="confirmOrderCancellation"
-                                    class="btn btn-outline-danger w-100 py-2 fw-bold">
+                            <button type="button" class="btn btn-outline-danger w-100 py-2 fw-bold confirmOrderCancellation">
                                 <i class="bi bi-x-circle me-2"></i> Cancelar Pedido
                             </button>
                         </form>

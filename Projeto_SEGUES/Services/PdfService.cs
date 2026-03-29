@@ -1,6 +1,7 @@
 ﻿using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Order;
 using Projeto_SEGUES.Models.Ticket;
+using Projeto_SEGUES.Models.User;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -72,15 +73,57 @@ public class PdfService : IPdfService
     }
     
     /// <summary>
+    /// Auxiliary method for drawing a date cell in a table.
+    /// </summary>
+    /// <param name="container">The container to compose the date cell elements into.</param>
+    /// <param name="date">The DateTime value to display in the cell.</param>
+    private static void DrawDateCell(IContainer container, DateTime date)
+    {
+        container.Column(c => 
+        {
+            c.Item().AlignCenter().Text(date.ToString("dd/MM/yyyy")).FontSize(8).SemiBold();
+            c.Item().AlignCenter().Text(date.ToString("HH:mm")).FontSize(7).FontColor(Colors.Grey.Medium);
+        });
+    }
+
+    /// <summary>
+    /// Auxiliary method for drawing a user cell in a table.
+    /// </summary>
+    /// <param name="container">The container to compose the user cell elements into.</param>
+    /// <param name="user">The AppUser object containing the user's information to display in the cell.</param>
+    private static void DrawUserCell(IContainer container, AppUser user)
+    {
+        container.ExtendHorizontal().AlignLeft().PaddingLeft(4).Column(c => 
+        {
+            c.Item().AlignLeft().Text($"{user.FirstName} {user.LastName}").FontSize(8).SemiBold();
+            c.Item().AlignLeft().Text(user.Email).FontSize(7).FontColor(Colors.Grey.Medium);
+        });   
+    }
+    
+    /// <summary>
+    /// Auxiliary method for drawing a products cell in a table.
+    /// </summary>
+    /// <param name="container">The container to compose the products cell elements into.</param>
+    /// <param name="products">The collection of OrderLine objects representing the products to display in the cell.</param>
+    private static void DrawProductsCell(IContainer container, IEnumerable<OrderLine> products)
+    {
+        container.ExtendHorizontal().AlignLeft().PaddingLeft(4).Column(c =>
+        {
+            foreach (var p in products)
+                c.Item().Text($"• {p.Quantity}x {p.Product.Name} ({p.ProductValue:C})").FontSize(7);
+        });
+    }
+    
+    /// <summary>
     /// Auxiliary method for styling the cells.
     /// </summary>
     private static IContainer CellStyle(IContainer container) =>
         container
-            .AlignCenter()
-            .AlignMiddle()
             .BorderBottom(1)
             .BorderColor(Colors.Grey.Lighten3)
             .PaddingVertical(4)
+            .AlignMiddle()
+            .AlignCenter()
             .DefaultTextStyle(x => x.FontFamily(FontFamily).FontSize(8));
     
     /// <summary>
@@ -125,11 +168,7 @@ public class PdfService : IPdfService
                     foreach (var o in orders)
                     {
                         // User
-                        table.Cell().Element(CellStyle).AlignLeft().PaddingLeft(4).Column(c =>
-                        {
-                            c.Item().Text($"{o.AppUser.FirstName} {o.AppUser.LastName}").FontSize(8).SemiBold();
-                            c.Item().Text(o.AppUser.Email).FontSize(7).FontColor(Colors.Grey.Medium);
-                        });
+                        table.Cell().Element(CellStyle).Element(c => DrawUserCell(c, o.AppUser));
 
                         // Number
                         table.Cell().Element(CellStyle).Text($"#{o.Id:D5}");
@@ -138,11 +177,7 @@ public class PdfService : IPdfService
                         table.Cell().Element(CellStyle).Text(o.RedemptionCode).FontSize(7);
                         
                         // OrderDate
-                        table.Cell().Element(CellStyle).Column(c => 
-                        {
-                            c.Item().Text(o.OrderDate.ToString("dd/MM/yyyy")).FontSize(8).SemiBold();
-                            c.Item().Text(o.OrderDate.ToString("HH:mm")).FontSize(7).FontColor(Colors.Grey.Medium);
-                        });
+                        table.Cell().Element(CellStyle).Element(c => DrawDateCell(c, o.OrderDate));
                         
                         // DeliveryTime
                         table.Cell().Element(CellStyle).Text(
@@ -162,11 +197,7 @@ public class PdfService : IPdfService
                         );
                         
                         // Products
-                        table.Cell().Element(CellStyle).AlignLeft().PaddingLeft(4).Column(c =>
-                        {
-                            foreach (var p in o.ProductPurchases)
-                                c.Item().Text($"• {p.Quantity}x {p.Product.Name} ({p.ProductValue:C})").FontSize(7);
-                        });
+                        table.Cell().Element(CellStyle).Element(c => DrawProductsCell(c, o.ProductPurchases));
 
                         // Total
                         table.Cell().Element(CellStyle).AlignRight().PaddingRight(4).Text($"{o.TotalValue:C}").SemiBold();
@@ -218,21 +249,13 @@ public class PdfService : IPdfService
                         var lastTrans = t.Transfers.OrderByDescending(x => x.TransferDate).FirstOrDefault();
                         
                         // Owner
-                        table.Cell().Element(CellStyle).AlignLeft().PaddingLeft(4).Column(c =>
-                        {
-                            c.Item().Text($"{t.Owner.FirstName} {t.Owner.LastName}").FontSize(8).SemiBold();
-                            c.Item().Text(t.Owner.Email).FontSize(7).FontColor(Colors.Grey.Medium);
-                        });
+                        table.Cell().Element(CellStyle).Element(c => DrawUserCell(c, t.Owner));
                         
                         // Code
                         table.Cell().Element(CellStyle).Text(t.ValidationCode).FontSize(7);
                         
                         // Purchase Date
-                        table.Cell().Element(CellStyle).Column(c =>
-                        {
-                            c.Item().Text(t.TicketPurchase.TransactionDate.ToString("dd/MM/yyyy")).FontSize(8).SemiBold();
-                            c.Item().Text(t.TicketPurchase.TransactionDate.ToString("HH:mm")).FontSize(7).FontColor(Colors.Grey.Medium);
-                        });
+                        table.Cell().Element(CellStyle).Element(c => DrawDateCell(c, t.TicketPurchase.TransactionDate));
                         
                         // State
                         table.Cell().Element(CellStyle).Text(t.State.ToDisplayName());
@@ -247,25 +270,13 @@ public class PdfService : IPdfService
                         else
                         {
                             // Date of transfer
-                            table.Cell().Element(CellStyle).Column(c =>
-                            {
-                                c.Item().Text(lastTrans.TransferDate.ToString("dd/MM/yyyy")).FontSize(8).SemiBold();
-                                c.Item().Text(lastTrans.TransferDate.ToString("HH:mm")).FontSize(7).FontColor(Colors.Grey.Medium);
-                            });
+                            table.Cell().Element(CellStyle).Element(c => DrawDateCell(c, lastTrans.TransferDate));
                             
                             // Sender
-                            table.Cell().Element(CellStyle).AlignLeft().PaddingLeft(4).Column(c =>
-                            {
-                                c.Item().Text($"{lastTrans.Sender.FirstName} {lastTrans.Sender.LastName}").FontSize(8).SemiBold();
-                                c.Item().Text(lastTrans.Sender.Email).FontSize(7).FontColor(Colors.Grey.Medium);
-                            });
+                            table.Cell().Element(CellStyle).Element(c => DrawUserCell(c, lastTrans.Sender));
                             
                             // Receiver
-                            table.Cell().Element(CellStyle).AlignLeft().PaddingLeft(4).Column(c =>
-                            {
-                                c.Item().Text($"{lastTrans.Receiver.FirstName} {lastTrans.Receiver.LastName}").FontSize(8).SemiBold();
-                                c.Item().Text(lastTrans.Receiver.Email).FontSize(7).FontColor(Colors.Grey.Medium);
-                            });
+                            table.Cell().Element(CellStyle).Element(c => DrawUserCell(c, lastTrans.Receiver));
                         }
                         
                         // Used date
@@ -275,11 +286,7 @@ public class PdfService : IPdfService
                         }
                         else
                         {
-                            table.Cell().Element(CellStyle).Column(c =>
-                            {
-                                c.Item().Text(t.UsedDate.Value.ToString("dd/MM/yyyy")).FontSize(8).SemiBold();
-                                c.Item().Text(t.UsedDate.Value.ToString("HH:mm")).FontSize(7).FontColor(Colors.Grey.Medium);
-                            });
+                            table.Cell().Element(CellStyle).Element(c => DrawDateCell(c, t.UsedDate.Value));
                         }
                         
                         // Expiration date

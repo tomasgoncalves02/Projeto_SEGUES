@@ -31,7 +31,7 @@ public class RequestLoggingMiddleware
         string requestPath = context.Request.Path;
 
         // Ensure empty strings are treated as null for cleaner log data.
-        if (string.IsNullOrWhiteSpace(userId)) userId = null;
+        if (string.IsNullOrEmpty(userId)) userId = null;
 
         // Use Serilog's PushProperty to wrap the entire request execution in a diagnostic context.
         using (LogContext.PushProperty("AppUserId", userId))

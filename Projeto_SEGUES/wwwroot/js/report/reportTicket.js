@@ -22,13 +22,13 @@ function syncExportData(e) {
     form.submit();
 }
 
-const AdminTicket = {
+const ReportTicket = {
     init() {
         DOM.bind('exportPdfForm', 'submit', syncExportData);
     }
 };
 
-DOM.bindDocumentLoad(AdminTicket.init);
+DOM.bindDocumentLoad(ReportTicket.init);
 DOM.executeAfterHtmx(updateTicketsCount);
 
-export { AdminTicket };
+export { ReportTicket };

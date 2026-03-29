@@ -19,7 +19,7 @@ public static class StringExtensions
     /// <returns>A string containing one or more CSS classes (e.g., "bg-success").</returns>
     public static string ToBadgeClass(this string? value)
     {
-        if (string.IsNullOrEmpty(value)) return "bg-secondary";
+        if (string.IsNullOrWhiteSpace(value)) return "bg-secondary";
 
         return value.Trim() switch
         {

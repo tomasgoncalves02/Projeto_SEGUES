@@ -73,7 +73,7 @@
                         {
                             // Lógica para injetar o Nome antes do Email na mensagem original
                             string fullMessage = log.Message ?? "";
-                            if (log.AppUser != null && !string.IsNullOrEmpty(log.AppUser.Email) && fullMessage.Contains(log.AppUser.Email))
+                            if (log.AppUser != null && !string.IsNullOrWhiteSpace(log.AppUser.Email) && fullMessage.Contains(log.AppUser.Email))
                             {
                                 string replacement = $"{log.AppUser.FirstName} {log.AppUser.LastName} ({log.AppUser.Email})";
                                 fullMessage = fullMessage.Replace(log.AppUser.Email, replacement);

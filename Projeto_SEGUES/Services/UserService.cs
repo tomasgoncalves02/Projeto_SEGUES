@@ -39,7 +39,7 @@ public class UserService : IUserService
         user.Address = model.Address;
         user.City = model.City;
 
-        if (!string.IsNullOrEmpty(model.PostalCode))
+        if (!string.IsNullOrWhiteSpace(model.PostalCode))
         {
             var postalCode = await _context.PostalCode.FirstOrDefaultAsync(p => p.Code == model.PostalCode);
             if (postalCode == null)

@@ -114,24 +114,17 @@ function confirmOrder() {
 
 const CreateOrder = {
     init() {
-        CreateOrder.rebind();
+        DOM.delegate('addToCart', 'click', async function () {
+            await addToCart(this.dataset.id);
+        });
         DOM.bindAll('removeFromCart', 'click', async function () {
             await removeFromCart(this.dataset.id, this.dataset.name);
         });
         DOM.bind('confirmOrder', 'click', confirmOrder);
         DOM.bindAll('receiveNow', 'click', toggleTimePicker);
-    },
-    /**
-     * Rebinds events for elements injected via HTMX filters.
-     */
-    rebind() {
-        DOM.bindAll('addToCart', 'click', async function () {
-            await addToCart(this.dataset.id);
-        });
     }
 }
 
 DOM.bindDocumentLoad(CreateOrder.init);
-DOM.executeAfterHtmx(CreateOrder.rebind);
 
 export { CreateOrder };

@@ -12,12 +12,12 @@ function showCode(code) {
     Notifications.show({
         title: 'Código do Pedido',
         html: `<div class="p-3">
-                    <h2 class="fw-bold text-color-ips" style="letter-spacing: 6px;">${code}</h2>
-                    <p class="text-muted small mt-2">
-                        Apresente este código no bar para validação.<br />
-                        Mantém o brilho do telemóvel alto para facilitar a leitura.
-                    </p>
-                </div>`
+                   <h2 class="fw-bold text-color-ips" style="letter-spacing: 6px;">${code}</h2>
+                   <p class="text-muted small mt-2">
+                       Apresente este código no bar para validação.<br />
+                       Mantém o brilho do telemóvel alto para facilitar a leitura.
+                   </p>
+               </div>`
     });
 }
 
@@ -25,7 +25,7 @@ function showCode(code) {
  * Triggers a confirmation dialog for user-initiated order cancellation.
  */
 function confirmOrderCancellation() {
-    Notifications.confirm("Tens a certeza que queres cancelar este pedido?")
+    Notifications.confirm("Tem a certeza que quer cancelar este pedido?")
         .then(result => {
             if (result.isConfirmed) {
                 const form = DOM.byId("orderCancellationForm");
@@ -103,21 +103,14 @@ function validateDelivery(orderId) {
  */
 const Order = {
     init() {
-        Order.rebind();
-        DOM.bind("confirmOrderCancellation", "click", confirmOrderCancellation);
-        DOM.delegate("changeOrderState", "click", changeOrderState);
-    },
-    /**
-     * Rebinds static listeners for elements inside the order cards.
-     */
-    rebind() {
-        DOM.bindAll('showCode', 'click', function () {
+        DOM.delegate('showCode', 'click', function() {
             showCode(this.dataset.code);
         });
-    }
+        DOM.delegate("confirmOrderCancellation", "click", confirmOrderCancellation);
+        DOM.delegate("changeOrderState", "click", changeOrderState);
+    },
 };
 
 DOM.bindDocumentLoad(Order.init);
-DOM.executeAfterHtmx(Order.rebind);
 
 export { Order };

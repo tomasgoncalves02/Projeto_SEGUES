@@ -25,7 +25,7 @@ public class ErrorViewModel
     /// <summary>
     /// Logical flag used by the View to determine if the Request ID should be rendered.
     /// </summary>
-    public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+    public bool ShowRequestId => !string.IsNullOrWhiteSpace(RequestId);
 
     /// <summary>
     /// The user-friendly, localized description of what went wrong.
