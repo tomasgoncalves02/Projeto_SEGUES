@@ -89,9 +89,9 @@ public class EditUserViewModel
     public string? StudentNumber { get; set; }
 
     /// <summary>Professional role description for users categorized as Employees.</summary>
-    [MaxLength(100, ErrorMessage = "O Cargo deve ter no máximo {1} caracteres.")]
+    /*[MaxLength(100, ErrorMessage = "O Cargo deve ter no máximo {1} caracteres.")]
     [Display(Name = "Cargo")]
-    public string? RoleDescription { get; set; }
+    public string? RoleDescription { get; set; }*/
 
     /// <summary>Identifier for the school the user is affiliated with.</summary>
     [Display(Name = "Escola")]

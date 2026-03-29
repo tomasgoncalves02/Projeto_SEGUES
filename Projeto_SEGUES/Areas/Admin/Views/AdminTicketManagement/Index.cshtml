@@ -81,16 +81,15 @@
                                 @for (int i = 0; i < prices.Count; i++)
                                 {
                                     <div class="col-md">
-                                        <input type="hidden" name="updatedPrices[@i].Id" value="@prices[i].Id"/>
-                                        <input type="hidden" name="updatedPrices[@i].UserCategory.Id" value="@prices[i].UserCategory.Id"/>
-                                        <input type="hidden" name="updatedPrices[@i].UserCategory.Name" value="@prices[i].UserCategory.Name"/>
+                                        <input type="hidden" name="updatedPrices[@i].Id" value="@prices[i].Id" />
+                                        <input type="hidden" name="updatedPrices[@i].UserCategoryId" value="@prices[i].UserCategory.Id" />
+
                                         <label class="form-label small fw-bold">@prices[i].UserCategory.Name</label>
                                         <div class="input-group">
                                             <span class="input-group-text">€</span>
                                             <input type="text" name="updatedPrices[@i].Price" class="form-control fw-bold decimal-input"
                                                    value="@prices[i].Price.ToString("N2", new System.Globalization.CultureInfo("pt-PT"))"
-                                                   oninput="this.value = this.value.replace('.', ',')" min="0"
-                                                   max="100"/>
+                                                   min="0" max="100" />
                                         </div>
                                     </div>
                                 }

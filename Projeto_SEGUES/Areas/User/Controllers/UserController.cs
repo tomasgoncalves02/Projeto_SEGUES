@@ -71,7 +71,7 @@ public class UserController : Controller
             Role = role!,
             Category = user.UserCategory.Name,
             StudentNumber = user is Student student ? student.StudentNumber : null,
-            RoleDescription = user is Employee employee ? employee.RoleDescription : null,
+            //RoleDescription = user is Employee employee ? employee.RoleDescription : null,
             SchoolId = user switch
             {
                 Student student2 => student2.School?.Id,
@@ -113,7 +113,7 @@ public class UserController : Controller
             var roleString = (await _userManager.GetRolesAsync(user)).FirstOrDefault() ?? "Client";
             var role = await _roleManager.FindByNameAsync(roleString);
             model.Role = role!;
-            if (user is Employee emp) model.RoleDescription = emp.RoleDescription;
+           // if (user is Employee emp) model.RoleDescription = emp.RoleDescription;
 
             TempData.SetSwalError("Por favor, verifique os dados preenchidos.");
             return View(nameof(Index), model);

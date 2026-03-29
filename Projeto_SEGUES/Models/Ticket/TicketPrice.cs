@@ -1,5 +1,6 @@
 ﻿using Projeto_SEGUES.Models.User;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Projeto_SEGUES.Models.Ticket;
 
@@ -31,7 +32,7 @@ public class TicketPrice
     [DataType(DataType.Date)]
     [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
     [Display(Name = "Data de Início")]
-    public DateTime InitialDatePrice { get; set; }
+    public DateTime InitialDatePrice { get; set; } = DateTime.Now;
 
     /// <summary>
     /// The date when this pricing rule expires. 

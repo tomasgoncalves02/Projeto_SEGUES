@@ -407,26 +407,24 @@ public class AdminService : IAdminService
             .Where(tp => tp.EndDatePrice == null || tp.EndDatePrice > DateTime.Today)
             .ToListAsync();
     }
-    
+
     public async Task UpdateTicketPricesAsync(List<TicketPrice> prices)
     {
         foreach (var p in prices)
         {
             var dbPrice = await _context.TicketPrice.FindAsync(p.Id);
-            if (dbPrice != null && p.Price > 0)
+
+            if (dbPrice != null)
             {
-                dbPrice.EndDatePrice = DateTime.Now;
-                _context.TicketPrice.Add(new TicketPrice
-                {
-                    UserCategory = p.UserCategory,
-                    Price = p.Price,
-                    InitialDatePrice = DateTime.Now
-                });
+                dbPrice.Price = p.Price;
+                dbPrice.InitialDatePrice = DateTime.Now;
+
+                _context.Entry(dbPrice).State = EntityState.Modified;
             }
         }
         await _context.SaveChangesAsync();
     }
-    
+
     public async Task<int> GetTicketValidityDaysAsync()
     {
         var config = await GetAppConfigAsync();
