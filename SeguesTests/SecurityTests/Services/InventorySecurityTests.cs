@@ -6,7 +6,7 @@ using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.Inventory;
 using Projeto_SEGUES.Services;
 
-namespace SeguesTests.Services.Security
+namespace SeguesTests.SecurityTests.Services
 {
     public class InventorySecurityTests
     {

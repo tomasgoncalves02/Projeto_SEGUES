@@ -7,7 +7,7 @@ using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Inventory;
 using Projeto_SEGUES.Services;
 
-namespace SeguesTests.Services.Unit
+namespace SeguesTests.UnitTests.Services
 {
     public class InventoryServiceUnitTests
     {
