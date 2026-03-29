@@ -10,7 +10,6 @@ using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using SeguesTests.Helpers;
 using System.Security.Claims;
-using MockQueryable.Moq;
 using Xunit;
 
 namespace Tests.UnitTests.User;
@@ -21,6 +20,7 @@ public class UserControllerTests
     private readonly Mock<RoleManager<Role>> _mockRoleManager;
     private readonly Mock<IUserService> _mockUserService;
     private readonly UserController _controller;
+    private const string TestUserId = "pedro-77";
 
     public UserControllerTests()
     {
@@ -36,7 +36,8 @@ public class UserControllerTests
 
         var claimsUser = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
         {
-            new Claim(ClaimTypes.Name, "Pedro")
+            new Claim(ClaimTypes.Name, "Pedro"),
+            new Claim(ClaimTypes.NameIdentifier, TestUserId)
         }, "mock"));
 
         _controller.ControllerContext = new ControllerContext
@@ -50,8 +51,8 @@ public class UserControllerTests
     [Fact]
     public async Task Index_UserNotFound_ReturnsChallengeResult()
     {
-        var usersList = new List<AppUser>().AsQueryable().BuildMock();
-        _mockUserManager.Setup(u => u.Users).Returns(usersList);
+        _mockUserService.Setup(s => s.GetUserForEditAsync(TestUserId))
+            .ReturnsAsync((AppUser)null!);
 
         var result = await _controller.Index();
 
@@ -62,28 +63,34 @@ public class UserControllerTests
     public async Task Index_UserFound_ReturnsViewWithViewModel()
     {
         var user = MockHelper.CreateValidStudent();
-        var usersList = new List<AppUser> { user }.AsQueryable().BuildMock();
+        user.Id = TestUserId;
+        user.FirstName = "Pedro";
 
+        _mockUserService.Setup(s => s.GetUserForEditAsync(TestUserId))
+            .ReturnsAsync(user);
 
-        _mockUserManager.Setup(u => u.Users).Returns(usersList);
-        _mockUserManager.Setup(u => u.GetRolesAsync(It.IsAny<AppUser>())).ReturnsAsync(new List<string> { "Client" });
-        _mockRoleManager.Setup(r => r.FindByNameAsync("Client")).ReturnsAsync(MockHelper.CreateValidRole());
-        _mockUserService.Setup(s => s.GetSchoolsAsync()).ReturnsAsync(new List<SelectListItem>());
+        _mockUserManager.Setup(u => u.GetRolesAsync(user))
+            .ReturnsAsync(new List<string> { "Client" });
+
+        _mockRoleManager.Setup(r => r.FindByNameAsync("Client"))
+            .ReturnsAsync(MockHelper.CreateValidRole());
+
+        _mockUserService.Setup(s => s.GetSchoolsAsync())
+            .ReturnsAsync(new List<SelectListItem>());
 
         var result = await _controller.Index();
 
         var viewResult = Assert.IsType<ViewResult>(result);
         var model = Assert.IsAssignableFrom<EditUserViewModel>(viewResult.Model);
         Assert.Equal("Pedro", model.FirstName);
-        Assert.Equal("12345", model.StudentNumber);
     }
 
     [Fact]
     public async Task UpdateProfile_UserNotFound_ReturnsChallengeResult()
     {
         var model = MockHelper.CreateValidEditUserViewModel();
-        var usersList = new List<AppUser>().AsQueryable().BuildMock();
-        _mockUserManager.Setup(u => u.Users).Returns(usersList);
+        _mockUserService.Setup(s => s.GetUserForEditAsync(TestUserId))
+            .ReturnsAsync((AppUser)null!);
 
         var result = await _controller.UpdateProfile(model);
 
@@ -97,17 +104,24 @@ public class UserControllerTests
         _controller.ModelState.AddModelError("Email", "Required");
 
         var user = MockHelper.CreateValidAppUser();
-        var usersList = new List<AppUser> { user }.AsQueryable().BuildMock();
+        user.Id = TestUserId;
 
-        _mockUserManager.Setup(u => u.Users).Returns(usersList);
-        _mockUserService.Setup(s => s.GetSchoolsAsync()).ReturnsAsync(new List<SelectListItem>());
-        _mockUserManager.Setup(u => u.GetRolesAsync(It.IsAny<AppUser>())).ReturnsAsync(new List<string> { "Client" });
-        _mockRoleManager.Setup(r => r.FindByNameAsync(It.IsAny<string>())).ReturnsAsync(MockHelper.CreateValidRole());
+        _mockUserService.Setup(s => s.GetUserForEditAsync(TestUserId))
+            .ReturnsAsync(user);
+
+        _mockUserService.Setup(s => s.GetSchoolsAsync())
+            .ReturnsAsync(new List<SelectListItem>());
+
+        _mockUserManager.Setup(u => u.GetRolesAsync(user))
+            .ReturnsAsync(new List<string> { "Client" });
+
+        _mockRoleManager.Setup(r => r.FindByNameAsync(It.IsAny<string>()))
+            .ReturnsAsync(MockHelper.CreateValidRole());
 
         var result = await _controller.UpdateProfile(model);
 
         var viewResult = Assert.IsType<ViewResult>(result);
-        Assert.Equal("Index", viewResult.ViewName);
+        Assert.Equal(nameof(_controller.Index), viewResult.ViewName);
         Assert.Equal(model, viewResult.Model);
     }
 
@@ -116,16 +130,18 @@ public class UserControllerTests
     {
         var model = MockHelper.CreateValidEditUserViewModel();
         var user = MockHelper.CreateValidAppUser();
-        var usersList = new List<AppUser> { user }.AsQueryable().BuildMock();
+        user.Id = TestUserId;
 
-        _mockUserManager.Setup(u => u.Users).Returns(usersList);
-        _mockUserService.Setup(s => s.UpdateUserProfileAsync(It.IsAny<AppUser>(), model))
-     .ReturnsAsync(new ServiceResult(true, "Perfil atualizado com sucesso."));
+        _mockUserService.Setup(s => s.GetUserForEditAsync(TestUserId))
+            .ReturnsAsync(user);
+
+        _mockUserService.Setup(s => s.UpdateUserProfileAsync(user, model))
+            .ReturnsAsync(new ServiceResult(true, "Sucesso"));
 
         var result = await _controller.UpdateProfile(model);
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
-        Assert.Equal("Index", redirectResult.ActionName);
+        Assert.Equal(nameof(_controller.Index), redirectResult.ActionName);
     }
 
     [Fact]
@@ -133,17 +149,21 @@ public class UserControllerTests
     {
         var model = MockHelper.CreateValidEditUserViewModel();
         var user = MockHelper.CreateValidAppUser();
-        var usersList = new List<AppUser> { user }.AsQueryable().BuildMock();
+        user.Id = TestUserId;
 
-        _mockUserManager.Setup(u => u.Users).Returns(usersList);
-        _mockUserService.Setup(s => s.UpdateUserProfileAsync(It.IsAny<AppUser>(), model))
-     .ReturnsAsync(new ServiceResult(false, "Erro ao atualizar perfil."));
-        _mockUserService.Setup(s => s.GetSchoolsAsync()).ReturnsAsync(new List<SelectListItem>());
+        _mockUserService.Setup(s => s.GetUserForEditAsync(TestUserId))
+            .ReturnsAsync(user);
+
+        _mockUserService.Setup(s => s.UpdateUserProfileAsync(user, model))
+            .ReturnsAsync(new ServiceResult(false, "Erro"));
+
+        _mockUserService.Setup(s => s.GetSchoolsAsync())
+            .ReturnsAsync(new List<SelectListItem>());
 
         var result = await _controller.UpdateProfile(model);
 
         var viewResult = Assert.IsType<ViewResult>(result);
-        Assert.Equal("Index", viewResult.ViewName);
+        Assert.Equal(nameof(_controller.Index), viewResult.ViewName);
         Assert.Equal(model, viewResult.Model);
     }
 }

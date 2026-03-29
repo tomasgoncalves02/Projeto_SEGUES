@@ -1,20 +1,20 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Projeto_SEGUES.Areas.Report;
+using Xunit;
 
-namespace SeguesTests.Report
+namespace SeguesTests.UnitTests.Report
 {
-    public class ReportControllerTests
+    public class ReportUnitTests
     {
         private readonly ReportController _controller;
 
-        public ReportControllerTests()
+        public ReportUnitTests()
         {
             _controller = new ReportController();
         }
 
-        // Confirms that the main report navigation page is correctly returned to the user
         [Fact]
-        public void Index_ReturnsView()
+        public void Index_ReturnsViewResult()
         {
             var result = _controller.Index();
 
