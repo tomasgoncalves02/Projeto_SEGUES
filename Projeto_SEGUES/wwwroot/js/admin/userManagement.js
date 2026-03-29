@@ -4,11 +4,11 @@
  * Confirm user deactivation
  */
 function confirmDeactivateUser(e) {
-    const btn = e.currentTarget;
-    const { id, name } = btn.dataset;
+    e.preventDefault();
+    const { id, name } = this.dataset;
 
     Notifications.confirm(
-        null,
+        '',
         `Tem a certeza que deseja desativar o utilizador <b>${name}</b>?<br>` +
         `<small class='text-muted'>O utilizador deixará de ter acesso à plataforma.</small>`
     ).then((result) => {
@@ -22,7 +22,8 @@ function confirmDeactivateUser(e) {
  * Confirm user activation
  */
 function confirmActivateUser(e) {
-    const { id, name } = e.currentTarget.dataset;
+    e.preventDefault();
+    const { id, name } = this.dataset;
 
     Notifications.confirm(
         'Reativar Conta',

@@ -74,7 +74,7 @@ else
                     {
                         if (!user.IsActive)
                         {
-                            <form asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Activate" asp-route-id="@user.Id" method="post" id="activate-form-@user.Id" style="display:inline;">
+                            <form asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Activate" asp-route-id="@user.Id" method="post" id="activate-form-@user.Id">
                                 @Html.AntiForgeryToken()
                                 <button type="button" class="btn btn-sm btn-outline-success rounded-0 rounded-end confirmActivateUser"
                                         data-id="@user.Id" data-name="@user.FullName" title="Ativar Conta">
@@ -84,7 +84,7 @@ else
                         }
                         else
                         {
-                            <form asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Deactivate" asp-route-id="@user.Id" method="post" id="deactivate-form-@user.Id" style="display:inline;">
+                            <form asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Deactivate" asp-route-id="@user.Id" method="post" id="deactivate-form-@user.Id">
                                 @Html.AntiForgeryToken()
                                 <button type="button" class="btn btn-sm btn-outline-danger rounded-0 rounded-end confirmDeactivateUser"
                                         data-id="@user.Id" data-name="@user.FullName" title="Desativar Conta">
