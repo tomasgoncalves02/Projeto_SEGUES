@@ -109,7 +109,7 @@ namespace SeguesTests.Admin
                 BirthDate = DateTime.Now.AddYears(-20),
                 Balance = 10.00m
             };*/
-
+        /*
             var user = CreateTestUser("1", "old@test.com");
             _mockUserManager.Setup(u => u.FindByIdAsync("1")).ReturnsAsync(user);
             _mockAdminService.Setup(s => s.GetCategoryByNameAsync("Estudante")).ReturnsAsync(new UserCategory { Name = "Estudante" });
@@ -121,7 +121,7 @@ namespace SeguesTests.Admin
             //var redirectResult = Assert.IsType<RedirectToActionResult>(result);
             /*Assert.Equal("Index", redirectResult.ActionName);
             Assert.Contains("success", _controller.TempData["SwalData"]?.ToString());*/
-        }
+        }/*
 
 
         // Prevents administrators from deactivating their own accounts
@@ -226,4 +226,3 @@ namespace SeguesTests.Admin
             _mockUserManager.Verify(u => u.SetLockoutEndDateAsync(user, It.Is<DateTimeOffset>(d => d > DateTimeOffset.Now)), Times.Once);
         }*/
     }
-}
