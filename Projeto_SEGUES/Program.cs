@@ -248,16 +248,23 @@ using (var scope = app.Services.CreateScope())
     {
         var context = services.GetRequiredService<AppDbContext>();
 
-        if (context.Database.IsRelational())
-        {
-            await context.Database.MigrateAsync();
-        }
-        else
+        if (app.Environment.IsEnvironment("Testing"))
         {
             await context.Database.EnsureCreatedAsync();
         }
+        else
+        {
+            if (context.Database.IsRelational())
+            {
+                await context.Database.MigrateAsync();
+            }
+            else
+            {
+                await context.Database.EnsureCreatedAsync();
+            }
 
-        await DbSeeder.SeedInitialDataAsync(services);
+            await DbSeeder.SeedInitialDataAsync(services);
+        }
     }
     catch (Exception ex)
     {

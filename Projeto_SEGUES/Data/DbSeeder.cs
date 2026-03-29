@@ -32,6 +32,11 @@ public static class DbSeeder
             // Links for current IPS menus
             appConfig.BarLink = "https://software.movelife.net/pt-PT/Menus/PublicCC/Tj6o3O_vCFDXvHU0nbgTmg%3d%3d";
             appConfig.CanteenLink = "https://software.movelife.net/pt-PT/Menus/PublicCC/Tj6o3O_vCFB2LmCmm9VUjw%3d%3d";
+
+            appConfig.MaxTicketsPerUser = 10;
+            appConfig.BarOpeningTime = new TimeSpan(8, 0, 0);
+            appConfig.BarClosingTime = new TimeSpan(20, 0, 0);
+            appConfig.TicketValidityDays = 365;
             await context.AppConfig.AddAsync(appConfig);
         }
 

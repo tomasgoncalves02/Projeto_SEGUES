@@ -54,6 +54,11 @@ public class AppConfig
     [Display(Name = "Link do Bar")]
     public string BarLink { get; set; } = "https://www.ips.pt";
 
+    /// <summary>Maximum number of active tickets a user can hold at once.</summary>
+    [Required]
+    [Range(1, 100, ErrorMessage = "O limite de senhas por utilizador deve ser entre 1 e 100.")]
+    public int MaxTicketsPerUser { get; set; } = 10;
+
     /// <summary>External URL for the Canteen's digital menu or information page.</summary>
     [Url]
     [Display(Name = "Link do Refeitório")]

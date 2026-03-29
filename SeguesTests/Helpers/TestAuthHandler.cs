@@ -15,6 +15,11 @@ public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions
     {
         var authHeader = Context.Request.Headers["Authorization"].ToString();
 
+        if (string.IsNullOrEmpty(authHeader))
+        {
+            return Task.FromResult(AuthenticateResult.NoResult());
+        }
+
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Name, "Pedro"),
