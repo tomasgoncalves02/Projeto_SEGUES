@@ -181,7 +181,7 @@ public class PdfService : IPdfService
                         
                         // DeliveryTime
                         table.Cell().Element(CellStyle).Text(
-                            (o.DeliveryTime.HasValue && o.DeliveryTime.Value != TimeSpan.Zero)
+                            (o.DeliveryTime.HasValue)
                             ? o.DeliveryTime.Value.ToString(@"hh\:mm")
                             : "Agora"
                         );
@@ -191,7 +191,7 @@ public class PdfService : IPdfService
                         
                         // PickupTime
                         table.Cell().Element(CellStyle).Text(
-                            (o.PickupTime == null || o.PickupTime == TimeSpan.Zero)
+                            (o.PickupTime == null)
                                 ? "---"
                                 : o.PickupTime.Value.ToString(@"hh\:mm")
                         );

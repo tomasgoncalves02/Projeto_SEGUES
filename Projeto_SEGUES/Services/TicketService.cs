@@ -143,7 +143,7 @@ public class TicketService : ITicketService
             // Create Tickets
             var validity = await _context.AppConfig.Select(c => c.TicketValidityDays).FirstOrDefaultAsync();
             if (validity == 0) validity = 365;
-            var expiration = now.AddDays(validity);
+            var expiration = now.Date.AddDays(validity).AddHours(23).AddMinutes(59).AddSeconds(59);
             string code;
             
             for (int i = 0; i < quantity; i++)

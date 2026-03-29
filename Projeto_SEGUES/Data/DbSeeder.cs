@@ -312,6 +312,7 @@ public static class DbSeeder
 
         var tickets = new List<Ticket>();
         var now = DateTime.Now;
+        var expirationDate = now.Date.AddDays(365).AddHours(23).AddMinutes(59).AddSeconds(59);
 
         /* 10 tickets same day different hours */
         var hourRange = Math.Max(1, now.Hour - 8 + 1);
@@ -321,7 +322,7 @@ public static class DbSeeder
             var usedDate = now.Date.AddHours(hour); // 08h–17h but no future time
             tickets.Add(new Ticket
             {
-                ExpirationDate = now.AddDays(365),
+                ExpirationDate = expirationDate, 
                 State = TicketState.Used,
                 IsUsed = true,
                 UsedDate = usedDate,
@@ -341,7 +342,7 @@ public static class DbSeeder
             if (usedDate > now) usedDate = usedDate.Date.AddHours(8 + (i % hourRange)); // If future time, set to current day with hour loop
             tickets.Add(new Ticket
             {
-                ExpirationDate = now.AddDays(365),
+                ExpirationDate = expirationDate,
                 State = TicketState.Used,
                 IsUsed = true,
                 UsedDate = usedDate,
@@ -361,7 +362,7 @@ public static class DbSeeder
             if (usedDate > now) usedDate = usedDate.Date.AddHours(8 + (i % hourRange)); // If future time, set to current day with hour loop
             tickets.Add(new Ticket
             {
-                ExpirationDate = now.AddDays(365),
+                ExpirationDate = expirationDate,
                 State = TicketState.Used,
                 IsUsed = true,
                 UsedDate = usedDate,
@@ -382,7 +383,15 @@ public static class DbSeeder
             var usedDate = new DateTime(now.Year, targetMonth, safeDay).AddHours(hour);
             if (usedDate > now) usedDate = now.AddMinutes(-i);
 
-            tickets.Add(new Ticket { ExpirationDate = now.AddDays(365), State = TicketState.Used, IsUsed = true, UsedDate = usedDate, Owner = employeeUser!, ValidationCode = Guid.NewGuid().ToString("N")[..8].ToUpper(), ValidatedBy = adminUser, TicketPurchase = ticketPurchase });
+            tickets.Add(new Ticket
+            {
+                ExpirationDate = expirationDate, 
+                State = TicketState.Used, IsUsed = true, 
+                UsedDate = usedDate, Owner = employeeUser!, 
+                ValidationCode = Guid.NewGuid().ToString("N")[..8].ToUpper(), 
+                ValidatedBy = adminUser, 
+                TicketPurchase = ticketPurchase
+            });
         }
 
         if (!context.Ticket.Any(t => t.Owner.Id == employeeUser!.Id))

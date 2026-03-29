@@ -38,7 +38,7 @@ public class OrderDetailsViewModel
     /// Indicates if the order has a specific scheduled time for delivery or pickup.
     /// </summary>
     /// <value>True if DeliveryTime is set and is not zero; otherwise, false.</value>
-    public bool IsScheduled => Order.DeliveryTime.HasValue && Order.DeliveryTime.Value != TimeSpan.Zero;
+    public bool IsScheduled => Order.DeliveryTime.HasValue;
 
     /// <summary>
     /// Detailed list of products included in the order, including prices and individual quantities.

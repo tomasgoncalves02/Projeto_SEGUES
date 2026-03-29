@@ -81,8 +81,8 @@ function updateProductsCount() {
  * @param {Event} e - Click event.
  */
 function confirmDeleteProduct(e) {
-    const btn = e.currentTarget;
-    const { id, name } = btn.dataset;
+    e.preventDefault();
+    const { id, name } = this.dataset;
 
     Notifications.confirm(`Tem a certeza que deseja eliminar o produto "${name}"?`)
         .then((result) => {
@@ -96,7 +96,8 @@ function confirmDeleteProduct(e) {
  * Triggers a confirmation dialog before reactivating a previously deleted/disabled product.
  */
 function confirmReactivateProduct(e) {
-    const { id, name } = e.currentTarget.dataset;
+    e.preventDefault();
+    const { id, name } = this.dataset;
 
     Notifications.confirm(
         'Reativar Produto',

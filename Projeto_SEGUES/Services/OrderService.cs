@@ -315,7 +315,7 @@ public class OrderService : IOrderService
         return await _context.Order
             .Include(o => o.AppUser)
             .Where(o => _activeStatus.Contains(o.Status))
-            .OrderBy(o => o.PickupTime == TimeSpan.Zero ? o.OrderDate.TimeOfDay : o.PickupTime)
+            .OrderBy(o => o.PickupTime ?? o.OrderDate.TimeOfDay)
             .ToListAsync();
     }
     
