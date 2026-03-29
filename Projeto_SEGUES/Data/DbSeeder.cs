@@ -367,29 +367,18 @@ public static class DbSeeder
                 TicketPurchase = ticketPurchase
             });
         }
-        /* 10 tickets in the same year spread by months */
+        // --- CORREÇÃO TICKETS ANUAIS ---
         for (int i = 0; i < 10; i++)
         {
-            // Ensure month and day are valid for the target month (avoid invalid dates like Apr 31)
-            var targetMonth = (i % now.Month) + 1;
+            var targetMonth = (i % Math.Max(1, now.Month)) + 1;
             var safeDay = Math.Min(now.Day, DateTime.DaysInMonth(now.Year, targetMonth));
-            
-            // Avoid divide by zero when now.Hour == 0
             var hourDivisor = Math.Max(1, now.Hour);
             var hour = (i + 8) % hourDivisor;
-            
+
             var usedDate = new DateTime(now.Year, targetMonth, safeDay).AddHours(hour);
-            tickets.Add(new Ticket
-            {
-                ExpirationDate = now.AddDays(365),
-                State = TicketState.Used,
-                IsUsed = true,
-                UsedDate = usedDate,
-                Owner = employeeUser!,
-                ValidationCode = Guid.NewGuid().ToString("N")[..8].ToUpper(),
-                ValidatedBy = adminUser,
-                TicketPurchase = ticketPurchase
-            });
+            if (usedDate > now) usedDate = now.AddMinutes(-i);
+
+            tickets.Add(new Ticket { ExpirationDate = now.AddDays(365), State = TicketState.Used, IsUsed = true, UsedDate = usedDate, Owner = employeeUser!, ValidationCode = Guid.NewGuid().ToString("N")[..8].ToUpper(), ValidatedBy = adminUser, TicketPurchase = ticketPurchase });
         }
 
         if (!context.Ticket.Any(t => t.Owner.Id == employeeUser!.Id))
@@ -398,28 +387,15 @@ public static class DbSeeder
         }
         await context.SaveChangesAsync();
 
-        // Create Orders
         var orders = new List<Order>();
         var products = context.Product.ToList();
         var rnd = new Random();
 
-        // Local auxilliary function to create orders
         Order CreateOrder(DateTime orderDate)
         {
-            var order = new Order
-            {
-                OrderDate = orderDate,
-                AppUser = employeeUser!,
-                Status = OrderStatus.Delivered,
-                PickupTime = orderDate.TimeOfDay,
-                DeliveryTime = null
-            };
-
+            var order = new Order { OrderDate = orderDate, AppUser = employeeUser!, Status = OrderStatus.Delivered, PickupTime = orderDate.TimeOfDay };
             int numberOfLines = rnd.Next(1, products.Count + 1);
-            var selectedProducts = products
-                .OrderBy(_ => rnd.Next())
-                .Take(numberOfLines)
-                .ToList();
+            var selectedProducts = products.OrderBy(_ => rnd.Next()).Take(numberOfLines).ToList();
             foreach (var product in selectedProducts)
             {
                 var quantity = rnd.Next(1, 4);
@@ -436,43 +412,41 @@ public static class DbSeeder
 
                 order.ProductPurchases.Add(line);
             }
-
             order.TotalValue = order.ProductPurchases.Sum(l => l.ProductValue * l.Quantity);
             return order;
         }
 
-        /* 10 orders in the same day with different time */
         for (int i = 0; i < 10; i++)
         {
-            var hour = 8 + (i % hourRange); // Start at 8h, end at current hour, loop if more than available hours
-            var date = now.Date.AddHours(hour); // 08h–17h but no future time
-            orders.Add(CreateOrder(date));
+            var hour = 8 + (i % hourRange);
+            orders.Add(CreateOrder(now.Date.AddHours(hour)));
         }
-            
-        /* 10 orders in the same week, in different days */
-            
+
         for (int i = 0; i < 10; i++)
         {
-            var day = (i % dayOfWeekRange) + 1; // Start at Sunday, end at current day, loop if more than available days
+            var day = (i % dayOfWeekRange) + 1;
             var date = startOfWeek.AddDays(day).AddHours(8 + (i % 8));
-            if (date > now) date = date.Date.AddHours(8 + (i % hourRange)); // If future time, set to current day with hour loop
+            if (date > now) date = date.Date.AddHours(8 + (i % hourRange));
             orders.Add(CreateOrder(date));
         }
-            
-        /* 10 orders in the same month in different days */
+
         for (int i = 0; i < 10; i++)
         {
-            var day = ((i * 3) % dayOfMonthRange) + 1; // Start at 1st, end at current day, loop if more than available days
+            var day = ((i * 3) % dayOfMonthRange) + 1;
             var date = startOfMonth.AddDays(day).AddHours(8 + (i % 8));
-            if (date > now) date = date.Date.AddHours(8 + (i % hourRange)); // If future time, set to current day with hour loop
+            if (date > now) date = date.Date.AddHours(8 + (i % hourRange));
             orders.Add(CreateOrder(date));
         }
-            
-        /* 10 orders in the same year in different months */
+
         for (int i = 0; i < 10; i++)
         {
+            var targetMonth = (i % Math.Max(1, now.Month)) + 1;
+            var safeDay = Math.Min(now.Day, DateTime.DaysInMonth(now.Year, targetMonth));
             var hourDivisor = Math.Max(1, now.Hour);
-            var date = new DateTime(now.Year, (i % now.Month) + 1, now.Day).AddHours((i + 8) % hourDivisor);
+            var date = new DateTime(now.Year, targetMonth, safeDay).AddHours((i + 8) % hourDivisor);
+
+            if (date > now) date = now.AddMinutes(-i);
+
             orders.Add(CreateOrder(date));
         }
 
