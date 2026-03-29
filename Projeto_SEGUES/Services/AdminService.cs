@@ -15,6 +15,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Projeto_SEGUES.Areas.User.ViewModels;
 using Projeto_SEGUES.Extensions;
+using Projeto_SEGUES.Models.Audit;
 using Projeto_SEGUES.Resources;
 
 namespace Projeto_SEGUES.Services;
@@ -348,6 +349,34 @@ public class AdminService : IAdminService
         }
         
         return ServiceResult.Ok("Utilizador atualizado com sucesso.");
+    }
+
+    public async Task<List<UserLog>> GetStaffLogFilteredAsync(string? searchString = null, string? dateFilter = null)
+    {
+        var employeeIds = (await _userManager.GetUsersInRoleAsync("Employee")).Select(u => u.Id).ToList();
+        
+        var query = _context.UserLog
+            .AsNoTracking()
+            .Include(l => l.AppUser)
+            .Where(l => l.AppUser != null && employeeIds.Contains(l.AppUser.Id))
+            .AsQueryable();
+        
+        if (!string.IsNullOrWhiteSpace(searchString))
+        {
+            searchString = searchString.Trim().ToLower();
+            query = query.Where(l => 
+                l.AppUser!.UserName.ToLower().Contains(searchString) || 
+                l.Message.ToLower().Contains(searchString) || 
+                l.AppUser.FirstName.ToLower().Contains(searchString) || 
+                l.AppUser.LastName.ToLower().Contains(searchString));
+        }
+        
+        if (!string.IsNullOrWhiteSpace(dateFilter) && DateTime.TryParse(dateFilter, out DateTime parsedDate))
+        {
+            query = query.Where(l => l.TimeStamp.Date == parsedDate.Date);
+        }
+        
+        return await query.OrderByDescending(l => l.TimeStamp).ToListAsync();
     }
     
     // Dropdowns

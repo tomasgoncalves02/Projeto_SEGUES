@@ -7,7 +7,6 @@ using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
-using Projeto_SEGUES.Resources;
 using Projeto_SEGUES.Services;
 using AppErrors = Projeto_SEGUES.Models.Enums.AppErrors;
 
@@ -217,33 +216,25 @@ public class AdminUserManagementController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Deactivate(string id)
     {
-        try
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null)
         {
-            var user = await _userManager.FindByIdAsync(id);
-            if (user == null)
-            {
-                _logger.LogAppError(AppErrors.UserNotFound, TableName.User, AppOperation.Update);
-                TempData.SetSwalError("O utilizador indicado não foi encontrado.");
-                return RedirectToAction(nameof(Index));
-            }
-
-            if (user.UserName == User.Identity?.Name)
-            {
-                TempData.SetSwalError("Medida de segurança: Não podes desativar a tua própria conta.");
-                return RedirectToAction(nameof(Index));
-            }
-
-            user.Status = UserStatus.Inactive;
-            await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.MaxValue);
-            await _userManager.UpdateAsync(user);
-
-            TempData.SetSwalSuccess($"A conta de {user.FirstName} foi desativada.");
+            _logger.LogAppError(AppErrors.UserNotFound, TableName.User, AppOperation.Update);
+            TempData.SetSwalError("O utilizador indicado não foi encontrado.");
+            return RedirectToAction(nameof(Index));
         }
-        catch (Exception ex)
+
+        if (user.UserName == User.Identity?.Name)
         {
-            _logger.LogAppError(AppErrors.DatabaseUpdateError, TableName.User, AppOperation.Update, ex);
-            TempData.SetSwalError("Falha técnica ao desativar o utilizador. [Erro: 1004]");
+            TempData.SetSwalError("Medida de segurança: Não podes desativar a tua própria conta.");
+            return RedirectToAction(nameof(Index));
         }
+
+        user.Status = UserStatus.Inactive;
+        await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.MaxValue);
+        await _userManager.UpdateAsync(user);
+
+        TempData.SetSwalSuccess($"A conta de {user.FirstName} foi desativada.");
         return RedirectToAction(nameof(Index));
     }
 
@@ -256,27 +247,19 @@ public class AdminUserManagementController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Activate(string id)
     {
-        try
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null)
         {
-            var user = await _userManager.FindByIdAsync(id);
-            if (user == null)
-            {
-                _logger.LogAppError(AppErrors.UserNotFound, TableName.User, AppOperation.Update);
-                TempData.SetSwalError("Utilizador não encontrado.");
-                return RedirectToAction(nameof(Index));
-            }
-
-            user.Status = UserStatus.Active;
-            await _userManager.SetLockoutEndDateAsync(user, null);
-            await _userManager.UpdateAsync(user);
-
-            TempData.SetSwalSuccess($"A conta de {user.FirstName} está novamente ativa.");
+            _logger.LogAppError(AppErrors.UserNotFound, TableName.User, AppOperation.Update);
+            TempData.SetSwalError("Utilizador não encontrado.");
+            return RedirectToAction(nameof(Index));
         }
-        catch (Exception ex)
-        {
-            _logger.LogAppError(AppErrors.DatabaseUpdateError, TableName.User, AppOperation.Update);
-            TempData.SetSwalError("Não foi possível reativar a conta. [Erro: 1004]");
-        }
+
+        user.Status = UserStatus.Active;
+        await _userManager.SetLockoutEndDateAsync(user, null);
+        await _userManager.UpdateAsync(user);
+
+        TempData.SetSwalSuccess($"A conta de {user.FirstName} está novamente ativa.");
         return RedirectToAction(nameof(Details), new { id });
     }
 
@@ -297,37 +280,8 @@ public class AdminUserManagementController : Controller
     /// <returns>The View with the list of logs sorted by descending date.</returns>
     public async Task<IActionResult> StaffLog(string search, string date)
     {
-        try
-        {          
-            var employeeUsers = await _userManager.GetUsersInRoleAsync("Employee");
-            var employeeIds = employeeUsers.Select(u => u.Id).ToList();
-
-            var query = _context.UserLog
-                .Include(l => l.AppUser)
-                .Where(l => l.AppUser != null && employeeIds.Contains(l.AppUser.Id))
-                .AsQueryable();
-
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                query = query.Where(l => l.AppUser.UserName.Contains(search) ||
-                                         l.Message.Contains(search) ||
-                                         l.AppUser.FirstName.Contains(search));
-            }
-            if (!string.IsNullOrWhiteSpace(date) && DateTime.TryParse(date, out DateTime parsedDate))
-            {
-                query = query.Where(l => l.TimeStamp.Date == parsedDate.Date);
-            }
-
-            var logs = await query.OrderByDescending(l => l.TimeStamp).ToListAsync();
-
-            return View(logs);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogAppError(AppErrors.DatabaseQueryError, TableName.UserLog, AppOperation.Read, ex);
-
-            TempData.SetSwalError($"{Errors.DatabaseQueryError} [Erro: {(int)AppErrors.DatabaseQueryError}]");
-            return RedirectToAction("Index", "Admin", new { area = "Admin" });
-        }
+        var logs = _adminService.GetStaffLogFilteredAsync(search, date);
+        return View(logs);
     }
+    
 }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
+using Projeto_SEGUES.Models.Audit;
 using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.User;
 
@@ -20,6 +21,7 @@ public interface IAdminService
     Task<List<SelectListItem>> GetNonClientRolesForDropdownAsync();
     Task<List<SelectListItem>> GetAllRolesForDropdownAsync();
     Task<List<SelectListItem>> GetAllCategoriesForDropdownAsync();
+    Task<List<UserLog>> GetStaffLogFilteredAsync(string? searchString = null, string? dateFilter = null);
 
     // Bar and Canteen Configuration
     Task<BarCanteenConfigViewModel> GetMenuLinksAsync();
