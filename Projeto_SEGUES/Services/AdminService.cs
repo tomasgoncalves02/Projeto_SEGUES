@@ -354,7 +354,7 @@ public class AdminService : IAdminService
         return ServiceResult.Ok("Utilizador atualizado com sucesso.");
     }
 
-    public async Task<List<UserLog>> GetStaffLogFilteredAsync(string? searchString = null, string? dateFilter = null)
+    public async Task<List<StaffLogDto>> GetStaffLogFilteredAsync(string? searchString = null, UserAction? actionResult = null, DateTime? dateFilter = null)
     {
         var employeeIds = (await _userManager.GetUsersInRoleAsync("Employee")).Select(u => u.Id).ToList();
         
@@ -373,13 +373,28 @@ public class AdminService : IAdminService
                 l.AppUser.FirstName.ToLower().Contains(searchString) || 
                 l.AppUser.LastName.ToLower().Contains(searchString));
         }
-        
-        if (!string.IsNullOrWhiteSpace(dateFilter) && DateTime.TryParse(dateFilter, out DateTime parsedDate))
+
+        if (actionResult != null)
         {
-            query = query.Where(l => l.TimeStamp.Date == parsedDate.Date);
+            query = query.Where(l => l.UserAction == actionResult);
         }
         
-        return await query.OrderByDescending(l => l.TimeStamp).ToListAsync();
+        if (dateFilter != null)
+        {
+            query = query.Where(l => l.TimeStamp.Date == dateFilter.Value.Date);
+        }
+        
+        var result = await query.OrderByDescending(l => l.TimeStamp).ToListAsync();
+        return result.Select(l => new StaffLogDto
+        {
+            EmployeeName = $"{l.AppUser!.FirstName} {l.AppUser.LastName}".Trim(),
+            EmployeeEmail = l.AppUser.Email!,
+            DateDisplay = l.TimeStamp.ToString("dd/MM/yyyy"),
+            TimeDisplay = l.TimeStamp.ToString("HH:mm:ss"),
+            UserAction = l.UserAction?.ToDisplayName() ?? "N/A",
+            FullMessage = l.Message,
+            RequestPath = l.RequestPath?.Trim() ?? "N/A"
+        }).ToList();
     }
     
     // Dropdowns

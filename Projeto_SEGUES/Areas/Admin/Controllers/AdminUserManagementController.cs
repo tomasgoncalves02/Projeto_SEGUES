@@ -269,24 +269,32 @@ public class AdminUserManagementController : Controller
     }
 
     /// <summary>
-    /// Displays the selection page for different types of logs.
-    /// </summary>
-    /// <returns>The log selection View.</returns>
-    public IActionResult UserLogSelection()
-    {
-        return View();
-    }
-
-    /// <summary>
     /// Lists the activity logs performed by Staff members (internal audit).
     /// </summary>
     /// <param name="search">Search term (username or message content).</param>
     /// <param name="date">Filter by a specific date.</param>
     /// <returns>The View with the list of logs sorted by descending date.</returns>
-    public async Task<IActionResult> StaffLog(string search, string date)
+    public async Task<IActionResult> StaffLog()
     {
-        var logs = _adminService.GetStaffLogFilteredAsync(search, date);
-        return View(logs);
+        var logs = await _adminService.GetStaffLogFilteredAsync();
+        return View(new StaffLogSearchViewModel
+        {
+            Results = logs
+        });
+    }
+    
+    /// <summary>
+    /// Endpoint HTMX para atualizar a tabela quando os filtros mudam.
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> GetFilteredStaffLogs(StaffLogSearchViewModel model)
+    {
+        model.Results = await _adminService.GetStaffLogFilteredAsync(
+            model.SearchString, 
+            model.ActionFilter, 
+            model.DateFilter
+        );
+        return PartialView("_StaffLogTableRowsPartial", model.Results);
     }
 
     [HttpGet]
@@ -300,5 +308,18 @@ public class AdminUserManagementController : Controller
         var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo-ips.png");
         byte[] pdfBytes = _pdfService.GenerateAdminUsersListPdfAsync(users, logoPath);
         return File(pdfBytes, "application/pdf", $"Listagem_Utilizadores_{DateTime.Now:yyyyMMdd}.pdf");
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ExportStaffLogPdf(StaffLogSearchViewModel model)
+    {
+        var logs = await _adminService.GetStaffLogFilteredAsync(
+            model.SearchString, 
+            model.ActionFilter,
+            model.DateFilter
+        );
+        var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo-ips.png");
+        byte[] pdfBytes = _pdfService.GenerateAdminStaffLogPdfAsync(logs.ToList(), logoPath);
+        return File(pdfBytes, "application/pdf", $"Historico_Funcionarios_{DateTime.Now:yyyyMMdd_HHmm}.pdf");
     }
 }

@@ -41,18 +41,10 @@ else
             </td>
             
             <td>
-                @if (user.IsActive)
-                {
-                    <span class="badge bg-success border-0 shadow-sm p-2 fw-bold">
-                        <i class="bi bi-check-circle me-1"></i>Ativo
-                    </span>
-                }
-                else
-                {
-                    <span class="badge bg-danger border-0 shadow-sm p-2 fw-bold">
-                        <i class="bi bi-x-circle me-1"></i>Inactivo
-                    </span>
-                }
+                <span class="badge @(user.StatusBadgeClass) border-0 shadow-sm p-2 fw-bold">
+                    <i class="bi @(user.StatusIcon) me-1"></i>
+                    @(user.StatusDisplay)
+                </span>
             </td>
             
             <td class="fw-bold text-color-ips text-nowrap">@user.BalanceFormatted</td>

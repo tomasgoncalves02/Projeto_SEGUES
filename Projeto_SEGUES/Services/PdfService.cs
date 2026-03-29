@@ -78,12 +78,14 @@ public class PdfService : IPdfService
     /// </summary>
     /// <param name="container">The container to compose the date cell elements into.</param>
     /// <param name="date">The DateTime value to display in the cell.</param>
-    private static void DrawDateCell(IContainer container, DateTime date)
+    private static void DrawDateCell(IContainer container, DateTime? date, string? dateString = null, string? timeString = null)
     {
+        dateString = date.HasValue ? date.Value.ToString("dd/MM/yyyy") : dateString ?? "---";
+        timeString = date.HasValue ? date.Value.ToString("HH:mm") : timeString ?? "---";
         container.Column(c => 
         {
-            c.Item().AlignCenter().Text(date.ToString("dd/MM/yyyy")).FontSize(8).SemiBold();
-            c.Item().AlignCenter().Text(date.ToString("HH:mm")).FontSize(7).FontColor(Colors.Grey.Medium);
+            c.Item().AlignCenter().Text(dateString).FontSize(8).SemiBold();
+            c.Item().AlignCenter().Text(timeString).FontSize(7).FontColor(Colors.Grey.Medium);
         });
     }
 
@@ -385,5 +387,68 @@ public class PdfService : IPdfService
         });
         
         return document.GeneratePdf(); 
+    }
+
+    public byte[] GenerateAdminStaffLogPdfAsync(List<StaffLogDto> logs, string logoPath)
+    {
+        var document = Document.Create(container =>
+        {
+            container.Page(page =>
+            {
+                // Global configuration
+                ConfigureDefaultPage(page);
+                page.Header().Element(c => ComposeHeader(c, "Histórico de Funcionários", logoPath));
+                page.Footer().Element(ComposeFooter);
+
+                page.Content().PaddingTop(10).Table(table =>
+                {
+                    // Columns
+                    table.ColumnsDefinition(columns =>
+                    {
+                        columns.RelativeColumn(2f); // Funcionário (Nome e Email)
+                        columns.ConstantColumn(75); // Data e Hora
+                        columns.ConstantColumn(90); // Operação
+                        columns.RelativeColumn(3.5f); // Mensagem Resumida
+                    });
+
+                    // Header
+                    table.Header(_ =>
+                    {
+                        string[] colNames = { "Funcionário", "Data/Hora", "Operação", "Mensagem" };
+                        foreach (var name in colNames) AddHeaderCell(table, name);
+                    });
+
+                    // Linhas
+                    foreach (var log in logs)
+                    {
+                        // Employee
+                        table.Cell().Element(CellStyle).Element(c =>
+                            DrawUserCell(c, null, new UserDto
+                            {
+                                FullName = log.EmployeeName,
+                                Email = log.EmployeeEmail
+                            })
+                        );
+
+                        // Date
+                        table.Cell().Element(CellStyle)
+                            .Element(c => DrawDateCell(c, null, log.DateDisplay, log.TimeDisplay));
+
+                        // Operation
+                        table.Cell().Element(CellStyle).Text(log.UserAction).FontSize(8).SemiBold();
+
+                        // Message
+                        table.Cell().Element(CellStyle)
+                            .ExtendHorizontal()
+                            .AlignLeft()
+                            .PaddingLeft(4)
+                            .Text(log.FullMessage)
+                            .FontSize(7)
+                            .FontColor(Colors.Grey.Darken1);
+                    }
+                });
+            });
+        });
+        return document.GeneratePdf();
     }
 }
