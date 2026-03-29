@@ -9,7 +9,7 @@ function showStaffLogDetails(e) {
     // Extract data
     const {action, message, path, timestamp} = this.dataset;
 
-    // Tradução de URLs complexos para nomes amigáveis
+    // Translate specific paths to user-friendly names
     let friendlyPath = path || "N/A";
     if (path) {
         if (path.includes("/AdminTicketManagement/Validate")) {
