@@ -18,7 +18,7 @@ public class UserDto
     /// <summary>
     /// User's initial
     /// </summary>
-    public string Initial { get; set; } = "?";
+    public string Initial => FullName.Substring(0, 1).ToUpper();
     
     /// <summary>
     /// User's email
@@ -51,7 +51,37 @@ public class UserDto
     public bool IsActive { get; set; }
     
     /// <summary>
+    /// User's account status formatted for display
+    /// </summary>
+    public string StatusDisplay => IsActive ? "Ativo" : "Inativo";
+    
+    /// <summary>
+    /// Badge class and icon for the user's account status
+    /// </summary>
+    public string StatusBadgeClass => IsActive ? "bg-success" : "bg-danger";
+    
+    /// <summary>
+    /// Icon for the user's account status
+    /// </summary>
+    public string StatusIcon => IsActive ? "bi-check-circle" : "bi-x-circle";
+    
+    /// <summary>
     /// User's balance formatted as a currency string
     /// </summary>
     public string BalanceFormatted { get; set; } = "";
+    
+    /// <summary>
+    /// User's gender for UI
+    /// </summary>
+    public string GenderDisplay { get; set; } = "";
+    
+    /// <summary>
+    /// User's birthdate formatted as a string
+    /// </summary>
+    public string BirthDateDisplay { get; set; } = "";
+    
+    /// <summary>
+    /// User's creation date formatted as a string
+    /// </summary>
+    public string CreationDateDisplay { get; set; } = "";
 }

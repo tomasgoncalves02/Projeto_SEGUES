@@ -1,10 +1,10 @@
-﻿using Projeto_SEGUES.Attributes;
+﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Projeto_SEGUES.Attributes;
 using Projeto_SEGUES.Models.Enums;
-using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Validators;
-using System.ComponentModel.DataAnnotations;
 
-namespace Projeto_SEGUES.Areas.User.ViewModels;
+namespace Projeto_SEGUES.Areas.Admin.ViewModels;
 
 /// <summary>
 /// ViewModel used by administrators to modify any user's profile and system settings.
@@ -97,6 +97,22 @@ public class EditUserAdminViewModel
     [Display(Name = "Cargo")]
     public string? RoleDescription { get; set; }
 
-    /// <summary>The school entity associated with the student or employee.</summary>
-    public School? School { get; set; }
+    /// <summary>Identifier for the school the user is affiliated with.</summary>
+    [Display(Name = "Escola")]
+    public int? SchoolId { get; set; }
+    
+    /// <summary>
+    /// List of available roles for the user.
+    /// </summary>
+    public List<SelectListItem> RolesList { get; set; } = [];
+    
+    /// <summary>
+    /// List of available categories for the user.
+    /// </summary>
+    public List<SelectListItem> CategoriesList { get; set; } = [];
+    
+    /// <summary>
+    /// List of available schools for the user.
+    /// </summary>
+    public List<SelectListItem> SchoolsList { get; set; } = [];
 }

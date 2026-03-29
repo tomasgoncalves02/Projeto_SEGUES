@@ -42,7 +42,7 @@ public static class DbSeeder
         // Roles
         var roles = new[]
         {
-            new Role { Name = "Admin", DisplayName = "Administrator" },
+            new Role { Name = "Admin", DisplayName = "Administrador" },
             new Role { Name = "Employee", DisplayName = "Funcionário" },
             new Role { Name = "Client", DisplayName = "Cliente" }
         };

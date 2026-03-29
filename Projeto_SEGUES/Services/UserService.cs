@@ -27,6 +27,17 @@ public class UserService : IUserService
         var schools = await _context.School.ToListAsync();
         return schools.Select(s => new SelectListItem { Value = s.Id.ToString(), Text = s.Name }).ToList();
     }
+    
+    public async Task<AppUser?> GetUserForEditAsync(string userId)
+    {
+        if (string.IsNullOrWhiteSpace(userId)) return null;
+        return await _userManager.Users
+            .Include(u => u.UserCategory)
+            .Include(u => u.PostalCode)
+            .Include(u => (u as Student)!.School)
+            .Include(u => (u as Employee)!.School)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+    }
 
     public async Task<ServiceResult> UpdateUserProfileAsync(AppUser user, EditUserViewModel model)
     {

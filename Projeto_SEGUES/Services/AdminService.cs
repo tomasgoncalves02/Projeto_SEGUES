@@ -13,6 +13,7 @@ using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.User;
 using System.Security.Cryptography;
 using System.Text;
+using Projeto_SEGUES.Areas.User.ViewModels;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Resources;
 
@@ -26,6 +27,7 @@ public class AdminService : IAdminService
     private readonly IEmailSender _emailSender;
     private readonly ILogger<AdminService> _logger;
     private readonly IStringLocalizer<Errors> _localizer;
+    private readonly IUserService _userService;
 
     public AdminService(
         AppDbContext context,
@@ -33,7 +35,8 @@ public class AdminService : IAdminService
         RoleManager<Role> roleManager,
         IEmailSender emailSender,
         ILogger<AdminService> logger,
-        IStringLocalizer<Errors> localizer)
+        IStringLocalizer<Errors> localizer,
+        IUserService userService)
     {
         _context = context;
         _userManager = userManager;
@@ -41,6 +44,7 @@ public class AdminService : IAdminService
         _emailSender = emailSender;
         _logger = logger;
         _localizer = localizer;
+        _userService = userService;
     }
     
     #region General
@@ -189,7 +193,6 @@ public class AdminService : IAdminService
             {
                 Id = user.Id,
                 FullName = $"{user.FirstName} {user.LastName}".Trim(),
-                Initial = string.IsNullOrEmpty(user.FirstName) ? "?" : user.FirstName[..1].ToUpper(),
                 Email = user.Email!,
                 
                 RoleName = role.DisplayName,
@@ -251,6 +254,11 @@ public class AdminService : IAdminService
     {
         return _context.UserCategory.FirstOrDefaultAsync(c => c.Name == modelCategory);
     }
+
+    public Task<Role?> GetRoleByNameAsync(string roleName)
+    {
+        return _roleManager.FindByNameAsync(roleName);
+    }
     
     public async Task RequestEmailChangeAsync(AppUser user, string newEmail, IUrlHelper urlHelper, string scheme)
     {
@@ -280,6 +288,66 @@ public class AdminService : IAdminService
         
         // Throws exception if email fails to send
         await _emailSender.SendEmailAsync(newEmail, "SEGUES - Confirmação de Email", finalBody);
+    }
+
+    public async Task<ServiceResult> UpdateUserAdminAsync(AppUser user, EditUserAdminViewModel model, IUrlHelper url, string scheme)
+    {
+        // Check duplicated Email
+        string? pendingEmail = null;
+        if (model.Email != user.Email)
+        {
+            var emailExists = await _userManager.FindByEmailAsync(model.Email);
+            if (emailExists != null) return ServiceResult.Fail("Este email já está em uso.");
+            pendingEmail = model.Email;
+        }
+        
+        // Update profile
+        var result = await _userService.UpdateUserProfileAsync(user, new EditUserViewModel
+        {
+            Id = user.Id,
+            FirstName = model.FirstName,
+            LastName = model.LastName,
+            Gender = model.Gender,
+            BirthDate = model.BirthDate,
+            FiscalNumber = model.FiscalNumber,
+            Address = model.Address,
+            City = model.City,
+            PostalCode = model.PostalCode,
+            SchoolId = (user is Student ? model.SchoolId : (user is Employee ? model.SchoolId : null)),
+            StudentNumber = (user is Student ? model.StudentNumber : null)
+        });
+        if (!result.Success) return result;
+        
+        // Role Description and category
+        if (!string.IsNullOrWhiteSpace(model.RoleDescription) && user is Employee e) e.RoleDescription = model.RoleDescription;
+        user.UserCategory = (await GetCategoryByNameAsync(model.Category)) ?? user.UserCategory;
+        await _context.SaveChangesAsync();
+        
+        // Role
+        var oldRoles = await _userManager.GetRolesAsync(user);
+        if (model.Role != oldRoles.First())
+        {
+            await _userManager.RemoveFromRolesAsync(user, oldRoles);
+            await _userManager.AddToRoleAsync(user, model.Role);
+            await _userManager.UpdateSecurityStampAsync(user);
+        }
+        
+        // Email
+        if (!string.IsNullOrWhiteSpace(pendingEmail))
+        {
+            try
+            {
+                await RequestEmailChangeAsync(user, pendingEmail, url, scheme);
+                return ServiceResult.Ok("Utilizador atualizado! O link de confirmação foi enviado para o novo e-mail.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogAppError(AppErrors.EmailSenderError, TableName.User, AppOperation.Other, ex);
+                return ServiceResult.Fail("Utilizador salvo, mas ocorreu um erro ao enviar o email de confirmação.");
+            }
+        }
+        
+        return ServiceResult.Ok("Utilizador atualizado com sucesso.");
     }
     
     // Dropdowns

@@ -58,6 +58,11 @@ public class BarCanteenConfigViewModel
 
     /// <summary>External URL or file path for the Canteen's daily/weekly menu.</summary>
     public string? CanteenMenuLink { get; set; }
+    
+    /// <summary>
+    /// Flag indicating if the Canteen is currently open.
+    /// </summary>
+    public bool IsCanteenOpen { get; set; } = DateTime.Now.DayOfWeek is not DayOfWeek.Saturday and not DayOfWeek.Sunday;
 
     // ==========================================
     // Availability Configuration

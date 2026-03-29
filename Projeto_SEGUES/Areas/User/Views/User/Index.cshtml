@@ -3,11 +3,6 @@
 
 @{
     ViewData["Title"] = "Perfil";
-    var initialLetter = Model.FirstName[0].ToString().ToUpper();
-    
-    bool isStudent = Model.Category.Equals("Estudante", StringComparison.OrdinalIgnoreCase);
-    bool isEmployee = Model.Role.Name!.Equals("Employee", StringComparison.OrdinalIgnoreCase);
-    bool showSchool = isEmployee || Model.Role.Name!.Equals("Client", StringComparison.OrdinalIgnoreCase);
 }
 
 <div class="container py-2 px-lg-5">
@@ -30,7 +25,7 @@
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
                 <div class="d-flex align-items-center">
                     <div class="avatar-circle fs-2" style="width: 65px; height: 65px;">
-                        @initialLetter
+                        @Model.Initial
                     </div>
                     <div class="ms-3">
                         <h4 class="fw-bold mb-0">@Model.FirstName @Model.LastName</h4>
@@ -134,8 +129,17 @@
                             <span class="d-block small text-muted fw-bold mb-1">Categoria de Utilizador</span>
                             <span class="fs-6 fw-medium">@(Model.Category)</span>
                         </div>
-                    </div>                  
-                    @if (isStudent)
+                    </div>      
+                    @if (Model.IsEmployee)
+                    {
+                        <div class="col-md-6">
+                            <div class="p-2 px-3 border rounded bg-color-ips-very-light h-100 d-flex flex-column justify-content-center">
+                                <span class="d-block small text-muted fw-bold mb-1">Cargo / Função</span>
+                                <span class="fs-6 fw-medium">@(Model.RoleDescription ?? "Não definido")</span>
+                            </div>
+                        </div>
+                    }
+                    @if (Model.IsStudent)
                     {
                         <div class="col-md-6">
                             <div class="form-floating">
@@ -146,7 +150,7 @@
                         </div>
                     }
 
-                    @if (showSchool)
+                    @if (Model.ShowSchool)
                     {
                         <div class="col-md-6">
                             <div class="form-floating h-100">

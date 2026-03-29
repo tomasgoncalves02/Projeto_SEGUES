@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Models.Ticket;
@@ -15,7 +14,9 @@ public interface IAdminService
     // User Management
     Task<List<UserDto>> GetFilteredUsersAsync(string? searchString = null, string? roleFilter = null, string? categoryFilter = null);
     Task<UserCategory?> GetCategoryByNameAsync(string modelCategory);
+    Task<Role?> GetRoleByNameAsync(string roleName);
     Task RequestEmailChangeAsync(AppUser user, string newEmail, IUrlHelper urlHelper, string scheme);
+    Task<ServiceResult> UpdateUserAdminAsync(AppUser user, EditUserAdminViewModel model, IUrlHelper url, string scheme);
     Task<List<SelectListItem>> GetNonClientRolesForDropdownAsync();
     Task<List<SelectListItem>> GetAllRolesForDropdownAsync();
     Task<List<SelectListItem>> GetAllCategoriesForDropdownAsync();

@@ -2,9 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Localization;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
-using Projeto_SEGUES.Areas.User.ViewModels;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Enums;
@@ -28,9 +26,9 @@ public class AdminUserManagementController : Controller
 {
     private readonly UserManager<AppUser> _userManager;
     private readonly IAdminService _adminService;
+    private readonly IUserService _userService;
     private readonly AppDbContext _context;
     private readonly ILogger<AdminUserManagementController> _logger;
-    private readonly IStringLocalizer<Errors> _localizer;
 
     /// <summary>
     /// Initializes a new instance of the controller with Identity, administration, and data context services.
@@ -38,13 +36,13 @@ public class AdminUserManagementController : Controller
     /// <param name="userManager">Native ASP.NET Identity service for user management.</param>
     /// <param name="adminService">Custom service containing administrative business logic.</param>
     /// <param name="context">Database context for direct queries (e.g., Logs).</param>
-    public AdminUserManagementController(UserManager<AppUser> userManager, IAdminService adminService, AppDbContext context, ILogger<AdminUserManagementController> logger, IStringLocalizer<Errors> localizer)
+    public AdminUserManagementController(UserManager<AppUser> userManager, IAdminService adminService, IUserService userService, AppDbContext context, ILogger<AdminUserManagementController> logger)
     {
         _userManager = userManager;
         _adminService = adminService;
+        _userService = userService;
         _context = context;
         _logger = logger;
-        _localizer = localizer;
     }
 
     /// <summary>
@@ -98,30 +96,33 @@ public class AdminUserManagementController : Controller
 
         if (user == null)
         {
-            _logger.LogAppError(AppErrors.UserNotFound, TableName.User, AppOperation.Read);
+            _logger.LogAppError(AppErrors.UserNotFound, TableName.User, AppOperation.Read); 
             return RedirectToAction("Error", "Home", new { area = "", errorCode = AppErrors.UserNotFound });
         }
-
-        var roles = await _userManager.GetRolesAsync(user);
-        var userRoleRaw = roles.FirstOrDefault() ?? "Client";
-        var allRoles = await _adminService.GetAllRolesForDropdownAsync();
-
-        ViewBag.UserRole = allRoles.Find(r => r.Value == userRoleRaw)?.Text ?? userRoleRaw;
-        ViewBag.UserRoleRaw = userRoleRaw;
-
-        ViewBag.GenderPT = user.Gender switch
+        
+        var role = (await _userManager.GetRolesAsync(user)).FirstOrDefault() ?? "Client";
+        var roleDisplay = (await _adminService.GetRoleByNameAsync(role))?.DisplayName ?? role;
+        
+        UserDto dto = new UserDto
         {
-            Gender.Male => "Masculino",
-            Gender.Female => "Feminino",
-            Gender.Other => "Outro",
-            _ => "Não especificado"
+            Id = user.Id,
+            Email = user.Email!,
+            FullName = $"{user.FirstName} {user.LastName}".Trim(),
+            GenderDisplay = user.Gender.ToDisplayName(),
+            BirthDateDisplay = user.BirthDate.ToString("dd/MM/yyyy"),
+            CreationDateDisplay = user.CreationDate.ToString("dd/MM/yyyy"),
+            BalanceFormatted = user.Balance.ToString("C"),
+            
+            RoleName = roleDisplay,
+            RoleBadgeClass = role.ToBadgeClass(),
+            
+            CategoryName = user.UserCategory.Name,
+            CategoryBadgeClass = user.UserCategory.Name.ToBadgeClass(),
+            
+            IsActive = user.Status == UserStatus.Active,
         };
 
-        ViewBag.StatusPT = user.Status == UserStatus.Active ? "ATIVO" : "INATIVO";
-        ViewBag.StatusClass = user.Status == UserStatus.Active ? "bg-success" : "bg-danger";
-        ViewBag.StatusIcon = user.Status == UserStatus.Active ? "bi-check-circle" : "bi-x-circle";
-
-        return View(user);
+        return View(dto);
     }
 
     /// <summary>
@@ -132,29 +133,37 @@ public class AdminUserManagementController : Controller
     [HttpGet]
     public async Task<IActionResult> Edit(string id)
     {
-        var user = await _userManager.FindByIdAsync(id);
+        var user = await _userService.GetUserForEditAsync(id);
         if (user == null)
         {
             _logger.LogAppError(AppErrors.UserNotFound, TableName.User, AppOperation.Read);
             return RedirectToAction("Error", "Home", new { area = "", errorCode = AppErrors.UserNotFound });
         }
-
         var roles = await _userManager.GetRolesAsync(user);
-        ViewBag.Roles = await _adminService.GetAllRolesForDropdownAsync();
-        ViewBag.Categories = await _adminService.GetAllCategoriesForDropdownAsync();
-
-        return View(new EditUserAdminViewModel
+        var model = new EditUserAdminViewModel
         {
             Id = user.Id,
             FirstName = user.FirstName,
             LastName = user.LastName,
-            Email = user.Email,
+            Email = user.Email!,
             Gender = user.Gender,
             BirthDate = user.BirthDate,
             Balance = user.Balance,
             Role = roles.FirstOrDefault() ?? "Client",
-            Category = user.UserCategory.Name
-        });
+            Category = user.UserCategory.Name,
+            FiscalNumber = user.FiscalNumber,
+            Address = user.Address,
+            City = user.City,
+            PostalCode = user.PostalCode?.Code,
+            StudentNumber = (user is Student student) ? student.StudentNumber : null,
+            RoleDescription = (user is Employee employee) ? employee.RoleDescription : null,
+            SchoolId = (user is Student studentUser) ? studentUser.School?.Id : (user is Employee employeeUser) ? employeeUser.School?.Id : null,
+            RolesList = await _adminService.GetAllRolesForDropdownAsync(),
+            CategoriesList = await _adminService.GetAllCategoriesForDropdownAsync(),
+            SchoolsList = await _userService.GetSchoolsAsync()
+        };
+        
+        return View(model);
     }
 
     /// <summary>
@@ -171,71 +180,30 @@ public class AdminUserManagementController : Controller
     {
         if (!ModelState.IsValid)
         {
-            ViewBag.Roles = await _adminService.GetAllRolesForDropdownAsync();
-            ViewBag.Categories = await _adminService.GetAllCategoriesForDropdownAsync();
+            model.RolesList = await _adminService.GetAllRolesForDropdownAsync();
+            model.CategoriesList = await _adminService.GetAllCategoriesForDropdownAsync();
+            model.SchoolsList = await _userService.GetSchoolsAsync();
             return View(model);
         }
-
-        var user = await _userManager.FindByIdAsync(model.Id);
-        if (user == null) return Challenge();
-
-        string? pendingEmail = null;
-        if (model.Email != user.Email)
+        
+        var user = await _userService.GetUserForEditAsync(model.Id);
+        if (user == null)
         {
-            var emailExists = await _userManager.FindByEmailAsync(model.Email);
-            if (emailExists != null)
-            {
-                ModelState.AddModelError("Email", "Este email já está em uso.");
-                ViewBag.Roles = await _adminService.GetAllRolesForDropdownAsync();
-                ViewBag.Categories = await _adminService.GetAllCategoriesForDropdownAsync();
-                return View(model);
-            }
-            pendingEmail = model.Email;
+            _logger.LogAppError(AppErrors.UserNotFound, TableName.User, AppOperation.Read);
+            return RedirectToAction("Error", "Home", new { area = "", errorCode = AppErrors.UserNotFound });
         }
-
-        user.FirstName = model.FirstName;
-        user.LastName = model.LastName;
-        user.Balance = model.Balance;
-        user.Gender = model.Gender;
-        user.BirthDate = model.BirthDate;
-        user.UserCategory = (await _adminService.GetCategoryByNameAsync(model.Category)) ?? user.UserCategory;
-
-        var result = await _userManager.UpdateAsync(user);
-
-        if (result.Succeeded)
+        
+        var result = await _adminService.UpdateUserAdminAsync(user, model, Url, Request.Scheme);
+        if (result.Success)
         {
-            var oldRoles = await _userManager.GetRolesAsync(user);
-            await _userManager.RemoveFromRolesAsync(user, oldRoles);
-            await _userManager.AddToRoleAsync(user, model.Role);
-            await _userManager.UpdateSecurityStampAsync(user);
-
-            if (!string.IsNullOrWhiteSpace(pendingEmail))
-            {
-                try
-                {
-                    await _adminService.RequestEmailChangeAsync(user, pendingEmail, Url, Request.Scheme);
-                    TempData.SetSwalInfo("Utilizador atualizado! O link de confirmação foi enviado para o novo e-mail.");
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogAppError(AppErrors.EmailSenderError, TableName.User, AppOperation.Other, ex);
-
-                    var erroEmail = AppErrors.EmailSenderError;
-                    TempData.SetSwalError($"{_localizer[erroEmail.ToString()].Value} [Erro: {(int)erroEmail}]");
-                    return RedirectToAction(nameof(Index));
-                }
-            }
-            else
-            {
-                TempData.SetSwalSuccess("Utilizador atualizado com sucesso.");
-            }
-
+            TempData.SetSwalSuccess(result.Message);
             return RedirectToAction(nameof(Index));
         }
-        foreach (var error in result.Errors) ModelState.AddModelError("", error.Description);
-
-        ViewBag.Roles = await _adminService.GetAllRolesForDropdownAsync();
-        ViewBag.Categories = await _adminService.GetAllCategoriesForDropdownAsync();
+        
+        TempData.SetSwalError(result.Message);
+        model.RolesList = await _adminService.GetAllRolesForDropdownAsync();
+        model.CategoriesList = await _adminService.GetAllCategoriesForDropdownAsync();
+        model.SchoolsList = await _userService.GetSchoolsAsync();
         return View(model);
     }
 

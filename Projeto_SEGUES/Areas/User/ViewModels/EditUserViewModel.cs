@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Projeto_SEGUES.Attributes;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
@@ -32,6 +33,9 @@ public class EditUserViewModel
     [RegularExpression(@"^[a-zA-Z\u00C0-\u00FF\s]*$", ErrorMessage = "O sobrenome não pode conter números nem símbolos.")]
     [Display(Name = "Sobrenome")]
     public required string LastName { get; set; }
+    
+    [ValidateNever]
+    public string Initial => FirstName[0].ToString().ToUpper();
 
     /// <summary>Email address, displayed for reference but typically immutable in this view.</summary>
     [EmailAddress]
@@ -89,11 +93,23 @@ public class EditUserViewModel
     public string? StudentNumber { get; set; }
 
     /// <summary>Professional role description for users categorized as Employees.</summary>
-    /*[MaxLength(100, ErrorMessage = "O Cargo deve ter no máximo {1} caracteres.")]
+    [MaxLength(100, ErrorMessage = "O Cargo deve ter no máximo {1} caracteres.")]
     [Display(Name = "Cargo")]
-    public string? RoleDescription { get; set; }*/
+    public string? RoleDescription { get; set; }
 
     /// <summary>Identifier for the school the user is affiliated with.</summary>
     [Display(Name = "Escola")]
     public int? SchoolId { get; set; }
+    
+    [ValidateNever]
+    public bool IsStudent => Category.Equals("Student", StringComparison.OrdinalIgnoreCase);
+    
+    [ValidateNever]
+    public bool IsEmployee => Role.Name!.Equals("Employee", StringComparison.OrdinalIgnoreCase);
+    
+    [ValidateNever]
+    public bool ShowSchool => IsEmployee || Role.Name!.Equals("Client", StringComparison.OrdinalIgnoreCase);
+    
+    [ValidateNever]
+    public List<SelectListItem> Schools { get; set; } = [];
 }

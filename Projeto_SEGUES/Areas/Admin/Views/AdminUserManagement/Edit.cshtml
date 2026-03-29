@@ -1,5 +1,5 @@
 ﻿@using Projeto_SEGUES.Models.Enums
-@model Projeto_SEGUES.Areas.User.ViewModels.EditUserAdminViewModel
+@model Projeto_SEGUES.Areas.Admin.ViewModels.EditUserAdminViewModel
 
 @{
     ViewData["Title"] = "Editar Utilizador";
@@ -7,107 +7,186 @@
 
 <div class="container mt-5">
     @* Top row *@
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            @* Top row *@
-            <div class="d-flex justify-content-between align-items-center mb-4 flex-column flex-md-row">
-                <div class="mb-2 mb-md-0 col-12 col-md-auto">
-                    <h1 class="fw-bold display-6 mb-1 title-underline">Editar Utilizador</h1>
-                    <p class="text-muted small mt-1 mb-0">Altere as informações de perfil, permissões ou o saldo do utilizador selecionado.</p>
+    <div class="d-flex mb-3 mb-md-4 justify-content-between align-items-center col-12 col-md-auto flex-column flex-md-row">
+        <div class="mb-2 mb-md-0">
+            <h1 class="fw-bold display-6 title-underline mb-1">
+                <i class="bi bi-person-gear me-2 text-color-ips"></i>Editar Utilizador
+            </h1>
+            <p class="text-muted mb-0 mt-1">Altere as informações de perfil, permissões ou o saldo do utilizador selecionado.</p>
+        </div>
+        <a asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Index" class="btn btn-ips-outline-secondary col-12 col-md-auto fw-bold shadow-sm order-first order-md-last mb-3 mb-md-0">
+            <i class="bi bi-arrow-left me-2"></i>Voltar
+        </a>
+    </div>
+    
+    @* Form card *@
+    <div class="card shadow-sm card-ips hover-shadow-ips small fs-md-6">
+        <div class="card-body p-4 p-md-5">
+            <form asp-action="Edit" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger small mb-3" role="alert"></div>
+                <input type="hidden" asp-for="Id"/>
+                @Html.AntiForgeryToken()
+                
+                <h5 class="fw-bold mb-3 text-color-ips">
+                    <i class="bi bi-person-badge me-2"></i>Informações Pessoais
+                </h5>
+                <div class="row g-3 mb-3 mb-md-4 text-start">
+                    @* Name *@
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input asp-for="FirstName" class="form-control"/>
+                            <label asp-for="FirstName" class="fw-bold small" placeholder="Nome"></label>
+                        </div>
+                        <span asp-validation-for="FirstName" class="text-danger small d-block mt-1"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input asp-for="LastName" class="form-control"/>
+                            <label asp-for="LastName" class="fw-bold small" placeholder="Apelido"></label>
+                        </div>
+                        <span asp-validation-for="LastName" class="text-danger small d-block mt-1"></span>
+                    </div>
+                    @* Gender, BirthDate, NIF *@
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <select asp-for="Gender" class="form-select" asp-items="Html.GetEnumSelectList<Gender>()">
+                                <option value="">Selecione...</option>
+                            </select>
+                            <label asp-for="Gender" class="fw-bold small"></label>
+                        </div>
+                        <span asp-validation-for="Gender" class="text-danger small d-block mt-1"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <input asp-for="BirthDate" type="date" class="form-control"/>
+                            <label asp-for="BirthDate" class="fw-bold small"></label>
+                        </div>
+                        <span asp-validation-for="BirthDate" class="text-danger small d-block mt-1"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <input asp-for="FiscalNumber" class="form-control" placeholder="NIF"/>
+                            <label asp-for="FiscalNumber" class="fw-bold small"></label>
+                        </div>
+                        <span asp-validation-for="FiscalNumber" class="text-danger small d-block mt-1"></span>
+                    </div>
                 </div>
-                @* Return button *@
-                <a asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Index" class="btn btn-ips-outline-secondary col-12 col-md-auto fw-bold shadow-sm order-first order-md-last mb-3 mb-md-0">
-                    <i class="bi bi-arrow-left me-2"></i>Voltar
-                </a>
-            </div>
-            @* Form card *@
-            <div class="card shadow-sm card-ips hover-shadow-ips">
-                <div class="card-body p-4">
-                    <form asp-action="Edit" method="post">
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-                        <input type="hidden" asp-for="Id"/>
-                        @* Name *@
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label asp-for="FirstName" class="form-label fw-bold small"></label>
-                                <input asp-for="FirstName" class="form-control" />
-                                <span asp-validation-for="FirstName" class="text-danger small"></span>
-                            </div>
-                            <div class="col-md-6">
-                                <label asp-for="LastName" class="form-label fw-bold small"></label>
-                                <input asp-for="LastName" class="form-control" />
-                                <span asp-validation-for="LastName" class="text-danger small"></span>
-                            </div>
+                <h5 class="fw-bold mb-3 text-color-ips border-top pt-3">
+                    <i class="bi bi-house-door me-2"></i>Morada
+                </h5>
+                <div class="row g-3 mb-3 mb-md-4 text-start">
+                    <div class="col-12">
+                        <div class="form-floating">
+                            <input asp-for="Address" class="form-control" placeholder="Morada" />
+                            <label asp-for="Address" class="fw-bold small"></label>
                         </div>
-                        @* Email Field *@
-                        <div class="mb-3">
-                            <label asp-for="Email" class="form-label fw-bold small"></label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                                <input asp-for="Email" class="form-control" placeholder="exemplo@ips.pt" />
-                            </div>
-                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        <span asp-validation-for="Address" class="text-danger small d-block mt-1"></span>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="form-floating">
+                            <input asp-for="City" class="form-control" placeholder="Cidade" />
+                            <label asp-for="City" class="fw-bold small"></label>
                         </div>
-                        @* Gender and BirthDate *@
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <label asp-for="Gender" class="form-label fw-bold small"></label>
-                                <select asp-for="Gender" class="form-select" asp-items="Html.GetEnumSelectList<Gender>()">
-                                    <option value="">Selecione...</option>
-                                </select>
-                                <span asp-validation-for="Gender" class="text-danger small"></span>
-                            </div>
-                            <div class="col-md-6">
-                                <label asp-for="BirthDate" class="form-label fw-bold small"></label>
-                                <input asp-for="BirthDate" type="date" class="form-control"/>
-                                <span asp-validation-for="BirthDate" class="text-danger small"></span>
-                            </div>
+                        <span asp-validation-for="City" class="text-danger small d-block mt-1"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <input asp-for="PostalCode" class="form-control" placeholder="Código Postal" />
+                            <label asp-for="PostalCode" class="fw-bold small"></label>
                         </div>
-                        @* Role and Category *@
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <label asp-for="Role" class="form-label fw-bold small"></label>
-                                <select asp-for="Role" class="form-select" asp-items="ViewBag.Roles">
-                                </select>
-                                <span asp-validation-for="Role" class="text-danger small"></span>
-                            </div>
-                            <div class="col-md-6">
-                                <label asp-for="Category" class="form-label fw-bold small"></label>
-                                <select asp-for="Category" class="form-select" asp-items="ViewBag.Categories">
-                                </select>
-                                <span asp-validation-for="Category" class="text-danger small"></span>
-                            </div>
-                        </div>
-                        <div class="mb-4 p-3 bg-color-ips-very-light rounded border">
-                            <label asp-for="Balance" class="form-label fw-bold small"></label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-color-ips text-white fw-bold">€</span>
-                                <input asp-for="Balance"
-                                       type="number"
-                                       step="0.01"
-                                       max="30000"
-                                       data-val="true"
-                                       data-val-range="O saldo máximo permitido é de 30.000,00€."
-                                       data-val-range-max="30000"
-                                       data-val-range-min="0"
-                                       class="form-control fw-bold" />
-                            </div>
-                            <span asp-validation-for="Balance" class="text-danger small"></span>
-                        </div>
-                        
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-evenly">
-                            <a asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Index" class="btn btn-outline-secondary fw-bold px-4">Cancelar</a>
-                            <button type="submit" class="btn btn-ips fw-bold px-5">Guardar Alterações</button>
-                        </div>
-                    </form>
+                        <span asp-validation-for="PostalCode" class="text-danger small d-block mt-1"></span>
+                    </div>
                 </div>
-            </div>
+                
+                <h5 class="fw-bold mb-3 text-color-ips border-top pt-3">
+                    <i class="bi bi-building me-2"></i>Informações Institucionais
+                </h5>
+                <div class="row g-3 mb-3 mb-md-4 text-start">
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input asp-for="StudentNumber" class="form-control" placeholder="Nº Estudante" />
+                            <label asp-for="StudentNumber" class="fw-bold small"></label>
+                        </div>
+                        <span asp-validation-for="StudentNumber" class="text-danger small d-block mt-1"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input asp-for="RoleDescription" class="form-control" placeholder="Cargo" />
+                            <label asp-for="RoleDescription" class="fw-bold small"></label>
+                        </div>
+                        <span asp-validation-for="RoleDescription" class="text-danger small d-block mt-1"></span>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-floating">
+                            <select asp-for="SchoolId" class="form-select" asp-items="Model.SchoolsList">
+                                <option value="">Selecione a Escola/Faculdade...</option>
+                            </select>
+                            <label asp-for="SchoolId" class="fw-bold small"></label>
+                        </div>
+                        <span asp-validation-for="SchoolId" class="text-danger small d-block mt-1"></span>
+                    </div>
+                </div>
+                
+                <h5 class="fw-bold mb-3 text-color-ips border-top pt-3">
+                    <i class="bi bi-shield-lock me-2"></i>Acesso ao Sistema
+                </h5>
+                <div class="row g-3 mb-3 mb-md-4 text-start">
+                    @* Email Field *@
+                    <div class="col-md-12">
+                        <label asp-for="Email" class="fw-bold small"></label>
+                        <div class="form-floating">
+                            <input asp-for="Email" class="form-control" placeholder="exemplo@ips.pt"/>
+                            <label asp-for="Email" class="fw-bold small"></label>
+                        </div>
+                        <span asp-validation-for="Email" class="text-danger small d-block mt-1"></span>
+                    </div>
+                    @* Role and Category *@
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <select asp-for="Role" class="form-select" asp-items="Model.RolesList"></select>
+                            <label asp-for="Role" class="fw-bold small"></label>
+                        </div>
+                        <span asp-validation-for="Role" class="text-danger small d-block mt-1"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <select asp-for="Category" class="form-select" asp-items="Model.CategoriesList"></select>
+                            <label asp-for="Category" class="fw-bold small"></label>
+                        </div>
+                        <span asp-validation-for="Category" class="text-danger small d-block mt-1"></span>
+                    </div>
+                </div>
+                
+                <h5 class="fw-bold mb-3 text-color-ips border-top pt-3">
+                    <i class="bi bi-wallet2 me-2"></i>Saldo
+                </h5>
+                <div class="row g-3 mb-4 text-start">
+                    <div class="col-md-4">
+                        <div class="input-group input-group-lg shadow-sm">
+                            <span class="input-group-text bg-color-ips text-white fw-bold border-0">€</span>
+                            <div class="form-floating flex-grow-1">
+                                <input asp-for="Balance" type="number" step="0.01" max="30000" class="form-control fw-bold border-start-0" placeholder="Saldo" style="border-top-left-radius: 0; border-bottom-left-radius: 0;" />
+                                <label asp-for="Balance"></label>
+                            </div>
+                        </div>
+                        <span asp-validation-for="Balance" class="text-danger small d-block mt-1"></span>
+                    </div>
+                </div>
+                
+                @* Actions Buttons *@
+                <div class="d-grid gap-3 d-md-flex justify-content-md-end border-top pt-3 pt-md-4 mt-2">
+                    <a asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4 shadow-sm">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-ips fw-bold px-5 shadow-sm d-flex align-items-center justify-content-center">
+                        <i class="bi bi-check2-circle me-2"></i>Guardar
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    <partial name="_ValidationScriptsPartial" />
 }
