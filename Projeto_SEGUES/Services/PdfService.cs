@@ -1,4 +1,5 @@
-﻿using Projeto_SEGUES.Extensions;
+﻿using Projeto_SEGUES.Areas.Admin.ViewModels;
+using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Order;
 using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.User;
@@ -91,13 +92,24 @@ public class PdfService : IPdfService
     /// </summary>
     /// <param name="container">The container to compose the user cell elements into.</param>
     /// <param name="user">The AppUser object containing the user's information to display in the cell.</param>
-    private static void DrawUserCell(IContainer container, AppUser user)
+    private static void DrawUserCell(IContainer container, AppUser user, UserDto? dto = null)
     {
-        container.ExtendHorizontal().AlignLeft().PaddingLeft(4).Column(c => 
+        if (dto == null)
         {
-            c.Item().AlignLeft().Text($"{user.FirstName} {user.LastName}").FontSize(8).SemiBold();
-            c.Item().AlignLeft().Text(user.Email).FontSize(7).FontColor(Colors.Grey.Medium);
-        });   
+            container.ExtendHorizontal().AlignLeft().PaddingLeft(4).Column(c =>
+            {
+                c.Item().AlignLeft().Text($"{user.FirstName} {user.LastName}").FontSize(8).SemiBold();
+                c.Item().AlignLeft().Text(user.Email).FontSize(7).FontColor(Colors.Grey.Medium);
+            });
+        }
+        else
+        {
+            container.ExtendHorizontal().AlignLeft().PaddingLeft(4).Column(c =>
+            {
+                c.Item().AlignLeft().Text($"{dto.FullName}").FontSize(8).SemiBold();
+                c.Item().AlignLeft().Text(dto.Email).FontSize(7).FontColor(Colors.Grey.Medium);
+            });
+        }
     }
     
     /// <summary>
@@ -297,5 +309,81 @@ public class PdfService : IPdfService
         });
 
         return document.GeneratePdf();
+    }
+
+    public byte[] GenerateAdminUsersListPdfAsync(List<UserDto> users, string logoPath)
+    { 
+        var document = Document.Create(container => 
+        { 
+            container.Page(page => 
+            { 
+                // Global configuration
+                ConfigureDefaultPage(page); 
+                page.Header().Element(c => ComposeHeader(c, "Lista de Utilizadores", logoPath)); 
+                page.Footer().Element(ComposeFooter);
+
+                // Table content
+                page.Content().PaddingTop(10).Table(table => 
+                { 
+                    // Columns
+                    table.ColumnsDefinition(columns => 
+                    {
+                        columns.RelativeColumn(2.5f); // Utilizador (Nome e Email)
+                        columns.ConstantColumn(75);   // Role
+                        columns.ConstantColumn(80);   // Categoria
+                        columns.ConstantColumn(50);   // Estado
+                        columns.ConstantColumn(65);   // Nascimento
+                        columns.ConstantColumn(50);   // Género
+                        columns.ConstantColumn(65);   // Criação
+                        columns.ConstantColumn(55);   // Saldo
+                    });
+
+                    // Header
+                    table.Header(_ => 
+                    { 
+                        string[] colNames = { "Utilizador", "Role", "Categoria", "Estado", "Nascimento", "Género", "Criação", "Saldo" }; 
+                        foreach (var name in colNames) AddHeaderCell(table, name); 
+                    });
+
+                    // Lines
+                    foreach (var u in users)
+                    {
+                        // User (Nome + Email)
+                        table.Cell().Element(CellStyle).Element(c => DrawUserCell(c, null, u));
+                        
+                        // Role
+                        table.Cell().Element(CellStyle).Text(u.RoleName);
+                        
+                        // Category
+                        table.Cell().Element(CellStyle).Text(u.CategoryName);
+                        
+                        // State
+                        table.Cell().Element(CellStyle)
+                            .Text(u.StatusDisplay)
+                            .FontColor(u.IsActive ? Colors.Green.Medium : Colors.Red.Medium)
+                            .SemiBold();
+                        
+                        // Birthdate
+                        table.Cell().Element(CellStyle).Text(u.BirthDateDisplay);
+                        
+                        // Gender
+                        table.Cell().Element(CellStyle).Text(u.GenderDisplay);
+                        
+                        // Creation Date
+                        table.Cell().Element(CellStyle).Text(u.CreationDateDisplay);
+                        
+                        // Balance
+                        table.Cell().Element(CellStyle)
+                            .ExtendHorizontal()
+                            .AlignRight()
+                            .PaddingRight(4)
+                            .Text(u.BalanceFormatted)
+                            .SemiBold();
+                    } 
+                }); 
+            }); 
+        });
+        
+        return document.GeneratePdf(); 
     }
 }

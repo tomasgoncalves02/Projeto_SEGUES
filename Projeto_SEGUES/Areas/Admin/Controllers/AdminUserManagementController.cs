@@ -26,8 +26,8 @@ public class AdminUserManagementController : Controller
     private readonly UserManager<AppUser> _userManager;
     private readonly IAdminService _adminService;
     private readonly IUserService _userService;
-    private readonly AppDbContext _context;
     private readonly ILogger<AdminUserManagementController> _logger;
+    private readonly IPdfService _pdfService;
 
     /// <summary>
     /// Initializes a new instance of the controller with Identity, administration, and data context services.
@@ -35,13 +35,18 @@ public class AdminUserManagementController : Controller
     /// <param name="userManager">Native ASP.NET Identity service for user management.</param>
     /// <param name="adminService">Custom service containing administrative business logic.</param>
     /// <param name="context">Database context for direct queries (e.g., Logs).</param>
-    public AdminUserManagementController(UserManager<AppUser> userManager, IAdminService adminService, IUserService userService, AppDbContext context, ILogger<AdminUserManagementController> logger)
+    public AdminUserManagementController(
+        UserManager<AppUser> userManager, 
+        IAdminService adminService, 
+        IUserService userService, 
+        ILogger<AdminUserManagementController> logger, 
+        IPdfService pdfService)
     {
         _userManager = userManager;
         _adminService = adminService;
         _userService = userService;
-        _context = context;
         _logger = logger;
+        _pdfService = pdfService;
     }
 
     /// <summary>
@@ -283,5 +288,17 @@ public class AdminUserManagementController : Controller
         var logs = _adminService.GetStaffLogFilteredAsync(search, date);
         return View(logs);
     }
-    
+
+    [HttpGet]
+    public async Task<IActionResult> ExportUsersPdf([Bind(Prefix = "SearchModel")] UserSearchViewModel model)
+    {
+        var users = await _adminService.GetFilteredUsersAsync(
+            model.SearchString, 
+            model.RoleFilter, 
+            model.CategoryFilter
+        );
+        var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo-ips.png");
+        byte[] pdfBytes = _pdfService.GenerateAdminUsersListPdfAsync(users, logoPath);
+        return File(pdfBytes, "application/pdf", $"Listagem_Utilizadores_{DateTime.Now:yyyyMMdd}.pdf");
+    }
 }

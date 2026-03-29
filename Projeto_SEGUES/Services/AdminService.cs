@@ -203,7 +203,10 @@ public class AdminService : IAdminService
                 CategoryBadgeClass = categoryName.ToBadgeClass(),
                 
                 IsActive = user.Status == UserStatus.Active,
-                BalanceFormatted = user.Balance.ToString("C")
+                BalanceFormatted = user.Balance.ToString("C"),
+                GenderDisplay = user.Gender.ToDisplayName(),
+                CreationDateDisplay = user.CreationDate.ToString("dd/MM/yyyy"),
+                BirthDateDisplay = user.BirthDate.ToString("dd/MM/yyyy")
             };
         }).ToList();
     }
