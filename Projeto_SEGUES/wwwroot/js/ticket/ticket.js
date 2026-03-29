@@ -1,5 +1,18 @@
+﻿/**
+ * Meal Ticket Visualization Module.
+ * Manages the display of active meal tickets, including dynamic QR Code 
+ * generation for canteen validation.
+ */
 import { DOM, Notifications } from "../core/core.js";
 
+/**
+ * Displays a modal containing a generated QR Code and the alphanumeric validation code.
+ * @param {string} code - The unique 8-character ticket identifier.
+ * @remarks
+ * Utilizes the QRServer API to generate the visual code. 
+ * Includes specific CSS styles for branding and a tip for users to 
+ * maximize screen brightness to aid scanner readability.
+ */
 function showQr(code) {
     Notifications.show({
         title: 'Senha de Refeição',
@@ -14,17 +27,30 @@ function showQr(code) {
     });
 }
 
+/**
+ * Ticket Module initialization and event management.
+ */
 const Ticket = {
+    /**
+     * Entry point for the module. Triggers the initial binding of events.
+     */
     init() {
         Ticket.rebind();
     },
+    /**
+     * Attaches click listeners to all elements with the 'showQr' class.
+     * Essential for handling dynamic content injected via HTMX in ticket lists.
+     */
     rebind() {
-        DOM.bindAll('showQr', 'click', function() {
+        DOM.bindAll('showQr', 'click', function () {
+            // Retrieves the unique ticket code from the element's data-code attribute
             showQr(this.dataset.code);
         });
     }
 };
 
+// Application Lifecycle Hooks
 DOM.bindDocumentLoad(Ticket.init);
 DOM.executeAfterHtmx(Ticket.rebind);
+
 export { Ticket };

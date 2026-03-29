@@ -1,13 +1,24 @@
+﻿/**
+ * Statistics and Data Visualization Module.
+ * Handles fetching and rendering of bar and canteen performance metrics using Chart.js.
+ */
 import { DOM, Api } from "../core/core.js";
 
 /*
  * Generic functions
+ */
+
+/**
+ * Updates the text content of a specific DOM element.
  */
 function updateText(id, value = '') {
     const el = DOM.byId(id);
     if (el) el.textContent = value;
 }
 
+/**
+ * Returns labels and configuration based on the selected time period.
+ */
 function getChartConfig(dataType, period) {
     const config = [
         { sub: '', x: 'Tempo' },
@@ -21,46 +32,54 @@ function getChartConfig(dataType, period) {
     return config[idx];
 }
 
-// Updates or creates a Chart.js instance
-function updateChart(id, type, data, options)
-{
+/**
+ * Updates or creates a Chart.js instance.
+ * Checks for existing charts to prevent canvas reuse errors.
+ */
+function updateChart(id, type, data, options) {
     const canvas = DOM.byId(id);
     if (!canvas) return;
-    
+
     const chart = window.Chart.getChart(canvas);
     // if no chart exists, create a new one
     if (!chart) {
-        new Chart(canvas.getContext('2d'), {type, data, options});
+        new Chart(canvas.getContext('2d'), { type, data, options });
         return;
     }
-    
+
     chart.data.labels = data.labels;
     chart.data.datasets = data.datasets;
     chart.options.scales.x.title.text = options.scales.x.title.text;
     chart.update();
 }
 
+/**
+ * Loads order statistics from the server and updates the UI.
+ */
 async function loadOrdersSummary() {
     const period = DOM.byId('selectOrdersPeriod')?.value;
     if (!period) return;
-    
+
     const data = await Api.get('/Report/ReportStatisticsOrder/GetOrdersStats', { period });
     if (!data) return;
-    
+
     updateText('totalOrderBar', data.totalOrders);
     updateText('totalIncomeBar', data.formattedTotalRevenue);
     updateText('averageIncomeBar', data.formattedAverageRevenue);
     updateText('totalBuyersBar', data.numberOfBuyers);
-    
+
     renderOrderChart(data.orderChart, period);
     renderCategoriesChart(data.productCategories);
     renderTopProductsTable(data.topProducts);
 }
 
+/**
+ * Configures and renders the main orders line chart.
+ */
 function renderOrderChart(data, period) {
     const config = getChartConfig('Pedidos', period);
     updateText('orderChartSubtitle', config.sub);
-    
+
     const chartData = {
         labels: data.map(d => d.label),
         datasets: [{
@@ -75,7 +94,7 @@ function renderOrderChart(data, period) {
             pointBackgroundColor: 'darkcyan',
         }]
     };
-    
+
     const options = {
         responsive: true,
         maintainAspectRatio: false,
@@ -105,10 +124,13 @@ function renderOrderChart(data, period) {
             }
         }
     };
-    
+
     updateChart('orderChart', 'line', chartData, options);
 }
 
+/**
+ * Configures and renders the product categories doughnut chart.
+ */
 function renderCategoriesChart(data) {
     const chartData = {
         labels: data.map(d => d.category),
@@ -124,8 +146,8 @@ function renderCategoriesChart(data) {
         responsive: true,
         maintainAspectRatio: false,
         cutout: '65%',
-        plugins: { 
-            legend: { 
+        plugins: {
+            legend: {
                 position: 'bottom',
                 labels: {
                     boxWidth: 40,
@@ -135,11 +157,13 @@ function renderCategoriesChart(data) {
             }
         }
     };
-    
+
     updateChart('productCategoriesChart', 'doughnut', chartData, options);
 }
 
-
+/**
+ * Populates the top products ranking table.
+ */
 function renderTopProductsTable(data) {
     const tbody = DOM.byId('topProductsTableBody');
     if (!tbody) return;
@@ -166,13 +190,16 @@ function renderTopProductsTable(data) {
  * Canteen
  */
 
+/**
+ * Loads canteen ticket statistics and updates UI metrics.
+ */
 async function loadTicketsSummary() {
     const period = DOM.byId('selectTicketsPeriod')?.value;
     if (!period) return;
 
     const data = await Api.get('/Report/ReportStatisticsTicket/GetTicketsStats', { period });
     if (!data) return;
-    
+
     const findCat = name => data.byCategory?.find(c => c.category === name)?.count ?? 0;
 
     updateText('totalUsedTickets', data.totalUsedTickets);
@@ -183,10 +210,13 @@ async function loadTicketsSummary() {
     updateText('usedStudentTickets', findCat('Estudante'));
     updateText('usedExternalTickets', findCat('Externo'));
     updateText('usedWorkerTickets', findCat('Trabalhador IPS'));
-    
+
     renderTicketChart(data.chart, period);
 }
 
+/**
+ * Configures and renders the meal usage line chart.
+ */
 function renderTicketChart(data, period) {
     const config = getChartConfig('Refeições', period);
     updateText('ticketChartSubtitle', config.sub);
@@ -210,9 +240,9 @@ function renderTicketChart(data, period) {
         responsive: true,
         maintainAspectRatio: false,
         scales: {
-            x: { 
-                title: { 
-                    display: true, 
+            x: {
+                title: {
+                    display: true,
                     text: config.x,
                     color: '#6c757d',
                     font: { size: 12, weight: 'bold' },
@@ -220,7 +250,7 @@ function renderTicketChart(data, period) {
                 },
                 grid: { display: false }
             },
-            y: { 
+            y: {
                 beginAtZero: true,
                 grace: '10%',
                 title: {
@@ -235,18 +265,22 @@ function renderTicketChart(data, period) {
             }
         }
     };
-    
+
     updateChart('ticketsChart', 'line', chartData, options);
 }
 
 /*
  * Export
  */
-const Statistics = { 
+
+/**
+ * Statistics module initialization.
+ */
+const Statistics = {
     init() {
         DOM.bind('selectTicketsPeriod', 'change', loadTicketsSummary, true);
         DOM.bind('selectOrdersPeriod', 'change', loadOrdersSummary, true);
-    } 
+    }
 };
 
 DOM.bindDocumentLoad(Statistics.init);

@@ -1,5 +1,16 @@
-﻿import { DOM, Notifications } from "../core/core.js";
+﻿/**
+ * Inventory Management UI Controller.
+ * Handles product visualization, stock monitoring, and administrative action confirmations.
+ */
+import { DOM, Notifications } from "../core/core.js";
 
+/**
+ * Parses product data from a data-attribute and displays it in a rich-text modal.
+ * @remarks
+ * This function handles responsive classes (p-md-2, fs-md-5) to ensure product details 
+ * are readable on both mobile devices and desktop management consoles.
+ * Staff-only data (Stock/Minimum Stock) is rendered conditionally based on object availability.
+ */
 function showProductDetails() {
     let product = JSON.parse(this.dataset.product);
     Notifications.show({
@@ -28,7 +39,7 @@ function showProductDetails() {
                         </div>
                     </div>
                 </div>
-                ${ product.stock && product.minStock ? 
+                ${product.stock && product.minStock ?
                 `<div class="row g-2 g-md-3 mt-1 mt-md-2">
                     <div class="col-6">
                         <div class="card bg-color-ips-very-light border-0 shadow-sm rounded-3 h-100">
@@ -46,13 +57,17 @@ function showProductDetails() {
                             </div>
                         </div>
                     </div>
-                </div>` : '' }
+                </div>` : ''}
             </div>`
         ,
         confirmButtonText: 'Fechar',
     });
 }
 
+/**
+ * Updates the visual badge indicating the total count of visible products.
+ * Typically triggered after HTMX filtering operations.
+ */
 function updateProductsCount() {
     const rowCount = DOM.byClass('showProductDetails')?.length || 0;
     const badge = DOM.byId('productsCountBadge');
@@ -61,18 +76,25 @@ function updateProductsCount() {
     badge.textContent = rowCount.toString(10);
 }
 
+/**
+ * Triggers a confirmation dialog before deleting a product.
+ * @param {Event} e - Click event.
+ */
 function confirmDeleteProduct(e) {
     const btn = e.currentTarget;
     const { id, name } = btn.dataset;
 
     Notifications.confirm(`Tem a certeza que deseja eliminar o produto "${name}"?`)
-        .then((result) => {           
+        .then((result) => {
             if (result.isConfirmed) {
                 DOM.byId(`delete-form-${id}`)?.submit();
             }
         });
 }
 
+/**
+ * Triggers a confirmation dialog before reactivating a previously deleted/disabled product.
+ */
 function confirmReactivateProduct(e) {
     const { id, name } = e.currentTarget.dataset;
 
@@ -85,6 +107,10 @@ function confirmReactivateProduct(e) {
         }
     });
 }
+
+/**
+ * Validates and confirms the submission of the product edit form.
+ */
 function handleEditFormSubmit(e) {
     e.preventDefault();
     const form = this;
@@ -99,11 +125,18 @@ function handleEditFormSubmit(e) {
     });
 }
 
+/**
+ * Inventory Module initialization and rebinding logic.
+ */
 const Inventory = {
     init() {
         Inventory.rebind();
         DOM.bind('editForm', 'submit', handleEditFormSubmit);
     },
+    /**
+     * Reattaches event listeners to interactive elements.
+     * Essential for maintaining functionality after dynamic table updates.
+     */
     rebind() {
         DOM.bindAll('showProductDetails', 'click', showProductDetails);
         DOM.bindAll('confirmDeleteProduct', 'click', confirmDeleteProduct);
@@ -111,6 +144,8 @@ const Inventory = {
     }
 };
 
+// Lifecycle Hooks
 DOM.bindDocumentLoad(Inventory.init);
 DOM.executeAfterHtmx(Inventory.rebind, updateProductsCount);
+
 export { Inventory };

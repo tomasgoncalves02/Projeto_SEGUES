@@ -12,8 +12,9 @@ namespace Projeto_SEGUES.Areas.Admin;
 /// Controller responsible for managing and monitoring orders and bar operating schedules.
 /// </summary>
 /// <remarks>
-/// This controller allows administrators to view sales history, configure the bar's 
-/// opening/closing times, and export detailed reports in PDF format.
+/// This controller provides administrative tools to oversee sales history, configure 
+/// global operational parameters (like business hours), and export audited reports in PDF format.
+/// Access is strictly restricted to users with the "Admin" role.
 /// </remarks>
 [Authorize(Roles = "Admin")]
 [Area("Admin")]
@@ -24,11 +25,11 @@ public class AdminOrderManagementController : Controller
     private readonly IPdfService _pdfService;
 
     /// <summary>
-    /// Initializes a new instance of the controller with admin, order, user management services, logging, and localization.
+    /// Initializes a new instance of the <see cref="AdminOrderManagementController"/> class.
     /// </summary>
-    /// <param name="adminService">Administrative logic service.</param>
-    /// <param name="reportService">Report service.</param>
-    /// <param name="pdfService">PDF generation service.</param>
+    /// <param name="adminService">Service handling global configuration and business hours logic.</param>
+    /// <param name="reportService">Service providing filtered data for sales and order history.</param>
+    /// <param name="pdfService">Service utilizing QuestPDF for document generation.</param>
     public AdminOrderManagementController(
         IAdminService adminService,
         IReportService reportService,
@@ -40,9 +41,13 @@ public class AdminOrderManagementController : Controller
     }
 
     /// <summary>
-    /// Displays the main order management page, listing history and current schedules.
+    /// Displays the main administration dashboard for orders and schedules.
     /// </summary>
-    /// <returns>The index View with the list of orders obtained via the service.</returns>
+    /// <remarks>
+    /// Aggregates current bar configurations and the initial history of orders.
+    /// Sets a <c>ViewBag.ShowUser</c> flag to ensure the UI renders the customer details in the history grid.
+    /// </remarks>
+    /// <returns>A View with the <see cref="AdminOrderManagementViewModel"/> populated.</returns>
     public async Task<IActionResult> Index()
     {
         BarCanteenConfigViewModel barCanteenConfig = await _adminService.GetScheduleAsync();
@@ -56,20 +61,23 @@ public class AdminOrderManagementController : Controller
 
             SearchModel = new ReportOrderSearchViewModel()
         };
+
+        // Fetch initial results for the dashboard
         vm.SearchModel.Results = await _reportService.GetAdminOrderHistoryAsync(vm.SearchModel);
         ViewBag.ShowUser = true;
+
         return View(vm);
     }
 
     /// <summary>
-    /// Updates the bar's opening and closing hours with consistency validations.
+    /// Updates the bar's operational window (Opening and Closing hours).
     /// </summary>
-    /// <param name="openTime">New opening time.</param>
-    /// <param name="closeTime">New closing time.</param>
-    /// <returns>Redirects to Index with a success or error message.</returns>
+    /// <param name="openTime">The start time of the daily service.</param>
+    /// <param name="closeTime">The end time of the daily service.</param>
     /// <remarks>
-    /// Validates if hours are equal, if closing time is before opening time, or if the interval is less than one hour.
+    /// The service layer performs consistency checks: intervals must be positive and meet minimum duration rules.
     /// </remarks>
+    /// <returns>A redirect to the Index with a success or error SweetAlert notification.</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateOpenAndCloseTime(TimeSpan openTime, TimeSpan closeTime)
@@ -79,6 +87,7 @@ public class AdminOrderManagementController : Controller
             BarOpeningTime = openTime,
             BarClosingTime = closeTime
         });
+
         if (result.Success)
         {
             TempData.SetSwalSuccess(result.Message);
@@ -87,10 +96,18 @@ public class AdminOrderManagementController : Controller
         {
             TempData.SetSwalError(result.Message);
         }
-        
+
         return RedirectToAction(nameof(Index));
     }
-    
+
+    /// <summary>
+    /// Asynchronously retrieves a filtered subset of orders based on search criteria.
+    /// </summary>
+    /// <param name="model">The search model bound from the request parameters.</param>
+    /// <remarks>
+    /// Optimized for AJAX/HTMX calls. Returns a partial view representing only the table rows.
+    /// </remarks>
+    /// <returns>A Partial View with the filtered order history.</returns>
     [HttpGet]
     public async Task<IActionResult> GetFilteredOrders([Bind(Prefix = "SearchModel")] ReportOrderSearchViewModel model)
     {
@@ -100,24 +117,25 @@ public class AdminOrderManagementController : Controller
             Response.Headers["HX-Redirect"] = Url.Page("/Account/Login", new { area = "Identity" });
             return Challenge();
         }
-        
+
         model.Results = await _reportService.GetAdminOrderHistoryAsync(model);
         ViewBag.ShowUser = true;
+
+        // Reuses the shared partial view from the Report area for UI consistency
         return PartialView("~/Areas/Report/Views/ReportOrder/_OrderHistoryRowsPartial.cshtml", model.Results);
     }
 
     /// <summary>
-    /// Generates and exports a PDF document with the filtered order history.
+    /// Generates and streams a PDF document containing the audited order history.
     /// </summary>
-    /// <param name="model">The search model containing filter criteria for the orders to be included in the report.</param>
-    /// <returns>A dynamically generated PDF file using the QuestPDF library.</returns>
-    /// <remarks>
-    /// The document includes the institutional logo, user details, purchased products, and pickup times.
-    /// </remarks>
+    /// <param name="model">The search model to filter which records are exported.</param>
+    /// <returns>A file stream containing the PDF document.</returns>
     [HttpGet]
     public async Task<IActionResult> ExportOrdersPdf([Bind(Prefix = "SearchModel")] ReportOrderSearchViewModel model)
     {
+        // Fetch all orders matching the criteria (ignores pagination for full export)
         var orders = await _reportService.GetAdminOrderHistoryAsync(model, true);
+
         var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo-ips.png");
         byte[] pdfBytes = _pdfService.GenerateAdminOrderHistoryPdfAsync(orders, logoPath);
 
@@ -125,17 +143,17 @@ public class AdminOrderManagementController : Controller
     }
 
     /// <summary>
-    /// Updates the bar's availability during weekends.
+    /// Toggles the bar availability for specific weekend days.
     /// </summary>
-    /// <param name="day">The specific day to update (e.g., "Saturday" or "Sunday").</param>
-    /// <param name="isOpen">Indicates whether the bar should be open or closed on the specified day.</param>
-    /// <returns>Redirects to Index with a success or error message.</returns>
+    /// <param name="day">Target day string ("Saturday" or "Sunday").</param>
+    /// <param name="isOpen">The new availability state.</param>
+    /// <returns>A redirect to the Index action.</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateWeekendStatus(string day, bool isOpen)
     {
         var result = await _adminService.UpdateSpecificDayStatusAsync(day, isOpen);
-        
+
         if (result.Success)
         {
             TempData.SetSwalSuccess(result.Message);
@@ -144,7 +162,7 @@ public class AdminOrderManagementController : Controller
         {
             TempData.SetSwalError(result.Message);
         }
-        
+
         return RedirectToAction(nameof(Index));
     }
 }
