@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Projeto_SEGUES.Attributes;
 using Projeto_SEGUES.Models.Enums;
@@ -104,15 +105,27 @@ public class EditUserAdminViewModel
     /// <summary>
     /// List of available roles for the user.
     /// </summary>
+    [ValidateNever]
     public List<SelectListItem> RolesList { get; set; } = [];
     
     /// <summary>
     /// List of available categories for the user.
     /// </summary>
+    [ValidateNever]
     public List<SelectListItem> CategoriesList { get; set; } = [];
     
     /// <summary>
     /// List of available schools for the user.
     /// </summary>
+    [ValidateNever]
     public List<SelectListItem> SchoolsList { get; set; } = [];
+    
+    [ValidateNever]
+    public bool IsStudent => Category.Equals("Estudante", StringComparison.OrdinalIgnoreCase);
+    
+    [ValidateNever]
+    public bool IsEmployee => Role.Equals("Employee", StringComparison.OrdinalIgnoreCase);
+    
+    [ValidateNever]
+    public bool ShowSchool => IsEmployee || Role.Equals("Client", StringComparison.OrdinalIgnoreCase);
 }

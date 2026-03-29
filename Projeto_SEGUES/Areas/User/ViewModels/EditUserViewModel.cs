@@ -102,7 +102,7 @@ public class EditUserViewModel
     public int? SchoolId { get; set; }
     
     [ValidateNever]
-    public bool IsStudent => Category.Equals("Student", StringComparison.OrdinalIgnoreCase);
+    public bool IsStudent => Category.Equals("Estudante", StringComparison.OrdinalIgnoreCase);
     
     [ValidateNever]
     public bool IsEmployee => Role.Name!.Equals("Employee", StringComparison.OrdinalIgnoreCase);
