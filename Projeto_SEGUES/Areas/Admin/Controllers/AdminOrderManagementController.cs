@@ -1,316 +1,168 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Localization;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
-using Projeto_SEGUES.Data;
+using Projeto_SEGUES.Areas.Report.ViewModels;
 using Projeto_SEGUES.Extensions;
-using Projeto_SEGUES.Models.Enums;
-using Projeto_SEGUES.Models.User;
-using Projeto_SEGUES.Resources;
 using Projeto_SEGUES.Services;
-using QuestPDF.Fluent;
-using QuestPDF.Helpers;
-using QuestPDF.Infrastructure;
 
-namespace Projeto_SEGUES.Areas.Admin;
+namespace Projeto_SEGUES.Areas.Admin.Controllers;
 
 /// <summary>
 /// Controller responsible for managing and monitoring orders and bar operating schedules.
 /// </summary>
 /// <remarks>
-/// This controller allows administrators to view sales history, configure the bar's 
-/// opening/closing times, and export detailed reports in PDF format.
+/// This controller provides administrative tools to oversee sales history, configure 
+/// global operational parameters (like business hours), and export audited reports in PDF format.
+/// Access is strictly restricted to users with the "Admin" role.
 /// </remarks>
 [Authorize(Roles = "Admin")]
 [Area("Admin")]
 public class AdminOrderManagementController : Controller
 {
     private readonly IAdminService _adminService;
-    private readonly IOrderService _orderService;
-    private readonly UserManager<AppUser> _userManager;
-    private readonly AppDbContext _context;
-    private readonly ILogger<AdminOrderManagementController> _logger;
-    private readonly IStringLocalizer<Errors> _localizer;
+    private readonly IReportService _reportService;
+    private readonly IPdfService _pdfService;
 
     /// <summary>
-    /// Initializes a new instance of the controller with admin, order, user management services, logging, and localization.
+    /// Initializes a new instance of the <see cref="AdminOrderManagementController"/> class.
     /// </summary>
-    /// <param name="adminService">Administrative logic service.</param>
-    /// <param name="orderService">Order management service.</param>
-    /// <param name="userManager">Identity user manager.</param>
-    /// <param name="context">Entity Framework database context.</param>
-    /// <param name="logger">Logger for error tracking and auditing.</param>
-    /// <param name="localizer">Localizer for translating error messages.</param>
+    /// <param name="adminService">Service handling global configuration and business hours logic.</param>
+    /// <param name="reportService">Service providing filtered data for sales and order history.</param>
+    /// <param name="pdfService">Service utilizing QuestPDF for document generation.</param>
     public AdminOrderManagementController(
         IAdminService adminService,
-        IOrderService orderService,
-        UserManager<AppUser> userManager,
-        AppDbContext context,
-        ILogger<AdminOrderManagementController> logger,
-        IStringLocalizer<Errors> localizer)
+        IReportService reportService,
+        IPdfService pdfService)
     {
-        _orderService = orderService;
-        _userManager = userManager;
+        _reportService = reportService;
         _adminService = adminService;
-        _context = context;
-        _logger = logger;
-        _localizer = localizer;
+        _pdfService = pdfService;
     }
 
     /// <summary>
-    /// Displays the main order management page, listing history and current schedules.
+    /// Displays the main administration dashboard for orders and schedules.
     /// </summary>
-    /// <returns>The index View with the list of orders obtained via the service.</returns>
+    /// <remarks>
+    /// Aggregates current bar configurations and the initial history of orders.
+    /// Sets a <c>ViewBag.ShowUser</c> flag to ensure the UI renders the customer details in the history grid.
+    /// </remarks>
+    /// <returns>A View with the <see cref="AdminOrderManagementViewModel"/> populated.</returns>
     public async Task<IActionResult> Index()
     {
-        try
+        BarCanteenConfigViewModel barCanteenConfig = await _adminService.GetScheduleAsync();
+        AdminOrderManagementViewModel vm = new AdminOrderManagementViewModel
         {
-            BarCanteenConfigViewModel barCanteenConfig = await _adminService.GetScheduleAsync();
-            ViewBag.BarOpeningTimeString = barCanteenConfig.BarOpeningTimeString;
-            ViewBag.BarClosingTimeString = barCanteenConfig.BarClosingTimeString;
+            BarOpeningTimeString = barCanteenConfig.BarOpeningTimeString!,
+            BarClosingTimeString = barCanteenConfig.BarClosingTimeString!,
 
-            var orders = await _orderService.GetAdminOrderHistoryAsync();
-            return View(orders);
-        }
-        catch (Exception ex)
-        {
-            // REDIRECT: Erro fatal ao carregar a página de gestão.
-            _logger.LogError(ex, "Erro fatal ao carregar gestão de pedidos.");
-            return RedirectToAction("Error", "Home", new { area = "", errorCode = (int)AppErrors.DatabaseQueryError });
-        }
+            IsOpenSaturday = barCanteenConfig.IsOpenSaturday,
+            IsOpenSunday = barCanteenConfig.IsOpenSunday,
+
+            SearchModel = new ReportOrderSearchViewModel()
+        };
+
+        // Fetch initial results for the dashboard
+        vm.SearchModel.Results = await _reportService.GetAdminOrderHistoryAsync(vm.SearchModel);
+        ViewBag.ShowUser = true;
+
+        return View(vm);
     }
 
     /// <summary>
-    /// Updates the bar's opening and closing hours with consistency validations.
+    /// Updates the bar's operational window (Opening and Closing hours).
     /// </summary>
-    /// <param name="openTime">New opening time.</param>
-    /// <param name="closeTime">New closing time.</param>
-    /// <returns>Redirects to Index with a success or error message.</returns>
+    /// <param name="openTime">The start time of the daily service.</param>
+    /// <param name="closeTime">The end time of the daily service.</param>
     /// <remarks>
-    /// Validates if hours are equal, if closing time is before opening time, or if the interval is less than one hour.
+    /// The service layer performs consistency checks: intervals must be positive and meet minimum duration rules.
     /// </remarks>
+    /// <returns>A redirect to the Index with a success or error SweetAlert notification.</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateOpenAndCloseTime(TimeSpan openTime, TimeSpan closeTime)
     {
-        if (openTime == closeTime)
+        var result = await _adminService.UpdateScheduleAsync(new BarCanteenConfigViewModel
         {
-            TempData.SetSwalError("A hora de abertura e de fecho não podem ser iguais.");
-            return RedirectToAction(nameof(Index));
+            BarOpeningTime = openTime,
+            BarClosingTime = closeTime
+        });
+
+        if (result.Success)
+        {
+            TempData.SetSwalSuccess(result.Message);
+        }
+        else
+        {
+            TempData.SetSwalError(result.Message);
         }
 
-        if (closeTime < openTime)
-        {
-            TempData.SetSwalError("A hora de fecho não pode ser anterior à hora de abertura.");
-            return RedirectToAction(nameof(Index));
-        }
-
-        if ((closeTime - openTime).TotalHours < 1)
-        {
-            TempData.SetSwalError("O bar deve estar aberto pelo menos 1 hora.");
-            return RedirectToAction(nameof(Index));
-        }
-
-        try
-        {
-            await _adminService.UpdateScheduleAsync(new BarCanteenConfigViewModel
-            {
-                BarOpeningTime = openTime,
-                BarClosingTime = closeTime
-            });
-            TempData.SetSwalSuccess($"Horário de funcionamento do Bar alterado com sucesso.");
-            return RedirectToAction(nameof(Index));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogAppError(AppErrors.DatabaseUpdateError, TableName.AppConfig, AppOperation.Update, ex);
-            var erroEnum = AppErrors.DatabaseUpdateError;
-            var mensagemTraduzida = string.Format(Errors.DatabaseUpdateError, "o horário");
-
-            var mensagemFinal = $"{mensagemTraduzida} [Erro: {(int)erroEnum}]";
-
-            TempData.SetSwalError(mensagemFinal);
-            return RedirectToAction(nameof(Index));
-        }
+        return RedirectToAction(nameof(Index));
     }
 
     /// <summary>
-    /// Generates and exports a PDF document with the filtered order history.
+    /// Asynchronously retrieves a filtered subset of orders based on search criteria.
     /// </summary>
-    /// <param name="status">Filter by order status.</param>
-    /// <param name="date">Filter by specific date.</param>
-    /// <param name="search">Search term (name, email, or code).</param>
-    /// <returns>A dynamically generated PDF file using the QuestPDF library.</returns>
+    /// <param name="model">The search model bound from the request parameters.</param>
     /// <remarks>
-    /// The document includes the institutional logo, user details, purchased products, and pickup times.
+    /// Optimized for AJAX/HTMX calls. Returns a partial view representing only the table rows.
     /// </remarks>
+    /// <returns>A Partial View with the filtered order history.</returns>
     [HttpGet]
-    public async Task<IActionResult> ExportOrdersPDF(string status, DateTime? date, string search)
+    public async Task<IActionResult> GetFilteredOrders([Bind(Prefix = "SearchModel")] ReportOrderSearchViewModel model)
     {
-        try
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null)
         {
-            // 1. Construção da Query com os Includes necessários
-            var query = _context.Order
-                .Include(o => o.AppUser)
-                .Include(o => o.ProductPurchases)
-                    .ThenInclude(p => p.Product)
-                .Where(o => o.Status != OrderStatus.Cart)
-                .AsQueryable();
-
-            // 2. Aplicação dos Filtros
-            if (!string.IsNullOrEmpty(status))
-                query = query.Where(o => ((int)o.Status).ToString() == status);
-
-            if (date.HasValue)
-                query = query.Where(o => o.OrderDate.Date == date.Value.Date);
-
-            if (!string.IsNullOrEmpty(search))
-            {
-                search = search.ToLower();
-                query = query.Where(o => o.AppUser.FirstName.ToLower().Contains(search) ||
-                                         o.AppUser.LastName.ToLower().Contains(search) ||
-                                         o.RedemptionCode.ToLower().Contains(search) ||
-                                         o.Id.ToString().Contains(search));
-            }
-
-            var orders = await query.OrderByDescending(o => o.OrderDate).ToListAsync();
-
-            // Caminho para o Logótipo
-            var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo-ips.png");
-
-            // 3. Criação do Documento QuestPDF
-            var document = QuestPDF.Fluent.Document.Create(container =>
-            {
-                container.Page(page =>
-                {
-                    // Configurações da Página (Horizontal para caberem as 9 colunas)
-                    page.Size(PageSizes.A4.Landscape());
-                    page.Margin(15);
-                
-                    page.DefaultTextStyle(x => x.FontFamily("Roboto").FontSize(9));
-
-                    // Cabeçalho do PDF
-                    page.Header().Row(row =>
-                    {
-                        if (System.IO.File.Exists(logoPath))
-                            row.ConstantItem(100).Image(logoPath);
-
-                        row.RelativeItem().Column(col =>
-                        {
-                            col.Item().AlignRight().Text("Histórico Geral de Pedidos").FontSize(16).SemiBold().FontColor("#009697");
-                            col.Item().AlignRight().Text($"Gerado em: {DateTime.Now:dd/MM/yyyy HH:mm}").FontSize(8).Italic();
-                        });
-                    });
-
-                    // Conteúdo / Tabela
-                    page.Content().PaddingTop(10).Table(table =>
-                    {
-                        // Definição das larguras das colunas (Total de 9 colunas)
-                        table.ColumnsDefinition(columns =>
-                        {
-                            columns.RelativeColumn(1.5f); // Utilizador
-                            columns.ConstantColumn(40);   // Nº
-                            columns.ConstantColumn(60);   // Código
-                            columns.ConstantColumn(75);   // Data
-                            columns.ConstantColumn(60);   // Agendado
-                            columns.RelativeColumn(2.5f); // Produtos
-                            columns.ConstantColumn(75);   // Estado
-                            columns.ConstantColumn(65);   // Recolhido
-                            columns.ConstantColumn(55);   // Total
-                        });
-
-                        // Cabeçalho da Tabela
-                        table.Header(header =>
-                        {
-                            string[] titles = { "Utilizador", "Nº", "Código", "Data", "Agendado", "Produtos", "Estado", "Recolhido em", "Total" };
-                            foreach (var t in titles)
-                            {
-                                header.Cell().Background("#009697").Padding(4).AlignCenter()
-                                      .Text(t).FontColor(Colors.White).FontSize(8).SemiBold();
-                            }
-                        });
-
-                        // Linhas da Tabela (Dados dos Pedidos)
-                        foreach (var o in orders)
-                        {
-                            // Coluna Utilizador
-                            table.Cell().Element(CellStyle).Column(c =>
-                            {
-                                c.Item().Text($"{o.AppUser?.FirstName} {o.AppUser?.LastName}").FontSize(8).SemiBold();
-                                c.Item().Text(o.AppUser?.Email).FontSize(7).FontColor(Colors.Grey.Medium);
-                            });
-
-                            table.Cell().Element(CellStyle).AlignCenter().Text($"#{o.Id:D5}");
-                            table.Cell().Element(CellStyle).AlignCenter().Text(o.RedemptionCode).FontSize(7);
-                            table.Cell().Element(CellStyle).AlignCenter().Text(o.OrderDate.ToString("dd/MM/yy HH:mm"));
-
-                            // Hora Agendada
-                            table.Cell().Element(CellStyle).AlignCenter().Text(
-                                (o.DeliveryTime.HasValue && o.DeliveryTime.Value != TimeSpan.Zero)
-                                ? o.DeliveryTime.Value.ToString(@"hh\:mm")
-                                : "Agora"
-                            );
-
-                            // Lista de Produtos no Pedido
-                            table.Cell().Element(CellStyle).PaddingLeft(4).Column(c =>
-                            {
-                                foreach (var p in o.ProductPurchases)
-                                    c.Item().Text($"• {p.Quantity}x {p.Product?.Name} ({p.ProductValue:N2}€)").FontSize(7);
-                            });
-
-                            table.Cell().Element(CellStyle).AlignCenter().Text(o.Status.ToString());
-
-                            // Hora de Recolha Real
-                            table.Cell().Element(CellStyle).AlignCenter().Text(
-                                (o.PickupTime == null || o.PickupTime == TimeSpan.Zero)
-                                ? "---"
-                                : o.PickupTime.Value.ToString(@"hh\:mm")
-                            );
-
-                            // Valor Total
-                            table.Cell().Element(CellStyle).AlignRight().PaddingRight(4).Text($"{o.TotalValue:N2}€").SemiBold();
-                        }
-                    });
-
-                    // Rodapé com numeração de página
-                    page.Footer().PaddingTop(5).AlignCenter().Text(x =>
-                    {
-                        x.Span("Página ");
-                        x.CurrentPageNumber();
-                        x.Span(" de ");
-                        x.TotalPages();
-                    });
-                });
-            });
-
-            return File(document.GeneratePdf(), "application/pdf", $"Historico_Pedidos_{DateTime.Now:yyyyMMdd}.pdf");
+            Response.Headers["HX-Redirect"] = Url.Page("/Account/Login", new { area = "Identity" });
+            return Challenge();
         }
-        catch (Exception ex)
-        {
-            _logger.LogAppError(
-                AppErrors.InternalServerError,
-                TableName.Order,
-                AppOperation.Read,
-                ex
-            );
-            var erroEnum = AppErrors.InternalServerError;
-            var mensagemFinal = $"Não foi possível gerar o PDF, {Errors.InternalServerError} [Erro: {(int)erroEnum}]";
-            TempData.SetSwalError(mensagemFinal);           
-            return RedirectToAction(nameof(Index), new { status, date, search });
-        }
+
+        model.Results = await _reportService.GetAdminOrderHistoryAsync(model);
+        ViewBag.ShowUser = true;
+
+        // Reuses the shared partial view from the Report area for UI consistency
+        return PartialView("~/Areas/Report/Views/ReportOrder/_OrderHistoryRowsPartial.cshtml", model.Results);
     }
 
     /// <summary>
-    /// Applies a default style to table cells in the PDF report.
+    /// Generates and streams a PDF document containing the audited order history.
     /// </summary>
-    /// <param name="container">Cell interface container.</param>
-    /// <returns>The styled container with borders and padding.</returns>
-    static IContainer CellStyle(IContainer container) =>
-     container
-         .BorderBottom(1)
-         .BorderColor(Colors.Grey.Lighten3)
-         .PaddingVertical(4)
-         .DefaultTextStyle(x => x.FontFamily("Roboto").FontSize(8));
+    /// <param name="model">The search model to filter which records are exported.</param>
+    /// <returns>A file stream containing the PDF document.</returns>
+    [HttpGet]
+    public async Task<IActionResult> ExportOrdersPdf([Bind(Prefix = "SearchModel")] ReportOrderSearchViewModel model)
+    {
+        // Fetch all orders matching the criteria (ignores pagination for full export)
+        var orders = await _reportService.GetAdminOrderHistoryAsync(model, true);
+
+        var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo-ips.png");
+        byte[] pdfBytes = _pdfService.GenerateAdminOrderHistoryPdfAsync(orders, logoPath);
+
+        return File(pdfBytes, "application/pdf", $"Historico_Pedidos_{DateTime.Now:yyyyMMdd}.pdf");
+    }
+
+    /// <summary>
+    /// Toggles the bar availability for specific weekend days.
+    /// </summary>
+    /// <param name="day">Target day string ("Saturday" or "Sunday").</param>
+    /// <param name="isOpen">The new availability state.</param>
+    /// <returns>A redirect to the Index action.</returns>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateWeekendStatus(string day, bool isOpen)
+    {
+        var result = await _adminService.UpdateSpecificDayStatusAsync(day, isOpen);
+
+        if (result.Success)
+        {
+            TempData.SetSwalSuccess(result.Message);
+        }
+        else
+        {
+            TempData.SetSwalError(result.Message);
+        }
+
+        return RedirectToAction(nameof(Index));
+    }
 }

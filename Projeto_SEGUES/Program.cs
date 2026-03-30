@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System.Collections.ObjectModel;
+using System.Data;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -15,8 +17,6 @@ using Serilog.Events;
 using Serilog.Filters;
 using Serilog.Sinks.MSSqlServer;
 using Stripe;
-using System.Collections.ObjectModel;
-using System.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -188,8 +188,9 @@ builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IStatisticsService, StatisticsService>();
+builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IPdfService, PdfService>();
 
 //Stripe
 StripeConfiguration.ApiKey = builder.Configuration["Secrets:StripeSecretKey"];
@@ -208,7 +209,7 @@ var fontPath = Path.Combine(app.Environment.WebRootPath, "fonts", "Roboto-Regula
 
 if (System.IO.File.Exists(fontPath))
 {
-    using var fontStream = System.IO.File.OpenRead(fontPath);
+    await using var fontStream = System.IO.File.OpenRead(fontPath);
     FontManager.RegisterFont(fontStream);
 }
 
@@ -246,10 +247,24 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<AppDbContext>();
-        // Create the database if it doesn't exist and migrate
-        await context.Database.MigrateAsync();
-        // Seed initial data
-        await DbSeeder.SeedInitialDataAsync(services);
+
+        if (app.Environment.IsEnvironment("Testing"))
+        {
+            await context.Database.EnsureCreatedAsync();
+        }
+        else
+        {
+            if (context.Database.IsRelational())
+            {
+                await context.Database.MigrateAsync();
+            }
+            else
+            {
+                await context.Database.EnsureCreatedAsync();
+            }
+
+            await DbSeeder.SeedInitialDataAsync(services);
+        }
     }
     catch (Exception ex)
     {
@@ -283,3 +298,9 @@ app.MapControllerRoute(
 app.MapRazorPages();
 
 app.Run();
+
+//Makes it readable for Security Tests
+namespace Projeto_SEGUES
+{
+    public partial class Program { }
+}

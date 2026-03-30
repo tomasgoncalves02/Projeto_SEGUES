@@ -1,37 +1,51 @@
-﻿//using Castle.Core.Smtp;
-using Microsoft.AspNetCore.Identity.UI.Services;
+﻿using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Areas.Order.ViewModels;
 using Projeto_SEGUES.Data;
-using Projeto_SEGUES.Models.Audit;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Order;
 using Projeto_SEGUES.Models.User;
-using System.ComponentModel.DataAnnotations;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
+using Projeto_SEGUES.Extensions;
 
 namespace Projeto_SEGUES.Services;
 
+/// <summary>
+/// Service implementation for managing Bar Orders and Shopping Carts.
+/// Handles the entire lifecycle from cart addition to payment, stock management, 
+/// and final redemption via security codes.
+/// </summary>
 public class OrderService : IOrderService
 {
     private readonly AppDbContext _context;
     private readonly IAdminService _adminService;
-    private static readonly OrderStatus[] _activeStatus = Enum.GetValues<OrderStatus>().Where(s => s.IsActive()).ToArray();
+    private static readonly OrderStatus[] ActiveStatus = Enum.GetValues<OrderStatus>().Where(s => s.IsActive()).ToArray();
     private readonly IEmailSender _emailSender;
+    private readonly ILogger<OrderService> _logger;
 
-    public OrderService(AppDbContext context, IAdminService adminService, IEmailSender emailSender)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="OrderService"/>.
+    /// </summary>
+    public OrderService(AppDbContext context, IAdminService adminService, IEmailSender emailSender, ILogger<OrderService> logger)
     {
         _context = context;
         _adminService = adminService;
         _emailSender = emailSender;
+        _logger = logger;
     }
 
+    #region Create Order
+
+    /// <summary>
+    /// Retrieves the current active cart for a user. If none exists and requested, creates a new one.
+    /// </summary>
     public async Task<Order?> GetCartAsync(string userId, bool createIfNotFound = true)
     {
         var cart = await _context.Order
             .Include(o => o.ProductPurchases)
             .ThenInclude(ol => ol.Product)
             .FirstOrDefaultAsync(o => o.AppUser.Id == userId && o.Status == OrderStatus.Cart);
+
         if (cart != null || !createIfNotFound) return cart;
 
         var user = await _context.Users.FindAsync(userId);
@@ -44,6 +58,9 @@ public class OrderService : IOrderService
         return cart;
     }
 
+    /// <summary>
+    /// Calculates the final price of an item after applying active discount policies.
+    /// </summary>
     public decimal ApplyDiscount(decimal price, Discount? discount)
     {
         if (discount is not { IsActive: true } || discount.EndDate < DateTime.Now) return price;
@@ -54,6 +71,9 @@ public class OrderService : IOrderService
         return price - discount.Value; // Fixed amount discount
     }
 
+    /// <summary>
+    /// Generates a summary view model with total quantity and value for a given order/cart.
+    /// </summary>
     public OrderTotalViewModel GetOrderTotal(Order cart)
     {
         return new OrderTotalViewModel
@@ -63,9 +83,14 @@ public class OrderService : IOrderService
         };
     }
 
+    /// <summary>
+    /// Adds a product to the user's cart. Updates quantity if the product is already present.
+    /// Calculates sub-discounts at the line level.
+    /// </summary>
     public async Task<ServiceResult<OrderTotalViewModel>> AddToCartAsync(string userId, int productId, int quantity)
     {
         var cart = await GetCartAsync(userId);
+        if (cart == null) return ServiceResult<OrderTotalViewModel>.Fail("Carrinho não encontrado.");
         var product = await _context.Product.FindAsync(productId);
         if (product == null) return ServiceResult<OrderTotalViewModel>.Fail("Produto não encontrado.", GetOrderTotal(cart));
 
@@ -80,6 +105,7 @@ public class OrderService : IOrderService
             var discount = await _context.Discount
                 .Where(d => d.IsActive && !d.IsGlobal && d.StartDate <= DateTime.Now && d.EndDate > DateTime.Now)
                 .FirstOrDefaultAsync(d => d.Products.Any(p => p.Id == productId));
+
             var productValue = ApplyDiscount(product.Price, discount);
             _context.OrderLine.Add(
                 new OrderLine
@@ -99,9 +125,13 @@ public class OrderService : IOrderService
         return ServiceResult<OrderTotalViewModel>.Ok("Produto adicionado ao carrinho.", GetOrderTotal(cart));
     }
 
+    /// <summary>
+    /// Removes a specific product line from the cart and updates the total value.
+    /// </summary>
     public async Task<ServiceResult<OrderTotalViewModel>> RemoveFromCartAsync(string userId, int productId)
     {
         var cart = await GetCartAsync(userId);
+        if (cart == null) return ServiceResult<OrderTotalViewModel>.Fail("Carrinho não encontrado.");
         var line = await _context.OrderLine
             .FirstOrDefaultAsync(ol => ol.Order.Id == cart.Id && ol.ProductId == productId);
 
@@ -112,13 +142,17 @@ public class OrderService : IOrderService
         _context.OrderLine.Remove(line);
 
         await _context.SaveChangesAsync();
-
         return ServiceResult<OrderTotalViewModel>.Ok("Produto removido do carrinho.", GetOrderTotal(cart));
     }
 
+    /// <summary>
+    /// Finalizes the order process. Validates schedule, stock, and user balance.
+    /// Deducts balance and stock using a database transaction for financial safety.
+    /// </summary>
     public async Task<ServiceResult> SubmitOrderAsync(AppUser user, bool receiveNow, string? pickupTime)
     {
         var cart = await GetCartAsync(user.Id);
+        if (cart == null) return ServiceResult.Fail("Carrinho não encontrado.");
         if (cart.ProductPurchases.Count == 0) return ServiceResult.Fail("O carrinho está vazio.");
 
         TimeSpan timeToValidate;
@@ -140,14 +174,27 @@ public class OrderService : IOrderService
             }
             else
             {
-                return ServiceResult.Fail("Horário de pickup inválido.");
+                return ServiceResult.Fail("Horário de recolha inválido.");
             }
         }
 
+        // Business Rule: Validate if the Bar is open for the selected pickup/current time
         if (!await _adminService.IsBarOpenAsync(timeToValidate))
         {
-            BarCanteenConfigViewModel barCanteenConfig = await _adminService.GetScheduleAsync();
-            return ServiceResult.Fail($"O Bar encontra-se encerrado para o horário selecionado. Funcionamento: {barCanteenConfig.BarOpeningTime} às {barCanteenConfig.BarClosingTime}.");
+            BarCanteenConfigViewModel config = await _adminService.GetScheduleAsync();
+            var today = DateTime.Now.DayOfWeek;
+
+            if (today == DayOfWeek.Saturday && !config.IsOpenSaturday)
+            {
+                return ServiceResult.Fail("O Bar encontra-se encerrado aos Sábados.");
+            }
+
+            if (today == DayOfWeek.Sunday && !config.IsOpenSunday)
+            {
+                return ServiceResult.Fail("O Bar encontra-se encerrado aos Domingos.");
+            }
+
+            return ServiceResult.Fail($"O Bar encontra-se encerrado para o horário selecionado. Funcionamento: {config.BarOpeningTimeString} às {config.BarClosingTimeString}.");
         }
 
         decimal total = ApplyDiscount(cart.TotalValue, cart.Discount);
@@ -159,12 +206,13 @@ public class OrderService : IOrderService
                 return ServiceResult.Fail($"Stock insuficiente para o produto: {item.Product.Name}");
         }
 
+        // Generate a unique 8-character redemption code
         while (_context.Order.Any(o => o.RedemptionCode == cart.RedemptionCode))
         {
             cart.RedemptionCode = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
         }
 
-        using var dbTransaction = await _context.Database.BeginTransactionAsync();
+        await using var dbTransaction = await _context.Database.BeginTransactionAsync();
         try
         {
             var now = DateTime.Now;
@@ -181,12 +229,12 @@ public class OrderService : IOrderService
 
             user.Balance -= total;
 
-            var barTransaction = new Projeto_SEGUES.Models.Payment.Transaction
+            var barTransaction = new Models.Payment.Transaction
             {
                 User = user,
                 Amount = -total,
-                Description = $"Consumo Bar - Pedido #{cart.RedemptionCode}",
-                Reference = "CONSUMO BAR",
+                Description = $"Compra no Bar - Pedido #{cart.RedemptionCode}",
+                Reference = "Compra Interna",
                 IsPaid = true,
                 CreatedAt = now
             };
@@ -194,27 +242,33 @@ public class OrderService : IOrderService
 
             await _context.SaveChangesAsync();
             await dbTransaction.CommitAsync();
+            _logger.LogAppUser($"Order #{cart.Id} submitted with total value {total:C}.", UserAction.OrderSubmitted);
 
-            // Envio de email após sucesso total
             try
             {
                 await SendStatusUpdateEmailAsync(cart);
-                // Se correr bem, mensagem normal de sucesso
                 return ServiceResult.Ok("Encomenda realizada com sucesso! Acompanhe o estado do pedido no seu email");
             }
             catch (Exception)
             {
-                // Se falhar o email (sem net), avisamos o utilizador mas confirmamos o sucesso do pedido
                 return ServiceResult.Ok("Encomenda realizada com sucesso! (Nota: Não foi possível enviar o email de confirmação devido a uma falha de rede).");
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             await dbTransaction.RollbackAsync();
+            _logger.LogAppError(AppErrors.OrderCreationError, TableName.Order, AppOperation.Create, ex);
             return ServiceResult.Fail("Ocorreu um erro ao processar a encomenda.");
         }
     }
 
+    #endregion
+
+    #region Active Orders
+
+    /// <summary>
+    /// Cancels a pending order, restores product stock, and refunds the user's balance.
+    /// </summary>
     public async Task<ServiceResult> CancelOrderAsync(int id)
     {
         var order = await GetOrderByIdAsync(id);
@@ -223,11 +277,10 @@ public class OrderService : IOrderService
         if (order.Status != OrderStatus.Pending)
             return ServiceResult.Fail("O pedido já está em processamento ou finalizado e não pode ser cancelado.");
 
-        using var transaction = await _context.Database.BeginTransactionAsync();
+        await using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
             var now = DateTime.Now;
-
             order.Status = OrderStatus.Cancelled;
 
             foreach (var item in order.ProductPurchases)
@@ -235,15 +288,14 @@ public class OrderService : IOrderService
                 item.Product.Stock += item.Quantity;
             }
 
-
             order.AppUser.Balance += order.TotalValue;
 
-            var refundTransaction = new Projeto_SEGUES.Models.Payment.Transaction
+            var refundTransaction = new Models.Payment.Transaction
             {
                 User = order.AppUser,
                 Amount = order.TotalValue,
                 Description = $"Reembolso Bar - Cancelamento Pedido #{order.RedemptionCode}",
-                Reference = "REEMBOLSO BAR",
+                Reference = "Cancelamento",
                 IsPaid = true,
                 CreatedAt = now
 
@@ -252,35 +304,38 @@ public class OrderService : IOrderService
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
+
             try
             {
                 await SendStatusUpdateEmailAsync(order);
+                _logger.LogAppUser($"Order #{order.Id} cancelled and refunded {order.TotalValue:C} to user {order.AppUser.UserName}.", UserAction.OrderCancelled);
                 return ServiceResult.Ok("Pedido cancelado com sucesso e saldo reembolsado.");
             }
             catch (Exception)
             {
-                // Se falhar a net aqui, o user sabe que o cancelamento foi feito mas o email falhou
                 return ServiceResult.Ok("Pedido cancelado com sucesso e saldo reembolsado! (Nota: O email de confirmação não pôde ser enviado por falha de rede).");
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             await transaction.RollbackAsync();
+            _logger.LogAppError(AppErrors.OrderCancelError, TableName.Order, AppOperation.Update, ex);
             return ServiceResult.Fail("Ocorreu um erro ao cancelar o pedido.");
         }
     }
 
+    /// <summary>Retrieves all active orders for a specific user.</summary>
     public async Task<List<Order>> GetActiveOrdersAsync(string userId)
     {
         return await _context.Order
-            .Where(o => o.AppUser.Id == userId && _activeStatus.Contains(o.Status))
+            .Where(o => o.AppUser.Id == userId && ActiveStatus.Contains(o.Status))
             .OrderByDescending(o => o.OrderDate)
             .ToListAsync();
     }
 
+    /// <summary>Fetches a specific order by ID with all related products and user data.</summary>
     public async Task<Order?> GetOrderByIdAsync(int id)
     {
-        // Includes products info and user
         return await _context.Order
             .Include(o => o.ProductPurchases)
             .ThenInclude(ol => ol.Product)
@@ -289,48 +344,35 @@ public class OrderService : IOrderService
             .FirstOrDefaultAsync(o => o.Id == id);
     }
 
-    public async Task<List<Order>> GetOrderHistoryAsync(string userId)
-    {
-        // Doesn't include products info
-        return await _context.Order
-            .Where(o => o.AppUser.Id == userId && o.Status != OrderStatus.Cart)
-            .OrderByDescending(o => o.OrderDate)
-            .ToListAsync();
-    }
-
+    /// <summary>Lists all paid orders that are not yet delivered, sorted by pickup time.</summary>
     public async Task<List<Order>> GetUndeliveredOrdersAsync()
     {
-        // Doesn't include products info, includes User, active orders
         return await _context.Order
             .Include(o => o.AppUser)
-            .Where(o => _activeStatus.Contains(o.Status))
-            .OrderBy(o => o.PickupTime == TimeSpan.Zero ? o.OrderDate.TimeOfDay : o.PickupTime)
+            .Where(o => ActiveStatus.Contains(o.Status))
+            .OrderBy(o => o.PickupTime ?? o.OrderDate.TimeOfDay)
             .ToListAsync();
     }
 
-    public async Task<List<Order>> GetAdminOrderHistoryAsync()
-    {
-        // Removido o parâmetro 'string userId' pois o Admin quer ver TUDO
-        return await _context.Order
-            .Include(o => o.AppUser) // Importante para saber quem fez o pedido
-            .Include(o => o.ProductPurchases) // Adicionado para poderes ver os produtos na View/PDF
-                .ThenInclude(p => p.Product)
-            .Where(o => o.Status != OrderStatus.Cart)
-            .OrderByDescending(o => o.OrderDate)
-            .ToListAsync();
-    }
+    #endregion
 
+    #region Validate Order
+
+    /// <summary>
+    /// Updates the status of an order (e.g., from Pending to Preparing).
+    /// Logs the staff member who performed the change.
+    /// </summary>
     public async Task<ServiceResult> UpdateOrderStatusAsync(int id, int newStatusId, AppUser staffMember)
     {
         var order = await GetOrderByIdAsync(id);
-        if (order == null || !_activeStatus.Contains(order.Status)) return ServiceResult.Fail("Pedido não encontrado.");
+        if (order == null || !ActiveStatus.Contains(order.Status)) return ServiceResult.Fail("Pedido não encontrado.");
 
         OrderStatus newStatus = (OrderStatus)newStatusId;
 
         if (!Enum.IsDefined(typeof(OrderStatus), newStatus) || newStatus == OrderStatus.Cart)
             return ServiceResult.Fail("Status inválido.");
 
-        if (!_activeStatus.Contains(newStatus) && newStatus != OrderStatus.Delivered)
+        if (!ActiveStatus.Contains(newStatus) && newStatus != OrderStatus.Delivered)
         {
             return ServiceResult.Fail("Não é possível mudar para este estado.");
         }
@@ -346,20 +388,12 @@ public class OrderService : IOrderService
             var oldStatus = order.Status;
             order.Status = newStatus;
 
-            // --- ADICIONADO: REGISTO DE LOG NO HISTÓRICO ---
-            var log = new UserLog
-            {
-                UserAction = UserAction.UpdateStatus,
-                Message = $"Alterou o estado do pedido #{order.RedemptionCode} de {oldStatus} para {newStatus}.",
-                TimeStamp = DateTime.Now,
-                AppUser = staffMember,
-                RequestPath = "/Order/UpdateStatus"
-            };
-            _context.UserLog.Add(log);
+            _logger.LogAppUser($"Order #{order.Id} status changed from {oldStatus} to {newStatus} by {staffMember.UserName}.", UserAction.UpdateStatus);
             await _context.SaveChangesAsync();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            _logger.LogAppError(AppErrors.OrderProcessingError, TableName.Order, AppOperation.Update, ex);
             return ServiceResult.Fail("Erro ao atualizar o estado na base de dados.");
         }
 
@@ -374,6 +408,9 @@ public class OrderService : IOrderService
         }
     }
 
+    /// <summary>
+    /// Validates the 8-character redemption code at the pickup point to finalize the delivery.
+    /// </summary>
     public async Task<ServiceResult> ValidateOrderCodeAsync(int id, string enteredCode, AppUser staffMember)
     {
         enteredCode = enteredCode.Trim();
@@ -382,7 +419,7 @@ public class OrderService : IOrderService
 
         var order = await GetOrderByIdAsync(id);
         if (order == null) return ServiceResult.Fail("Pedido não encontrado.");
-        
+
         if (!string.Equals(order.RedemptionCode, enteredCode, StringComparison.CurrentCultureIgnoreCase))
             return ServiceResult.Fail("Código inválido!");
 
@@ -391,20 +428,12 @@ public class OrderService : IOrderService
             order.Status = OrderStatus.Delivered;
             order.PickupTime = DateTime.Now.TimeOfDay;
 
-            var log = new UserLog
-            {
-                UserAction = UserAction.ValidateOrder,
-                Message = $"Entregou o pedido #{order.RedemptionCode} ao utilizador {order.AppUser.UserName}.",
-                TimeStamp = DateTime.Now,
-                AppUser = staffMember,
-                RequestPath = "/Order/ValidateCode"
-            };
-            _context.UserLog.Add(log);
-
+            _logger.LogAppUser($"Order #{order.RedemptionCode} delivered by {staffMember.UserName}.", UserAction.ValidateOrder);
             await _context.SaveChangesAsync();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            _logger.LogAppError(AppErrors.OrderProcessingError, TableName.Order, AppOperation.Update, ex);
             return ServiceResult.Fail("Erro ao registar a entrega na base de dados.");
         }
 
@@ -419,23 +448,20 @@ public class OrderService : IOrderService
         }
     }
 
+    /// <summary>
+    /// Sends an automated email to the customer whenever their order status changes.
+    /// Includes the redemption code when the order is ready for pickup.
+    /// </summary>
     private async Task SendStatusUpdateEmailAsync(Order order)
     {
         try
         {
-            if (order.AppUser == null || string.IsNullOrEmpty(order.AppUser.Email)) return;
+            if (string.IsNullOrEmpty(order.AppUser.Email)) return;
 
-            // Obtém o nome amigável do Enum (ex: "Em Preparação")
-            var displayStatus = order.Status.GetType()
-                .GetField(order.Status.ToString())?
-                .GetCustomAttributes(typeof(DisplayAttribute), false)
-                .Cast<DisplayAttribute>()
-                .FirstOrDefault()?.Name ?? order.Status.ToString();
+            var displayStatus = order.Status.ToDisplayName();
 
             string title = "Atualização do Pedido";
-            string name = order.AppUser.FirstName ?? "Cliente";
-
-            // Mensagem personalizada conforme o estado
+            string name = order.AppUser.FirstName;
             string customMessage = order.Status switch
             {
                 OrderStatus.Pending => "Recebemos o teu pedido e em breve começaremos a prepará-lo.",
@@ -452,7 +478,6 @@ public class OrderService : IOrderService
         <p>{customMessage}</p>
         """;
 
-            // Se estiver pronto, destaca o código de levantamento para facilitar a vida ao utilizador
             if (order.Status == OrderStatus.ReadyToDeliver)
             {
                 content += $"""
@@ -463,16 +488,15 @@ public class OrderService : IOrderService
             """;
             }
 
-            var emailService = (EmailSender)_emailSender;
             var body = ((EmailSender)_emailSender).GetEmailBody(title, name, content);
-
-            // Envio assíncrono
             await _emailSender.SendEmailAsync(order.AppUser.Email, $"SEGUES - Pedido #{order.RedemptionCode}", body);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[Email Service Failure]: {ex.Message}");
+            _logger.LogAppError(AppErrors.EmailSenderError, TableName.All, AppOperation.Other, ex);
             throw;
         }
     }
+
+    #endregion
 }

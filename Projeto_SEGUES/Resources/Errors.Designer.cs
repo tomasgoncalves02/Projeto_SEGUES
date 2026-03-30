@@ -195,12 +195,6 @@ namespace Projeto_SEGUES.Resources {
             }
         }
         
-        public static string SenderNotFound {
-            get {
-                return ResourceManager.GetString("SenderNotFound", resourceCulture);
-            }
-        }
-        
         public static string RecipientNotFound {
             get {
                 return ResourceManager.GetString("RecipientNotFound", resourceCulture);
@@ -384,6 +378,12 @@ namespace Projeto_SEGUES.Resources {
         public static string RecipientEmailRequired {
             get {
                 return ResourceManager.GetString("RecipientEmailRequired", resourceCulture);
+            }
+        }
+        
+        public static string OrderCreationError {
+            get {
+                return ResourceManager.GetString("OrderCreationError", resourceCulture);
             }
         }
     }

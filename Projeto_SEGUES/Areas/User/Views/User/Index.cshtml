@@ -1,24 +1,20 @@
-﻿@using Projeto_SEGUES.Models.Enums
+﻿@using Projeto_SEGUES.Extensions
+@using Projeto_SEGUES.Models.Enums
 @model Projeto_SEGUES.Areas.User.ViewModels.EditUserViewModel
 
 @{
-    ViewData["Title"] = "Perfil - SEGUES";
-    var initialLetter = Model.FirstName[0].ToString().ToUpper();
-    
-    bool isStudent = Model.Category.Equals("Estudante", StringComparison.OrdinalIgnoreCase);
-    bool isEmployee = Model.Role.Name!.Equals("Employee", StringComparison.OrdinalIgnoreCase);
-    bool showSchool = isEmployee || Model.Role.Name!.Equals("Client", StringComparison.OrdinalIgnoreCase);
+    ViewData["Title"] = "Perfil";
 }
 
 <div class="container py-2 px-lg-5">
     @* Top row *@
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-column flex-md-row">
+    <div class="col-12 col-md-auto d-flex justify-content-between align-items-center mb-4 flex-column flex-md-row">
         <div class="mb-2 mb-md-0">
             <h1 class="fw-bold display-6 mb-1 title-underline">Perfil</h1>
-            <p class="text-muted small mt-1 mb-0">Faça a gestão dos seus dados pessoais e de segurança.</p>
+            <p class="text-muted small mt-1 mb-0">Faça a gestão dos seus dados pessoais e dados de acesso.</p>
         </div>
         @* Return button *@
-        <a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold shadow-sm">
+        <a asp-area="" asp-controller="Home" asp-action="Index" class="col-12 col-md-auto btn btn-ips-outline-secondary fw-bold shadow-sm order-first order-md-last mb-3 mb-md-0">
             <i class="bi bi-arrow-left me-2"></i>Voltar
         </a>
     </div>
@@ -30,15 +26,15 @@
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
                 <div class="d-flex align-items-center">
                     <div class="avatar-circle fs-2" style="width: 65px; height: 65px;">
-                        @initialLetter
+                        @Model.Initial
                     </div>
                     <div class="ms-3">
                         <h4 class="fw-bold mb-0">@Model.FirstName @Model.LastName</h4>
                         <div class="text-muted small">@Model.Email</div>
                     </div>
                 </div>
-                <span class="badge @Model.Role.Name.ToBadgeClass() fw-semibold fs-6 shadow-sm">
-                    @Model.Role.DisplayName.ToUpper()
+                <span class="badge @Model.Role?.Name.ToBadgeClass() fw-semibold fs-6 shadow-sm">
+                    @Model.Role?.DisplayName.ToUpper()
                 </span>
             </div>
 
@@ -130,23 +126,21 @@
                 <h5 class="fw-bold mb-3 text-color-ips border-top pt-3"><i class="bi bi-building me-2"></i>Informações Institucionais</h5>
                 <div class="row g-3 mb-4 text-start">
                     <div class="col-md-6">
-                        <div class="p-2 px-3 border rounded bg-light h-100 d-flex flex-column justify-content-center">
+                        <div class="p-2 px-3 border rounded bg-color-ips-very-light h-100 d-flex flex-column justify-content-center">
                             <span class="d-block small text-muted fw-bold mb-1">Categoria de Utilizador</span>
                             <span class="fs-6 fw-medium">@(Model.Category)</span>
                         </div>
-                    </div>
-
-                    @if (isEmployee)
+                    </div>      
+                    @if (Model.IsEmployee)
                     {
                         <div class="col-md-6">
-                            <div class="p-2 px-3 border rounded bg-light h-100 d-flex flex-column justify-content-center">
+                            <div class="p-2 px-3 border rounded bg-color-ips-very-light h-100 d-flex flex-column justify-content-center">
                                 <span class="d-block small text-muted fw-bold mb-1">Cargo / Função</span>
                                 <span class="fs-6 fw-medium">@(Model.RoleDescription ?? "Não definido")</span>
                             </div>
                         </div>
                     }
-
-                    @if (isStudent)
+                    @if (Model.IsStudent)
                     {
                         <div class="col-md-6">
                             <div class="form-floating">
@@ -157,7 +151,7 @@
                         </div>
                     }
 
-                    @if (showSchool)
+                    @if (Model.ShowSchool)
                     {
                         <div class="col-md-6">
                             <div class="form-floating h-100">

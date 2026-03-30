@@ -1,11 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Localization;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Enums;
-using Projeto_SEGUES.Resources;
 using Projeto_SEGUES.Services;
-using System.Diagnostics;
 
 namespace Projeto_SEGUES.Areas.Admin.Controllers;
 
@@ -21,22 +18,18 @@ public class AdminMenuManagementController : Controller
 {
     private readonly IAdminService _adminService;
     private readonly ILogger<AdminMenuManagementController> _logger;
-    private readonly IStringLocalizer<Errors> _localizer;
 
     /// <summary>
     /// Initializes a new instance of the controller with the administrative service, logging, and localization.
     /// </summary>
     /// <param name="adminService">Service managing global settings and system link persistence.</param>
     /// <param name="logger">Logger for error tracking and auditing.</param>
-    /// <param name="localizer">Localizer for translating error messages.</param>
     public AdminMenuManagementController(
         IAdminService adminService,
-        ILogger<AdminMenuManagementController> logger,
-        IStringLocalizer<Errors> localizer)
+        ILogger<AdminMenuManagementController> logger)
     {
         _adminService = adminService;
         _logger = logger;
-        _localizer = localizer;
     }
 
     /// <summary>
@@ -45,26 +38,13 @@ public class AdminMenuManagementController : Controller
     /// <returns>The index View populated with <see cref="MenuManagementViewModel"/> containing the current URLs.</returns>
     public async Task<IActionResult> Index()
     {
-        try
+        var config = await _adminService.GetMenuLinksAsync();
+        var model = new MenuManagementViewModel
         {
-            var config = await _adminService.GetMenuLinksAsync();
-            var model = new MenuManagementViewModel
-            {
-                CanteenUrl = config.CanteenMenuLink,
-                BarUrl = config.BarMenuLink
-            };
-            return View(model);
-        }
-        catch (Exception ex)
-        {
-            // REDIRECT: Erro fatal ao carregar a página.
-            _logger.LogError(ex, "Erro fatal ao carregar links do menu.");
-            return RedirectToAction("Error", "Home", new
-            {
-                area = "",
-                errorCode = (int)AppErrors.DatabaseQueryError
-            });
-        }
+            CanteenUrl = config.CanteenMenuLink,
+            BarUrl = config.BarMenuLink
+        };
+        return View(model);
     }
 
     /// <summary>
@@ -92,17 +72,8 @@ public class AdminMenuManagementController : Controller
         }
         catch (Exception ex)
         {
-            _logger.LogAppError(
-                AppErrors.DatabaseUpdateError,
-                TableName.AppConfig,
-                AppOperation.Update, ex
-            );
-
-            var errorEnum = AppErrors.DatabaseUpdateError;
-            var translateMessage = _localizer[errorEnum.ToString()].Value;
-            var finalMessage = $"{translateMessage} [Erro: {(int)errorEnum}]";
-
-            TempData.SetSwalError(finalMessage);
+            _logger.LogAppError(AppErrors.DatabaseUpdateError, TableName.AppConfig, AppOperation.Update, ex);
+            TempData.SetSwalError(AppErrors.DatabaseUpdateError.GetViewErrorMessage());
             return View("Index", model);
         }
     }

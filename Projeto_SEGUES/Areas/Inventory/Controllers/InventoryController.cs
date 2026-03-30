@@ -1,25 +1,25 @@
-using Microsoft.AspNetCore.Authorization;
+ï»¿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Projeto_SEGUES.Areas.Inventory.Controllers;
 
 /// <summary>
-/// Controller principal para a gestão e visualização do inventário de produtos.
+/// Main controller for managing and viewing the product inventory.
 /// </summary>
 /// <remarks>
-/// Este controlador pertence à área "Inventory" e exige que o utilizador esteja autenticado 
-/// para aceder às funcionalidades de listagem e consulta de stock.
+/// This controller belongs to the "Inventory" area and requires the user to be authenticated 
+/// to access stock listing and consultation features.
 /// </remarks>
 [Authorize]
 [Area("Inventory")]
 public class InventoryController : Controller
 {
     /// <summary>
-    /// Apresenta a página inicial do módulo de inventário.
+    /// Displays the home page of the inventory module.
     /// </summary>
-    /// <returns>A View correspondente ao índice do inventário.</returns>
+    /// <returns>The View corresponding to the inventory index.</returns>
     /// <remarks>
-    /// Geralmente utilizado para carregar a interface base onde os produtos serão listados.
+    /// Typically used to load the base interface where products will be listed.
     /// </remarks>
     public IActionResult Index()
     {

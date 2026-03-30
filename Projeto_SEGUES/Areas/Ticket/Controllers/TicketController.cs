@@ -1,14 +1,14 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
+using Projeto_SEGUES.Areas.Ticket.ViewModels;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
-using System.Security.Claims;
-using Projeto_SEGUES.Areas.Ticket.ViewModels;
 
-namespace Projeto_SEGUES.Areas.Ticket;
+namespace Projeto_SEGUES.Areas.Ticket.Controllers;
 
 /// <summary>
 /// Controller responsible for ticket management, including purchases, transfers, and status visualization.

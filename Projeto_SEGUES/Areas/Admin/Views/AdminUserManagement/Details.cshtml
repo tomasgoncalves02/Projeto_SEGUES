@@ -1,117 +1,107 @@
-﻿@model Projeto_SEGUES.Models.User.AppUser
+﻿@model Projeto_SEGUES.Areas.Admin.ViewModels.UserDto
 
 @{
     ViewData["Title"] = "Detalhes do Utilizador";
-    var roleDisplay = ViewBag.UserRole as string ?? "Sem Role";
-    var categoryDisplay = Model.UserCategory.Name;
-    var accountStatus = Model.Status.ToString();
 }
 
 <div class="container mt-5">
-    <div class="row align-items-end mb-4 g-3">
-        <div class="col-12 col-md-auto order-1 order-md-2 text-end ms-md-auto">
-            <a asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Index"
-               class="btn btn-ips-outline-secondary fw-bold px-4">
-                <i class="bi bi-arrow-left me-2"></i>Voltar à Lista
-            </a>
+    @* Top row *@
+    <div class="d-flex mb-3 mb-md-4 justify-content-between align-items-center col-12 col-md-auto flex-column flex-md-row">
+        <div class="mb-2 mb-md-0">
+            <h1 class="fw-bold display-6 title-underline mb-1">
+                <i class="bi bi-people me-2 text-color-ips"></i>Ficha do Utilizador
+            </h1>
+            <p class="text-muted mb-0 mt-1">Consulta detalhada dos dados do utilizador e ações administrativas.</p>
         </div>
-
-        <div class="col-12 col-md order-2 order-md-1">
-            <h1 class="fw-bold title-underline mb-0">👤 Ficha de Utilizador</h1>
-        </div>
+        <a asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Index" class="btn btn-ips-outline-secondary col-12 col-md-auto fw-bold shadow-sm order-first order-md-last mb-3 mb-md-0">
+            <i class="bi bi-arrow-left me-2"></i>Voltar
+        </a>
     </div>
 
-    <div class="card shadow-sm card-ips hover-shadow-ips">
+    <div class="card shadow-sm card-ips hover-shadow-ips small fs-md-6 fs-lg-5">
         @* Card header *@
-        <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
-            <h4 class="mb-0 fw-bold">@Model.FirstName @Model.LastName</h4>
+        <div class="card-header bg-white border-0 py-2 py-md-3 border-bottom d-flex justify-content-between align-items-center">
+            <div class="avatar-circle me-3">@Model.Initial</div>
+            <h4 class="mb-0 fw-bold">@Model.FullName</h4>
         </div>
 
         <div class="card-body p-4 p-md-5">
             <div class="row g-4">
                 @* Left column *@
-                <div class="col-md-6 border-end">
+                <div class="col-md-6 text-center text-sm-start">
                     <dl class="row mb-0">
-                        <dt class="col-sm-5 text-muted text-uppercase small">Email / Username</dt>
+                        <dt class="col-sm-5 text-muted small">Email / Username</dt>
                         <dd class="col-sm-7 fw-bold">@Model.Email</dd>
 
-                        <dt class="col-sm-5 text-muted text-uppercase small mt-3">Género</dt>
-                        <dd class="col-sm-7 mt-3">@ViewBag.GenderPT</dd>
+                        <dt class="col-sm-5 text-muted small mt-3">Género</dt>
+                        <dd class="col-sm-7 mt-2 mt-md-3">@Model.GenderDisplay</dd>
 
-                        <dt class="col-sm-5 text-muted text-uppercase small mt-3">Data de Nascimento</dt>
-                        <dd class="col-sm-7 mt-3">@Model.BirthDate.ToShortDateString()</dd>
+                        <dt class="col-sm-5 text-muted small mt-3">Data de Nascimento</dt>
+                        <dd class="col-sm-7 mt-2 mt-md-3">@Model.BirthDateDisplay</dd>
 
-                        <dt class="col-sm-5 text-muted text-uppercase small mt-3">Saldo Atual</dt>
-                        <dd class="col-sm-7 mt-3 text-ips fs-4 fw-bold">@Model.Balance.ToString("C")</dd>
+                        <dt class="col-sm-5 text-muted small mt-3">Saldo Atual</dt>
+                        <dd class="col-sm-7 mt-2 mt-md-3 text-ips fs-5 fw-bold text-nowrap">@Model.BalanceFormatted</dd>
                     </dl>
                 </div>
-
+                
                 @* Right column *@
-                <div class="col-md-6 ps-md-5">
+                <div class="col-md-6 ps-sm-4 ps-md-5 text-center text-sm-start">
                     <dl class="row mb-0">
-                        <dt class="col-sm-5 text-muted text-uppercase small">Data de Criação</dt>
-                        <dd class="col-sm-7">@Model.CreationDate.ToShortDateString()</dd>
+                        <dt class="col-sm-5 text-muted small">Data de Criação</dt>
+                        <dd class="col-sm-7">@Model.CreationDateDisplay</dd>
 
-                        <dt class="col-sm-5 text-muted text-uppercase small mt-3">Estado da Conta</dt>
-                        <dd class="col-sm-7 mt-3">
-                            <span class="badge @ViewBag.StatusClass fs-6 px-3 py-2 border-0 shadow-sm">
-                                <i class="bi @ViewBag.StatusIcon me-1"></i>
-                                @ViewBag.StatusPT
+                        <dt class="col-sm-5 text-muted small mt-2 mt-md-3">Estado da Conta</dt>
+                        <dd class="col-sm-7 mt-2 mt-md-3">
+                            <span class="badge @Model.StatusBadgeClass fs-7 fs-md-6 px-3 py-2 border-0 shadow-sm">
+                                <i class="bi @Model.StatusIcon me-1"></i>
+                                @Model.StatusDisplay
                             </span>
                         </dd>
 
-                        <dt class="col-sm-5 text-muted text-uppercase small mt-3">Role</dt>
-                        <dd class="col-sm-7 mt-3">
-                            @{
-                                string roleRaw = ViewBag.UserRoleRaw as string ?? "Client";
-                            }
-                            <span class="badge @roleRaw.ToBadgeClass() fs-6 px-3 py-2 shadow-sm" style="min-width: 100px;">
-                                @ViewBag.UserRole.ToUpper()
+                        <dt class="col-sm-5 text-muted small mt-2 mt-md-3">Role</dt>
+                        <dd class="col-sm-7 mt-2 mt-md-3">
+                            <span class="badge @Model.RoleBadgeClass fs-7 fs-md-6 px-3 py-2 shadow-sm">
+                                @Model.RoleName
                             </span>
                         </dd>
 
-                        <dt class="col-sm-5 text-muted text-uppercase small mt-3">Categoria</dt>
-                        <dd class="col-sm-7 mt-3">
-                            @{
-                                string categoryName = Model.UserCategory?.Name ?? "N/A";
-                            }
-                            <span class="badge @categoryName.ToBadgeClass() fs-6 px-3 py-2 shadow-sm" style="min-width: 100px;">
-                                @categoryName.ToUpper()
+                        <dt class="col-sm-5 text-muted small mt-2 mt-md-3">Categoria</dt>
+                        <dd class="col-sm-7 mt-2 mt-md-3">
+                            <span class="badge @Model.CategoryBadgeClass fs-7 fs-md-6 px-3 py-2 shadow-sm">
+                                @Model.CategoryName
                             </span>
                         </dd>
                     </dl>
                 </div>
             </div>
         </div>
-
+        
         @* Actions footer *@
-        <div class="card-footer bg-light border-0 py-4 px-4 px-md-5">
+        <div class="card-footer bg-color-ips-very-light border-0 py-2 py-md-3 px-3 px-md-4">
             <div class="d-flex flex-wrap gap-3">
-                <a asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-ips fw-bold px-4 py-2">
+                <a asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-ips fw-bold px-3 py-2 shadow-sm">
                     <i class="bi bi-pencil-square me-2"></i>Editar Dados
                 </a>
 
-                @if (User.Identity?.Name != Model.UserName)
+                @if (User.Identity?.Name != Model.Email)
                 {
-                    if (Model.Status == Projeto_SEGUES.Models.Enums.UserStatus.Inactive)
+                    if (Model.IsActive)
                     {
-                        <form asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Activate" asp-route-id="@Model.Id" method="post" id="activate-form-@Model.Id" style="display:inline;">
+                        <form asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Deactivate" asp-route-id="@Model.Id" method="post" id="deactivate-form-@Model.Id" style="display:inline;">
                             @Html.AntiForgeryToken()
-                            <button type="button" class="btn btn-success fw-bold px-4 py-2 confirmActivateUser"
-                                    style="border-radius: 8px;"
-                                    data-id="@Model.Id" data-name="@Model.FirstName @Model.LastName">
-                                <i class="bi bi-person-check me-2"></i>Ativar Conta
+                            <button type="button" class="btn btn-outline-danger fw-bold px-3 py-2 confirmDeactivateUser shadow-sm rounded-3"
+                                    data-id="@Model.Id" data-name="@Model.FullName">
+                                <i class="bi bi-person-x me-2"></i>Desativar Conta
                             </button>
                         </form>
                     }
                     else
                     {
-                        <form asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Deactivate" asp-route-id="@Model.Id" method="post" id="deactivate-form-@Model.Id" style="display:inline;">
+                        <form asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Activate" asp-route-id="@Model.Id" method="post" id="activate-form-@Model.Id" style="display:inline;">
                             @Html.AntiForgeryToken()
-                            <button type="button" class="btn btn-outline-danger fw-bold px-4 py-2 confirmDeactivateUser"
-                                    style="border-radius: 8px;"
-                                    data-id="@Model.Id" data-name="@Model.FirstName @Model.LastName">
-                                <i class="bi bi-person-x me-2"></i>Desativar Conta
+                            <button type="button" class="btn btn-success fw-bold px-3 py-2 confirmActivateUser shadow-sm rounded-3"
+                                    data-id="@Model.Id" data-name="@Model.FullName">
+                                <i class="bi bi-person-check me-2"></i>Ativar Conta
                             </button>
                         </form>
                     }

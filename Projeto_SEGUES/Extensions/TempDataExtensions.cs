@@ -1,8 +1,15 @@
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
+﻿using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using System.Text.Json;
 
 namespace Projeto_SEGUES.Extensions;
 
+/// <summary>
+/// Static utility class providing extension methods for <see cref="ITempDataDictionary"/>.
+/// </summary>
+/// <remarks>
+/// This class enables complex object storage in TempData via JSON serialization and 
+/// provides standardized helpers for triggering SweetAlert2 notifications from controllers.
+/// </remarks>
 public static class TempDataExtensions
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -11,12 +18,22 @@ public static class TempDataExtensions
         WriteIndented = false
     };
 
-    // Json Helpers
+    /// <summary>
+    /// Serializes an object into JSON and stores it in TempData.
+    /// </summary>
+    /// <typeparam name="T">The type of the object to store.</typeparam>
+    /// <param name="tempData">The TempData dictionary.</param>
+    /// <param name="key">The key for storage.</param>
+    /// <param name="value">The object instance.</param>
+    /// <param name="toJs">If true, uses CamelCase naming for JavaScript compatibility.</param>
     public static void SetJson<T>(this ITempDataDictionary tempData, string key, T value, bool toJs = false) where T : class
     {
         tempData[key] = JsonSerializer.Serialize(value, toJs ? JsonOptions : null);
     }
 
+    /// <summary>
+    /// Retrieves and deserializes a JSON object from TempData.
+    /// </summary>
     public static T? GetJson<T>(this ITempDataDictionary tempData, string key, bool fromJs = false) where T : class
     {
         tempData.TryGetValue(key, out var value);
@@ -32,9 +49,12 @@ public static class TempDataExtensions
         }
     }
 
-    // Swal Helpers
+    // Key used by the Layout view to check for pending notifications
     private const string SwalKey = "SwalData";
 
+    /// <summary>
+    /// Internal Data Transfer Object representing a SweetAlert2 configuration.
+    /// </summary>
     private class SwalDto
     {
         public string? Icon { get; set; }
@@ -47,23 +67,29 @@ public static class TempDataExtensions
         public bool AllowEscapeKey { get; set; } = true;
         public bool ShowCloseButton { get; set; } = false;
         public string? Backdrop { get; set; } = "var(--ips-shadow-soft)";
-        // Confirm Button
+
+        // Confirm Button Configuration
         public bool ShowConfirmButton = true;
         public string? ConfirmButtonText = "OK";
         public string? ConfirmButtonAriaLabel = "OK";
         public string? ConfirmButtonColor { get; set; } = "var(--ips)";
-        // Deny Button
+
+        // Deny Button Configuration
         public bool ShowDenyButton = false;
         public string? DenyButtonText = "Não";
         public string? DenyButtonAriaLabel = "Não";
         public string? DenyButtonColor { get; set; } = "var(--deny)";
-        // Cancel Button
+
+        // Cancel Button Configuration
         public bool ShowCancelButton = false;
         public string? CancelButtonText = "Cancelar";
         public string? CancelButtonAriaLabel = "Cancelar";
         public string? CancelButtonColor { get; set; } = "var(--cancel)";
     }
 
+    /// <summary>
+    /// Triggers a success notification that disappears automatically.
+    /// </summary>
     public static void SetSwalSuccess(this ITempDataDictionary tempData, string message)
     {
         SetSwal(tempData, new SwalDto
@@ -77,6 +103,9 @@ public static class TempDataExtensions
         });
     }
 
+    /// <summary>
+    /// Triggers a persistent error notification with support contact information.
+    /// </summary>
     public static void SetSwalError(this ITempDataDictionary tempData, string message)
     {
         SetSwal(tempData, new SwalDto
@@ -90,6 +119,9 @@ public static class TempDataExtensions
         });
     }
 
+    /// <summary>
+    /// Triggers a warning notification that requires user acknowledgment.
+    /// </summary>
     public static void SetSwalWarning(this ITempDataDictionary tempData, string message)
     {
         SetSwal(tempData, new SwalDto
@@ -102,6 +134,9 @@ public static class TempDataExtensions
         });
     }
 
+    /// <summary>
+    /// Triggers a brief informational notification.
+    /// </summary>
     public static void SetSwalInfo(this ITempDataDictionary tempData, string message)
     {
         SetSwal(tempData, new SwalDto
@@ -115,6 +150,9 @@ public static class TempDataExtensions
         });
     }
 
+    /// <summary>
+    /// Triggers a confirmation dialog with Yes/No options.
+    /// </summary>
     public static void SetSwalConfirmation(this ITempDataDictionary tempData, string message)
     {
         SetSwal(tempData, new SwalDto

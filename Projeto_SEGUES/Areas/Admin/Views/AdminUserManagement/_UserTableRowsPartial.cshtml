@@ -1,0 +1,92 @@
+﻿@using System.Security.Claims
+@model IEnumerable<Projeto_SEGUES.Areas.Admin.ViewModels.UserDto>
+
+@{
+    var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+}
+
+@if (!Model.Any())
+{
+    <tr>
+        <td colspan="7" class="text-center py-5 text-muted">
+            <i class="bi bi-people display-4 d-block mb-3 opacity-25"></i>
+            <span class="fw-bold">Nenhum utilizador encontrado com os filtros aplicados.</span>
+        </td>
+    </tr>
+}
+else
+{
+    @foreach (var user in Model)
+    {
+        <tr class="align-middle userRow">
+            <td class="ps-4 text-start">
+                <div class="d-flex align-items-center">
+                    <div class="avatar-circle me-3">@user.Initial</div>
+                    <div class="fw-bold">@user.FullName</div>
+                </div>
+            </td>
+            
+            <td class="text-muted">@user.Email</td>
+            
+            <td>
+                <span class="badge fs-6 p-2 @user.RoleBadgeClass">
+                    @user.RoleName
+                </span>
+            </td>
+            
+            <td>
+                <span class="badge fs-6 p-2 @user.CategoryBadgeClass">
+                    @user.CategoryName
+                </span>
+            </td>
+            
+            <td>
+                <span class="badge @(user.StatusBadgeClass) border-0 shadow-sm p-2 fw-bold fs-6">
+                    <i class="bi @(user.StatusIcon) me-1"></i>
+                    @(user.StatusDisplay)
+                </span>
+            </td>
+            
+            <td class="fw-bold text-color-ips text-nowrap">@user.BalanceFormatted</td>
+            
+            <td class="text-start pe-4">
+                <div class="btn-group">
+                    <a asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Details" asp-route-id="@user.Id"
+                       class="btn btn-sm btn-ips" title="Detalhes">
+                        <i class="bi bi-eye"></i>
+                    </a>
+
+                    <a asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Edit" asp-route-id="@user.Id"
+                       class="btn btn-sm btn-outline-secondary m-md-0 border-start-0 @(user.Id != currentUserId ? "border-end-0" : "")"
+                       title="Editar">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+
+                    @if (user.Id != currentUserId)
+                    {
+                        if (!user.IsActive)
+                        {
+                            <form asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Activate" asp-route-id="@user.Id" method="post" id="activate-form-@user.Id">
+                                @Html.AntiForgeryToken()
+                                <button type="button" class="btn btn-sm btn-outline-success rounded-0 rounded-end confirmActivateUser"
+                                        data-id="@user.Id" data-name="@user.FullName" title="Ativar Conta">
+                                    <i class="bi bi-person-check"></i>
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <form asp-area="Admin" asp-controller="AdminUserManagement" asp-action="Deactivate" asp-route-id="@user.Id" method="post" id="deactivate-form-@user.Id">
+                                @Html.AntiForgeryToken()
+                                <button type="button" class="btn btn-sm btn-outline-danger rounded-0 rounded-end confirmDeactivateUser"
+                                        data-id="@user.Id" data-name="@user.FullName" title="Desativar Conta">
+                                    <i class="bi bi-person-x"></i>
+                                </button>
+                            </form>
+                        }
+                    }
+                </div>
+            </td>
+        </tr>
+    }
+}

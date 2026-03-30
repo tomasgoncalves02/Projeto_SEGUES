@@ -1,14 +1,12 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Localization;
+using Projeto_SEGUES.Areas.Order.ViewModels;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Enums;
-using Projeto_SEGUES.Models.User;
-using Projeto_SEGUES.Resources;
 using Projeto_SEGUES.Services;
 
-namespace Projeto_SEGUES.Areas.Order;
+namespace Projeto_SEGUES.Areas.Order.Controllers;
 
 /// <summary>
 /// Controller responsible for managing and viewing the authenticated user's active orders.
@@ -21,24 +19,14 @@ namespace Projeto_SEGUES.Areas.Order;
 [Authorize]
 public class ActiveOrderController : Controller
 {
-    private readonly UserManager<AppUser> _userManager;
     private readonly IOrderService _orderService;
-    private readonly ILogger<ActiveOrderController> _logger;
-    private readonly IStringLocalizer<Errors> _localizer;
 
     /// <summary>
     /// Initializes a new instance of the controller with user, order, logging, and localization services.
     /// </summary>
-    public ActiveOrderController(
-        UserManager<AppUser> userManager,
-        IOrderService orderService,
-        ILogger<ActiveOrderController> logger,
-        IStringLocalizer<Errors> localizer)
+    public ActiveOrderController(IOrderService orderService)
     {
-        _userManager = userManager;
         _orderService = orderService;
-        _logger = logger;
-        _localizer = localizer;
     }
 
     /// <summary>
@@ -47,19 +35,11 @@ public class ActiveOrderController : Controller
     /// <returns>The Index View with the active orders collection. Redirects to error on query failure.</returns>
     public async Task<IActionResult> Index()
     {
-        try
-        {
-            var userId = _userManager.GetUserId(User);
-            if (string.IsNullOrEmpty(userId)) return Challenge();
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return Challenge();
 
-            var orders = await _orderService.GetActiveOrdersAsync(userId);
-            return View(orders);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erro fatal ao carregar Index de Pedidos Ativos.");
-            return RedirectToAction("Error", "Home", new { area = "", errorCode = (int)AppErrors.DatabaseQueryError });
-        }
+        var orders = await _orderService.GetActiveOrdersAsync(userId);
+        return View(orders);
     }
 
     /// <summary>
@@ -69,17 +49,15 @@ public class ActiveOrderController : Controller
     [HttpGet]
     public async Task<IActionResult> GetUpdatedActiveOrders()
     {
-        try
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) 
         {
-            var userId = _userManager.GetUserId(User);
-            var orders = await _orderService.GetActiveOrdersAsync(userId!);
-            return PartialView("_ActiveOrdersCards", orders);
+            Response.Headers["HX-Redirect"] = Url.Page("/Account/Login", new { area = "Identity" });
+            return Unauthorized();
         }
-        catch (Exception ex)
-        {
-            _logger.LogAppError(AppErrors.DatabaseQueryError, TableName.Order, AppOperation.Read, ex);
-            return StatusCode(500);
-        }
+        
+        var orders = await _orderService.GetActiveOrdersAsync(userId);
+        return PartialView("_ActiveOrdersCardsPartial", orders);
     }
 
     /// <summary>
@@ -90,25 +68,43 @@ public class ActiveOrderController : Controller
     [HttpGet]
     public async Task<IActionResult> OrderDetails(int id)
     {
-        try
-        {
-            var order = await _orderService.GetOrderByIdAsync(id);
-            var currentUserId = _userManager.GetUserId(User);
+        var order = await _orderService.GetOrderByIdAsync(id);
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (order == null || !order.Status.IsActive() || order.AppUser.Id != currentUserId)
+        if (order == null || !order.Status.IsActive() || order.AppUser.Id != userId)
+        {
+            TempData.SetSwalError("O pedido solicitado não foi encontrado ou não tem permissão para o ver.");
+            return RedirectToAction(nameof(Index));
+        }
+        
+        bool isStaff = User.IsInRole("Admin") || User.IsInRole("Employee");
+        
+        var model = new OrderDetailsViewModel
+        {
+            Order = order,
+            TotalQuantity = _orderService.GetOrderTotal(order).TotalQuantity,
+            
+            Items = order.ProductPurchases.Select(p => new OrderProductDto
             {
-                TempData.SetSwalError("O pedido solicitado não foi encontrado ou não tem permissão para o ver.");
-                return RedirectToAction(nameof(Index));
-            }
-
-            ViewBag.TotalQuantity = _orderService.GetOrderTotal(order).TotalQuantity;
-            return View(order);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Erro ao carregar detalhes do pedido {id}.");
-            return RedirectToAction("Error", "Home", new { area = "", errorCode = (int)AppErrors.DatabaseQueryError });
-        }
+                Id = p.ProductId,
+                Name = p.Product.Name,
+                Price = p.ProductValue,
+                Quantity = p.Quantity,
+                CategoryName = p.Product.Category.Name,
+                ModalInfo = new 
+                {
+                    name = p.Product.Name,
+                    description = p.Product.Description,
+                    price = p.ProductValue.ToString("C"),
+                    categoryName = p.Product.Category.Name,
+                    categoryDescription = p.Product.Category.Description,
+                    stock = isStaff ? (int?)p.Product.Stock : null,
+                    minStock = isStaff ? (int?)p.Product.MinimumStock : null
+                }
+            }).ToList()
+        };
+        
+        return View(model);
     }
 
     /// <summary>
@@ -120,28 +116,16 @@ public class ActiveOrderController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CancelOrder(int id)
     {
-        try
+        var result = await _orderService.CancelOrderAsync(id);
+
+        if (result.Success)
         {
-            var result = await _orderService.CancelOrderAsync(id);
-
-            if (!result.Success)
-            {
-                TempData.SetSwalError(result.Message);
-                return RedirectToAction(nameof(Index));
-            }
-
             TempData.SetSwalSuccess(result.Message);
-            return RedirectToAction(nameof(Index));
         }
-        catch (Exception ex)
+        else
         {
-            _logger.LogAppError(AppErrors.OrderCancelError, TableName.Order, AppOperation.Update, ex);
-
-            var erroEnum = AppErrors.OrderCancelError;
-            var msg = $"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";
-
-            TempData.SetSwalError(msg);
-            return RedirectToAction(nameof(Index));
+            TempData.SetSwalError(result.Message);
         }
+        return RedirectToAction(nameof(Index));
     }
 }

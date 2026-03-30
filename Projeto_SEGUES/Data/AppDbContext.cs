@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Models.Admin;
 using Projeto_SEGUES.Models.Audit;
@@ -10,6 +10,14 @@ using Projeto_SEGUES.Models.User;
 
 namespace Projeto_SEGUES.Data
 {
+    /// <summary>
+    /// The primary Database Context for the application, inheriting from IdentityDbContext 
+    /// to support integrated User and Role management.
+    /// </summary>
+    /// <remarks>
+    /// This class orchestrates the Object-Relational Mapping (ORM) for all system modules: 
+    /// Auditing, Administration, Inventory, Orders, Payments, and Ticketing.
+    /// </remarks>
     public class AppDbContext : IdentityDbContext<AppUser, Role, string>
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
@@ -76,12 +84,12 @@ namespace Projeto_SEGUES.Data
             modelBuilder.Entity<AppUser>()
                 .HasOne(u => u.UserCategory)
                 .WithMany()
-                .IsRequired();
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<UserCategory>()
                 .HasMany(uc => uc.TicketPrices)
                 .WithOne(tp => tp.UserCategory)
-                .HasForeignKey(tp => tp.Id)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Order>()
@@ -95,7 +103,8 @@ namespace Projeto_SEGUES.Data
             modelBuilder.Entity<OrderLine>()
                 .HasOne(ol => ol.Product)
                 .WithMany(p => p.ProductPurchases)
-                .HasForeignKey(ol => ol.ProductId);
+                .HasForeignKey(ol => ol.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<OrderLine>()
                 .HasOne(ol => ol.Order)
@@ -106,6 +115,7 @@ namespace Projeto_SEGUES.Data
                 .HasOne(t => t.Owner)
                 .WithMany()
                 .OnDelete(DeleteBehavior.Restrict); // Prevent multiple cascade
+            
             modelBuilder.Entity<Ticket>()
                 .HasIndex(t => t.ValidationCode)
                 .IsUnique();
@@ -118,6 +128,11 @@ namespace Projeto_SEGUES.Data
             modelBuilder.Entity<TicketTransfer>()
                 .HasOne(tt => tt.Receiver)
                 .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            modelBuilder.Entity<TicketPrice>()
+                .HasOne(tp => tp.UserCategory)
+                .WithMany(uc => uc.TicketPrices)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Global configuration for Decimals

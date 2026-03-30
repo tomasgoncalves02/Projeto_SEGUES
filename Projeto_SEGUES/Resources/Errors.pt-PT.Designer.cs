@@ -206,5 +206,11 @@ namespace Projeto_SEGUES.Resources {
                 return ResourceManager.GetString("SendActivationEmailError", resourceCulture);
             }
         }
+        
+        public static string OrderCreationError {
+            get {
+                return ResourceManager.GetString("OrderCreationError", resourceCulture);
+            }
+        }
     }
 }

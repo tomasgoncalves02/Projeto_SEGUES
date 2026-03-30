@@ -74,7 +74,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
         /// The flow consists of:
         /// 1. Validating if the email already exists.
         /// 2. Generating a 6-digit numeric code.
-        /// 3. Temporarily storing data in <see cref="TempData"/> via JSON.
+        /// 3. Temporarily storing data in <see cref="PageModel.TempData"/> via JSON.
         /// 4. Sending the welcome email with the validation code.
         /// </remarks>
         public async Task<IActionResult> OnPostAsync(string? returnUrl = null)

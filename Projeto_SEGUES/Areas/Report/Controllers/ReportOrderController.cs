@@ -1,13 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Projeto_SEGUES.Extensions;
-using Projeto_SEGUES.Models.Enums;
-using Projeto_SEGUES.Models.User;
-using Projeto_SEGUES.Resources;
+using Projeto_SEGUES.Areas.Report.ViewModels;
 using Projeto_SEGUES.Services;
 
-namespace Projeto_SEGUES.Areas.Report;
+namespace Projeto_SEGUES.Areas.Report.Controllers;
 
 /// <summary>
 /// Controller responsible for viewing order history and specific order details for the user.
@@ -20,21 +17,16 @@ namespace Projeto_SEGUES.Areas.Report;
 [Authorize]
 public class ReportOrderController : Controller
 {
+    private readonly IReportService _reportService;
     private readonly IOrderService _orderService;
-    private readonly UserManager<AppUser> _userManager;
-    private readonly ILogger<ReportOrderController> _logger;
 
     /// <summary>
     /// Initializes a new instance of the controller with order, identity, and logging services.
     /// </summary>
-    public ReportOrderController(
-        IOrderService orderService,
-        UserManager<AppUser> userManager,
-        ILogger<ReportOrderController> logger)
+    public ReportOrderController(IReportService reportService, IOrderService orderService)
     {
+        _reportService = reportService;
         _orderService = orderService;
-        _userManager = userManager;
-        _logger = logger;
     }
 
     /// <summary>
@@ -44,80 +36,60 @@ public class ReportOrderController : Controller
     /// The Index View with the user's order list. 
     /// Redirects to a global error page if the database query fails.
     /// </returns>
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(ReportOrderSearchViewModel model)
     {
-        try
-        {
-            var userId = _userManager.GetUserId(User);
-            if (userId == null) return Challenge();
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return Challenge();
 
-            var history = await _orderService.GetOrderHistoryAsync(userId);
-            return View(history);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erro fatal ao carregar o histórico de pedidos.");
+        model.Results = await _reportService.GetOrderHistoryAsync(userId, model);
+        return View(model);
+    }
 
-            // Usando a tua chave 'DatabaseQueryError' e o Enum 1001
-            return RedirectToAction("Error", "Home", new
-            {
-                area = "",
-                errorCode = (int)AppErrors.DatabaseQueryError
-            });
+    [HttpGet]
+    public async Task<IActionResult> GetFilteredOrders(ReportOrderSearchViewModel model)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null)
+        {
+            Response.Headers["HX-Redirect"] = Url.Page("/Account/Login", new { area = "Identity" });
+            return Challenge();
         }
+        
+        var results = await _reportService.GetOrderHistoryAsync(userId, model);
+        return PartialView("_OrderHistoryRowsPartial", results);
     }
 
     /// <summary>
-    /// Provides specific order details in JSON format for client-side consumption.
+    /// Returns detailed information about a specific order in JSON format.
     /// </summary>
-    /// <param name="id">Unique order identifier.</param>
+    /// <param name="id">The unique identifier of the order.</param>
     /// <returns>
-    /// A JSON object containing the redemption code and product list, or authorization/not found error.
+    /// A JSON object containing the redemption code and product list, 
+    /// or an error message if the order is not found or access is denied.
     /// </returns>
-    /// <remarks>
-    /// Includes a security check to prevent regular users from viewing third-party order details.
-    /// </remarks>
     [HttpGet]
     public async Task<IActionResult> GetOrderDetails(int id)
     {
-        try
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return Unauthorized();
+        var order = await _orderService.GetOrderByIdAsync(id);
+
+        if (order == null || (!User.IsInRole("Admin") && order.AppUser.Id != userId))
         {
-            var order = await _orderService.GetOrderByIdAsync(id);
-
-            // Usando a tua chave 'NotFound' do Errors.resx
-            if (order == null)
-                return NotFound(new { failMessage = Errors.NotFound });
-
-            var currentUserId = _userManager.GetUserId(User);
-
-            // Verificação de segurança: se não for Admin, só vê o que lhe pertence
-            if (!User.IsInRole("Admin") && order.AppUser.Id != currentUserId)
-            {
-                // Usando a tua chave 'Unauthorized' do Errors.resx
-                return StatusCode(403, new { failMessage = Errors.Unauthorized });
-            }
-
-            return Ok(new
-            {
-                code = order.RedemptionCode,
-                products = order.ProductPurchases.Select(p => new
-                {
-                    name = p.Product.Name,
-                    quantity = p.Quantity,
-                    price = p.ProductValue
-                }).ToList()
-            });
+            return Json(new { failMessage = "O pedido solicitado não foi encontrado ou não tem permissão para o ver." });
         }
-        catch (Exception ex)
+
+        return Json(new
         {
-            _logger.LogAppError(AppErrors.InternalServerError,
-                                TableName.Order,
-                                AppOperation.Read, ex);
-
-            // Usando a tua chave 'InternalServerError' e o Enum 1501
-            var msg = $"{Errors.InternalServerError} [Erro: {(int)AppErrors.InternalServerError}]";
-
-            return StatusCode(500, new { failMessage = msg });
-        }
+            code = order.RedemptionCode,
+            products = order.ProductPurchases.Select(pp => new
+            {
+                name = pp.Product.Name,
+                quantity = pp.Quantity,
+                price = pp.ProductValue.ToString("C"),
+                categoryName = pp.Product.Category.Name,
+                categoryDescription = pp.Product.Category.Description
+            }).ToList()
+        });
     }
 }

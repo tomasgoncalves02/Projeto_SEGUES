@@ -1,26 +1,23 @@
-﻿@model Projeto_SEGUES.Models.Order.Order
+﻿@using Projeto_SEGUES.Extensions
+@model Projeto_SEGUES.Areas.Order.ViewModels.OrderDetailsViewModel
+
 @{
-    ViewData["Title"] = "Informações do Pedido - SEGUES";
-    bool isStaff = User.IsInRole("Admin") || User.IsInRole("Employee");
-    bool isScheduled = Model.DeliveryTime.HasValue && Model.DeliveryTime.Value != TimeSpan.Zero;
+    ViewData["Title"] = "Informações do Pedido";
 }
 
 <div class="container mt-4">
     @* Title row *@
     <div class="d-flex mb-4 align-items-center justify-content-between flex-column flex-md-row">
-        <div class="col-md-5 mb-2 mb-md-0">
-            <h2 class="fw-bold title-underline mb-2 text-start">
+        <div class="mb-2 mb-md-0 col-12 col-md-auto">
+            <h2 class="fw-bold display-6 title-underline mb-1">
                 <i class="bi bi-ticket-detailed me-2 text-color-ips"></i>
                 Pedido
             </h2>
         </div>
-        @* Back buttons *@
-        <div class="col-md-7 text-end">
-            <a asp-area="Order" asp-controller="ActiveOrder" asp-action="Index"
-               class="btn btn-ips-outline-secondary fw-bold px-4 shadow-sm">
-                <i class="bi bi-arrow-left me-2"></i> Voltar
-            </a>
-        </div>
+        @* Back button *@
+        <a asp-area="Order" asp-controller="ActiveOrder" asp-action="Index" class="btn btn-ips-outline-secondary col-12 col-md-auto fw-bold shadow-sm order-first order-md-last mb-3 mb-md-0">
+            <i class="bi bi-arrow-left me-2"></i> Voltar
+        </a>
     </div>
 
     @* Main row *@
@@ -35,25 +32,22 @@
                 <div class="card-body p-4">
                     @* Value Details *@
                     <div class="mb-4 pb-3 border-bottom">
-                        <p class="mb-2 text-dark small fw-bold d-flex justify-content-between">
-                            <span>Hora da Compra:</span> <span class="text-muted">@Model.OrderDate.ToString("HH:mm")</span>
+                        <p class="mb-2 small fw-bold d-flex justify-content-between">
+                            <span>Hora da Compra:</span> <span>@Model.FormattedOrderDate</span>
                         </p>
-                        <p class="mb-2 text-dark small fw-bold d-flex justify-content-between">
-                            <span>Valor Total:</span> <span class="text-color-ips">@Model.TotalValue.ToString("C")</span>
-                        </p>
-                        <p class="mb-0 text-dark small fw-bold d-flex justify-content-between">
-                            <span>Itens:</span> <span class="text-muted">@ViewBag.TotalQuantity</span>
+                        <p class="mb-2 small fw-bold d-flex justify-content-between">
+                            <span>Valor Total:</span> <span class="text-color-ips">@Model.FormattedTotalValue</span>
                         </p>
                     </div>
 
                     @* State field *@
                     <div class="row align-items-center mb-3">
                         <div class="col-4">
-                            <p class="mb-0 text-dark small fw-bold">Estado</p>
+                            <p class="mb-0 small fw-bold">Estado</p>
                         </div>
                         <div class="col-8">
-                            <div class="alert alert-light border-0 mb-0 py-2 px-3 d-flex justify-content-center align-items-center shadow-sm bg-color-ips-light rounded-3" style="min-height: 45px;">
-                                <strong class="text-dark">@Model.Status.ToDisplayName()</strong>
+                            <div class="text-color-ips border-0 mb-0 py-2 px-3 d-flex justify-content-center align-items-center shadow-sm bg-color-ips-light rounded-3" style="min-height: 45px;">
+                                <strong>@Model.Order.Status.ToDisplayName()</strong>
                             </div>
                         </div>
                     </div>
@@ -61,18 +55,18 @@
                     @* Pickup field *@
                     <div class="row align-items-center mb-4">
                         <div class="col-4">
-                            <p class="mb-0 text-dark small fw-bold">Recolha</p>
+                            <p class="mb-0 small fw-bold">Recolha</p>
                         </div>
                         <div class="col-8">
-                            <div class="alert alert-light border-0 mb-0 py-2 px-3 d-flex @(!isScheduled ? "justify-content-center" : "justify-content-between") align-items-center shadow-sm bg-color-ips-light rounded-3" style="min-height: 45px;">
-                                @if (!isScheduled)
+                            <div class="text-color-ips border-0 mb-0 py-2 px-3 d-flex @(!Model.IsScheduled ? "justify-content-center" : "justify-content-between") align-items-center shadow-sm bg-color-ips-light rounded-3" style="min-height: 45px;">
+                                @if (!Model.IsScheduled)
                                 {
-                                    <strong class="text-dark">Agora</strong>
+                                    <strong>Agora</strong>
                                 }
                                 else
                                 {
-                                    <span class="text-dark fw-bold small me-2">A partir das</span>
-                                    <strong class="text-dark">@Model.DeliveryTime!.Value.ToString(@"hh\:mm")</strong>
+                                    <span class="fw-bold small me-2">A partir das</span>
+                                    <strong>@Model.FormattedDeliveryDate</strong>
                                 }
                             </div>
                         </div>
@@ -80,14 +74,13 @@
 
                     @* Actions *@
                     <div class="d-flex flex-column gap-2 mt-2">
-                        <button data-code="@Model.RedemptionCode" class="btn btn-ips w-100 py-2 fw-bold shadow-sm showCode">
+                        <button data-code="@Model.Order.RedemptionCode" class="btn btn-ips w-100 py-2 fw-bold shadow-sm showCode">
                             <i class="bi bi-qr-code me-2"></i> Ver Código
                         </button>
 
-                        <form id="orderCancellationForm" asp-area="Order" asp-controller="ActiveOrder" asp-action="CancelOrder" asp-route-id="@Model.Id" method="post" class="w-100">
+                        <form id="orderCancellationForm" asp-area="Order" asp-controller="ActiveOrder" asp-action="CancelOrder" asp-route-id="@Model.Order.Id" method="post" class="w-100">
                             @Html.AntiForgeryToken()
-                            <button type="button" id="confirmOrderCancellation"
-                                    class="btn btn-outline-danger w-100 py-2 fw-bold">
+                            <button type="button" class="btn btn-outline-danger w-100 py-2 fw-bold confirmOrderCancellation">
                                 <i class="bi bi-x-circle me-2"></i> Cancelar Pedido
                             </button>
                         </form>
@@ -96,7 +89,7 @@
             </div>
         </div>
 
-        @* Table with products *@
+        @* Products Table *@
         <div class="col-lg-8">
             <div class="card shadow-sm card-ips hover-shadow-ips border-0 h-100">
                 <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
@@ -114,25 +107,15 @@
                             </tr>
                         </thead>
                         <tbody>
-                        @foreach (var p in Model.ProductPurchases)
+                        @foreach (var p in Model.Items)
                         {
-                            var productInfo = new
-                            {
-                                name = p.Product.Name,
-                                description = p.Product.Description,
-                                price = p.ProductValue.ToString("C2"),
-                                categoryName = p.Product.Category?.Name ?? "N/A",
-                                categoryDescription = p.Product.Category?.Description ?? "",
-                                stock = isStaff ? (int?)p.Product.Stock : null,
-                                minStock = isStaff ? (int?)p.Product.MinimumStock : null
-                            };
                             <tr>
-                                <td class="ps-4 text-start fw-bold">@p.Product.Name</td>
+                                <td class="ps-4 text-start fw-bold">@p.Name</td>
                                 <td class="fw-bold">@p.Quantity</td>
-                                <td class="text-color-ips fw-bold">@p.ProductValue.ToString("C")</td>
+                                <td class="text-color-ips fw-bold">@p.FormattedPrice</td>
                                 <td class="pe-4">
                                     <button class="btn btn-sm btn-ips shadow-sm showProductDetails"
-                                            data-product='@Html.Raw(Json.Serialize(productInfo))'>
+                                            data-product='@Html.Raw(Json.Serialize(p.ModalInfo))'>
                                         <i class="bi bi-eye"></i>
                                     </button>
                                 </td>

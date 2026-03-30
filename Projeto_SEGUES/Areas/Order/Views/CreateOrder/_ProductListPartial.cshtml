@@ -1,0 +1,37 @@
+﻿@model IEnumerable<Projeto_SEGUES.Areas.Order.ViewModels.OrderProductDto>
+
+@if (!Model.Any())
+{
+    <tr>
+        <td colspan="5" class="text-center py-5 text-muted">
+            <i class="bi bi-box-seam display-4 d-block mb-3 opacity-25"></i>
+            <span class="fw-bold">Não existem produtos disponíveis com estes filtros.</span>
+        </td>
+    </tr>
+}
+else
+{
+    @foreach (var p in Model)
+    {
+        <tr class="productRow">
+            <td class="ps-4 text-start fw-bold">@p.Name</td>
+            <td class="d-none d-md-table-cell">@p.CategoryName</td>
+            <td class="text-color-ips fw-bold text-nowrap">@p.FormattedPrice</td>
+            <td>
+                <input type="number" id="qty-@p.Id" min="1" max="99" value="1"
+                       class="form-control form-control-sm border-secondary-subtle px-1 text-center" />
+            </td>
+            <td class="pe-3 pe-md-4">
+                <div class="d-flex justify-content-center gap-1 gap-md-2">
+                    <button class="btn btn-ips btn-sm px-2 px-md-3 fw-bold addToCart" data-id="@p.Id" title="Adicionar ao Carrinho">
+                        <i class="bi bi-cart-plus fs-6"></i>
+                        <span class="d-none d-md-inline ms-1">Adicionar</span>
+                    </button>
+                    <button class="btn btn-sm btn-ips-outline-secondary shadow-sm showProductDetails px-2" data-product='@Html.Raw(Json.Serialize(p.ModalInfo))'>
+                        <i class="bi bi-eye fs-6"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    }
+}

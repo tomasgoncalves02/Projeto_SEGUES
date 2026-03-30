@@ -1,16 +1,16 @@
 ﻿@{
-    ViewData["Title"] = "Histórico - SEGUES";
+    ViewData["Title"] = "Histórico";
 }
 
 <div class="container mt-5">
     @* Page Header *@
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
+    <div class="d-flex justify-content-between align-items-center col-12 col-md-auto mb-4 flex-column flex-md-row">
+        <div class="mb-2 mb-md-0">
             <h1 class="fw-bold display-6 mb-1 title-underline">Histórico</h1>
-            <p class="text-muted small mt-1 mb-0">Consulta aqui os teus consumos de bar, refeitório e movimentos de saldo.</p>
+            <p class="text-muted small mt-1 mb-0">Consulta aqui os seus consumos de bar, refeitório e movimentos de saldo.</p>
         </div>
-        @* Return button in larger screen *@
-        <a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold shadow-sm d-none d-md-flex">
+        @* Return button *@
+        <a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-ips-outline-secondary col-12 col-md-auto fw-bold shadow-sm order-first order-md-last mb-3 mb-md-0">
             <i class="bi bi-arrow-left me-2"></i>Voltar
         </a>
     </div>
@@ -23,9 +23,9 @@
                 <div class="card-body text-center d-flex flex-column p-4">
                     <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-clock-history"></i></div>
                     <h5 class="fw-bold">Histórico de Senhas</h5>
-                    <p class="text-muted small mb-4">Visualiza o registo das tuas senhas.</p>
+                    <p class="text-muted small mb-4">Visualiza o registo das suas senhas.</p>
                     <div class="mt-auto">
-                        <a asp-area="Report" asp-controller="ReportTickets" asp-action="Index" class="btn w-100 py-2 fw-bold btn-ips">
+                        <a asp-area="Report" asp-controller="ReportTicket" asp-action="Index" class="btn w-100 py-2 fw-bold btn-ips">
                             Ver Histórico
                         </a>
                     </div>
@@ -38,7 +38,7 @@
                 <div class="card-body text-center d-flex flex-column p-4">
                     <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-cup-straw"></i></div>
                     <h5 class="fw-bold">Histórico do Bar</h5>
-                    <p class="text-muted small mb-4">Visualiza os teus consumos no bar.</p>
+                    <p class="text-muted small mb-4">Visualiza os seus consumos no bar.</p>
                     <div class="mt-auto">
                         <a asp-area="Report" asp-controller="ReportOrder" asp-action="Index" class="btn w-100 py-2 fw-bold btn-ips">
                             Ver Histórico
@@ -53,25 +53,12 @@
                 <div class="card-body text-center d-flex flex-column p-4">
                     <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-currency-euro"></i></div>
                     <h5 class="fw-bold">Histórico do Saldo</h5>
-                    <p class="text-muted small mb-4">Visualiza os teus movimentos de conta.</p>
+                    <p class="text-muted small mb-4">Visualiza os seus movimentos de conta.</p>
                     <div class="mt-auto">
                         <a asp-area="Report" asp-controller="ReportTransaction" asp-action="Index"
                            class="btn w-100 py-2 fw-bold btn-ips">
                             Ver Movimentos
                         </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        @* Return button *@
-        <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm card-ips hover-shadow-ips hover-translate d-flex flex-column">
-                <div class="card-body text-center d-flex flex-column p-4">
-                    <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-arrow-left-circle"></i></div>
-                    <h5 class="fw-bold">Voltar</h5>
-                    <p class="text-muted small mb-4">Voltar à página anterior.</p>
-                    <div class="mt-auto">
-                        <a asp-area="" asp-controller="Home" asp-action="Index" class="btn w-100 py-2 fw-bold btn-ips">Voltar</a>
                     </div>
                 </div>
             </div>

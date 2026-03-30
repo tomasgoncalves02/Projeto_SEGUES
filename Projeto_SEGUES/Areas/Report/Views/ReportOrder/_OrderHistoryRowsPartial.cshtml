@@ -1,0 +1,95 @@
+﻿@using Projeto_SEGUES.Extensions
+@using Projeto_SEGUES.Models.Enums
+@model IEnumerable<Projeto_SEGUES.Models.Order.Order>
+
+@{
+    bool showUser = (ViewBag.ShowUser as bool?) ?? false;
+}
+
+@if (!Model.Any())
+{
+    <tr>
+        <td colspan="@(showUser ? 9 : 8)" class="text-center py-5 text-muted">
+            <i class="bi bi-cup-straw display-4 d-block mb-3 opacity-25 text-color-ips"></i>
+            <span class="fw-bold text-dark">Nenhum pedido encontrado.</span>
+            <p class="small mt-2 mb-0">Tente alterar os filtros de pesquisa.</p>
+        </td>
+    </tr>
+}
+else
+{
+    @foreach (var item in Model)
+    {
+        <tr class="align-middle">
+            @* User name *@
+            @if (showUser)
+            {
+                <td class="ps-3 ps-md-4 text-start">
+                    <div class="d-flex flex-column">
+                        <span class="fw-bold">@item.AppUser.FirstName @item.AppUser.LastName</span>
+                        <small class="text-muted fs-7">@item.AppUser.Email</small>
+                    </div>
+                </td>
+            }
+            
+            @* Order Id *@
+            <td class="fw-bold @(showUser ? "" : "ps-3 ps-md-4 text-start")">#@item.Id.ToString("D5")</td>
+
+            @* Order code *@
+            <td class="fw-bold">
+                <code class="fw-bold text-color-ips bg-color-ips-light px-2 py-1 border rounded">@item.RedemptionCode</code>
+            </td>
+
+            @* Date *@
+            <td class="small">
+                <div class="fw-bold">@item.OrderDate.ToString("dd/MM/yyyy")</div>
+                <div class="text-muted"><i class="bi bi-clock me-1"></i>@item.OrderDate.ToString(@"HH\:mm")</div>
+            </td>
+
+            @* Scheduled to be delivered *@
+            <td>
+                @if (item.DeliveryTime.HasValue)
+                {
+                    <span class="badge bg-color-ips-light border shadow-sm text-color-ips fw-bold p-2">
+                        <i class="bi bi-clock me-1"></i>@item.DeliveryTime.Value.ToString(@"hh\:mm")
+                    </span>
+                }
+                else
+                {
+                    <span class="small fw-bold">Agora</span>
+                }
+            </td>
+
+            @* Status *@
+            <td>
+                <span class="badge @item.Status.ToString().ToBadgeClass() px-3 py-2 shadow-sm">
+                    @item.Status.ToDisplayName()
+                </span>
+            </td>
+
+            @* Delivery time *@
+            <td class="small">
+                @if (item is { Status: OrderStatus.Delivered, PickupTime: not null })
+                {
+                    <span class="fw-bold">@item.PickupTime.Value.ToString(@"hh\:mm")</span>
+                }
+                else
+                {
+                    <span class="text-muted opacity-50">---</span>
+                }
+            </td>
+
+            @* Actions *@
+            <td>
+                <button type="button" class="btn btn-sm btn-ips shadow-sm px-3 showOrderDetails" data-id="@item.Id">
+                    <i class="bi bi-eye"></i>
+                </button>
+            </td>
+
+            @* Price *@
+            <td class="fw-bold text-color-ips pe-3 pe-md-4 text-nowrap">
+                @item.TotalValue.ToString("C")
+            </td>
+        </tr>
+    }
+}

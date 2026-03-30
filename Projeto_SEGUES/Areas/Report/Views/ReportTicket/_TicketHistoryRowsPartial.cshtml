@@ -1,0 +1,90 @@
+﻿@using Projeto_SEGUES.Extensions
+@model IEnumerable<Projeto_SEGUES.Models.Ticket.Ticket>
+
+@{
+    string userId = ViewBag.UserId;
+}
+
+@if (!Model.Any())
+{
+    <tr>
+        <td colspan="8" class="text-center py-5 text-muted">
+            <i class="bi bi-ticket-perforated display-4 d-block mb-3 opacity-50"></i>
+            <span class="fw-bold">Nenhum registo encontrado.</span>
+        </td>
+    </tr>
+}
+else
+{
+    @foreach (var item in Model)
+    {
+        var myTransfers = item.Transfers
+            .Where(t => t.Sender.Id == userId || t.Receiver.Id == userId)
+            .ToList();
+        var lastTransfer = myTransfers.OrderByDescending(t => t.TransferDate).FirstOrDefault();
+        var lastSent = myTransfers
+            .Where(t => t.Sender.Id == userId)
+            .OrderByDescending(t => t.TransferDate)
+            .FirstOrDefault();
+        var lastReceived = myTransfers
+            .Where(t => t.Receiver.Id == userId)
+            .OrderByDescending(t => t.TransferDate)
+            .FirstOrDefault();
+        bool imSender = lastTransfer != null && lastTransfer.Sender.Id == userId;
+        
+        <tr>
+            <td class="ps-4 text-start">
+                @if (imSender)
+                {
+                    <span class="text-muted small fst-italic">Oculto (Enviada)</span>
+                }
+                else
+                {
+                    <code class="badge bg-color-ips-light fw-bold text-color-ips px-2 py-1">@item.ValidationCode</code>
+                }
+            </td>
+            <td>@item.TicketPurchase.TransactionDate.ToString("dd/MM/yyyy")</td>
+            <td>
+                @if (imSender)
+                {
+                    <span class="badge bg-secondary px-3">Transferida</span>
+                }
+                else
+                {
+                    <span class="badge @item.State.ToString().ToBadgeClass() px-3">
+                        @item.State.ToDisplayName()
+                    </span>
+                }
+            </td>
+            <td>@(imSender ? "---" : item.ExpirationDate.ToString("dd/MM/yyyy"))</td>
+            <td>@(imSender ? "---" : (item.UsedDate?.ToString("dd/MM/yyyy") ?? "-"))</td>
+            <td>@(lastTransfer?.TransferDate.ToString("dd/MM/yyyy") ?? "-")</td>
+            <td>
+                @if (lastSent != null)
+                {
+                    <span class="small fw-bold">
+                        <i class="bi bi-person-up text-danger me-1"></i>
+                        @lastSent.Receiver.FirstName @lastSent.Receiver.LastName
+                    </span>
+                }
+                else
+                {
+                    <span>-</span>
+                }
+            </td>
+            <td class="pe-4">
+                @if (lastReceived != null)
+                {
+                    <span class="small fw-bold">
+                        <i class="bi bi-person-down text-success me-1"></i>
+                        @lastReceived.Sender.FirstName @lastReceived.Sender.LastName
+                    </span>
+                }
+                else
+                {
+                    <span class="badge bg-color-ips-light small text-color-ips">Compra Própria</span>
+                }
+            </td>
+        </tr>
+    }
+}

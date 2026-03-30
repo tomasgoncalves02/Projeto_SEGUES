@@ -1,27 +1,40 @@
 ﻿@model IEnumerable<Projeto_SEGUES.Models.Ticket.Ticket>
+@using Projeto_SEGUES.Extensions
 @using Projeto_SEGUES.Models.Enums
 
-@foreach (var item in Model)
+@if (!Model.Any())
 {
     <tr>
-        <td><code class="fw-bold text-color-ips">@item.ValidationCode</code></td>
-        <td class="small">@item.ExpirationDate.ToString("dd/MM/yyyy")</td>
-        <td>
-            <span class="badge @item.State.ToString().ToBadgeClass()">
-                @item.State.ToDisplayName()
-            </span>
-        </td>
-        <td class="text-center">
-            @if (item.State == TicketState.Available)
-            {
-                <button type="button" class="btn btn-ips btn-sm fw-bold showQr" data-code="@item.ValidationCode">
-                    <i class="bi bi-qr-code"></i>
-                </button>
-            }
-            else
-            {
-                <span class="text-muted small">--</span>
-            }
+        <td colspan="4" class="text-center py-5 text-muted">
+            <i class="bi bi-ticket-perforated display-4 d-block mb-3 opacity-25"></i>
+            Nenhuma senha encontrada.
         </td>
     </tr>
+}
+else
+{
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td><code class="fw-bold text-color-ips">@item.ValidationCode</code></td>
+            <td class="small">@item.ExpirationDate.ToString("dd/MM/yyyy")</td>
+            <td>
+                <span class="badge @item.State.ToString().ToBadgeClass()">
+                    @item.State.ToDisplayName()
+                </span>
+            </td>
+            <td class="text-center">
+                @if (item.State == TicketState.Available)
+                {
+                    <button type="button" class="btn btn-ips btn-sm fw-bold showQr" data-code="@item.ValidationCode">
+                        <i class="bi bi-qr-code"></i>
+                    </button>
+                }
+                else
+                {
+                    <span class="text-muted small">--</span>
+                }
+            </td>
+        </tr>
+    }
 }

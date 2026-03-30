@@ -1,5 +1,18 @@
+﻿/**
+ * Home Area UI Controller.
+ * Manages general landing page interactions, such as the menu selection logic.
+ */
 import { DOM, Notifications } from "./core/core.js";
 
+/**
+ * Displays a selection modal to let the user choose which menu to view.
+ * @remarks
+ * Uses a customized SweetAlert2 (Notifications) dialog with three actions:
+ * - Confirm: Opens the Canteen (Refeitório) URL.
+ * - Deny: Opens the Bar URL.
+ * - Cancel: Closes the modal.
+ * Both links are opened in a new browser tab ("_blank").
+ */
 function pickMenu() {
     const canteenUrl = this.dataset.canteen;
     const barUrl = this.dataset.bar;
@@ -23,7 +36,13 @@ function pickMenu() {
     });
 }
 
+/**
+ * Home Module initialization.
+ */
 const Home = {
+    /**
+     * Binds the pickMenu function to the appropriate button.
+     */
     init() {
         DOM.bind('pickMenu', 'click', pickMenu);
     }

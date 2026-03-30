@@ -1,56 +1,52 @@
-﻿@model IEnumerable<Projeto_SEGUES.Models.Ticket.Ticket>
-@using Projeto_SEGUES.Models.Ticket
+﻿@using Projeto_SEGUES.Models.Enums
+@model Projeto_SEGUES.Areas.Admin.ViewModels.AdminTicketManagementViewModel
 
 @{
-    ViewData["Title"] = "Gestão de Senhas - SEGUES";
-    bool isAdmin = User.IsInRole("Admin");
-    List<TicketPrice> prices = ViewBag.Prices;
+    ViewData["Title"] = "Gestão de Senhas";
 }
 
 <div class="container mt-5">
-    <div class="row align-items-end mb-4 g-3">
-        <div class="col-12 col-md-auto order-1 order-md-2 text-end ms-md-auto">
-            <a asp-area="Admin" asp-controller="Admin" asp-action="Index"
-               class="btn btn-ips-outline-secondary fw-bold px-4">
-                <i class="bi bi-arrow-left me-2"></i>Voltar
-            </a>
+    @* Top row *@
+    <div class="d-flex mb-3 mb-md-4 justify-content-between align-items-center col-12 col-md-auto flex-column flex-md-row">
+        <div class="mb-2 mb-md-0">
+            <h1 class="fw-bold display-6 title-underline mb-1">
+                <i class="bi bi-shield-lock me-2 text-color-ips"></i>Gestão de Senhas
+            </h1>
+            <p class="text-muted mb-0 mt-1">Administração de Preçários e Registo Global de Senhas</p>
         </div>
-        <div class="col-12 col-md order-2 order-md-1">
-            <h2 class="fw-bold title-underline mb-2">
-                <i class="bi bi-shield-lock-fill me-2 text-color-ips"></i>
-                Painel de Gestão e Auditoria
-            </h2>
-            <p class="text-muted small mb-0">Administração de Preçários e Registo Global de Senhas</p>
-        </div>
+        <a asp-area="Admin" asp-controller="Admin" asp-action="Index" class="btn btn-ips-outline-secondary col-12 col-md-auto fw-bold shadow-sm order-first order-md-last mb-3 mb-md-0">
+            <i class="bi bi-arrow-left me-2"></i>Voltar
+        </a>
     </div>
-    @* --- HORÁRIO DO REFEITÓRIO --- *@
+    
+    @* Canteen Schedule *@
     <div class="row g-4 mb-5">
         @foreach (var servico in new[] { "Almoço", "Jantar" })
         {
             <div class="col-lg-6">
-                <div class="card card-ips hover-shadow-ips shadow-sm border-0 rounded-3 h-100">
-                    <div class="card-body p-4">
-                        <h6 class="fw-bold mb-3 d-flex align-items-center" style="color: darkcyan;">
+                <div class="card card-ips hover-shadow-ips shadow-sm border-0 rounded-3 h-100 small fs-md-6">
+                    <div class="card-body p-3 p-md-4 bg-color-ips-very-light">
+                        <h6 class="fw-bold mb-2 mb-md-3 d-flex align-items-center text-color-ips">
                             <i class="bi bi-clock me-2"></i> Definição de Horário: @servico
                         </h6>
 
                         <form asp-area="Admin" asp-controller="AdminTicketManagement" asp-action="UpdateSchedule" method="post">
                             @Html.AntiForgeryToken()
-                            <input type="hidden" name="serviceName" value="@servico" />
+                            <input type="hidden" name="serviceName" value="@servico"/>
 
                             <div class="row g-3 align-items-end">
                                 <div class="col-auto">
                                     <label class="form-label fw-semibold small mb-1">Início</label>
                                     <input type="time" name="openTime" class="form-control shadow-none"
-                                           value="@(servico == "Almoço" ? ViewBag.CanteenLunchOpeningTimeString : ViewBag.CanteenDinnerOpeningTimeString)"
-                                           style="width: 140px;" />
+                                           value="@(servico == "Almoço" ? Model.LunchOpeningTime : Model.DinnerOpeningTime)"
+                                           style="width: 140px;"/>
                                 </div>
 
                                 <div class="col-auto">
                                     <label class="form-label fw-semibold small mb-1">Fecho</label>
                                     <input type="time" name="closeTime" class="form-control shadow-none"
-                                           value="@(servico == "Almoço" ? ViewBag.CanteenLunchClosingTimeString : ViewBag.CanteenDinnerClosingTimeString)"
-                                           style="width: 140px;" />
+                                           value="@(servico == "Almoço" ? Model.LunchClosingTime : Model.DinnerClosingTime)"
+                                           style="width: 140px;"/>
                                 </div>
 
                                 <div class="col-auto">
@@ -65,40 +61,37 @@
             </div>
         }
     </div>
-    @* Gestão de Preçários e Validade (Admin Only) *@
-    @if (isAdmin && prices != null && prices.Any())
+    
+    @* Prices and Validity *@
+    @if (Model.Prices.Any())
     {
         <div class="row g-4 mb-4">
-            @* Tabela de Preços *@
+            @* Prices *@
             <div class="col-lg-8">
-                <div class="card shadow-sm card-ips hover-shadow-ips h-100">
-                    <div class="card-header bg-white py-3 border-bottom-0">
+                <div class="card shadow-sm card-ips hover-shadow-ips h-100 bg-color-ips-very-light">
+                    <div class="card-header bg-white py-3 py-md-3 border-bottom-0">
                         <h6 class="mb-0 fw-bold text-color-ips">
                             <i class="bi bi-currency-euro me-2"></i>Definição de Preçário
                         </h6>
                     </div>
-                    <div class="card-body bg-light rounded-bottom">
+                    <div class="card-body rounded-bottom">
                         <form asp-area="Admin" asp-controller="AdminTicketManagement" asp-action="UpdatePrices" method="post">
                             <div class="row g-3 align-items-end">
-                                @for (int i = 0; i < prices.Count; i++)
+                                @for (int i = 0; i < Model.Prices.Count; i++)
                                 {
                                     <div class="col-md">
-                                        <input type="hidden" name="updatedPrices[@i].Id" value="@prices[i].Id" />
-                                        <input type="hidden" name="updatedPrices[@i].UserCategory.Id" value="@prices[i].UserCategory.Id" />
-                                        <input type="hidden" name="updatedPrices[@i].UserCategory.Name" value="@prices[i].UserCategory.Name" />
-                                        <label class="form-label small fw-bold">@prices[i].UserCategory.Name</label>
+                                        <input type="hidden" asp-for="Prices[i].Id" />
+                                        
+                                        <label class="form-label small fw-bold">@Model.Prices[i].UserCategory.Name</label>
                                         <div class="input-group">
                                             <span class="input-group-text">€</span>
-                                            <input type="text" name="updatedPrices[@i].Price" class="form-control fw-bold decimal-input"
-                                                   value="@prices[i].Price.ToString("N2", new System.Globalization.CultureInfo("pt-PT"))"
-                                                   oninput="this.value = this.value.replace('.', ',')" min="0"
-                                                   max="100" />
+                                            <input asp-for="Prices[i].Price" type="number" class="form-control fw-bold" min="0" step="0.01" max="100" />
                                         </div>
                                     </div>
                                 }
                                 <div class="col-md-auto ms-auto">
                                     <button type="submit" class="btn btn-ips fw-bold shadow-sm px-4">
-                                        <i class="bi bi-arrow-repeat me-2"></i> ATUALIZAR
+                                        <i class="bi bi-arrow-repeat me-2"></i> Atualizar
                                     </button>
                                 </div>
                             </div>
@@ -106,22 +99,22 @@
                     </div>
                 </div>
             </div>
-
-            @* Validade Global *@
+            
+            @* Validity *@
             <div class="col-lg-4">
-                <div class="card shadow-sm card-ips hover-shadow-ips h-100">
-                    <div class="card-header bg-white py-3 border-bottom-0">
+                <div class="card shadow-sm card-ips hover-shadow-ips h-100 bg-color-ips-very-light">
+                    <div class="card-header bg-white py-2 py-md-2 border-bottom-0">
                         <h6 class="mb-0 fw-bold text-color-ips">
                             <i class="bi bi-calendar-check me-2"></i>Validade Global
                         </h6>
                     </div>
-                    <div class="card-body bg-light rounded-bottom">
+                    <div class="card-body rounded-bottom">
                         <form asp-area="Admin" asp-controller="AdminTicketManagement" asp-action="UpdateValidity" method="post">
                             <div class="row g-2 align-items-end">
                                 <div class="col">
-                                    <label class="form-label small fw-bold text-muted text-uppercase mb-1">Dias de Validade</label>
+                                    <label class="form-label small fw-bold text-muted mb-1">Dias de Validade</label>
                                     <div class="input-group">
-                                        <input type="number" name="validityDays" class="form-control fw-bold" value="@ViewBag.CurrentValidityDays" min="1" />
+                                        <input type="number" name="validityDays" class="form-control fw-bold" value="@Model.CurrentValidityDays" min="1" step="1"/>
                                         <span class="input-group-text bg-white text-muted small fw-bold">Dias</span>
                                     </div>
                                 </div>
@@ -137,102 +130,113 @@
             </div>
         </div>
     }
-    @* --- SECÇÃO DE FILTROS DE AUDITORIA --- *@
-    <div class="card card-ips hover-shadow-ips shadow-sm mb-4 border-0 rounded-3">
-        <div class="card-body p-4">
+    
+    @* Filters *@
+    <div class="card card-ips hover-shadow-ips shadow-sm mb-3 mb-md-4 border-0 rounded-3 small fs-md-6">
+        <div class="card-body p-3 p-md-4 bg-color-ips-very-light">
             <form id="filterForm"
                   hx-get="/Admin/AdminTicketManagement/GetUpdatedAuditTable"
-                  hx-trigger="change, keyup delay:300ms from:#searchFilter"
+                  hx-trigger="submit, change, keyup delay:300ms from:#searchFilter"
                   hx-target="#auditTableBody"
                   hx-indicator=".loader-spinner"
-                  class="row g-3 align-items-end">
+                  class="row g-3 align-items-end text-start">
 
+                @* Search Filter *@
+                <div class="col-md-6 col-xl mt-2 mt-md-auto">
+                    <label asp-for="SearchModel.SearchString" class="small fw-bold"></label>
+                    <input asp-for="SearchModel.SearchString" id="searchFilter" type="text" class="form-control form-control-sm" placeholder="Código, Nome ou Email do utilizador...">
+                </div>
+                
+                @* Date Filter *@
+                <div class="col-md-4 col-xl-2 mt-2 mt-md-auto">
+                    <label asp-for="SearchModel.DateFilter" class="small fw-bold"></label>
+                    <input asp-for="SearchModel.DateFilter" type="date" class="form-control form-control-sm" id="dateFilter">
+                </div>
+                
+                @* State Filter *@
                 <div class="col-md-4 col-xl-2">
-                    <label class="form-label small fw-bold">Estado</label>
-                    <select name="stateFilter" class="form-select form-select-sm">
+                    <label asp-for="SearchModel.StateFilter" class="small fw-bold"></label>
+                    <select asp-for="SearchModel.StateFilter" class="form-select form-select-sm" asp-items="Html.GetEnumSelectList<TicketState>()" id="stateFilter">
                         <option value="">Todos</option>
-                        <option value="Available">Disponível</option>
-                        <option value="Used">Utilizada</option>
-                        <option value="Expired">Expirada</option>
+                    </select>
+                </div>
+                
+                @* Flow Filter *@
+                <div class="col-md-4 col-xl-2">
+                    <label asp-for="SearchModel.FlowFilter" class="small fw-bold"></label>
+                    <select asp-for="SearchModel.FlowFilter" class="form-select form-select-sm" id="flowFilter" asp-items="Html.GetEnumSelectList<TicketFlow>()">
+                        <option value="">Todas</option>
                     </select>
                 </div>
 
-                <div class="col-md-4 col-xl-2">
-                    <label class="form-label small fw-bold">A partir de</label>
-                    <input type="date" name="dateFilter" class="form-control form-control-sm">
-                </div>
-
-                <div class="col-md-4 col-xl-2">
-                    <label class="form-label small fw-bold">Fluxo</label>
-                    <select name="flowFilter"
-                            class="form-select form-select-sm"
-                            asp-items="Html.GetEnumSelectList<Projeto_SEGUES.Models.Enums.TicketFlow>()">
-                    </select>
-                </div>
-
-                <div class="col-md-6 col-xl">
-                    <label class="form-label small fw-bold">Pesquisar</label>
-                    <input id="searchFilter" type="text" name="searchString" class="form-control form-control-sm"
-                           placeholder="Código, Nome ou Email do utilizador...">
-                </div>
-
-                <div class="col-md-4 col-xl-auto">
-                    <div class="d-flex align-items-center gap-2">
-                        <button type="button" class="btn btn-sm btn-outline-secondary px-3" onclick="resetFilters()">Limpar</button>
-                        <div class="spinner-border spinner-border-sm text-primary htmx-indicator loader-spinner" role="status"></div>
-                        <button type="submit" class="btn btn-ips fw-bold px-3 py-2 shadow-sm d-flex align-items-center">
-                            <i class="bi bi-search me-2"></i> PESQUISAR
-                        </button>
+                @* Actions *@
+                <div class="col-xl-auto">
+                    <div class="d-flex align-items-center justify-content-end gap-3 pb-1">
+                        @* HTMX Loading Spinner *@
+                        <div class="d-flex align-items-center text-color-ips htmx-indicator loader-spinner" id="searchSpinner">
+                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                            <span class="small fw-bold">A pesquisar...</span>
+                        </div>
+                        @* Clear button *@
+                        <a asp-area="Admin" asp-controller="AdminTicketManagement" asp-action="Index" class="btn btn-sm btn-reset-x btn-ips-outline-secondary fw-bold px-3">
+                            <i class="bi bi-x-circle me-1"></i>Limpar Filtros
+                        </a>
                     </div>
                 </div>
             </form>
         </div>
     </div>
 
-    @* Tabela de Auditoria *@
-    <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
-        @* Cabeçalho da Tabela Responsivo *@
-        <div class="card-header bg-white py-3 border-bottom">
+    @* Tickets table *@
+    <div class="card card-ips hover-shadow-ips shadow-sm border-0 rounded-3 small fs-md-6">
+        <div class="card-header bg-white py-2 py-md-3 border-bottom">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                 <h5 class="mb-0 fw-bold text-color-ips">
-                    <i class="bi bi-list-check me-2"></i>Auditoria Geral de Senhas
+                    <i class="bi bi-receipt-cutoff me-2"></i>Registo de Senhas
                 </h5>
 
                 <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2 gap-md-3">
-                    @* Contador de registos *@
-                    <span class="badge bg-light text-dark border fs-6 py-2 px-3 text-center">
-                        Total: @Model.Count() registos
+                    @* Ticket counter *@
+                    <span class="badge bg-color-ips-light text-color-ips border fs-6 py-2 px-3 text-center">
+                        Total: <span id="ticketsCountBadge">@Model.SearchModel.Results.Count()</span> senhas
                     </span>
 
-                    @* Botão Exportar *@
-                    <button onclick="exportPdfWithFilters()" class="btn btn-ips fw-bold shadow-sm px-4 py-2">
-                        <i class="bi bi-file-earmark-pdf me-2"></i>Exportar PDF
-                    </button>
+                    @* PDF Export button *@
+                    <form asp-area="Admin" asp-controller="AdminTicketManagement" asp-action="ExportTicketsPdf" method="get" target="_blank" id="exportPdfForm" class="m-0">
+                        <input asp-for="SearchModel.SearchString" type="hidden" id="exportPdfSearch" />
+                        <input asp-for="SearchModel.StateFilter" type="hidden" id="exportPdfState" />
+                        <input asp-for="SearchModel.DateFilter" type="hidden" id="exportPdfDate" />
+                        <input asp-for="SearchModel.FlowFilter" type="hidden" id="exportPdfFlow" />
+                        
+                        <button type="submit" class="btn btn-ips fw-bold shadow-sm px-3 px-md-4 py-2 py-2">
+                            <i class="bi bi-file-earmark-pdf me-2"></i>Exportar PDF
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
-
+        
         <div class="table-responsive" style="max-height: 600px;">
             <table class="table table-hover align-middle mb-0 text-center">
-                <thead class="bg-color-ips text-white" style="position: sticky; top: 0; z-index: 10;">
-                    <tr>
-                        <th class="ps-4 py-3 text-start">Dono Atual</th>
-                        <th class="py-3">Código</th>
-                        <th class="py-3">Estado</th>
-                        <th class="py-3">Compra</th>
-                        <th class="py-3">Data Transf.</th>
-                        <th class="py-3">Enviado Por</th>
-                        <th class="py-3">Recebido Por</th>
-                        <th class="py-3">Uso</th>
-                        <th class="py-3 pe-4">Expiração</th>
-                    </tr>
+                <thead class="bg-color-ips text-white" style="position: sticky; top: 0;">
+                <tr>
+                    <th class="py-2 py-md-3 ps-3 ps-md-4 text-start">Titular</th>
+                    <th class="py-2 py-md-3">Código</th>
+                    <th class="py-2 py-md-3">Compra</th>
+                    <th class="py-2 py-md-3">Estado</th>
+                    <th class="py-2 py-md-3">Data Transf.</th>
+                    <th class="py-2 py-md-3">Enviado Por</th>
+                    <th class="py-2 py-md-3">Recebido Por</th>
+                    <th class="py-2 py-md-3">Utilização</th>
+                    <th class="py-2 py-md-3 pe-3 pe-md-4">Validade</th>
+                </tr>
                 </thead>
                 <tbody id="auditTableBody"
                        hx-get="/Admin/AdminTicketManagement/GetUpdatedAuditTable"
-                       hx-trigger="every 10s"
+                       hx-trigger="every 30s"
                        hx-include="#filterForm"
                        hx-swap="innerHTML">
-                    <partial name="_AuditTableRows" model="Model" />
+                    <partial name="_AuditTableRows" model="Model.SearchModel.Results"/>
                 </tbody>
             </table>
         </div>
@@ -240,5 +244,5 @@
 </div>
 
 @section Scripts {
-    <script type="module" src="~/js/admin/adminTicket.js"></script>
+    <script type="module" src="~/js/report/reportTicket.js"></script>
 }

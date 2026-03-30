@@ -7,7 +7,7 @@ using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 
-namespace Projeto_SEGUES.Areas.Payment;
+namespace Projeto_SEGUES.Areas.Payment.Controllers;
 
 /// <summary>
 /// Controller responsible for managing payments and balance top-ups via Stripe.
@@ -47,7 +47,7 @@ public class PaymentController : Controller
     /// <summary>
     /// Creates a Stripe Checkout session and records a pending transaction in the system.
     /// </summary>
-    /// <param name="amount">Monetary value to charge to the account.</param>
+    /// <param name="model">The view model containing the amount to be deposited.</param>
     /// <returns>Redirect to Stripe's secure payment form or an error page on failure.</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -85,11 +85,12 @@ public class PaymentController : Controller
     /// Processes the success confirmation from Stripe and updates user balance.
     /// </summary>
     /// <param name="reference">Internal transaction reference generated at the start.</param>
+    /// <param name="sessionId">Stripe session ID used to identify the transaction.</param>
     /// <returns>Redirect to Home with success notification or error message.</returns>
     [HttpGet]
     public async Task<IActionResult> SuccessPayment(string reference, string sessionId)
     {
-        if (string.IsNullOrEmpty(reference) || string.IsNullOrEmpty(sessionId))
+        if (string.IsNullOrWhiteSpace(reference) || string.IsNullOrWhiteSpace(sessionId))
         {
             _logger.LogAppError(AppErrors.BadRequest, TableName.All, AppOperation.Other);
             return RedirectToAction("Error", "Home", new { area = "", errorCode = AppErrors.BadRequest });

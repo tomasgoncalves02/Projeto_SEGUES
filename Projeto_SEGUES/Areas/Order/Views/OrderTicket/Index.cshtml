@@ -2,55 +2,52 @@
 @model IEnumerable<Projeto_SEGUES.Models.Ticket.Ticket>
 
 @{
-    ViewData["Title"] = "Gestão de Senhas - SEGUES";
-    var balance = ViewBag.UserBalance ?? 0m;
-    var price = ViewBag.CurrentPrice ?? 100m;
+    ViewData["Title"] = "Comprar Senhas";
+    var balance = ViewBag.UserBalance;
+    var price = ViewBag.CurrentPrice;
 }
 
 <div class="container mt-4">
-    @* Title row *@
     <div class="d-flex mb-4 align-items-center justify-content-between flex-column flex-md-row">
-        <div class="col-md-5 mb-2 mb-md-0">
-            <h2 class="fw-bold title-underline mb-2">
-                <i class="bi bi-ticket-detailed me-2 text-color-ips"></i>
-                Comprar Senhas
+        @* Title *@
+        <div class="mb-2 mb-md-0 order-last order-md-first text-center text-md-start mt-3 mt-md-0 col-12 col-md-auto">
+            <h2 class="fw-bold display-6 title-underline mb-1">
+                <i class="bi bi-ticket-detailed me-2 text-color-ips"></i> Comprar Senhas
             </h2>
-            <p class="text-muted small">Senhas de Refeições - SEGUES</p>
+            <p class="text-muted small mt-1 mb-0">Senhas de Refeições - SEGUES</p>
         </div>
-        @* Balance and back buttons *@
-        <div class="col-md-7 text-center d-flex justify-content-end align-items-center gap-3">
-            <div class="card bg-color-ips text-white border-0 shadow-sm d-inline-block" style="height: 3.5em;">
-                <div class="card-body py-2 px-3">
-                    <small class="d-block opacity-75 fw-bold" style="font-size: 0.7rem;">SALDO</small>
-                    <span class="fw-bold">@balance.ToString("C")</span>
-                </div>
-            </div>
-
-            <a asp-area="Ticket" asp-controller="Ticket" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4 py-3" style="height: 3.5em;">
-                <i class="bi bi-arrow-left me-2"></i>Voltar
+        @* Buttons *@
+        <div class="d-flex flex-column flex-md-row align-self-stretch align-self-md-center gap-3 order-first order-md-last justify-content-md-end mb-3 mb-md-0 col-12 col-md-auto">
+            <a asp-area="Ticket" asp-controller="Ticket" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold shadow-sm px-4 align-content-center">
+                <i class="bi bi-arrow-left me-2"></i> Voltar
             </a>
+            <div class="bg-color-ips text-white px-4 py-2 rounded shadow-sm d-flex flex-column align-items-center justify-content-center">
+                <small class="fw-bold fs-7">Saldo</small>
+                <span class="fw-bold fs-5">@ViewBag.UserBalance.ToString("C")</span>
+            </div>
         </div>
     </div>
+    
     @* Main row with purchase form and tickets table *@
     <div class="row g-4">
         @* Purchase form *@
         <div class="col-lg-4">
-            <div class="card shadow-sm card-ips hover-shadow-ips mb-4">
-                <div class="card-body p-4">
-                    <h5 class="fw-bold text-color-ips mb-4">
+            <div class="card shadow-sm card-ips hover-shadow-ips mb-3 mb-md-4">
+                <div class="card-body p-3 pd-md-4">
+                    <h5 class="fw-bold text-color-ips mb-3 mb-md-4">
                         <i class="bi bi-cart-plus me-2"></i>Nova Compra
                     </h5>
-                    <hr class="opacity-75 mb-4">
+                    <hr class="opacity-75 mb-3 mb-md-4">
 
-                    <div class="alert border-0 small mb-4" style="background-color: var(--ips-shadow-soft);">
-                        Preço para o seu perfil: <strong class="text-color-ips fs-5">@price.ToString("C")</strong>
+                    <div class="alert border-0 small mb-3 mb-md-4" style="background-color: var(--ips-shadow-soft);">
+                        Preço para o seu perfil: <strong class="text-color-ips fs-6 fs-md-5">@price.ToString("C")</strong>
                     </div>
                     <form asp-area="Order" asp-controller="OrderTicket" asp-action="BuyTicket" method="post" id="purchaseTicketForm">
-                        <div class="mb-4">
+                        <div class="mb-3 mb-md-4">
                             <label class="form-label small fw-bold">Quantidade:</label>
                             <input type="number" name="quantity" id="quantityInput"
                                    data-unitprice="@price.ToString("F2", CultureInfo.InvariantCulture)"
-                                   class="form-control border-secondary-subtle" min="1" value="1" step="1"
+                                   class="form-control border-secondary-subtle" min="1" max="100" value="1" step="1"
                                    @(balance < price ? "disabled" : "") />
                         </div>
                         <div class="mb-3 small text-muted">
@@ -66,15 +63,14 @@
         </div>
         @* Table with ticket history *@
         <div class="col-lg-8">
-            <div class="card shadow-sm card-ips hover-shadow-ips h-100">
-                @* h-100 opcional para alinhar alturas *@
+            <div class="card shadow-sm card-ips hover-shadow-ips h-100 small fs-md-6">
                 <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
                     <h5 class="mb-0 fw-bold text-color-ips"><i class="bi bi-list-check me-2"></i>Registo de Senhas</h5>
                 </div>
 
                 <div class="table-responsive" style="max-height: 400px;">
                     <table class="table table-hover align-middle mb-0 text-center">
-                        <thead class="text-white bg-color-ips" style="position: sticky; top: 0; z-index: 1;">
+                        <thead class="text-white bg-color-ips" style="position: sticky; top: 0;">
                         <tr>
                             <th>Código</th>
                             <th>Expiração</th>

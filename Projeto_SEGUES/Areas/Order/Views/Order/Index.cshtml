@@ -1,55 +1,87 @@
-﻿@using Projeto_SEGUES.Areas.Order.ViewModels
+﻿@model Projeto_SEGUES.Areas.Order.ViewModels.OrderPageViewModel
+
 @{
-    ViewData["Title"] = "Bar - SEGUES";
-    OrderTotalViewModel cartTotal = ViewBag.CartTotal;
+    ViewData["Title"] = "Bar";
 }
 
 <div class="container mt-5 text-start">
     @* Title Row with Cart *@
-    <div class="flex-column mb-3 align-items-center">
-        <div class="flex-column flex-sm-row d-flex justify-content-between align-items-center">
-            <h3 class="fw-bold display-5 title-underline mb-2">Bar</h3>
-            @if (cartTotal != null && cartTotal.TotalQuantity > 0)
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+        @* Title *@
+        <div class="mb-3 mb-md-0">
+            <h1 class="fw-bold display-6 title-underline mb-1">Bar</h1>
+            <p class="text-muted small mt-1 mb-0">Selecione uma das opções abaixo para gerir os seus serviços.</p>
+        </div>
+        @* Cart *@
+        <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-sm-center gap-3">
+            @if (Model.CartTotalQuantity > 0)
             {
-                <div class="d-flex align-items-center bg-light p-2 px-3 rounded-3 shadow-sm border">
-                    <div class="text-center me-3 border-end pe-3">
-                        <span class="fw-bold small d-block text-uppercase text-muted mb-1">Carrinho</span>
+                <div class="d-flex align-items-center justify-content-center bg-color-ips-very-light p-2 px-3 rounded-3 shadow-sm border">
+                    <div class="text-center me-2 border-end pe-2">
+                        <span class="fw-bold fs-7 d-block text-muted mb-1">Carrinho</span>
                         <a asp-area="Order" asp-controller="CreateOrder" asp-action="Checkout" class="position-relative d-inline-block text-decoration-none">
                             <i class="bi bi-cart-check fs-2 text-color-ips"></i>
                             <span id="cartCount" class="position-absolute badge rounded-pill bg-danger fs-7"
-                                  style="top: -2px; right: -5px; padding: 0.35em 0.5em; border: 2px solid white;">
-                                @cartTotal.TotalQuantity
+                                  style="top: -5px; right: -10px; padding: 0.35em 0.5em; border: 2px solid white;">
+                                @Model.CartTotalQuantity
                             </span>
                         </a>
                     </div>
-                    <div class="text-center">
-                        <span class="fw-bold small d-block text-uppercase text-muted">Total</span>
-                        <span id="cartTotal" class="fw-bold text-color-ips fs-5">@cartTotal.TotalValue.ToString("C")</span>
+                    <div class="text-center px-2">
+                        <span class="fw-bold small d-block text-muted mb-1 fs-7">Total</span>
+                        <span id="cartTotal" class="fw-bold text-color-ips text-nowrap fs-5">@Model.CartTotalValueString</span>
                     </div>
                 </div>
             }
-            @* Return button in larger screen *@
-            <a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold shadow-sm d-none d-md-flex">
+            @* Return button *@
+            <a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold shadow-sm d-flex align-items-center justify-content-center" style="height: fit-content;">
                 <i class="bi bi-arrow-left me-2"></i>Voltar
             </a>
-        </div>
-        <div class="mt-2">
-            <p class="text-muted fs-5">Selecione uma das opções abaixo para gerir os seus serviços.</p>
         </div>
     </div>
 
     @* Schedule Card *@
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card border-0 shadow-sm bg-color-ips-light" style="border-left: 5px solid var(--ips) !important;">
-                <div class="card-body py-2 d-flex flex-column flex-md-row align-items-start align-items-md-center">
-                    <div class="me-md-4 mb-2 mb-md-0 d-flex align-items-center">
-                        <i class="bi bi-clock text-color-ips fs-4 me-2"></i>
-                        <span class="fw-bold small text-muted">Horário</span>
-                    </div>
-                    <div class="d-flex align-items-center">
-                        <span class="badge bg-color-ips text-white me-2">Bar</span>
-                        <span class="fw-bold text-color-ips">@ViewBag.BarOpeningTimeString - @ViewBag.BarClosingTimeString</span>
+            <div class="card border-0 shadow-sm @(Model.IsClosed ? "bg-color-danger-light" : "bg-color-ips-light")"
+                 style="border-left: 5px solid @(Model.IsClosed ? "var(--deny)" : "var(--ips)") !important;">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                        <div class="d-flex align-items-center">
+                            <div class="text-center me-3" style="width: 40px;">
+                                <i class="bi @(Model.IsClosed ? "bi-calendar-x text-danger" : "bi-clock text-color-ips") fs-2"></i>
+                            </div>
+
+                            <div>
+                                <div class="fw-bold text-muted mb-1 fs-7" style="letter-spacing: 1px;">
+                                    Horário de Funcionamento
+                                </div>
+                                <div class="d-flex align-items-center flex-wrap gap-2">
+                                    <span class="badge @(Model.IsClosed ? "bg-danger" : "bg-color-ips") text-white px-2 py-1">Bar</span>
+
+                                    @if (Model.IsClosed)
+                                    {
+                                        <span class="fw-bold text-danger d-flex align-items-center">
+                                            <i class="bi bi-x-circle-fill me-1 small"></i>
+                                            Encerrado
+                                            <span class="text-muted fw-bold ms-2 small">
+                                                (Geral: @Model.BarOpeningTimeString - @Model.BarClosingTimeString)
+                                            </span>
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="fw-bold text-color-ips fs-5">
+                                            @Model.BarOpeningTimeString - @Model.BarClosingTimeString
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white bg-opacity-50 px-3 py-1 rounded-pill border small fw-bold text-muted shadow-sm" style="border-top: 6px solid @(Model.IsClosed ? "var(--deny) ": "var(--ips)") !important;">
+                            <i class="bi bi-info-circle me-1 text-color-ips @(Model.IsClosed ? "text-danger" : "text-color-ips")"></i>
+                            <span>Aberto aos dias úteis</span><span class="text-color-ips">@Model.ExtraDays</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -57,12 +89,12 @@
     </div>
 
     <div class="row g-4">
-        @* Card Saldo *@
+        @* Balance Card *@
         <div class="col-md-6 col-lg-3">
             <div class="card h-100 shadow-sm card-ips hover-shadow-ips bg-color-ips text-white hover-translate d-flex flex-column">
                 <div class="card-body text-center d-flex flex-column p-4">
                     <small class="d-block opacity-75 fw-bold mb-2 fs-4">Saldo Disponível</small>
-                    <h2 class="display-6 fw-bold my-auto">@ViewBag.UserBalance.ToString("C")</h2>
+                    <h2 class="display-6 fw-bold my-auto mb-2">@Model.UserBalance</h2>
                     <div class="mt-auto">
                         <a asp-area="Payment" asp-controller="Payment" asp-action="Deposit" class="btn btn-ips fw-bold w-100 py-2" style="border: 1px solid white !important">Carregar Saldo</a>
                     </div>
@@ -70,29 +102,42 @@
             </div>
         </div>
 
-        @* Card Loja *@
+        @* Create Order Card *@
         <div class="col-md-6 col-lg-3">
-            <div class="card h-100 shadow-sm card-ips hover-shadow-ips hover-translate d-flex flex-column">
+            <div class="card h-100 shadow-sm card-ips @(Model.IsClosed ? "" : "hover-shadow-ips hover-translate") d-flex flex-column @(Model.IsClosed ? "opacity-75" : "")">
                 <div class="card-body text-center d-flex flex-column p-4">
-                    <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-cart-plus"></i></div>
+                    <div class="fs-1 mb-3 @(Model.IsClosed ? "text-muted" : "text-color-ips")">
+                        <i class="bi @(Model.IsClosed ? "bi-cart-x" : "bi-cart-plus")"></i>
+                    </div>
                     <h5 class="fw-bold">Efetuar Pedido</h5>
-                    <p class="text-muted small mb-4">Adquire aqui o teu snack.</p>
+                    <p class="text-muted small mb-4">
+                        @(Model.IsClosed ? (Model.IsClosedByWeekend ? "O bar não aceita pedidos hoje." : "O bar encontra-se fechado de momento.") : "Realize aqui um pedido.")
+                    </p>
                     <div class="mt-auto">
-                        <a asp-area="Order" asp-controller="CreateOrder" asp-for asp-action="Index" class="btn w-100 py-2 fw-bold btn-ips">
-                            Ir para a Loja
-                        </a>
+                        @if (Model.IsClosed)
+                        {
+                            <button class="btn btn-secondary w-100 py-2 fw-bold" disabled>
+                                Bar Encerrado
+                            </button>
+                        }
+                        else
+                        {
+                            <a asp-area="Order" asp-controller="CreateOrder" asp-action="Index" class="btn w-100 py-2 fw-bold btn-ips">
+                                Ir para a Loja
+                            </a>
+                        }
                     </div>
                 </div>
             </div>
         </div>
 
-        @* Card Pedidos *@
+        @* Active Orders Card *@
         <div class="col-md-6 col-lg-3">
             <div class="card h-100 shadow-sm card-ips hover-shadow-ips hover-translate d-flex flex-column">
                 <div class="card-body text-center d-flex flex-column p-4">
                     <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-qr-code-scan"></i></div>
                     <h5 class="fw-bold">Pedidos</h5>
-                    <p class="text-muted small mb-4">Visualiza os teus pedidos.</p>
+                    <p class="text-muted small mb-4">Visualize os seus pedidos.</p>
                     <div class="mt-auto">
                         <a asp-area="Order" asp-controller="ActiveOrder" asp-action="Index" class="btn w-100 py-2 fw-bold btn-ips">Ver Pedidos</a>
                     </div>
@@ -105,23 +150,9 @@
                 <div class="card-body text-center d-flex flex-column p-4">
                     <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-journal-richtext"></i></div>
                     <h5 class="fw-bold">Ementa</h5>
-                    <p class="text-muted small mb-4">Consulta o que há para o almoço esta semana.</p>
+                    <p class="text-muted small mb-4">Consulte a ementa do bar.</p>
                     <div class="mt-auto">
-                        <a href="@ViewBag.BarMenuLink" target="_blank" class="btn w-100 py-2 fw-bold btn-ips">Ver Ementa</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        @* Card Voltar *@
-        <div class="col-md-6 col-lg-3">
-            <div class="card h-100 shadow-sm card-ips hover-shadow-ips hover-translate d-flex flex-column">
-                <div class="card-body text-center d-flex flex-column p-4">
-                    <div class="fs-1 mb-3 text-color-ips"><i class="bi bi-arrow-left-circle"></i></div>
-                    <h5 class="fw-bold">Voltar</h5>
-                    <p class="text-muted small mb-4">Voltar à página anterior.</p>
-                    <div class="mt-auto">
-                        <a href="/" class="btn w-100 py-2 fw-bold btn-ips">Voltar</a>
+                        <a href="@Model.BarMenuLink" target="_blank" class="btn w-100 py-2 fw-bold btn-ips">Ver Ementa</a>
                     </div>
                 </div>
             </div>

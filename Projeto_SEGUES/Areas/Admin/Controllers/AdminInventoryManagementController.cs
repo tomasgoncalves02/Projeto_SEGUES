@@ -1,14 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Localization;
+using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Areas.Inventory.ViewModels;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Enums;
-using Projeto_SEGUES.Resources;
 using Projeto_SEGUES.Services;
-using System.Diagnostics;
 
-namespace Projeto_SEGUES.Areas.Admin;
+namespace Projeto_SEGUES.Areas.Admin.Controllers;
 
 /// <summary>
 /// Controller responsible for managing product inventory within the administrative area.
@@ -22,20 +20,13 @@ namespace Projeto_SEGUES.Areas.Admin;
 public class AdminInventoryManagementController : Controller
 {
     private readonly IInventoryService _inventoryService;
-    private readonly ILogger<AdminInventoryManagementController> _logger;
-    private readonly IStringLocalizer<Errors> _localizer;
 
     /// <summary>
     /// Initializes a new instance of the controller with inventory, logging, and localization services.
     /// </summary>
-    public AdminInventoryManagementController(
-        IInventoryService inventoryService,
-        ILogger<AdminInventoryManagementController> logger,
-        IStringLocalizer<Errors> localizer)
+    public AdminInventoryManagementController(IInventoryService inventoryService)
     {
         _inventoryService = inventoryService;
-        _logger = logger;
-        _localizer = localizer;
     }
 
     /// <summary>
@@ -44,18 +35,63 @@ public class AdminInventoryManagementController : Controller
     /// <returns>The index View populated with current categories and products.</returns>
     public async Task<IActionResult> Index()
     {
-        ViewBag.Categories = await _inventoryService.GetAllCategoriesForDropdownAsync();
-        ViewBag.Products = await _inventoryService.GetAllProductsAsync();
-        return View();
+        var rawProducts = await _inventoryService.GetAllProductsAsync();
+        InventoryManagementViewModel vm = new InventoryManagementViewModel
+        {
+            Categories = await _inventoryService.GetAllCategoriesForDropdownAsync(),
+            Products = rawProducts.Select(p => new ProductDto
+            {
+                Id = p.Id,
+                Name = p.Name,
+                CategoryId = p.Category.Id,
+                CategoryName = p.Category.Name,
+                Price = p.Price,
+                Stock = p.Stock,
+                MinimumStock = p.MinimumStock,
+                IsActive = p.IsActive,
+                ModalInfo = new
+                {
+                    name = p.Name,
+                    description = p.Description,
+                    price = p.Price.ToString("C2"),
+                    categoryName = p.Category.Name,
+                    categoryDescription = p.Category.Description,
+                    stock = p.Stock,
+                    minStock = p.MinimumStock
+                }
+            }).ToList()
+        };
+        return View(vm);
     }
 
     /// <summary>
     /// Retrieves the product list formatted for a partial interface update via AJAX.
     /// </summary>
     /// <returns>A PartialView containing the products table.</returns>
-    public async Task<IActionResult> GetProducts()
+    public async Task<IActionResult> GetProducts([Bind(Prefix = "SearchModel")] InventorySearchViewModel model)
     {
-        var products = await _inventoryService.GetAllProductsAsync();
+        var rawProducts = await _inventoryService.GetFilteredProductsAsync(model);
+        List<ProductDto> products = rawProducts.Select(p => new ProductDto
+        {
+            Id = p.Id,
+            Name = p.Name,
+            CategoryId = p.Category.Id,
+            CategoryName = p.Category.Name,
+            Price = p.Price,
+            Stock = p.Stock,
+            MinimumStock = p.MinimumStock,
+            IsActive = p.IsActive,
+            ModalInfo = new
+            {
+                name = p.Name,
+                description = p.Description,
+                price = p.Price.ToString("C2"),
+                categoryName = p.Category.Name,
+                categoryDescription = p.Category.Description,
+                stock = p.Stock,
+                minStock = p.MinimumStock
+            }
+        }).ToList();
         return PartialView("_ProductListPartial", products);
     }
 
@@ -64,7 +100,7 @@ public class AdminInventoryManagementController : Controller
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(ProductViewModel productViewModel)
+    public async Task<IActionResult> Create([Bind(Prefix = "NewProduct")] CreateProductViewModel createProductViewModel)
     {
         if (!ModelState.IsValid)
         {
@@ -72,7 +108,7 @@ public class AdminInventoryManagementController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        var result = await _inventoryService.CreateProductAsync(productViewModel);
+        var result = await _inventoryService.CreateProductAsync(createProductViewModel);
         if (result.Success)
         {
             TempData.SetSwalSuccess(result.Message);
@@ -91,31 +127,26 @@ public class AdminInventoryManagementController : Controller
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
-        try
+        var product = await _inventoryService.GetProductByIdAsync(id);
+        if (product == null)
         {
-            var product = await _inventoryService.GetProductByIdAsync(id);
-            if (product == null) return NotFound();
-
-            ViewBag.Categories = await _inventoryService.GetAllCategoriesForDropdownAsync();
-
-            ProductViewModel productViewModel = new ProductViewModel
-            {
-                Id = product.Id,
-                Name = product.Name,
-                Description = product.Description,
-                CategoryId = product.Category.Id,
-                Price = product.Price,
-                Stock = product.Stock,
-                MinimumStock = product.MinimumStock,
-                IsActive = product.IsActive
-            };
-            return View(productViewModel);
+            TempData.SetSwalError("Produto não encontrado.");
+            return RedirectToAction(nameof(Index));
         }
-        catch (Exception ex)
+
+        ViewBag.Categories = await _inventoryService.GetAllCategoriesForDropdownAsync();
+        CreateProductViewModel createProductViewModel = new CreateProductViewModel
         {
-            _logger.LogAppError(AppErrors.DatabaseQueryError, TableName.Product, AppOperation.Read, ex);
-            return RedirectToAction("Error", "Home", new { area = "", errorCode = AppErrors.DatabaseQueryError });
-        }
+            Id = product.Id,
+            Name = product.Name,
+            Description = product.Description,
+            CategoryId = product.Category.Id,
+            Price = product.Price,
+            Stock = product.Stock,
+            MinimumStock = product.MinimumStock,
+            IsActive = product.IsActive
+        };
+        return View(createProductViewModel);
     }
 
     /// <summary>
@@ -123,36 +154,25 @@ public class AdminInventoryManagementController : Controller
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(ProductViewModel productViewModel)
+    public async Task<IActionResult> Edit(CreateProductViewModel createProductViewModel)
     {
         ViewBag.Categories = await _inventoryService.GetAllCategoriesForDropdownAsync();
 
         if (!ModelState.IsValid)
         {
             TempData.SetSwalError("Não foi possível atualizar o produto. Verifique os campos.");
-            return View(productViewModel);
+            return View(createProductViewModel);
         }
-
-        try
+        
+        var result = await _inventoryService.EditProductAsync(createProductViewModel);
+        if (result.Success)
         {
-            var result = await _inventoryService.EditProductAsync(productViewModel);
-            if (result.Success)
-            {
-                TempData.SetSwalSuccess(result.Message);
-                return RedirectToAction(nameof(Index));
-            }
-            else
-            {
-                TempData.SetSwalError(result.Message);
-            }
+            TempData.SetSwalSuccess(result.Message);
+            return RedirectToAction(nameof(Index));
         }
-        catch (Exception ex)
-        {
-            _logger.LogAppError(AppErrors.ProductEditError, TableName.Product, AppOperation.Update, ex);
-            return RedirectToAction("Error", "Home", new { area = "", errorCode = AppErrors.ProductEditError });
-        }
-
-        return View(productViewModel);
+        
+        TempData.SetSwalError(result.Message);
+        return View(createProductViewModel);
     }
 
     /// <summary>
@@ -161,25 +181,16 @@ public class AdminInventoryManagementController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id)
-    {
-        try
+    { 
+        var result = await _inventoryService.DeleteProductAsync(id);
+        if (result.Success)
         {
-            var result = await _inventoryService.DeleteProductAsync(id);
-            if (!result.Success)
-            {
-                TempData.SetSwalError(result.Message);
-            }
-            else
-            {
-                TempData.SetSwalSuccess(result.Message);
-            }
+            TempData.SetSwalSuccess(result.Message);
         }
-        catch (Exception ex)
+        else
         {
-            _logger.LogAppError(AppErrors.ProductDeleteError, TableName.Product, AppOperation.Update, ex);
-            return RedirectToAction("Error", "Home", new { area = "", errorCode = (int)AppErrors.ProductDeleteError });
+            TempData.SetSwalError(result.Message);
         }
-
         return RedirectToAction(nameof(Index));
     }
 
@@ -190,24 +201,15 @@ public class AdminInventoryManagementController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Reactivate(int id)
     {
-        try
+        var result = await _inventoryService.ReactivateProductAsync(id);
+        if (result.Success)
         {
-            var result = await _inventoryService.ReactivateProductAsync(id);
-            if (!result.Success)
-            {
-                TempData.SetSwalError(result.Message);
-            }
-            else
-            {
-                TempData.SetSwalSuccess(result.Message);
-            }
+            TempData.SetSwalSuccess(result.Message);
         }
-        catch (Exception ex)
+        else
         {
-            _logger.LogAppError(AppErrors.DatabaseUpdateError, TableName.Product, AppOperation.Update);
-            return RedirectToAction("Error", "Home", new { area = "", errorCode = AppErrors.DatabaseUpdateError });
+            TempData.SetSwalError(result.Message);
         }
-
         return RedirectToAction(nameof(Index));
     }
 }

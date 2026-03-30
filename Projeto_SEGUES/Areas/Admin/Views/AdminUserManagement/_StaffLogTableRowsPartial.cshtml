@@ -1,0 +1,48 @@
+﻿@model IEnumerable<Projeto_SEGUES.Areas.Admin.ViewModels.StaffLogDto>
+
+@if (!Model.Any())
+{
+    <tr>
+        <td colspan="5" class="py-5 text-center text-muted">
+            <i class="bi bi-info-circle display-4 d-block mb-3 opacity-25"></i>
+            <span class="fw-bold">Nenhum registo de atividade encontrado.</span>
+            <small class="d-block mt-1">Tente ajustar os filtros de pesquisa ou a data selecionada.</small>
+        </td>
+    </tr>
+}
+else
+{
+    @foreach (var log in Model)
+    {
+        <tr class="table-row-ips-hover log-row">
+            <td class="ps-3 ps-md-4 text-start">
+                <div class="d-flex flex-column">
+                    <span class="fw-bold">@log.EmployeeName</span>
+                    <small class="text-muted fs-7">@log.EmployeeEmail</small>
+                </div>
+            </td>
+            
+            <td>
+                <span class="badge bg-color-ips-light text-color-ips fw-bold border">
+                    @log.UserAction
+                </span>
+            </td>
+            
+            <td class="small text-nowrap">
+                @log.DateDisplay<br />
+                <span class="text-muted">@log.TimeDisplay</span>
+            </td>
+            
+            <td class="text-start text-truncate" style="max-width: 350px;" title="@log.FullMessage">
+                @log.FullMessage
+            </td>
+            
+            <td class="pe-3 pe-md-4">
+                <button class="btn btn-sm btn-ips-outline-secondary shadow-sm px-2 showStaffLogDetails" data-action="@log.UserAction" data-message="@Html.Raw(log.FullMessage.Replace("'", "\\'"))" data-path="@log.RequestPath" data-timestamp="@log.DateDisplay @log.TimeDisplay">
+                    <i class="bi bi-eye"></i>
+                </button>
+            </td>
+        </tr>
+    }
+}
+

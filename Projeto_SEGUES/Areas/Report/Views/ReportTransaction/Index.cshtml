@@ -1,102 +1,94 @@
-﻿@model IEnumerable<Projeto_SEGUES.Models.Payment.Transaction>
+﻿@model Projeto_SEGUES.Areas.Report.ViewModels.ReportTransactionSearchViewModel
 
 @{
-    ViewData["Title"] = "Histórico de Saldo - SEGUES";
+    ViewData["Title"] = "Histórico de Saldo";
 }
 
 <div class="container mt-4">
-    @* Cabeçalho *@
-    <div class="d-flex mb-4 align-items-center justify-content-between flex-column flex-md-row">
-        <div class="col-md-7 mb-2 mb-md-0">
-            <h2 class="fw-bold title-underline mb-2">
+    @* Header *@
+    <div class="d-flex mb-3 mb-md-4 align-items-center justify-content-between flex-column flex-md-row mb-4">
+        <div class="mb-2 mb-md-0 col-12 col-md-auto">
+            <h2 class="fw-bold display-6 title-underline mb-1">
                 <i class="bi bi-currency-euro me-2 text-color-ips"></i> Histórico de Saldo
             </h2>
-            <p class="text-muted small">Consulta detalhada de todos os teus carregamentos, compras e reembolsos.</p>
+            <p class="text-muted small mt-1 mb-0">Consulta detalhada de todos os seus carregamentos, compras e reembolsos.</p>
         </div>
-        <div class="col-md-5 text-end">
-            <a asp-area="Report" asp-controller="Report" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4">
-                <i class="bi bi-arrow-left me-2"></i>Voltar
-            </a>
-        </div>
+        <a asp-area="Report" asp-controller="Report" asp-action="Index" class="btn btn-ips-outline-secondary col-12 col-md-auto fw-bold shadow-sm px-4 order-first order-md-last mb-3 mb-md-0">
+            <i class="bi bi-arrow-left me-2"></i>Voltar
+        </a>
     </div>
 
-    @* Seção de Filtros com HTMX *@
+    @* Filter section with HTMX *@
     <div class="card card-ips hover-shadow-ips shadow-sm mb-4 border-0 rounded-3">
-        <div class="card-body p-4">
+        <div class="card-body p-3 p-md-4 bg-color-ips-very-light">
             <form id="balanceFilterForm"
                   hx-get="/Report/ReportTransaction/GetFilteredBalance"
-                  hx-trigger="change, keyup delay:300ms from:#searchFilter"
+                  hx-trigger="submit, change, keyup delay:300ms from:#searchFilter"
                   hx-target="#balanceTableBody"
                   hx-indicator=".loader-spinner"
                   class="row g-3 align-items-end">
-
-                @* Filtro por Fluxo de Dinheiro *@
-                <div class="col-md-4 col-xl-2">
-                    <label class="form-label small fw-bold">Movimento</label>
-                    <select name="typeFilter" class="form-select form-select-sm">
+                
+                @* Search Filter *@
+                <div class="col-md-6 col-xl mt-2 mt-md-auto">
+                    <label asp-for="SearchString" class="small fw-bold">Pesquisar</label>
+                    <input asp-for="SearchString" id="searchFilter" type="text" class="form-control form-control-sm" placeholder="Descrição ou Referência...">
+                </div>
+                
+                @* Date Filter *@
+                <div class="col-md-4 col-xl-2 mt-2 mt-md-auto">
+                    <label asp-for="DateFilter" class="small fw-bold">A partir de</label>
+                    <input asp-for="DateFilter" type="date" class="form-control form-control-sm">
+                </div>
+                
+                @* Flow Filter *@
+                <div class="col-md-4 col-xl-3 mt-2 mt-md-auto">
+                    <label asp-for="TypeFilter" class="small fw-bold">Movimento</label>
+                    <select asp-for="TypeFilter" class="form-select form-select-sm">
                         <option value="">Todos</option>
                         <option value="Entrada">Entradas (Cargas/Reembolsos)</option>
                         <option value="Saida">Saídas (Compras)</option>
                     </select>
                 </div>
-
-                @* Filtro de Data *@
-                <div class="col-md-4 col-xl-2">
-                    <label class="form-label small fw-bold">A partir de</label>
-                    <input type="date" name="dateFilter" class="form-control form-control-sm">
-                </div>
-
-                @* Filtro de Pesquisa *@
-                <div class="col-md-6 col-xl">
-                    <label class="form-label small fw-bold">Pesquisar</label>
-                    <input id="searchFilter" type="text" name="searchString" class="form-control form-control-sm"
-                           placeholder="Descrição ou Referência...">
-                </div>
-
-                <div class="col-md-4 col-xl-auto">
-                    <div class="d-flex align-items-center gap-2">
-                        <button type="button" class="btn btn-sm btn-outline-secondary px-3" onclick="resetFilters()">Limpar</button>
-                        <div class="spinner-border spinner-border-sm text-primary htmx-indicator loader-spinner" role="status"></div>
-                        <button type="submit" class="btn btn-ips fw-bold px-3 py-2 shadow-sm d-flex align-items-center">
-                            <i class="bi bi-search me-2"></i> PESQUISAR
-                        </button>
+                
+                @* Actions *@
+                <div class="col-xl-auto">
+                    <div class="d-flex align-items-center justify-content-end gap-3 pb-1">
+                        @* HTMX Loading Spinner *@
+                        <div class="d-flex align-items-center text-color-ips htmx-indicator loader-spinner" id="searchSpinner">
+                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                            <span class="small fw-bold">A pesquisar...</span>
+                        </div>
+                        @* Clear button *@
+                        <a asp-action="Index" class="btn btn-sm btn-reset-x btn-ips-outline-secondary fw-bold px-3">
+                            <i class="bi bi-x-circle me-1"></i>Limpar Filtros
+                        </a>
                     </div>
                 </div>
             </form>
         </div>
     </div>
 
-    @* Tabela *@
-    <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
+    @* Table *@
+    <div class="card card-ips hover-shadow-ips shadow-sm border-0 small fs-md-6">
         <div class="table-responsive" style="max-height: 500px;">
             <table class="table table-hover align-middle mb-0 text-center">
-                <thead class="bg-color-ips text-white" style="position: sticky; top: 0; z-index: 2;">
-                    <tr>
-                        <th class="ps-4 py-3 text-start">Data e Hora</th>
-                        <th class="py-3 text-start">Descrição / Detalhes</th>
-                        <th class="py-3">Estado</th>
-                        <th class="py-3 text-start">Referência</th>
-                        <th class="pe-4 py-3 text-end">Valor</th>
-                    </tr>
+                <thead class="bg-color-ips text-white" style="position: sticky; top: 0;">
+                <tr>
+                    <th class="ps-3 ps-md-4 py-2 py-md-3">Data e Hora</th>
+                    <th class="py-2 py-md-3">Descrição / Detalhes</th>
+                    <th class="py-2 py-md-3">Estado</th>
+                    <th class="py-2 py-md-3">Referência</th>
+                    <th class="pe-3 pe-md-4 py-2 py-md-3">Valor</th>
+                </tr>
                 </thead>
                 <tbody id="balanceTableBody"
                        hx-get="/Report/ReportTransaction/GetFilteredBalance"
-                       hx-trigger="every 3s"
+                       hx-trigger="every 30s"
                        hx-include="#balanceFilterForm"
                        hx-swap="innerHTML">
-                    <partial name="_BalanceHistoryRows" model="Model" />
+                    <partial name="_BalanceHistoryRows" model="Model.Results" />
                 </tbody>
             </table>
         </div>
     </div>
 </div>
-
-@section Scripts {
-    <script>
-        function resetFilters() {
-            const form = document.getElementById('balanceFilterForm');
-            form.reset();
-            htmx.trigger(form, 'change');
-        }
-    </script>
-}

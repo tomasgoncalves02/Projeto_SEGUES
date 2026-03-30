@@ -1,11 +1,12 @@
 ﻿@page
-@model ExternalLoginsModel
+@using Projeto_SEGUES.Areas.Identity.Pages.Account.Manage
+@model Projeto_SEGUES.Areas.Identity.Pages.Account.Manage.ExternalLoginsModel
 @{
-    ViewData["Title"] = "Gerir logins externos - SEGUES";
+    ViewData["Title"] = "Gerir logins externos";
     ViewData["ActivePage"] = ManageNavPages.ExternalLogins;
 }
 
-@if (Model.CurrentLogins?.Count > 0)
+@if (Model.CurrentLogins.Count > 0)
 {
     <h3>Logins Registados</h3>
     <table class="table">
@@ -35,7 +36,7 @@
         </tbody>
     </table>
 }
-@if (Model.OtherLogins?.Count > 0)
+@if (Model.OtherLogins.Count > 0)
 {
     <h4>Adicionar outro serviço para login.</h4>
     <hr />

@@ -1,14 +1,12 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Localization;
 using Projeto_SEGUES.Extensions;
-using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
-using Projeto_SEGUES.Resources;
 using Projeto_SEGUES.Services;
 
-namespace Projeto_SEGUES.Areas.Order;
+namespace Projeto_SEGUES.Areas.Order.Controllers;
 
 /// <summary>
 /// Controller responsible for acquiring and viewing meal tickets (senhas).
@@ -23,22 +21,16 @@ public class OrderTicketController : Controller
 {
     private readonly ITicketService _ticketService;
     private readonly UserManager<AppUser> _userManager;
-    private readonly ILogger<OrderTicketController> _logger;
-    private readonly IStringLocalizer<Errors> _localizer;
 
     /// <summary>
     /// Initializes a new instance of the controller with ticket, user, logging, and localization services.
     /// </summary>
     public OrderTicketController(
         ITicketService ticketService,
-        UserManager<AppUser> userManager,
-        ILogger<OrderTicketController> logger,
-        IStringLocalizer<Errors> localizer)
+        UserManager<AppUser> userManager)
     {
         _ticketService = ticketService;
         _userManager = userManager;
-        _logger = logger;
-        _localizer = localizer;
     }
 
     /// <summary>
@@ -51,32 +43,18 @@ public class OrderTicketController : Controller
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-        try
-        {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Challenge();
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Challenge();
 
-            // Obter o preço atual para a categoria deste utilizador
-            decimal currentPrice = await _ticketService.GetCurrentPriceForUserAsync(user);
+        // Get the current price of a ticket for this user
+        decimal currentPrice = await _ticketService.GetCurrentPriceForUserAsync(user);
 
-            ViewBag.UserBalance = user.Balance;
-            ViewBag.CurrentPrice = currentPrice;
+        ViewBag.UserBalance = user.Balance;
+        ViewBag.CurrentPrice = currentPrice;
 
-            // Obter a lista de senhas deste utilizador
-            var myTickets = await _ticketService.GetUserTicketsAsync(user.Id);
-            return View(myTickets);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erro fatal ao carregar o inventário de senhas.");
-
-            // 1001 - DatabaseQueryError
-            return RedirectToAction("Error", "Home", new
-            {
-                area = "",
-                errorCode = (int)AppErrors.DatabaseQueryError
-            });
-        }
+        // Get user tickets
+        var myTickets = await _ticketService.GetUserTicketsAsync(user.Id);
+        return View(myTickets);
     }
 
     /// <summary>
@@ -88,34 +66,17 @@ public class OrderTicketController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> BuyTicket(int quantity = 1)
     {
-        var userId = _userManager.GetUserId(User);
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userId)) return Challenge();
+        
+        var result = await _ticketService.BuyTicketsAsync(userId, quantity);
 
-        try
+        if (result.Success)
         {
-            var result = await _ticketService.BuyTicketsAsync(userId, quantity);
-
-            if (result.Success)
-            {
-                TempData.SetSwalSuccess(result.Message);
-            }
-            else
-            {
-                TempData.SetSwalError(result.Message);
-            }
+            TempData.SetSwalSuccess(result.Message);
+            return RedirectToAction("ActiveTickets", "Ticket", new { area = "Ticket" });
         }
-        catch (Exception ex)
-        {
-            _logger.LogAppError(AppErrors.DatabaseUpdateError,
-                                TableName.Ticket,
-                                AppOperation.Create, ex);
-
-            // 1004 - DatabaseUpdateError
-            var erroEnum = AppErrors.DatabaseUpdateError;
-            var msg = $"{_localizer[erroEnum.ToString()].Value} [Erro: {(int)erroEnum}]";
-
-            TempData.SetSwalError(msg);
-        }
+        TempData.SetSwalError(result.Message);
         return RedirectToAction(nameof(Index));
     }
 }

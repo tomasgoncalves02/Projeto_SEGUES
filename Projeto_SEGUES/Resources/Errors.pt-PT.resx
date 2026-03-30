@@ -198,4 +198,7 @@
   <data name="SendActivationEmailError" xml:space="preserve">
     <value>Erro ao enviar e-mail de ativação. Verifique a sua conexão à Internet.</value>
   </data>
+  <data name="OrderCreationError" xml:space="preserve">
+      <value>Erro ao criar um novo pedido.</value>
+  </data>
 </root>

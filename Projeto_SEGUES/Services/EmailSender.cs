@@ -1,42 +1,73 @@
-using Microsoft.AspNetCore.Identity.UI.Services;
+﻿using Microsoft.AspNetCore.Identity.UI.Services;
 using System.Net;
 using System.Net.Mail;
 
-namespace Projeto_SEGUES.Services
+namespace Projeto_SEGUES.Services;
+
+/// <summary>
+/// Service responsible for handling email communications within the application.
+/// Implements <see cref="IEmailSender"/> to provide SMTP-based email delivery.
+/// </summary>
+public class EmailSender : IEmailSender
 {
-    public class EmailSender : IEmailSender
+    /// <summary>Application configuration for retrieving SMTP settings and credentials.</summary>
+    private readonly IConfiguration _config;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EmailSender"/> class.
+    /// </summary>
+    /// <param name="config">The system configuration interface.</param>
+    public EmailSender(IConfiguration config)
     {
-        private readonly IConfiguration _config;
+        _config = config;
+    }
 
-        public EmailSender(IConfiguration config)
+    /// <summary>
+    /// Sends an email asynchronously using the configured SMTP server.
+    /// </summary>
+    /// <param name="email">The recipient's email address.</param>
+    /// <param name="subject">The subject line of the email.</param>
+    /// <param name="htmlMessage">The body of the email in HTML format.</param>
+    /// <returns>A task representing the asynchronous email delivery operation.</returns>
+    /// <remarks>
+    /// SMTP settings are retrieved from the "EmailSettings" section of the configuration, 
+    /// while sensitive credentials should be stored in "Secrets".
+    /// </remarks>
+    public Task SendEmailAsync(string email, string subject, string htmlMessage)
+    {
+        var mailServer = _config["EmailSettings:SmtpServer"];
+        var port = int.Parse(_config["EmailSettings:SmtpPort"]!);
+        var myEmail = _config["EmailSettings:SenderEmail"]!;
+        var myPassword = _config["Secrets:SenderPassword"];
+
+        var client = new SmtpClient(mailServer, port)
         {
-            _config = config;
-        }
+            Credentials = new NetworkCredential(myEmail, myPassword),
+            EnableSsl = true,
+        };
 
-        public Task SendEmailAsync(string email, string subject, string htmlMessage)
+        var mailMessage = new MailMessage(myEmail, email, subject, htmlMessage)
         {
-            var mailServer = _config["EmailSettings:SmtpServer"];
-            var port = int.Parse(_config["EmailSettings:SmtpPort"]!);
-            var myEmail = _config["EmailSettings:SenderEmail"]!;
-            var myPassword = _config["Secrets:SenderPassword"];
+            IsBodyHtml = true
+        };
 
-            var client = new SmtpClient(mailServer, port)
-            {
-                Credentials = new NetworkCredential(myEmail, myPassword),
-                EnableSsl = true,
-            };
+        return client.SendMailAsync(mailMessage);
+    }
 
-            var mailMessage = new MailMessage(myEmail, email, subject, htmlMessage)
-            {
-                IsBodyHtml = true
-            };
-
-            return client.SendMailAsync(mailMessage);
-        }
-
-        public string GetEmailBody(string title, string name, string content)
-        {
-            return $$"""
+    /// <summary>
+    /// Generates a standardized HTML email template with the application's branding.
+    /// </summary>
+    /// <param name="title">The heading title to appear inside the email body.</param>
+    /// <param name="name">The name of the recipient for the greeting.</param>
+    /// <param name="content">The specific message content or instructions.</param>
+    /// <returns>A string containing the full HTML document for the email.</returns>
+    /// <remarks>
+    /// This template uses the institutional Teal color (#009697) and includes 
+    /// a responsive container for consistent display across different mail clients.
+    /// </remarks>
+    public string GetEmailBody(string title, string name, string content)
+    {
+        return $$"""
                                      <!DOCTYPE html>
                                      <html>
                                      <head>
@@ -72,6 +103,5 @@ namespace Projeto_SEGUES.Services
                                      </body>
                                  </html>
                      """;
-        }
     }
 }

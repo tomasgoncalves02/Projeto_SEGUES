@@ -1,39 +1,29 @@
 ﻿@model IEnumerable<Projeto_SEGUES.Models.Order.Order>
 @{
-    ViewData["Title"] = "Os Meus Pedidos - SEGUES";
+    ViewData["Title"] = "Os Meus Pedidos";
 }
 
+@* Header *@
 <div class="container mt-4 text-start">
     <div class="d-flex mb-4 align-items-center justify-content-between flex-column flex-md-row">
-        <div class="col-md-7 mb-2 mb-md-0">
-            <h2 class="fw-bold title-underline mb-2">
+        <div class="mb-2 mb-md-0 col-12 col-md-auto">
+            <h2 class="fw-bold display-6 title-underline mb-1">
                 <i class="bi bi-bag-check me-2 text-color-ips"></i>
                 Os Meus Pedidos
             </h2>
-            <p class="text-muted small">Apresenta estes códigos no bar para levantares os teus produtos.</p>
+            <p class="text-muted small mt-1 mb-0">Apresente estes códigos no bar para levantares os seus produtos.</p>
         </div>
-        <div class="col-md-5 text-end">
-            <a asp-area="Order" asp-controller="Order" asp-action="Index" class="btn btn-ips-outline-secondary fw-bold px-4">
-                <i class="bi bi-arrow-left me-2"></i>Voltar
-            </a>
-        </div>
+        <a asp-area="Order" asp-controller="Order" asp-action="Index" class="btn btn-ips-outline-secondary col-12 col-md-auto fw-bold shadow-sm order-first order-md-last mb-3 mb-md-0">
+            <i class="bi bi-arrow-left me-2"></i>Voltar
+        </a>
     </div>
 
-    @* Contentor HTMX: Verifica mudanças a cada 60 segundos *@
+    @* HTMX *@
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4"
          hx-get="/Order/ActiveOrder/GetUpdatedActiveOrders"
          hx-trigger="every 60s"
          hx-swap="innerHTML">
 
-        <partial name="_ActiveOrdersCards" model="@Model"/>
-    </div>
-</div>
-
-@* Modal de Detalhes *@
-<div class="modal fade" id="modalDetalhes" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
-            <div id="modalContentBody"></div>
-        </div>
+        <partial name="_ActiveOrdersCardsPartial" model="@Model"/>
     </div>
 </div>

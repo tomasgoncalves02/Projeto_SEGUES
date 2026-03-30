@@ -1,94 +1,103 @@
-﻿import { DOM, Notifications } from "../core/core.js";
+﻿/**
+ * Inventory Management UI Controller.
+ * Handles product visualization, stock monitoring, and administrative action confirmations.
+ */
+import { DOM, Notifications } from "../core/core.js";
 
+/**
+ * Parses product data from a data-attribute and displays it in a rich-text modal.
+ * @remarks
+ * This function handles responsive classes (p-md-2, fs-md-5) to ensure product details 
+ * are readable on both mobile devices and desktop management consoles.
+ * Staff-only data (Stock/Minimum Stock) is rendered conditionally based on object availability.
+ */
 function showProductDetails() {
     let product = JSON.parse(this.dataset.product);
     Notifications.show({
         title: 'Detalhes do Produto',
         html:
-            `<div class="text-start p-3">
-                <h4 class="text-color-ips fw-bold">Nome do Produto</h4>
-                <p class="mb-4">${product.name}</p>
-                <h4 class="text-color-ips fw-bold">Descrição</h4>
-                <p class="mb-4">${product.description}</p>
-                <div class="row g-3">
-                    <div class="col-12 col-md-6">
-                        <div class="card bg-light border-0 shadow-sm rounded-3 h-100">
-                            <div class="card-body text-center py-3">
-                                <h4 class="text-color-ips fw-bold">Categoria</h4>
-                                <p class="mb-4" title='${product.categoryDescription}'>${product.categoryName}</p>
+            `<div class="text-start p-1 p-md-2">
+                <h6 class="text-color-ips fw-bold mb-1 mb-md-2 fs-5">Nome do Produto</h6>
+                <p class="mb-2 mb-md-4 fs-7 fs-md-5">${product.name}</p>
+                <h6 class="text-color-ips fw-bold mb-1 mb-md-2 fs-5">Descrição</h6>
+                <p class="mb-2 mb-md-4 fs-7 fs-md-5">${product.description}</p>
+                <div class="row g-2 g-md-3">
+                    <div class="col-6">
+                        <div class="card bg-color-ips-very-light border-0 shadow-sm rounded-3 h-100">
+                            <div class="card-body text-center py-2 py-md-3 px-2">
+                                <h6 class="text-color-ips fw-bold mb-1 fs-5">Categoria</h6>
+                                <p class="mb-1 mb-md-2 fs-7 fs-md-5 lh-sm" title='${product.categoryDescription}'>${product.categoryName}</p>
                             </div>
                         </div>
                     </div>
-                    <div class="col-12 col-md-6">
-                        <div class="card bg-light border-0 shadow-sm rounded-3 h-100">
-                            <div class="card-body text-center py-3">
-                                <h4 class="text-color-ips fw-bold">Preço</h4>
-                                <p class="mb-4">${product.price}</p>
+                    <div class="col-6">
+                        <div class="card bg-color-ips-very-light border-0 shadow-sm rounded-3 h-100">
+                            <div class="card-body text-center py-2 py-md-3 px-2">
+                                <h6 class="text-color-ips fw-bold mb-1 fs-5">Preço</h6>
+                                <p class="mb-1 mb-md-2 fs-7 fs-md-5 lh-sm">${product.price}</p>
                             </div>
                         </div>
                     </div>
                 </div>
-                ${ product.stock && product.minStock ? 
-                `<div class="row g-3 mt-1">
-                    <div class="col-12 col-md-6">
-                        <div class="card bg-light border-0 shadow-sm rounded-3 h-100">
-                            <div class="card-body text-center py-3">
-                                <h4 class="text-color-ips fw-bold">Stock</h4>
-                                <p class="mb-4">${product.stock}</p>
+                ${product.stock && product.minStock ?
+                `<div class="row g-2 g-md-3 mt-1 mt-md-2">
+                    <div class="col-6">
+                        <div class="card bg-color-ips-very-light border-0 shadow-sm rounded-3 h-100">
+                            <div class="card-body text-center py-2 py-md-3 px-2">
+                                <h6 class="text-color-ips fw-bold mb-1 fs-5">Stock</h6>
+                                <p class="mb-1 mb-md-2 fs-7 fs-md-5 lh-sm">${product.stock}</p>
                             </div>
                         </div>
                     </div>
-                    <div class="col-12 col-md-6">
-                        <div class="card bg-light border-0 shadow-sm rounded-3 h-100">
-                            <div class="card-body text-center py-3">
-                                <h4 class="text-color-ips fw-bold">Stock Mínimo</h4>
-                                <p class="mb-4">${product.minStock}</p>
+                    <div class="col-6">
+                        <div class="card bg-color-ips-very-light border-0 shadow-sm rounded-3 h-100">
+                            <div class="card-body text-center py-2 py-md-3 px-2">
+                                <h6 class="text-color-ips fw-bold mb-1 fs-5">Stock Mínimo</h6>
+                                <p class="mb-1 mb-md-2 fs-7 fs-md-5 lh-sm">${product.minStock}</p>
                             </div>
                         </div>
                     </div>
-                </div>` : '' }
+                </div>` : ''}
             </div>`
         ,
         confirmButtonText: 'Fechar',
     });
 }
 
-function filterProductsTable() {
-    const categoryFilter = (DOM.byId('categoryFilter')?.value ?? '').toLowerCase();
-    const nameFilter = (DOM.byId('nameFilter')?.value ?? '').toLowerCase();
-    
-    let count = 0;
-    DOM.byClass('productRow').forEach(row => {
-        const rowName = (row.dataset.name ?? '').toLowerCase();
-        const rowCategory = (row.dataset.categoryid ?? '').toLowerCase();
-        
-        const matches = rowName.includes(nameFilter) && rowCategory.includes(categoryFilter);
-        row.style.display = matches ? '' : 'none';
-        if (matches) count++;
-    });
-    DOM.byId('productsCountBadge').textContent = count;
+/**
+ * Updates the visual badge indicating the total count of visible products.
+ * Typically triggered after HTMX filtering operations.
+ */
+function updateProductsCount() {
+    const rowCount = DOM.byClass('showProductDetails')?.length || 0;
+    const badge = DOM.byId('productsCountBadge');
+    if (!badge) return;
+
+    badge.textContent = rowCount.toString(10);
 }
 
-function clearProductsTableFilters() {
-    DOM.byId('categoryFilter').value = '';
-    DOM.byId('nameFilter').value = '';
-    filterProductsTable();
-}
-
+/**
+ * Triggers a confirmation dialog before deleting a product.
+ * @param {Event} e - Click event.
+ */
 function confirmDeleteProduct(e) {
-    const btn = e.currentTarget;
-    const { id, name } = btn.dataset;
+    e.preventDefault();
+    const { id, name } = this.dataset;
 
     Notifications.confirm(`Tem a certeza que deseja eliminar o produto "${name}"?`)
-        .then((result) => {           
+        .then((result) => {
             if (result.isConfirmed) {
                 DOM.byId(`delete-form-${id}`)?.submit();
             }
         });
 }
 
+/**
+ * Triggers a confirmation dialog before reactivating a previously deleted/disabled product.
+ */
 function confirmReactivateProduct(e) {
-    const { id, name } = e.currentTarget.dataset;
+    e.preventDefault();
+    const { id, name } = this.dataset;
 
     Notifications.confirm(
         'Reativar Produto',
@@ -99,6 +108,10 @@ function confirmReactivateProduct(e) {
         }
     });
 }
+
+/**
+ * Validates and confirms the submission of the product edit form.
+ */
 function handleEditFormSubmit(e) {
     e.preventDefault();
     const form = this;
@@ -113,20 +126,19 @@ function handleEditFormSubmit(e) {
     });
 }
 
+/**
+ * Inventory Module initialization and rebinding logic.
+ */
 const Inventory = {
     init() {
         DOM.delegate('showProductDetails', 'click', showProductDetails);
-        DOM.bind('categoryFilter', 'change', filterProductsTable);
-        DOM.bind('nameFilter', 'keyup', filterProductsTable);
-        DOM.bind('clearProductsTableFilters', 'click', clearProductsTableFilters);
-        DOM.bindAll('confirmDeleteProduct', 'click', confirmDeleteProduct);
-        DOM.bindAll('confirmReactivateProduct', 'click', confirmReactivateProduct);
-        const editForm = DOM.byId('editForm');
-        if (editForm) {
-            editForm.addEventListener('submit', handleEditFormSubmit);
-        }
+        DOM.delegate('confirmDeleteProduct', 'click', confirmDeleteProduct);
+        DOM.delegate('confirmReactivateProduct', 'click', confirmReactivateProduct);
+        DOM.bind('editForm', 'submit', handleEditFormSubmit);
     }
 };
 
+// Lifecycle Hooks
 DOM.bindDocumentLoad(Inventory.init);
+DOM.executeAfterHtmx(updateProductsCount);
 export { Inventory };

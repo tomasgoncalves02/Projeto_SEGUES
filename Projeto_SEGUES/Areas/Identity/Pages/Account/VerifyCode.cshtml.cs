@@ -134,7 +134,7 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                 categoryName = "Estudante";
                 extractedStudentNumber = emailLower.Split('@')[0];
             }
-            else if (emailLower.EndsWith("@ips.pt"))
+            else if (emailLower.EndsWith("ips.pt"))
             {
                 categoryName = "Trabalhador IPS";
             }

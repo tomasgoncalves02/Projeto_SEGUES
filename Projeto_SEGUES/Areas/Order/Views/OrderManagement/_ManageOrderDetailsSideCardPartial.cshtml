@@ -1,14 +1,6 @@
-﻿@using Projeto_SEGUES.Models.Enums
-@using System.Text.Json
-@model Projeto_SEGUES.Models.Order.Order
+﻿@using System.Text.Json
+@model Projeto_SEGUES.Areas.Order.ViewModels.OrderManagementSideViewModel
 
-@{
-    bool isStaff = User.IsInRole("Admin") || User.IsInRole("Employee");
-    int prevStatus = (int) Model.Status - 1;
-    bool canGoBack = Model.Status is > OrderStatus.Pending and < OrderStatus.Delivered;
-    int nextStatus = (int) Model.Status + 1;
-    bool canGoForward = Model.Status is >= OrderStatus.Pending and < OrderStatus.Delivered;
-}
 <div id="side-panel-target" 
      hx-get="/Order/OrderManagement/GetOrderDetailsSide/@Model.Id"
      hx-trigger="orderUpdated from:body"
@@ -26,22 +18,22 @@
             
         <div class="card-body p-0">
             @* General Information Section *@
-            <div class="p-4 border-bottom bg-light bg-opacity-10">
+            <div class="p-4 border-bottom bg-color-ips-very-light bg-opacity-10">
                 <h6 class="fw-bold mb-3 text-color-ips">
                     <i class="bi bi-info-circle me-2"></i>Informações Gerais
                 </h6>
                 <div class="d-flex flex-column gap-2">
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="fw-bold">Total:</span>
-                        <span class="text-color-ips fw-bold fs-5">@Model.TotalValue.ToString("C")</span>
+                        <span class="text-color-ips fw-bold fs-5">@Model.FormattedTotalValue</span>
                     </div>
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="fw-bold">Itens:</span>
-                        <span class="badge bg-secondary-subtle text-dark border">@ViewBag.TotalQuantity un.</span>
+                        <span class="badge bg-secondary-subtle text-dark border">@Model.TotalQuantity un.</span>
                     </div>
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="fw-bold">Comprador:</span>
-                        <span class="text-muted small">@Model.AppUser.FirstName @Model.AppUser.LastName</span>
+                        <span class="text-muted small">@Model.BuyerName</span>
                     </div>
                 </div>
             </div>
@@ -51,27 +43,17 @@
                     <i class="bi bi-box-seam me-2"></i>Produtos
                 </h6>
                 <div class="w-100 custom-scrollbar" style="max-height: 280px; overflow-y: auto;">
-                    @if (Model.ProductPurchases.Any())
+                    @if (Model.Items.Any())
                     {
-                        foreach (var item in Model.ProductPurchases)
+                        foreach (var p in Model.Items)
                         {
-                            var productInfo = new
-                            {
-                                name = item.Product.Name,
-                                description = item.Product.Description,
-                                price = item.ProductValue.ToString("C"),
-                                categoryName = item.Product.Category.Name,
-                                categoryDescription = item.Product.Category.Description,
-                                stock = isStaff ? (int?)item.Product.Stock : null,
-                                minStock = isStaff ? (int?)item.Product.MinimumStock : null
-                            };
                             <div class="d-flex justify-content-between align-items-center p-2 mb-2 bg-color-ips-light rounded-3">
                                 <div class="d-flex flex-column overflow-hidden me-2">
-                                    <span class="small fw-bold text-truncate">@item.Product.Name</span>
-                                    <span class="fs-7">@item.Quantity x @item.ProductValue.ToString("C") : @((item.ProductValue * item.Quantity).ToString("C"))</span>
+                                    <span class="small fw-bold text-truncate">@p.Name</span>
+                                    <span class="fs-7">@p.Quantity x @p.FormattedPrice : @(p.FormattedTotalPrice)</span>
                                 </div>
                                 <button type="button" class="btn btn-sm btn-ips shadow-sm showProductDetails flex-shrink-0"
-                                        data-product='@Html.Raw(JsonSerializer.Serialize(productInfo))'>
+                                        data-product='@Html.Raw(JsonSerializer.Serialize(p.ModalInfo))'>
                                     <i class="bi bi-eye"></i>
                                 </button>
                             </div>
@@ -79,7 +61,7 @@
                     }
                     else
                     {
-                        <p class="text-muted small italic text-center py-3">Nenhum produto encontrado.</p>
+                        <p class="text-muted small fst-italic text-center py-3">Nenhum produto encontrado.</p>
                     }
                 </div>
             </div>
@@ -89,33 +71,33 @@
                 <h6 class="fw-bold mb-3 text-color-ips">
                     <i class="bi bi-gear-wide-connected me-2"></i>Alterar Estado
                 </h6>
-                <div class="d-flex flex-column align-items-center bg-light p-3 rounded-3 shadow-sm border">
+                <div class="d-flex flex-column align-items-center bg-color-ips-very-light p-3 rounded-3 shadow-sm border">
                     <p class="small fw-bold mb-2">Estado Atual</p>
                     <div class="d-flex align-items-center justify-content-center w-100">
                         @* Previous State Button *@
-                        <button type="button" data-id="@Model.Id" data-status="@prevStatus"
-                                class="btn btn-ips changeOrderState@(canGoBack ? "" : " btn-disabled-dark")"
+                        <button type="button" data-id="@Model.Id" data-status="@Model.PrevStatusId"
+                                class="btn btn-ips changeOrderState@(Model.CanGoBack ? "" : " btn-disabled-dark")"
                                 title="Estado Anterior"
-                                @(canGoBack ? "" : "disabled")>
+                                @(Model.CanGoBack ? "" : "disabled")>
                             <i class="bi bi-arrow-left fs-5"></i>
                         </button>
                         @* Current State Display *@
                         <div class="text-center px-3">
-                            <span class="badge @Model.Status.ToString().ToBadgeClass() fs-6 py-2 px-3 shadow-sm">
-                                @Model.Status.ToDisplayName()
+                            <span class="badge @Model.StatusBadgeClass fs-6 py-2 px-3 shadow-sm">
+                                @Model.StatusDisplayName
                             </span>
                         </div>
                         @* Next State Button *@
-                        <button type="button" data-id="@Model.Id" data-status="@nextStatus"
-                                class="btn btn-ips changeOrderState@(canGoForward ? "" : " btn-disabled-dark")"
+                        <button type="button" data-id="@Model.Id" data-status="@Model.NextStatusId"
+                                class="btn btn-ips changeOrderState@(Model.CanGoForward ? "" : " btn-disabled-dark")"
                                 title="Próximo Estado"
-                                @(canGoForward ? "" : "disabled")>
+                                @(Model.CanGoForward ? "" : "disabled")>
                             <i class="bi bi-arrow-right fs-5"></i>
                         </button>
                     </div>
                     @Html.AntiForgeryToken()
                 </div>
-                    
+                
                 <div class="form-text text-center mt-2 fs-7 text-muted">
                     Utilize as setas para avançar ou retroceder no fluxo do pedido.
                 </div>

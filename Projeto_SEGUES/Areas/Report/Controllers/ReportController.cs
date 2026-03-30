@@ -1,25 +1,25 @@
-using Microsoft.AspNetCore.Authorization;
+ï»¿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Projeto_SEGUES.Areas.Report;
+namespace Projeto_SEGUES.Areas.Report.Controllers;
 
 /// <summary>
-/// Controller responsável pela geração e visualização de relatórios do sistema.
+/// Controller responsible for generating and viewing system reports.
 /// </summary>
 /// <remarks>
-/// Este controlador pertence à área "Report" e permite aos utilizadores autenticados 
-/// acederem a dados estatísticos, históricos de consumo ou exportações de documentos.
+/// This controller belongs to the "Report" area and allows authenticated users 
+/// to access statistical data, consumption history, or document exports.
 /// </remarks>
 [Authorize]
 [Area("Report")]
 public class ReportController : Controller
 {
     /// <summary>
-    /// Apresenta a página principal do módulo de relatórios.
+    /// Displays the main page of the reports module.
     /// </summary>
-    /// <returns>A View correspondente ao índice de relatórios e estatísticas.</returns>
+    /// <returns>The View corresponding to the reports and statistics index.</returns>
     /// <remarks>
-    /// Serve como o painel central onde o utilizador pode escolher o tipo de relatório a gerar.
+    /// Serves as the central dashboard where the user can choose the type of report to generate.
     /// </remarks>
     public IActionResult Index()
     {

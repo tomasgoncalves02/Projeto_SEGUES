@@ -1,27 +1,44 @@
-﻿import { Notifications, DOM, Api } from "../core/core.js";
+﻿/**
+ * Ticket Transfer UI Controller.
+ * Manages the multi-selection of meal tickets and the secure transfer 
+ * process to another user, including recipient eligibility checks.
+ */
+import { Notifications, DOM, Api } from "../core/core.js";
 
+/**
+ * Toggles the checkbox state when a user clicks anywhere on a ticket row.
+ * @param {Event} e - Click event.
+ */
 function toggleCheckbox(e) {
     if (e.target.classList.contains('ticket-checkbox')) return;
-    
+
     const row = e.currentTarget || e.target.closest('.ticket-row');
     if (!row) return;
-    
+
     const checkbox = DOM.bySelector('.ticket-checkbox', row);
     if (!checkbox) return;
-    
+
     checkbox.checked = !checkbox.checked;
     updateSelectedCount();
 }
 
+/**
+ * Updates the visual counter showing how many tickets are currently selected.
+ */
 function updateSelectedCount() {
     const count = DOM.bySelectorAll('.ticket-checkbox:checked').length;
     const el = DOM.byId('selectedCounter');
     if (el) el.innerText = count.toString();
 }
 
+/**
+ * Handles the transfer form submission with server-side validation.
+ * Includes a pre-validation check for recipient eligibility and a confirmation modal.
+ * @param {Event} e - Submit event.
+ */
 async function handleTransfer(e) {
     e.preventDefault();
-    
+
     const form = DOM.byId('transferForm') || e.target;
     if (!form) return;
 
@@ -40,10 +57,10 @@ async function handleTransfer(e) {
         const originalBtnHtml = submitBtn.innerHTML;
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>A validar...';
-        
+
         const data = await Api.get(`/Ticket/Ticket/CheckTransferEligibility`, { email });
         if (!data) return;
-        
+
         // Restore button
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalBtnHtml;
@@ -54,7 +71,7 @@ async function handleTransfer(e) {
         }
 
         Notifications.confirm(null, `Tem a certeza que deseja enviar ${count} senha(s) para <b>${data.recipientName}</b> (${email})?`)
-            .then(res => { 
+            .then(res => {
                 if (res.isConfirmed) {
                     submitBtn.disabled = true;
                     submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>A enviar...';
@@ -66,6 +83,9 @@ async function handleTransfer(e) {
     }
 }
 
+/**
+ * TransferTicket Module initialization and event binding.
+ */
 const TransferTicket = {
     init() {
         DOM.bindAll('ticket-row', 'click', toggleCheckbox);
