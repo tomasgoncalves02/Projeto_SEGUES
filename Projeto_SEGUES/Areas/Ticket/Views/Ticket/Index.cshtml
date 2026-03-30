@@ -2,8 +2,6 @@
 
 @{
     ViewData["Title"] = "Refeitório";
-    var textColor = Model.IsCanteenOpen ? "text-danger" : "text-color-ips";
-    var bgColor = Model.IsCanteenOpen ? "bg-danger" : "bg-color-ips";
 }
 
 <div class="container py-4">
@@ -13,47 +11,70 @@
             <h1 class="fw-bold display-6 mb-1 title-underline">Refeitório</h1>
             <p class="text-muted small mt-1 mb-0">Planeie as suas refeições e faça a gestão das suas senhas.</p>
         </div>
-        @* Return button in larger screen *@
         <a asp-area="" asp-controller="Home" asp-action="Index" class="col-12 col-md-auto btn btn-ips-outline-secondary fw-bold shadow-sm order-first order-md-last mb-3 mb-md-0">
             <i class="bi bi-arrow-left me-2"></i>Voltar
         </a>
     </div>
-    
+
     @* Schedule Banner *@
     <div class="row mb-5">
         <div class="col-12">
-            <div class="card border-0 shadow-sm @(Model.IsCanteenOpen ? "bg-color-ips-light" : "bg-color-danger-light")" style="border-left: 5px solid @(Model.IsCanteenOpen ? "var(--ips)" : "var(--deny)") !important;">
+            <div class="card border-0 shadow-sm @(!Model.IsCanteenOpenNow ? "bg-color-danger-light" : "bg-color-ips-light")"
+                 style="border-left: 5px solid @(!Model.IsCanteenOpenNow ? "var(--deny)" : "var(--ips)") !important;">
+
                 <div class="card-body py-3">
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                         <div class="d-flex align-items-center">
                             <div class="text-center me-3" style="width: 40px;">
-                                <i class="bi bi-clock @textColor fs-2"></i>
+                                <i class="bi @(!Model.IsCanteenOpenNow ? "bi-calendar-x text-danger" : "bi-clock text-color-ips") fs-2"></i>
                             </div>
-
                             <div>
-                                <div class="text-uppercase fw-bold text-muted mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                                <div class="text-uppercase fw-bold text-muted mb-1 fs-7" style="letter-spacing: 0.5px;">
                                     Horário de Funcionamento
                                 </div>
                                 <div class="d-flex align-items-center flex-wrap gap-3">
+
+                                    @* Bloco Almoço *@
                                     <div class="d-flex align-items-center">
-                                        <span class="badge @bgColor text-white px-2 py-1 me-2">Almoço</span>
-                                        <span class="fw-bold @textColor fs-6">
-                                            @Model.CanteenLunchOpeningTimeString - @Model.CanteenLunchClosingTimeString
-                                        </span>
+                                        <span class="badge @(!Model.IsLunchOpenNow || !Model.IsWorkDay ? "bg-danger" : "bg-color-ips") text-white px-2 py-1 me-2">Almoço</span>
+
+                                        @if (!Model.IsLunchOpenNow || !Model.IsWorkDay)
+                                        {
+                                            <span class="fw-bold text-danger small">
+                                                <i class="bi bi-x-circle-fill me-1"></i>Encerrado
+                                                <span class="text-muted fw-normal ms-1">(@Model.CanteenLunchOpeningTimeString - @Model.CanteenLunchClosingTimeString)</span>
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="fw-bold text-color-ips fs-6">@Model.CanteenLunchOpeningTimeString - @Model.CanteenLunchClosingTimeString</span>
+                                        }
                                     </div>
+
                                     <div class="vr d-none d-sm-block mx-1 opacity-25"></div>
+
+                                    @* Bloco Jantar *@
                                     <div class="d-flex align-items-center">
-                                        <span class="badge @bgColor text-white px-2 py-1 me-2">Jantar</span>
-                                        <span class="fw-bold @textColor fs-6">
-                                            @Model.CanteenDinnerOpeningTimeString - @Model.CanteenDinnerClosingTimeString
-                                        </span>
+                                        <span class="badge @(!Model.IsDinnerOpenNow || !Model.IsWorkDay ? "bg-danger" : "bg-color-ips") text-white px-2 py-1 me-2">Jantar</span>
+
+                                        @if (!Model.IsDinnerOpenNow || !Model.IsWorkDay)
+                                        {
+                                            <span class="fw-bold text-danger small">
+                                                <i class="bi bi-x-circle-fill me-1"></i>Encerrado
+                                                <span class="text-muted fw-normal ms-1">(@Model.CanteenDinnerOpeningTimeString - @Model.CanteenDinnerClosingTimeString)</span>
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="fw-bold text-color-ips fs-6">@Model.CanteenDinnerOpeningTimeString - @Model.CanteenDinnerClosingTimeString</span>
+                                        }
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        
-                        <div class="bg-white bg-opacity-50 px-3 py-1 rounded-pill border small fw-bold text-muted shadow-sm" style="border-top: 6px solid @(Model.IsCanteenOpen ? "var(--deny) ": "var(--ips)") !important;">
-                            <i class="bi bi-info-circle me-1 @textColor"></i>
+                        <div class="bg-white bg-opacity-75 px-3 py-1 rounded-pill border small fw-bold text-muted shadow-sm"
+                             style="border-top: 6px solid @(!Model.IsCanteenOpenNow ? "var(--deny)" : "var(--ips)") !important;">
+                            <i class="bi bi-info-circle me-1 @(!Model.IsCanteenOpenNow ? "text-danger" : "text-color-ips")"></i>
                             <span>Aberto aos dias úteis</span>
                         </div>
                     </div>

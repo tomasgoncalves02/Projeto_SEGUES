@@ -73,4 +73,38 @@ public class BarCanteenConfigViewModel
 
     /// <summary>Flag indicating if the facilities are operational on Sundays.</summary>
     public bool IsOpenSunday { get; set; }
+
+    /// <summary>Calculates if the Lunch service is currently active based on system time.</summary>
+    public bool IsLunchOpenNow => IsNowWithinRange(CanteenLunchOpeningTime, CanteenLunchClosingTime);
+
+    /// <summary>Calculates if the Dinner service is currently active based on system time.</summary>
+    public bool IsDinnerOpenNow => IsNowWithinRange(CanteenDinnerOpeningTime, CanteenDinnerClosingTime);
+
+    /// <summary>
+    /// Determines if today is an operational workday based on Saturday/Sunday configurations.
+    /// </summary>
+    public bool IsWorkDay => DateTime.Now.DayOfWeek switch
+    {
+        DayOfWeek.Saturday => IsOpenSaturday,
+        DayOfWeek.Sunday => IsOpenSunday,
+        _ => true // Default for Monday through Friday
+    };
+
+    /// <summary>
+    /// Global state for the Canteen: True if it is a Workday AND either Lunch or Dinner is active.
+    /// </summary>
+    public bool IsCanteenOpenNow => (IsLunchOpenNow || IsDinnerOpenNow) && IsWorkDay;
+
+    /// <summary>
+    /// Helper method to check if the current server time falls between two specific timeframes.
+    /// </summary>
+    /// <param name="start">The opening time.</param>
+    /// <param name="end">The closing time.</param>
+    /// <returns>True if current time is between start and end; otherwise false.</returns>
+    private bool IsNowWithinRange(TimeSpan? start, TimeSpan? end)
+    {
+        if (!start.HasValue || !end.HasValue) return false;
+        var currentTime = DateTime.Now.TimeOfDay;
+        return currentTime >= start.Value && currentTime <= end.Value;
+    }
 }
