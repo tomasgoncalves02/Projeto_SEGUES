@@ -1,20 +1,44 @@
-﻿using Microsoft.AspNetCore.Mvc.Testing;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
+using Projeto_SEGUES.Data;
 using Projeto_SEGUES;
 using SeguesTests.Helpers;
 using System;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Xunit;
 
 namespace SeguesTests.SecurityTests.Report
 {
-    public class ReportSecurityTests : IClassFixture<CustomWebApplicationFactory<Program>>
+    public class ReportSecurityTests : IClassFixture<WebApplicationFactory<Program>>
     {
-        private readonly CustomWebApplicationFactory<Program> _factory;
+        private readonly WebApplicationFactory<Program> _factory;
 
-        public ReportSecurityTests(CustomWebApplicationFactory<Program> factory)
+        public ReportSecurityTests(WebApplicationFactory<Program> factory)
         {
-            _factory = factory;
+            _factory = factory.WithWebHostBuilder(builder =>
+            {
+                builder.UseEnvironment("Testing");
+                builder.ConfigureServices(services =>
+                {
+                    var dbDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
+                    if (dbDescriptor != null) services.Remove(dbDescriptor);
+
+                    services.AddDbContext<AppDbContext>(options =>
+                    {
+                        options.UseInMemoryDatabase("SecurityReportIndexTestDb_Pedro");
+                    });
+
+                    var emailDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailSender));
+                    if (emailDescriptor != null) services.Remove(emailDescriptor);
+
+                    services.AddTransient<IEmailSender, MockHelper.FakeEmailSender>();
+                });
+            });
         }
 
         [Fact]

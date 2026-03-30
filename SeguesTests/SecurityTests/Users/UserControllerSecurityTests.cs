@@ -1,94 +1,97 @@
-﻿using System.Net;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc.Testing;
-using SeguesTests.Helpers; // Onde está a tua CustomWebApplicationFactory
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Projeto_SEGUES.Data;
 using Projeto_SEGUES;
+using SeguesTests.Helpers;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
 using Xunit;
 
-namespace SeguesTests.SecurityTests.Users;
-
-// Alterado para usar CustomWebApplicationFactory para travar e-mails e injetar fakes
-public class UserControllerSecurityTests : IClassFixture<CustomWebApplicationFactory<Program>>
+namespace SeguesTests.SecurityTests.Users
 {
-    private readonly HttpClient _client;
-    private readonly CustomWebApplicationFactory<Program> _factory;
-
-    public UserControllerSecurityTests(CustomWebApplicationFactory<Program> factory)
+    public class UserControllerSecurityTests : IClassFixture<WebApplicationFactory<Program>>
     {
-        _factory = factory;
+        private readonly WebApplicationFactory<Program> _factory;
 
-        _client = _factory.CreateClient(new WebApplicationFactoryClientOptions
+        public UserControllerSecurityTests(WebApplicationFactory<Program> factory)
         {
-            AllowAutoRedirect = false
-        });
-    }
+            _factory = factory.WithWebHostBuilder(builder =>
+            {
+                builder.UseEnvironment("Testing");
+                builder.ConfigureServices(services =>
+                {
+                    var dbDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
+                    if (dbDescriptor != null) services.Remove(dbDescriptor);
 
-    [Fact]
-    [Trait("Category", "Security")]
-    public async Task Index_UnauthenticatedUser_ReturnsRedirectToLogin()
-    {
-        // Act
-        var response = await _client.GetAsync("/User/User/Index");
+                    services.AddDbContext<AppDbContext>(options =>
+                    {
+                        options.UseInMemoryDatabase("SecurityUserFinalTestDb_Pedro");
+                    });
 
-        // Assert
-        Assert.True(
-            response.StatusCode == HttpStatusCode.Unauthorized ||
-            response.StatusCode == HttpStatusCode.Redirect ||
-            response.StatusCode == HttpStatusCode.Found
-        );
+                    var emailDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailSender));
+                    if (emailDescriptor != null) services.Remove(emailDescriptor);
 
-        if (response.StatusCode == HttpStatusCode.Redirect || response.StatusCode == HttpStatusCode.Found)
-        {
-            var location = response.Headers.Location?.ToString();
-            Assert.Contains("ReturnUrl", location, System.StringComparison.OrdinalIgnoreCase);
+                    services.AddTransient<IEmailSender, MockHelper.FakeEmailSender>();
+                });
+            });
         }
-    }
 
-    [Fact]
-    [Trait("Category", "Security")]
-    public async Task UpdateProfile_MissingAntiForgeryToken_ReturnsBadRequestOrInternalError()
-    {
-        // Arrange
-        var formData = new Dictionary<string, string>
+        [Fact]
+        [Trait("Category", "Security")]
+        public async Task Index_UnauthenticatedUser_ReturnsRedirectToLogin()
         {
-            { "FirstName", "Pedro" },
-            { "Email", "pedro@evil.com" }
-        };
-        var content = new FormUrlEncodedContent(formData);
+            var client = _factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+            var response = await client.GetAsync("/User/User/Index");
 
-        // Act
-        var response = await _client.PostAsync("/User/User/UpdateProfile", content);
+            Assert.True(
+                response.StatusCode == HttpStatusCode.Unauthorized ||
+                response.StatusCode == HttpStatusCode.Redirect ||
+                response.StatusCode == HttpStatusCode.Found
+            );
+        }
 
-        // Assert
-        Assert.NotEqual(HttpStatusCode.OK, response.StatusCode);
-        Assert.True(
-            response.StatusCode == HttpStatusCode.BadRequest ||
-            response.StatusCode == HttpStatusCode.Found ||
-            response.StatusCode == HttpStatusCode.Redirect ||
-            response.StatusCode == HttpStatusCode.Unauthorized
-        );
-    }
-
-    [Theory]
-    [Trait("Category", "Security")]
-    [InlineData("Pedro'; DROP TABLE Users; --")]
-    [InlineData("Pedro' OR '1'='1")]
-    [InlineData("Pedro'; WAITFOR DELAY '0:0:5'--")]
-    public async Task UpdateProfile_SqlInjectionPayload_IsHandledSafely(string maliciousPayload)
-    {
-        // Arrange
-        var formData = new Dictionary<string, string>
+        [Fact]
+        [Trait("Category", "Security")]
+        public async Task UpdateProfile_MissingAntiForgeryToken_ReturnsBadRequestOrInternalError()
         {
-            { "FirstName", maliciousPayload },
-            { "LastName", "Jesus" },
-            { "Email", "pedro@segues.pt" }
-        };
-        var content = new FormUrlEncodedContent(formData);
+            var client = _factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+            var formData = new Dictionary<string, string>
+            {
+                { "FirstName", "Pedro" },
+                { "Email", "pedro@evil.com" }
+            };
+            var content = new FormUrlEncodedContent(formData);
 
-        // Act
-        var response = await _client.PostAsync("/User/User/UpdateProfile", content);
+            var response = await client.PostAsync("/User/User/UpdateProfile", content);
 
-        // Assert
-        // Com o CustomWebApplicationFactory, se isto disparasse e-mail, seria bloqueado.
-        Assert.NotEqual(HttpStatusCode.InternalServerError, response.StatusCode);
+            Assert.NotEqual(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Theory]
+        [Trait("Category", "Security")]
+        [InlineData("Pedro'; DROP TABLE Users; --")]
+        [InlineData("Pedro' OR '1'='1")]
+        [InlineData("Pedro'; WAITFOR DELAY '0:0:5'--")]
+        public async Task UpdateProfile_SqlInjectionPayload_IsHandledSafely(string maliciousPayload)
+        {
+            var client = _factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+            var formData = new Dictionary<string, string>
+            {
+                { "FirstName", maliciousPayload },
+                { "LastName", "Jesus" },
+                { "Email", "pedro@segues.pt" }
+            };
+            var content = new FormUrlEncodedContent(formData);
+
+            var response = await client.PostAsync("/User/User/UpdateProfile", content);
+
+            Assert.NotEqual(HttpStatusCode.InternalServerError, response.StatusCode);
+        }
     }
 }

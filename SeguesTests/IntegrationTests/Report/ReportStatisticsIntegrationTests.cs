@@ -1,7 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Projeto_SEGUES.Data;
 using SeguesTests.Helpers;
+using System.Linq;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
@@ -18,8 +23,22 @@ namespace SeguesTests.IntegrationTests.Report
         {
             _factory = factory.WithWebHostBuilder(builder =>
             {
+                builder.UseEnvironment("Testing");
                 builder.ConfigureServices(services =>
                 {
+                    var dbDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
+                    if (dbDescriptor != null) services.Remove(dbDescriptor);
+
+                    services.AddDbContext<AppDbContext>(options =>
+                    {
+                        options.UseInMemoryDatabase("ReportStatisticsIntegrationDb_Pedro");
+                    });
+
+                    var emailDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailSender));
+                    if (emailDescriptor != null) services.Remove(emailDescriptor);
+
+                    services.AddTransient<IEmailSender, MockHelper.FakeEmailSender>();
+
                     services.AddAuthentication(options =>
                     {
                         options.DefaultAuthenticateScheme = "Test";
