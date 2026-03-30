@@ -117,33 +117,9 @@ namespace Projeto_SEGUES.Resources {
             }
         }
         
-        public static string AccountLocked {
-            get {
-                return ResourceManager.GetString("AccountLocked", resourceCulture);
-            }
-        }
-        
-        public static string UserAlreadyRegistered {
-            get {
-                return ResourceManager.GetString("UserAlreadyRegistered", resourceCulture);
-            }
-        }
-        
         public static string InvalidOperation {
             get {
                 return ResourceManager.GetString("InvalidOperation", resourceCulture);
-            }
-        }
-        
-        public static string ValidationError {
-            get {
-                return ResourceManager.GetString("ValidationError", resourceCulture);
-            }
-        }
-        
-        public static string InsufficientFunds {
-            get {
-                return ResourceManager.GetString("InsufficientFunds", resourceCulture);
             }
         }
         
@@ -159,75 +135,15 @@ namespace Projeto_SEGUES.Resources {
             }
         }
         
-        public static string InvalidQuantity {
-            get {
-                return ResourceManager.GetString("InvalidQuantity", resourceCulture);
-            }
-        }
-        
         public static string PricingNotAvailable {
             get {
                 return ResourceManager.GetString("PricingNotAvailable", resourceCulture);
             }
         }
         
-        public static string TicketNotFound {
-            get {
-                return ResourceManager.GetString("TicketNotFound", resourceCulture);
-            }
-        }
-        
-        public static string TicketAlreadyUsed {
-            get {
-                return ResourceManager.GetString("TicketAlreadyUsed", resourceCulture);
-            }
-        }
-        
-        public static string TicketExpired {
-            get {
-                return ResourceManager.GetString("TicketExpired", resourceCulture);
-            }
-        }
-        
-        public static string TicketNotAvailable {
-            get {
-                return ResourceManager.GetString("TicketNotAvailable", resourceCulture);
-            }
-        }
-        
-        public static string RecipientNotFound {
-            get {
-                return ResourceManager.GetString("RecipientNotFound", resourceCulture);
-            }
-        }
-        
-        public static string TransferToSelf {
-            get {
-                return ResourceManager.GetString("TransferToSelf", resourceCulture);
-            }
-        }
-        
-        public static string CategoryMismatch {
-            get {
-                return ResourceManager.GetString("CategoryMismatch", resourceCulture);
-            }
-        }
-        
-        public static string TicketsNotOwned {
-            get {
-                return ResourceManager.GetString("TicketsNotOwned", resourceCulture);
-            }
-        }
-        
         public static string ProductCategoryNotFound {
             get {
                 return ResourceManager.GetString("ProductCategoryNotFound", resourceCulture);
-            }
-        }
-        
-        public static string ProductAlreadyExists {
-            get {
-                return ResourceManager.GetString("ProductAlreadyExists", resourceCulture);
             }
         }
         
@@ -255,45 +171,9 @@ namespace Projeto_SEGUES.Resources {
             }
         }
         
-        public static string CartEmpty {
-            get {
-                return ResourceManager.GetString("CartEmpty", resourceCulture);
-            }
-        }
-        
-        public static string SchedulePast {
-            get {
-                return ResourceManager.GetString("SchedulePast", resourceCulture);
-            }
-        }
-        
-        public static string InvalidPickupTime {
-            get {
-                return ResourceManager.GetString("InvalidPickupTime", resourceCulture);
-            }
-        }
-        
-        public static string BarClosed {
-            get {
-                return ResourceManager.GetString("BarClosed", resourceCulture);
-            }
-        }
-        
-        public static string InsufficientStock {
-            get {
-                return ResourceManager.GetString("InsufficientStock", resourceCulture);
-            }
-        }
-        
         public static string OrderProcessingError {
             get {
                 return ResourceManager.GetString("OrderProcessingError", resourceCulture);
-            }
-        }
-        
-        public static string OrderCannotCancel {
-            get {
-                return ResourceManager.GetString("OrderCannotCancel", resourceCulture);
             }
         }
         
@@ -309,39 +189,9 @@ namespace Projeto_SEGUES.Resources {
             }
         }
         
-        public static string UseCancelFunction {
-            get {
-                return ResourceManager.GetString("UseCancelFunction", resourceCulture);
-            }
-        }
-        
         public static string DatabaseUpdateError {
             get {
                 return ResourceManager.GetString("DatabaseUpdateError", resourceCulture);
-            }
-        }
-        
-        public static string RedemptionCodeRequired {
-            get {
-                return ResourceManager.GetString("RedemptionCodeRequired", resourceCulture);
-            }
-        }
-        
-        public static string InvalidRedemptionCode {
-            get {
-                return ResourceManager.GetString("InvalidRedemptionCode", resourceCulture);
-            }
-        }
-        
-        public static string CodeExpired {
-            get {
-                return ResourceManager.GetString("CodeExpired", resourceCulture);
-            }
-        }
-        
-        public static string IncorrectCode {
-            get {
-                return ResourceManager.GetString("IncorrectCode", resourceCulture);
             }
         }
         
@@ -351,33 +201,9 @@ namespace Projeto_SEGUES.Resources {
             }
         }
         
-        public static string EmailAlreadyRegistered {
-            get {
-                return ResourceManager.GetString("EmailAlreadyRegistered", resourceCulture);
-            }
-        }
-        
         public static string SendActivationEmailError {
             get {
                 return ResourceManager.GetString("SendActivationEmailError", resourceCulture);
-            }
-        }
-        
-        public static string InvalidTimeFormat {
-            get {
-                return ResourceManager.GetString("InvalidTimeFormat", resourceCulture);
-            }
-        }
-        
-        public static string NoItemsSelected {
-            get {
-                return ResourceManager.GetString("NoItemsSelected", resourceCulture);
-            }
-        }
-        
-        public static string RecipientEmailRequired {
-            get {
-                return ResourceManager.GetString("RecipientEmailRequired", resourceCulture);
             }
         }
         
