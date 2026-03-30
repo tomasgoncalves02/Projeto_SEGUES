@@ -125,6 +125,33 @@ public static class DbSeeder
                 await userManager.AddToRoleAsync(newAdmin, "Admin");
             }
         }
+
+        var testEmail = "testesegues2026@protonmail.com";
+        if (await userManager.FindByEmailAsync(testEmail) == null)
+        {
+            var testUser = new AppUser
+            {
+                UserName = testEmail,
+                Email = testEmail,
+                FirstName = "Test",
+                LastName = "Segues",
+                Gender = Gender.Other,
+                BirthDate = new DateTime(2000, 1, 1),
+                EmailConfirmed = true,
+                Balance = 1000m,
+                CreationDate = DateTime.Now,
+                Status = UserStatus.Active,
+                UserCategory = adminCategory!
+            };
+
+            var createTestUser = await userManager.CreateAsync(testUser, "AdminSEGUES123!");
+
+            if (createTestUser.Succeeded)
+            {
+                await userManager.AddToRoleAsync(testUser, "Client");
+            }
+        }
+
         await context.SaveChangesAsync();
     }
 
