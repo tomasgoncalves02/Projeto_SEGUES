@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SeguesTests.Helpers;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using Projeto_SEGUES;
 using Xunit;
 
 namespace SeguesTests.RegressionTests.Report

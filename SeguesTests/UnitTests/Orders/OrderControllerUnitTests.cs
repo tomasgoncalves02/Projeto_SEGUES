@@ -11,6 +11,7 @@ using Projeto_SEGUES.Services;
 using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Projeto_SEGUES.Areas.Order.Controllers;
 using Xunit;
 
 namespace SeguesTests.UnitTests.Orders

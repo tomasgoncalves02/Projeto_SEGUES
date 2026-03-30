@@ -8,6 +8,7 @@ using Projeto_SEGUES.Areas.Order.ViewModels;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using System.Security.Claims;
+using Projeto_SEGUES.Areas.Order.Controllers;
 using Xunit;
 
 namespace SeguesTests.UnitTests.Orders

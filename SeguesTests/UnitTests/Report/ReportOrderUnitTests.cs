@@ -9,6 +9,7 @@ using Projeto_SEGUES.Services;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Projeto_SEGUES.Areas.Report.Controllers;
 using Xunit;
 
 namespace SeguesTests.UnitTests.Report

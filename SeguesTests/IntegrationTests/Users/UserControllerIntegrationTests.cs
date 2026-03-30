@@ -1,21 +1,16 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using System.Net;
+using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Antiforgery;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Projeto_SEGUES;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.User;
 using SeguesTests.Helpers;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Threading.Tasks;
-using Xunit;
 
-namespace Tests.IntegrationTests.Users;
+namespace SeguesTests.IntegrationTests.Users;
 
 public class UserControllerIntegrationTests : IClassFixture<WebApplicationFactory<Program>>
 {

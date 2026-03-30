@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Moq;
 using Projeto_SEGUES.Areas.Admin;
+using Projeto_SEGUES.Areas.Admin.Controllers;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Services;

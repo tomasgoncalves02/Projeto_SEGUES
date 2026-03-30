@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Projeto_SEGUES.Areas.Report;
+using Projeto_SEGUES.Areas.Report.Controllers;
 using Projeto_SEGUES.Areas.Report.ViewModels;
 using Projeto_SEGUES.Services;
 using Xunit;

@@ -24,7 +24,6 @@ public class AdminMenuManagementController : Controller
     /// </summary>
     /// <param name="adminService">Service managing global settings and system link persistence.</param>
     /// <param name="logger">Logger for error tracking and auditing.</param>
-    /// <param name="localizer">Localizer for translating error messages.</param>
     public AdminMenuManagementController(
         IAdminService adminService,
         ILogger<AdminMenuManagementController> logger)

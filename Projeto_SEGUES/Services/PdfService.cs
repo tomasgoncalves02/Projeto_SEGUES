@@ -83,6 +83,8 @@ public class PdfService : IPdfService
     /// </summary>
     /// <param name="container">The container to compose the date cell elements into.</param>
     /// <param name="date">The DateTime value to display in the cell.</param>
+    /// <param name="dateString">Optional pre-formatted date string to display if the date value is null.</param>
+    /// <param name="timeString">Optional pre-formatted time string to display if the date value is null.</param>
     private static void DrawDateCell(IContainer container, DateTime? date, string? dateString = null, string? timeString = null)
     {
         dateString = date.HasValue ? date.Value.ToString("dd/MM/yyyy") : dateString ?? "---";
@@ -99,14 +101,15 @@ public class PdfService : IPdfService
     /// </summary>
     /// <param name="container">The container to compose the user cell elements into.</param>
     /// <param name="user">The AppUser object containing the user's information to display in the cell.</param>
-    private static void DrawUserCell(IContainer container, AppUser user, UserDto? dto = null)
+    /// <param name="dto">Optional UserDto object containing the user's information to display in the cell.</param>'
+    private static void DrawUserCell(IContainer container, AppUser? user, UserDto? dto = null)
     {
         if (dto == null)
         {
             container.ExtendHorizontal().AlignLeft().PaddingLeft(4).Column(c =>
             {
-                c.Item().AlignLeft().Text($"{user.FirstName} {user.LastName}").FontSize(8).SemiBold();
-                c.Item().AlignLeft().Text(user.Email).FontSize(7).FontColor(Colors.Grey.Medium);
+                c.Item().AlignLeft().Text($"{user?.FirstName} {user?.LastName}").FontSize(8).SemiBold();
+                c.Item().AlignLeft().Text(user?.Email).FontSize(7).FontColor(Colors.Grey.Medium);
             });
         }
         else
@@ -153,7 +156,7 @@ public class PdfService : IPdfService
     /// <returns>A byte array representing the generated PDF.</returns>
     public byte[] GenerateAdminOrderHistoryPdfAsync(List<Order> orders, string logoPath)
     {
-        // Create pdf
+        // Create Pdf
         var document = Document.Create(container =>
         {
             container.Page(page =>
@@ -308,7 +311,7 @@ public class PdfService : IPdfService
                         }
 
                         // Used date
-                        if (t.UsedDate == null || t.IsUsed == false)
+                        if (t.UsedDate == null || !t.IsUsed)
                         {
                             table.Cell().Element(CellStyle).Text("---").FontColor(Colors.Grey.Medium).Italic();
                         }

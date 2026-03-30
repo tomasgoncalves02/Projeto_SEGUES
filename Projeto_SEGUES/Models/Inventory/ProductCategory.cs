@@ -13,17 +13,17 @@ namespace Projeto_SEGUES.Models.Inventory;
 public class ProductCategory
 {
     /// <summary>Unique identifier for the product category.</summary>
-    public int Id { get; set; }
+    public int Id { get; init; }
 
     /// <summary>The display name of the category shown in menus and filters.</summary>
     [Required]
     [MaxLength(100, ErrorMessage = "Nome deve ter no máximo {1} caracteres.")]
     [Display(Name = "Nome")]
-    public required string Name { get; set; }
+    public required string Name { get; init; }
 
     /// <summary>A brief overview of what types of products are included in this category.</summary>
     [Required]
     [MaxLength(250, ErrorMessage = "Descrição deve ter no máximo {1} caracteres.")]
     [Display(Name = "Descrição")]
-    public required string Description { get; set; }
+    public required string Description { get; init; }
 }

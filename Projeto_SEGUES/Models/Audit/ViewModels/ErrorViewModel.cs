@@ -20,7 +20,7 @@ public class ErrorViewModel
     /// Serilog logs associated with a user's reported failure.
     /// </remarks>
     [Display(Name = "ID do Pedido")]
-    public string? RequestId { get; set; }
+    public string? RequestId { get; init; }
 
     /// <summary>
     /// Logical flag used by the View to determine if the Request ID should be rendered.
@@ -32,12 +32,12 @@ public class ErrorViewModel
     /// </summary>
     [Required]
     [Display(Name = "Mensagem de Erro")]
-    public required string ErrorMessage { get; set; }
+    public required string ErrorMessage { get; init; }
 
     /// <summary>
     /// The numeric application error code (mapping to the AppErrors enum).
     /// </summary>
     [Required]
     [Display(Name = "Código de Erro")]
-    public required int ErrorCode { get; set; }
+    public required int ErrorCode { get; init; }
 }

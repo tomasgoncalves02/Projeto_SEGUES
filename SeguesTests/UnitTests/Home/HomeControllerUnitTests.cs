@@ -39,7 +39,7 @@ namespace SeguesTests.UnitTests.Home
             var store = new Mock<IUserStore<AppUser>>();
             _mockUserManager = new Mock<UserManager<AppUser>>(store.Object, null!, null!, null!, null!, null!, null!, null!, null!);
 
-            _controller = new HomeController(_mockLogger.Object, _mockLocalizer.Object, _mockUserManager.Object, _mockAdminService.Object, _mockOrderService.Object);
+            _controller = new HomeController(_mockLogger.Object, _mockUserManager.Object, _mockAdminService.Object, _mockOrderService.Object);
 
             var httpContext = new DefaultHttpContext();
             _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };

@@ -1,15 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc.Testing;
+﻿using System.Net;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Projeto_SEGUES;
 using Projeto_SEGUES.Data;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
-using Xunit;
 
-namespace Tests.SecurityTests.User;
+namespace SeguesTests.SecurityTests.Users;
 
 public class UserControllerSecurityTests : IClassFixture<WebApplicationFactory<Program>>
 {

@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Projeto_SEGUES.Attributes;
 using Projeto_SEGUES.Models.Enums;
-using Projeto_SEGUES.Validators;
 
 namespace Projeto_SEGUES.Areas.Admin.ViewModels;
 
@@ -37,7 +36,7 @@ public class EditUserAdminViewModel
     [Required(ErrorMessage = "O email é obrigatório.")]
     [EmailAddress(ErrorMessage = "Email inválido.")]
     [Display(Name = "Endereço de Email")]
-    public string Email { get; set; }
+    public string Email { get; set; } = "";
 
     /// <summary>User's gender identification.</summary>
     [Required(ErrorMessage = "O género é obrigatório.")]

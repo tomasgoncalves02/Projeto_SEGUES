@@ -15,6 +15,7 @@ using SeguesTests.Helpers;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Projeto_SEGUES.Areas.Order.Controllers;
 using Xunit;
 
 namespace SeguesTests.UnitTests.Orders

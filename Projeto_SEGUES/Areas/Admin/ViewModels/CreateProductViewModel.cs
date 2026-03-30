@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Projeto_SEGUES.Areas.Inventory.ViewModels;
+namespace Projeto_SEGUES.Areas.Admin.ViewModels;
 
 /// <summary>
 /// ViewModel utilizado para a criação, edição e visualização de produtos no inventário.

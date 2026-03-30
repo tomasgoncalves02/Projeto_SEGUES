@@ -9,7 +9,7 @@ using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 
-namespace Projeto_SEGUES.Areas.Order;
+namespace Projeto_SEGUES.Areas.Order.Controllers;
 
 /// <summary>
 /// Controller responsible for creating new orders and managing the shopping cart lifecycle.

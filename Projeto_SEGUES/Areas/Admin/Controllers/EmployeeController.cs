@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Projeto_SEGUES.Areas.Admin;
+namespace Projeto_SEGUES.Areas.Admin.Controllers;
 
 /// <summary>
 /// Controller responsible for the primary interface for Employees.

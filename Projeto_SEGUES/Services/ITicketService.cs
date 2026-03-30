@@ -1,5 +1,4 @@
 ﻿using Projeto_SEGUES.Areas.Report.ViewModels;
-using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.User;
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -9,10 +10,8 @@ using Projeto_SEGUES.Areas.User.ViewModels;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using SeguesTests.Helpers;
-using System.Security.Claims;
-using Xunit;
 
-namespace Tests.UnitTests.User;
+namespace SeguesTests.UnitTests.Users;
 
 public class UserControllerTests
 {

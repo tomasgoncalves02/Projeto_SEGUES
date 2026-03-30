@@ -38,5 +38,5 @@ public class UserCategory
     /// logic-based helper and not a physical database column.
     /// </remarks>
     [NotMapped]
-    public TicketPrice LatestPrice => TicketPrices?.OrderByDescending(x => x.InitialDatePrice).FirstOrDefault()!;
+    public TicketPrice LatestPrice => TicketPrices.OrderByDescending(x => x.InitialDatePrice).FirstOrDefault()!;
 }

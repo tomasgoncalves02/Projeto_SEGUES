@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Projeto_SEGUES.Services;
 
-namespace Projeto_SEGUES.Areas.Report;
+namespace Projeto_SEGUES.Areas.Report.Controllers;
 
 /// <summary>
 /// Controller responsible for providing analytical data regarding ticket usage and sales.
@@ -21,8 +21,6 @@ public class ReportStatisticsTicketController : Controller
     /// Initializes a new instance of the tickets statistics controller.
     /// </summary>
     /// <param name="reportService">Service for ticket data aggregation.</param>
-    /// <param name="logger">Logger for auditing and error tracking.</param>
-    /// <param name="localizer">Localizer for retrieving localized error messages from resources.</param>
     public ReportStatisticsTicketController(IReportService reportService)
     {
         _reportService = reportService;

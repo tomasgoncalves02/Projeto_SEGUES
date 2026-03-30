@@ -7,6 +7,7 @@ using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Projeto_SEGUES.Areas.Admin;
+using Projeto_SEGUES.Areas.Admin.Controllers;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Resources;

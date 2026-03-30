@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Projeto_SEGUES.Areas.Report;
+using Projeto_SEGUES.Areas.Report.Controllers;
 using Xunit;
 
 namespace SeguesTests.UnitTests.Report

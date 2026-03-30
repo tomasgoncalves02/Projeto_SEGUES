@@ -17,7 +17,7 @@ public class OrderTotalViewModel
     /// <value>Non-negative integer value.</value>
     [Range(0, int.MaxValue)]
     [Display(Name = "Quantidade Total")]
-    public int TotalQuantity { get; set; } = 0;
+    public int TotalQuantity { get; set; }
 
     /// <summary>
     /// Total monetary value of the order, calculated by summing the unit price multiplied by the quantity of each product.
@@ -25,5 +25,5 @@ public class OrderTotalViewModel
     /// <value>Non-negative decimal value.</value>
     [Range(0, double.MaxValue)]
     [Display(Name = "Valor Total")]
-    public decimal TotalValue { get; set; } = 0m;
+    public decimal TotalValue { get; set; }
 }

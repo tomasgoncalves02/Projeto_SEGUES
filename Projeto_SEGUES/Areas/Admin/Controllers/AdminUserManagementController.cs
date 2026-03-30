@@ -3,14 +3,13 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
-using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using AppErrors = Projeto_SEGUES.Models.Enums.AppErrors;
 
-namespace Projeto_SEGUES.Areas.Admin;
+namespace Projeto_SEGUES.Areas.Admin.Controllers;
 
 /// <summary>
 /// Controller responsible for user management within the administrative area.
@@ -34,7 +33,9 @@ public class AdminUserManagementController : Controller
     /// </summary>
     /// <param name="userManager">Native ASP.NET Identity service for user management.</param>
     /// <param name="adminService">Custom service containing administrative business logic.</param>
-    /// <param name="context">Database context for direct queries (e.g., Logs).</param>
+    /// <param name="userService">Service providing user data and operations.</param>
+    /// <param name="logger">Logging service for recording administrative actions and errors.</param>
+    /// <param name="pdfService">Service for generating PDF documents.</param>
     public AdminUserManagementController(
         UserManager<AppUser> userManager, 
         IAdminService adminService, 
@@ -271,8 +272,6 @@ public class AdminUserManagementController : Controller
     /// <summary>
     /// Lists the activity logs performed by Staff members (internal audit).
     /// </summary>
-    /// <param name="search">Search term (username or message content).</param>
-    /// <param name="date">Filter by a specific date.</param>
     /// <returns>The View with the list of logs sorted by descending date.</returns>
     public async Task<IActionResult> StaffLog()
     {

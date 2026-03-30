@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Projeto_SEGUES.Validators;
+namespace Projeto_SEGUES.Attributes;
 
 /// <summary>
 /// Custom validation attribute to enforce a minimum age requirement (default is 18 years).

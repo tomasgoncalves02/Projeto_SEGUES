@@ -1,4 +1,5 @@
-﻿@using Projeto_SEGUES.Models.Enums
+﻿@using Projeto_SEGUES.Extensions
+@using Projeto_SEGUES.Models.Enums
 @model Projeto_SEGUES.Areas.User.ViewModels.EditUserViewModel
 
 @{
@@ -32,8 +33,8 @@
                         <div class="text-muted small">@Model.Email</div>
                     </div>
                 </div>
-                <span class="badge @Model.Role.Name.ToBadgeClass() fw-semibold fs-6 shadow-sm">
-                    @Model.Role.DisplayName.ToUpper()
+                <span class="badge @Model.Role?.Name.ToBadgeClass() fw-semibold fs-6 shadow-sm">
+                    @Model.Role?.DisplayName.ToUpper()
                 </span>
             </div>
 

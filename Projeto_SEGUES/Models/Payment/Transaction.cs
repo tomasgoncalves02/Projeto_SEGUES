@@ -38,7 +38,7 @@ public class Transaction
     public string Reference { get; init; } = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
 
     /// <summary>Flag indicating if the payment has been confirmed by the processing provider.</summary>
-    public bool IsPaid { get; set; } = false;
+    public bool IsPaid { get; set; }
 
     /// <summary>The exact timestamp when the transaction record was created.</summary>
     [Display(Name = "Data da Transação")]

@@ -1,4 +1,5 @@
-﻿@using Projeto_SEGUES.Models.Enums
+﻿@using Projeto_SEGUES.Extensions
+@using Projeto_SEGUES.Models.Enums
 @model IEnumerable<Projeto_SEGUES.Models.Order.Order>
 
 @{
@@ -68,7 +69,7 @@ else
 
             @* Delivery time *@
             <td class="small">
-                @if (item.Status == OrderStatus.Delivered && item.PickupTime != null)
+                @if (item is { Status: OrderStatus.Delivered, PickupTime: not null })
                 {
                     <span class="fw-bold">@item.PickupTime.Value.ToString(@"hh\:mm")</span>
                 }

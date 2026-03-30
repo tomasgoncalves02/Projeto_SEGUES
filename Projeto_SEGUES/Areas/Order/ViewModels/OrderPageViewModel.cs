@@ -11,7 +11,7 @@
 public class OrderPageViewModel
 {
     /// <summary>The user's current balance formatted as a localized currency string.</summary>
-    public string UserBalance { get; set; }
+    public string UserBalance { get; set; } = "";
     
     // ==========================================
     // Shopping Cart Summary

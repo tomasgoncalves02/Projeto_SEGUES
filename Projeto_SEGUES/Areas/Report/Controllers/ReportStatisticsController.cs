@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Projeto_SEGUES.Areas.Report;
+namespace Projeto_SEGUES.Areas.Report.Controllers;
 
 /// <summary>
 /// Controller responsible for high-level administrative statistical analysis.

@@ -6,7 +6,7 @@ using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 
-namespace Projeto_SEGUES.Areas.Ticket;
+namespace Projeto_SEGUES.Areas.Ticket.Controllers;
 
 /// <summary>
 /// Controller responsible for the physical or digital validation of user tickets.

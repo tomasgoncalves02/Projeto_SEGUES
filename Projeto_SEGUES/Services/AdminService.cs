@@ -15,7 +15,6 @@ using System.Security.Cryptography;
 using System.Text;
 using Projeto_SEGUES.Areas.User.ViewModels;
 using Projeto_SEGUES.Extensions;
-using Projeto_SEGUES.Models.Audit;
 using Projeto_SEGUES.Resources;
 
 namespace Projeto_SEGUES.Services;

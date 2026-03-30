@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System.Collections.ObjectModel;
+using System.Data;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -15,8 +17,6 @@ using Serilog.Events;
 using Serilog.Filters;
 using Serilog.Sinks.MSSqlServer;
 using Stripe;
-using System.Collections.ObjectModel;
-using System.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -209,7 +209,7 @@ var fontPath = Path.Combine(app.Environment.WebRootPath, "fonts", "Roboto-Regula
 
 if (System.IO.File.Exists(fontPath))
 {
-    using var fontStream = System.IO.File.OpenRead(fontPath);
+    await using var fontStream = System.IO.File.OpenRead(fontPath);
     FontManager.RegisterFont(fontStream);
 }
 
@@ -300,4 +300,7 @@ app.MapRazorPages();
 app.Run();
 
 //Makes it readable for Security Tests
-public partial class Program { }
+namespace Projeto_SEGUES
+{
+    public partial class Program { }
+}

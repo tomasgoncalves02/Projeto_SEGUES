@@ -12,7 +12,7 @@ public class OrderDetailsViewModel
     /// <summary>
     /// The core order entity containing transaction and status data.
     /// </summary>
-    public Models.Order.Order Order { get; set; }
+    public required Models.Order.Order Order { get; set; }
 
     /// <summary>
     /// Total monetary value of the order formatted as a currency string.

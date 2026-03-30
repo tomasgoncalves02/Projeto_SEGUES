@@ -50,7 +50,7 @@ public class Discount
 
     /// <summary>If true, the discount applies to every product in the system; otherwise, it only applies to <see cref="Products"/>.</summary>
     [Display(Name = "Global")]
-    public bool IsGlobal { get; set; } = false;
+    public bool IsGlobal { get; set; }
 
     /// <summary>The collection of specific products eligible for this discount (if not global).</summary>
     public ICollection<Product> Products { get; set; } = new List<Product>();

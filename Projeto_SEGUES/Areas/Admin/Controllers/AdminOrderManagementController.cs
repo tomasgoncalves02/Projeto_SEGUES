@@ -6,7 +6,7 @@ using Projeto_SEGUES.Areas.Report.ViewModels;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Services;
 
-namespace Projeto_SEGUES.Areas.Admin;
+namespace Projeto_SEGUES.Areas.Admin.Controllers;
 
 /// <summary>
 /// Controller responsible for managing and monitoring orders and bar operating schedules.

@@ -9,6 +9,7 @@ using Projeto_SEGUES.Services;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Projeto_SEGUES;
 using Xunit;
 
 namespace SeguesTests.RegressionTests.Home

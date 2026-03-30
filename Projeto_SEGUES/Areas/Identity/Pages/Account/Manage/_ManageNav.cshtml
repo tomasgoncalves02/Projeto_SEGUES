@@ -1,4 +1,6 @@
-﻿@using Projeto_SEGUES.Models.User
+﻿@using Microsoft.AspNetCore.Identity
+@using Projeto_SEGUES.Areas.Identity.Pages.Account.Manage
+@using Projeto_SEGUES.Models.User
 @inject SignInManager<AppUser> SignInManager
 @{
     var hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();

@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace Projeto_SEGUES.Areas.Ticket.ViewModels;
 
@@ -19,7 +18,7 @@ public class ValidateTicketViewModel
     [Required(ErrorMessage = "Introduza o código da senha.")]
     [StringLength(8, MinimumLength = 8, ErrorMessage = "O código deve ter exatamente 8 caracteres.")]
     [Display(Name = "Código da Senha")]
-    public string? Code { get; set; } = null;
+    public string? Code { get; set; }
 
     /// <summary>
     /// A list of the most recently processed tickets used to provide visual confirmation to the operator.

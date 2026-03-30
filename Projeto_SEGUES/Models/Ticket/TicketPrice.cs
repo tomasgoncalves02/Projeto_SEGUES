@@ -1,6 +1,5 @@
 ﻿using Projeto_SEGUES.Models.User;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Projeto_SEGUES.Models.Ticket;
 
@@ -41,5 +40,5 @@ public class TicketPrice
     [DataType(DataType.Date)]
     [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
     [Display(Name = "Data de Fim")]
-    public DateTime? EndDatePrice { get; set; } = null;
+    public DateTime? EndDatePrice { get; set; }
 }

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Projeto_SEGUES.Areas.Report.ViewModels;
 using Projeto_SEGUES.Services;
 
-namespace Projeto_SEGUES.Areas.Report;
+namespace Projeto_SEGUES.Areas.Report.Controllers;
 
 /// <summary>
 /// Controller responsible for viewing and filtering the user's ticket history.

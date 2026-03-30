@@ -28,7 +28,7 @@ public class Ticket
 
     /// <summary>Flag indicating if the ticket has been redeemed at a collection point.</summary>
     [Display(Name = "Usado")]
-    public bool IsUsed { get; set; } = false;
+    public bool IsUsed { get; set; }
 
     /// <summary>The exact timestamp when the ticket was scanned and redeemed.</summary>
     [DataType(DataType.Date)]

@@ -6,7 +6,7 @@ using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 
-namespace Projeto_SEGUES.Areas.Order;
+namespace Projeto_SEGUES.Areas.Order.Controllers;
 
 /// <summary>
 /// Controller responsible for acquiring and viewing meal tickets (senhas).

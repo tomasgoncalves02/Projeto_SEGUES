@@ -6,7 +6,7 @@ using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Services;
 
-namespace Projeto_SEGUES.Areas.Order;
+namespace Projeto_SEGUES.Areas.Order.Controllers;
 
 /// <summary>
 /// Controller responsible for managing and viewing the authenticated user's active orders.
@@ -56,7 +56,7 @@ public class ActiveOrderController : Controller
             return Unauthorized();
         }
         
-        var orders = await _orderService.GetActiveOrdersAsync(userId!);
+        var orders = await _orderService.GetActiveOrdersAsync(userId);
         return PartialView("_ActiveOrdersCardsPartial", orders);
     }
 

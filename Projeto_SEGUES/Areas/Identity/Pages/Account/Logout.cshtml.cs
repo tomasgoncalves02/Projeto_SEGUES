@@ -39,9 +39,7 @@ public class LogoutModel : PageModel
     /// Processes the logout request (POST) and redirects the user.
     /// </summary>
     /// <param name="returnUrl">Optional URL where the user should be sent after signing out.</param>
-    /// <returns>
-    /// A <see cref="LocalRedirect"/> if the URL is local, or the default page redirection.
-    /// </returns>
+    /// <returns>An <see cref="IActionResult"/> that redirects the user to the specified return URL or to the home page.</returns>
     /// <remarks>
     /// The session termination is performed asynchronously to ensure that all 
     /// authentication resources are correctly released before responding to the browser.

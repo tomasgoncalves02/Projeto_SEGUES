@@ -15,19 +15,19 @@ public class OrderLine
 {
     /// <summary>Foreign key identifier for the purchased product.</summary>
     [Required]
-    public required int ProductId { get; set; }
+    public required int ProductId { get; init; }
 
     /// <summary>Navigation property to the associated product details.</summary>
     [Required]
-    public required Product Product { get; set; } // FK
+    public required Product Product { get; init; } // FK
 
     /// <summary>Foreign key identifier for the parent order.</summary>
     [Required]
-    public required int OrderId { get; set; }
+    public required int OrderId { get; init; }
 
     /// <summary>Navigation property to the parent order record.</summary>
     [Required]
-    public required Order Order { get; set; } // FK
+    public required Order Order { get; init; } // FK
 
     /// <summary>The number of units purchased for this specific line item.</summary>
     [Required]
@@ -36,7 +36,7 @@ public class OrderLine
     public required int Quantity { get; set; } = 1;
 
     /// <summary>The specific discount rule applied to this item at checkout, if applicable.</summary>
-    public Discount? Discount { get; set; }
+    public Discount? Discount { get; init; }
 
     /// <summary>
     /// The unit price of the product at the time of purchase.

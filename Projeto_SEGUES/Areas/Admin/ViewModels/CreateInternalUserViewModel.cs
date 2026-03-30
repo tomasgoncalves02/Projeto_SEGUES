@@ -1,6 +1,5 @@
 ﻿using Projeto_SEGUES.Attributes;
 using Projeto_SEGUES.Models.Enums;
-using Projeto_SEGUES.Validators;
 using System.ComponentModel.DataAnnotations;
 
 namespace Projeto_SEGUES.Areas.Admin.ViewModels;

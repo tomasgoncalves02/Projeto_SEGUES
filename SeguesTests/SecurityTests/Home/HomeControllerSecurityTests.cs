@@ -9,10 +9,7 @@ using Projeto_SEGUES.Controllers;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Resources;
 using Projeto_SEGUES.Services;
-using System.Collections.Generic;
 using System.Security.Claims;
-using System.Threading.Tasks;
-using Xunit;
 
 namespace SeguesTests.SecurityTests.Home
 {
@@ -35,7 +32,7 @@ namespace SeguesTests.SecurityTests.Home
             var store = new Mock<IUserStore<AppUser>>();
             _mockUserManager = new Mock<UserManager<AppUser>>(store.Object, null!, null!, null!, null!, null!, null!, null!, null!);
 
-            _controller = new HomeController(_mockLogger.Object, _mockLocalizer.Object, _mockUserManager.Object, _mockAdminService.Object, _mockOrderService.Object);
+            _controller = new HomeController(_mockLogger.Object, _mockUserManager.Object, _mockAdminService.Object, _mockOrderService.Object);
 
             var httpContext = new DefaultHttpContext();
             _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };

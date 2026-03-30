@@ -1,6 +1,5 @@
 using Projeto_SEGUES.Attributes;
 using Projeto_SEGUES.Models.Enums;
-using Projeto_SEGUES.Validators;
 using System.ComponentModel.DataAnnotations;
 
 namespace Projeto_SEGUES.Areas.Identity.ViewModels;
@@ -73,7 +72,7 @@ public class RegisterDataViewModel
     [Display(Name = "Password")]
     [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{12,}$",
         ErrorMessage = "A password deve ter pelo menos: 1 Minúscula, 1 Maiúscula, 1 Número e 1 Símbolo. E no mínimo 12 caracteres.")]
-    public required string Password { get; set; }
+    public required string Password { get; init; }
 
     /// <summary>
     /// Campo de verificação para garantir que a senha foi digitada corretamente.
@@ -82,7 +81,7 @@ public class RegisterDataViewModel
     [DataType(DataType.Password)]
     [Display(Name = "Confirmar password")]
     [Compare("Password", ErrorMessage = "A password e a confirmação não coincidem.")]
-    public required string ConfirmPassword { get; set; }
+    public required string ConfirmPassword { get; init; }
 
     /// <summary>
     /// Código de ativação ou convite associado ao registo.

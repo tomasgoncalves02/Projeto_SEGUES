@@ -11,6 +11,7 @@ using Projeto_SEGUES.Services;
 using System.Security.Claims;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
+using Projeto_SEGUES.Areas.Admin.Controllers;
 using Projeto_SEGUES.Resources;
 
 namespace SeguesTests.Admin;

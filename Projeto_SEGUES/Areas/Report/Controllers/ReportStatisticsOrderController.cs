@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Projeto_SEGUES.Services;
 
-namespace Projeto_SEGUES.Areas.Report;
+namespace Projeto_SEGUES.Areas.Report.Controllers;
 
 /// <summary>
 /// Controller responsible for generating and providing analytical data regarding orders.

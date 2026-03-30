@@ -65,7 +65,7 @@ namespace SeguesTests.UnitTests.Services
 
             var result = await service.GetAllCategoriesForDropdownAsync();
 
-            Assert.Contains(result, r => r.Text == "Pedro-Food" && r.Value == "10");
+            Assert.Contains(result, r => r is { Text: "Pedro-Food", Value: "10" });
         }
     }
 }

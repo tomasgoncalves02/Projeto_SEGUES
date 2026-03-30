@@ -1,5 +1,4 @@
-﻿using Projeto_SEGUES.Models.User;
-
+﻿
 namespace Projeto_SEGUES.Areas.Admin.ViewModels;
 
 /// <summary>

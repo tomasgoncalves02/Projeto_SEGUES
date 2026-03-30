@@ -18,7 +18,7 @@ public class TransferTicketViewModel
     [Required(ErrorMessage = "Insira o email do destinatário.")]
     [EmailAddress(ErrorMessage = "Insira um email válido.")]
     [Display(Name = "Email do Destinatário")]
-    public string? RecipientEmail { get; set; } = null;
+    public string? RecipientEmail { get; set; }
 
     /// <summary>
     /// A list of unique identifiers (GUIDs or IDs) for the tickets selected by the user for transfer.

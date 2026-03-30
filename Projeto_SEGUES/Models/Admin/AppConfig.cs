@@ -52,11 +52,13 @@ public class AppConfig
     /// <summary>External URL for the Bar's digital menu or information page.</summary>
     [Url]
     [Display(Name = "Link do Bar")]
+    [MaxLength(250)]
     public string BarLink { get; set; } = "https://www.ips.pt";
 
     /// <summary>External URL for the Canteen's digital menu or information page.</summary>
     [Url]
     [Display(Name = "Link do Refeitório")]
+    [MaxLength(250)]
     public string CanteenLink { get; set; } = "https://www.ips.pt";
 
     /// <summary>Global flag determining if services are active on Saturdays.</summary>

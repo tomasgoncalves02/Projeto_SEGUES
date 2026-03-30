@@ -25,7 +25,7 @@ public class OrderProductDto
     public int Quantity { get; set; }
 
     /// <summary>Calculated subtotal for this item (Price * Quantity).</summary>
-    public decimal TotalPrice => Price * Quantity;
+    private decimal TotalPrice => Price * Quantity;
 
     /// <summary>Subtotal formatted as a currency string.</summary>
     public string FormattedTotalPrice => TotalPrice.ToString("C");

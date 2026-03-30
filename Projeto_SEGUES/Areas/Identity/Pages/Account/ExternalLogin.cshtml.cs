@@ -12,9 +12,9 @@ using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
-using Projeto_SEGUES.Validators;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
+using Projeto_SEGUES.Attributes;
 
 namespace Projeto_SEGUES.Areas.Identity.Pages.Account
 {

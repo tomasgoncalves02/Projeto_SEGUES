@@ -63,7 +63,7 @@ public class PaymentService : IPaymentService
             PaymentMethodTypes = new List<string> { "card" },
             LineItems = new List<SessionLineItemOptions>
             {
-                new SessionLineItemOptions
+                new()
                 {
                     PriceData = new SessionLineItemPriceDataOptions
                     {

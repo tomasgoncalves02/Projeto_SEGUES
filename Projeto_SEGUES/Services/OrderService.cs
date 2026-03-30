@@ -6,7 +6,6 @@ using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Order;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
-using Projeto_SEGUES.Areas.Report.ViewModels;
 using Projeto_SEGUES.Extensions;
 
 namespace Projeto_SEGUES.Services;
@@ -20,7 +19,7 @@ public class OrderService : IOrderService
 {
     private readonly AppDbContext _context;
     private readonly IAdminService _adminService;
-    private static readonly OrderStatus[] _activeStatus = Enum.GetValues<OrderStatus>().Where(s => s.IsActive()).ToArray();
+    private static readonly OrderStatus[] ActiveStatus = Enum.GetValues<OrderStatus>().Where(s => s.IsActive()).ToArray();
     private readonly IEmailSender _emailSender;
     private readonly ILogger<OrderService> _logger;
 
@@ -91,6 +90,7 @@ public class OrderService : IOrderService
     public async Task<ServiceResult<OrderTotalViewModel>> AddToCartAsync(string userId, int productId, int quantity)
     {
         var cart = await GetCartAsync(userId);
+        if (cart == null) return ServiceResult<OrderTotalViewModel>.Fail("Carrinho não encontrado.");
         var product = await _context.Product.FindAsync(productId);
         if (product == null) return ServiceResult<OrderTotalViewModel>.Fail("Produto não encontrado.", GetOrderTotal(cart));
 
@@ -131,6 +131,7 @@ public class OrderService : IOrderService
     public async Task<ServiceResult<OrderTotalViewModel>> RemoveFromCartAsync(string userId, int productId)
     {
         var cart = await GetCartAsync(userId);
+        if (cart == null) return ServiceResult<OrderTotalViewModel>.Fail("Carrinho não encontrado.");
         var line = await _context.OrderLine
             .FirstOrDefaultAsync(ol => ol.Order.Id == cart.Id && ol.ProductId == productId);
 
@@ -151,6 +152,7 @@ public class OrderService : IOrderService
     public async Task<ServiceResult> SubmitOrderAsync(AppUser user, bool receiveNow, string? pickupTime)
     {
         var cart = await GetCartAsync(user.Id);
+        if (cart == null) return ServiceResult.Fail("Carrinho não encontrado.");
         if (cart.ProductPurchases.Count == 0) return ServiceResult.Fail("O carrinho está vazio.");
 
         TimeSpan timeToValidate;
@@ -210,7 +212,7 @@ public class OrderService : IOrderService
             cart.RedemptionCode = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
         }
 
-        using var dbTransaction = await _context.Database.BeginTransactionAsync();
+        await using var dbTransaction = await _context.Database.BeginTransactionAsync();
         try
         {
             var now = DateTime.Now;
@@ -275,7 +277,7 @@ public class OrderService : IOrderService
         if (order.Status != OrderStatus.Pending)
             return ServiceResult.Fail("O pedido já está em processamento ou finalizado e não pode ser cancelado.");
 
-        using var transaction = await _context.Database.BeginTransactionAsync();
+        await using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
             var now = DateTime.Now;
@@ -326,7 +328,7 @@ public class OrderService : IOrderService
     public async Task<List<Order>> GetActiveOrdersAsync(string userId)
     {
         return await _context.Order
-            .Where(o => o.AppUser.Id == userId && _activeStatus.Contains(o.Status))
+            .Where(o => o.AppUser.Id == userId && ActiveStatus.Contains(o.Status))
             .OrderByDescending(o => o.OrderDate)
             .ToListAsync();
     }
@@ -347,7 +349,7 @@ public class OrderService : IOrderService
     {
         return await _context.Order
             .Include(o => o.AppUser)
-            .Where(o => _activeStatus.Contains(o.Status))
+            .Where(o => ActiveStatus.Contains(o.Status))
             .OrderBy(o => o.PickupTime ?? o.OrderDate.TimeOfDay)
             .ToListAsync();
     }
@@ -363,14 +365,14 @@ public class OrderService : IOrderService
     public async Task<ServiceResult> UpdateOrderStatusAsync(int id, int newStatusId, AppUser staffMember)
     {
         var order = await GetOrderByIdAsync(id);
-        if (order == null || !_activeStatus.Contains(order.Status)) return ServiceResult.Fail("Pedido não encontrado.");
+        if (order == null || !ActiveStatus.Contains(order.Status)) return ServiceResult.Fail("Pedido não encontrado.");
 
         OrderStatus newStatus = (OrderStatus)newStatusId;
 
         if (!Enum.IsDefined(typeof(OrderStatus), newStatus) || newStatus == OrderStatus.Cart)
             return ServiceResult.Fail("Status inválido.");
 
-        if (!_activeStatus.Contains(newStatus) && newStatus != OrderStatus.Delivered)
+        if (!ActiveStatus.Contains(newStatus) && newStatus != OrderStatus.Delivered)
         {
             return ServiceResult.Fail("Não é possível mudar para este estado.");
         }

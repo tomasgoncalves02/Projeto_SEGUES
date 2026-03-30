@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Projeto_SEGUES.Areas.Payment;
 using System.Reflection;
+using Projeto_SEGUES.Areas.Payment.Controllers;
 using Xunit;
 
 namespace SeguesTests.SecurityTests.Payment

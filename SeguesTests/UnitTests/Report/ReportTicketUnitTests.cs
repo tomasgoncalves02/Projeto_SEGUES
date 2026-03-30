@@ -6,6 +6,7 @@ using Projeto_SEGUES.Areas.Report.ViewModels;
 using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Services;
 using System.Security.Claims;
+using Projeto_SEGUES.Areas.Report.Controllers;
 using Xunit;
 
 namespace SeguesTests.UnitTests.Report

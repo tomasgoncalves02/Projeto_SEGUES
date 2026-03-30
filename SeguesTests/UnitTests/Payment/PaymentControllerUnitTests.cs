@@ -13,6 +13,7 @@ using System;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Projeto_SEGUES.Areas.Payment.Controllers;
 using Xunit;
 
 namespace SeguesTests.UnitTests.Payment

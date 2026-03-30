@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Projeto_SEGUES.Areas.Ticket.Controllers;
 using Xunit;
 
 namespace SeguesTests.UnitTests.Tickets

@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Projeto_SEGUES.Attributes;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
-using Projeto_SEGUES.Validators;
 
 namespace Projeto_SEGUES.Areas.User.ViewModels;
 
@@ -41,7 +40,7 @@ public class EditUserViewModel
     [EmailAddress]
     [Display(Name = "Endereço de Email")]
     [ValidateNever]
-    public string Email { get; set; }
+    public string Email { get; set; } = "";
 
     /// <summary>User's gender identification.</summary>
     [Required(ErrorMessage = "O género é obrigatório.")]
@@ -60,12 +59,12 @@ public class EditUserViewModel
     /// <summary>Identity role assigned to the user, not modifiable by the user themselves.</summary>
     [Display(Name = "Tipo de Conta")]
     [ValidateNever]
-    public Role Role { get; set; }
+    public Role? Role { get; set; }
 
     /// <summary>Categorization string (e.g., Student, Employee), managed by system logic.</summary>
     [Display(Name = "Categoria de Utilizador")]
     [ValidateNever]
-    public string Category { get; set; }
+    public string Category { get; set; } = "";
 
     /// <summary>Tax identification number (NIF).</summary>
     [MaxLength(9, ErrorMessage = "O NIF deve ter no máximo {1} caracteres.")]
@@ -101,12 +100,21 @@ public class EditUserViewModel
     [Display(Name = "Escola")]
     public int? SchoolId { get; set; }
     
+    /// <summary>
+    /// Flag indicating if the user is categorized as a Student.
+    /// </summary>
     [ValidateNever]
     public bool IsStudent => Category.Equals("Estudante", StringComparison.OrdinalIgnoreCase);
     
+    /// <summary>
+    /// Flag indicating if the user is categorized as an Employee.
+    /// </summary>
     [ValidateNever]
-    public bool IsEmployee => Role.Name!.Equals("Employee", StringComparison.OrdinalIgnoreCase);
+    public bool IsEmployee => Role?.Name?.Equals("Employee", StringComparison.OrdinalIgnoreCase) ?? false;
     
+    /// <summary>
+    /// Flag indicating if the user is affiliated with a school.
+    /// </summary>
     [ValidateNever]
     public bool ShowSchool => IsEmployee || IsStudent;
     

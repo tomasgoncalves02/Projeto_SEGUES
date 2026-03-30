@@ -177,7 +177,7 @@ public class InventoryService : IInventoryService
         {
             existingProduct.Name = createProductViewModel.Name;
             existingProduct.Description = createProductViewModel.Description;
-            existingProduct.Category = category!;
+            existingProduct.Category = category;
             existingProduct.Price = createProductViewModel.Price >= 0 ? createProductViewModel.Price : 0;
             existingProduct.Stock = createProductViewModel.Stock >= 0 ? createProductViewModel.Stock : 0;
             existingProduct.MinimumStock = createProductViewModel.MinimumStock >= 0 ? createProductViewModel.MinimumStock : 0;

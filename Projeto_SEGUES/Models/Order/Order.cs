@@ -15,7 +15,7 @@ namespace Projeto_SEGUES.Models.Order;
 public class Order
 {
     /// <summary>Unique identifier for the order record.</summary>
-    public int Id { get; set; }
+    public int Id { get; init; }
 
     /// <summary>The final calculated monetary value of the order, including applied discounts.</summary>
     [Range(0, double.MaxValue)]
@@ -43,10 +43,10 @@ public class Order
 
     /// <summary>Navigation property to the user who placed the order.</summary>
     [Required]
-    public required AppUser AppUser { get; set; } // FK
+    public required AppUser AppUser { get; init; } // FK
 
     /// <summary>Reference to an applied discount rule, if any was active during checkout.</summary>
-    public Discount? Discount { get; set; }
+    public Discount? Discount { get; init; }
 
     /// <summary>
     /// A unique, 8-character alphanumeric string used by staff to verify and redeem the order.

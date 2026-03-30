@@ -13,7 +13,7 @@ namespace Projeto_SEGUES.Models.Inventory;
 public class Product
 {
     /// <summary>Unique identifier for the product.</summary>
-    public int Id { get; set; }
+    public int Id { get; init; }
 
     /// <summary>The display name of the product (e.g., "Sandes de Delícias").</summary>
     [Required]
@@ -55,5 +55,5 @@ public class Product
     public bool IsActive { get; set; } = true;
 
     /// <summary>Collection of order lines where this product has been purchased.</summary>
-    public ICollection<OrderLine> ProductPurchases { get; set; } = new List<OrderLine>();
+    public ICollection<OrderLine> ProductPurchases { get; init; } = new List<OrderLine>();
 }

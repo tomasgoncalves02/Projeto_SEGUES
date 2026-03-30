@@ -46,9 +46,7 @@ public class ReportTransactionController : Controller
     /// <summary>
     /// Filters the transaction history based on search criteria, type, and date.
     /// </summary>
-    /// <param name="searchString">Search term for transaction description or reference.</param>
-    /// <param name="typeFilter">Filter for "In" (positive) or "Out" (negative) movements.</param>
-    /// <param name="dateFilter">Minimum date for inclusion in the report.</param>
+    /// <param name="searchModel">The search parameters including type, date range, and pagination info.</param>
     /// <returns>A PartialView containing the filtered table rows, or 500 status on error.</returns>
     [HttpGet]
     public async Task<IActionResult> GetFilteredBalance(ReportTransactionSearchViewModel searchModel)

@@ -19,7 +19,7 @@ public static class DbSeeder
         await SeedTestData(serviceProvider); // TODO: Remove on app release
     }
 
-    public static async Task SeedRolesAndAdminAsync(IServiceProvider serviceProvider)
+    private static async Task SeedRolesAndAdminAsync(IServiceProvider serviceProvider)
     {
         var roleManager = serviceProvider.GetRequiredService<RoleManager<Role>>();
         var userManager = serviceProvider.GetRequiredService<UserManager<AppUser>>();
@@ -128,7 +128,7 @@ public static class DbSeeder
         await context.SaveChangesAsync();
     }
 
-    public static async Task SeedInventoryAsync(IServiceProvider serviceProvider)
+    private static async Task SeedInventoryAsync(IServiceProvider serviceProvider)
     {
         var context = serviceProvider.GetRequiredService<AppDbContext>();
 
@@ -148,7 +148,7 @@ public static class DbSeeder
         await context.SaveChangesAsync();
     }
 
-    public static async Task SeedSchoolsAsync(IServiceProvider serviceProvider)
+    private static async Task SeedSchoolsAsync(IServiceProvider serviceProvider)
     {
         var context = serviceProvider.GetRequiredService<AppDbContext>();
 
@@ -204,7 +204,7 @@ public static class DbSeeder
         await context.SaveChangesAsync();
     }
 
-    public static async Task SeedTestData(IServiceProvider serviceProvider)
+    private static async Task SeedTestData(IServiceProvider serviceProvider)
     {
         var context = serviceProvider.GetRequiredService<AppDbContext>();
         var userManager = serviceProvider.GetRequiredService<UserManager<AppUser>>();

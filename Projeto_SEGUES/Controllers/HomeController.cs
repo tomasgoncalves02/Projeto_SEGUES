@@ -1,12 +1,10 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Localization;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Audit.ViewModels;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
-using Projeto_SEGUES.Resources;
 using Projeto_SEGUES.Services;
 using System.Diagnostics;
 
@@ -22,7 +20,6 @@ namespace Projeto_SEGUES.Controllers;
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
-    private readonly IStringLocalizer<Errors> _localizer;
     private readonly UserManager<AppUser> _userManager;
     private readonly IAdminService _adminService;
     private readonly IOrderService _orderService;
@@ -32,13 +29,11 @@ public class HomeController : Controller
     /// </summary>
     public HomeController(
         ILogger<HomeController> logger,
-        IStringLocalizer<Errors> localizer,
         UserManager<AppUser> userManager,
         IAdminService adminService,
         IOrderService orderService)
     {
         _logger = logger;
-        _localizer = localizer;
         _adminService = adminService;
         _userManager = userManager;
         _orderService = orderService;
