@@ -41,6 +41,7 @@ namespace Projeto_SEGUES.Data
          * ========= */
         // Users and Roles provided by Identity
         public DbSet<Employee> Employee { get; set; }
+        public DbSet<WorkerIps> WorkerIps { get; set; }
         public DbSet<PostalCode> PostalCode { get; set; }
         public DbSet<School> School { get; set; }
         public DbSet<Student> Student { get; set; }
@@ -147,6 +148,7 @@ namespace Projeto_SEGUES.Data
             modelBuilder.Entity<AppUser>().ToTable("User");
             modelBuilder.Entity<Student>().ToTable("Student");
             modelBuilder.Entity<Employee>().ToTable("Employee");
+            modelBuilder.Entity<WorkerIps>().ToTable("WorkerIps");
         }
     }
 }

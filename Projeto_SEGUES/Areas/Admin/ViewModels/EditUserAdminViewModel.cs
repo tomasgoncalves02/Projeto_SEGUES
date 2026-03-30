@@ -62,7 +62,7 @@ public class EditUserAdminViewModel
     [Display(Name = "Tipo de Conta")]
     public required string Role { get; set; }
 
-    /// <summary>The specific user category (e.g., Student, IPS Worker, External).</summary>
+    /// <summary>The specific user category (e.g., Estudante, Trabalhador IPS, Externo).</summary>
     [Required(ErrorMessage = "A categoria de utilizador é obrigatória.")]
     [Display(Name = "Categoria de Utilizador")]
     public required string Category { get; set; }
@@ -123,8 +123,11 @@ public class EditUserAdminViewModel
     public bool IsStudent => Category.Equals("Estudante", StringComparison.OrdinalIgnoreCase);
     
     [ValidateNever]
+    public bool IsWorkerIps => Category.Equals("Trabalhador IPS", StringComparison.OrdinalIgnoreCase);
+    
+    [ValidateNever]
     public bool IsEmployee => Role.Equals("Employee", StringComparison.OrdinalIgnoreCase);
     
     [ValidateNever]
-    public bool ShowSchool => IsEmployee || IsStudent;
+    public bool ShowSchool => IsEmployee || IsStudent || IsWorkerIps;
 }

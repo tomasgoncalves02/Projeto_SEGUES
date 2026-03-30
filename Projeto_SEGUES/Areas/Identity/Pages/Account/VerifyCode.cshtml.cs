@@ -159,6 +159,20 @@ namespace Projeto_SEGUES.Areas.Identity.Pages.Account
                     StudentNumber = extractedStudentNumber!
                 };
             }
+            else if (categoryName == "Trabalhador IPS")
+            {
+                user = new WorkerIps
+                {
+                    UserName = data.Email,
+                    Email = data.Email,
+                    FirstName = data.FirstName,
+                    LastName = data.LastName,
+                    Gender = data.Gender,
+                    BirthDate = data.BirthDate,
+                    UserCategory = category!,
+                    EmailConfirmed = true
+                };
+            }
             else
             {
                 user = new AppUser

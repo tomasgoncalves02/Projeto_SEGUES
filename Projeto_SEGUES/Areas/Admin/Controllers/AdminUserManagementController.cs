@@ -162,7 +162,13 @@ public class AdminUserManagementController : Controller
             PostalCode = user.PostalCode?.Code,
             StudentNumber = (user is Student student) ? student.StudentNumber : null,
             RoleDescription = (user is Employee employee) ? employee.RoleDescription : null,
-            SchoolId = (user is Student studentUser) ? studentUser.School?.Id : (user is Employee employeeUser) ? employeeUser.School?.Id : null,
+            SchoolId = user switch
+            {
+                Student studentUser => studentUser.School?.Id,
+                Employee employeeUser => employeeUser.School?.Id,
+                WorkerIps workerUser => workerUser.School?.Id,
+                _ => null
+            },
             RolesList = await _adminService.GetAllRolesForDropdownAsync(),
             CategoriesList = await _adminService.GetAllCategoriesForDropdownAsync(),
             SchoolsList = await _userService.GetSchoolsAsync()

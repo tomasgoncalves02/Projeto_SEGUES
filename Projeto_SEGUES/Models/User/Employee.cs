@@ -12,7 +12,7 @@ namespace Projeto_SEGUES.Models.User;
 public class Employee : AppUser
 {
     /// <summary>
-    /// A descriptive title of the employee's professional function (e.g., "Professor", "Cozinheiro").
+    /// A descriptive title of the employee's professional function (e.g., "Cozinheiro").
     /// </summary>
     [MaxLength(100, ErrorMessage = "Cargo deve ter no máximo {1} caracteres.")]
     [Display(Name = "Cargo")]

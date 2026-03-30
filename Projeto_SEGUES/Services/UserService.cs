@@ -12,7 +12,6 @@ namespace Projeto_SEGUES.Services;
 /// <summary>
 /// Service implementation for managing user-related operations.
 /// Handles profile updates, school management, and specialized user data 
-/// for both Students and Employees.
 /// </summary>
 public class UserService : IUserService
 {
@@ -57,6 +56,7 @@ public class UserService : IUserService
             .Include(u => u.PostalCode)
             .Include(u => (u as Student)!.School)
             .Include(u => (u as Employee)!.School)
+            .Include(u => (u as WorkerIps)!.School)
             .FirstOrDefaultAsync(u => u.Id == userId);
     }
 
@@ -117,7 +117,7 @@ public class UserService : IUserService
                 fkProp.SetValue(user, null);
             }
         }
-
+        
         // Polymorphic logic for specialized user types
         if (user is Student studentUser)
         {
@@ -127,6 +127,10 @@ public class UserService : IUserService
         else if (user is Employee employeeUser)
         {
             employeeUser.School = selectedSchool;
+        }
+        else if (user is WorkerIps workerUser)
+        {
+            workerUser.School = selectedSchool;
         }
 
         // Persistence via Identity UserManager
