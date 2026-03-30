@@ -6,21 +6,27 @@ pool:
 
 variables:
   buildConfiguration: 'Release'
-  webAppName: 'projeto-segues-app-linux'     
-  azureServiceConnection: 'ConexaoAzure' 
+  webAppName: 'projeto-segues-app-linux'
+  azureServiceConnection: 'ConexaoAzure'
 
 stages:
+
+# ─────────────────────────────────────────
+# STAGE 1 — BUILD
+# Compila o projeto e gera o artefacto ZIP
+# ─────────────────────────────────────────
 - stage: Build
   displayName: 'CI - Compilação e Artefactos'
   jobs:
   - job: BuildJob
+    displayName: 'Compilar projeto .NET'
     steps:
+
     - task: UseDotNet@2
       displayName: 'Instalar .NET SDK 8.x'
       inputs:
         version: '8.x'
 
-    # Compila e prepara os ficheiros (incluindo as Migrations do AppDbContext)
     - script: dotnet publish --configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)
       displayName: 'Dotnet Publish'
 
@@ -36,17 +42,91 @@ stages:
       artifact: drop
       displayName: 'Publicar Artefacto'
 
-- stage: Deploy
-  displayName: 'CD - Deploy e Atualização de DB'
+# ─────────────────────────────────────────
+# STAGE 2 — TESTES
+# Corre os testes xUnit e publica resultados
+# Só avança se o Build tiver passado
+# ─────────────────────────────────────────
+- stage: Test
+  displayName: 'CI - Testes Automatizados'
   dependsOn: Build
   condition: succeeded()
   jobs:
+  - job: TestJob
+    displayName: 'Executar testes xUnit'
+    steps:
+
+    - task: UseDotNet@2
+      displayName: 'Instalar .NET SDK 8.x'
+      inputs:
+        version: '8.x'
+
+    - script: >
+        dotnet test
+        --configuration $(buildConfiguration)
+        --logger "trx;LogFileName=TestResults.trx"
+        --collect:"XPlat Code Coverage"
+        --results-directory $(Agent.TempDirectory)
+      displayName: 'Correr testes e recolher cobertura'
+
+    - task: PublishTestResults@2
+      displayName: 'Publicar resultados dos testes'
+      condition: always()
+      inputs:
+        testResultsFormat: 'VSTest'
+        testResultsFiles: '$(Agent.TempDirectory)/**/*.trx'
+        failTaskOnFailedTests: true
+
+    - task: PublishCodeCoverageResults@2
+      displayName: 'Publicar cobertura de código'
+      condition: always()
+      inputs:
+        summaryFileLocation: '$(Agent.TempDirectory)/**/coverage.cobertura.xml'
+
+# ─────────────────────────────────────────
+# STAGE 3 — QUALIDADE
+# Análise estática de código
+# Só avança se os Testes tiverem passado
+# ─────────────────────────────────────────
+- stage: Quality
+  displayName: 'CI - Análise de Qualidade'
+  dependsOn: Test
+  condition: succeeded()
+  jobs:
+  - job: QualityJob
+    displayName: 'Análise estática de código'
+    steps:
+
+    - task: UseDotNet@2
+      displayName: 'Instalar .NET SDK 8.x'
+      inputs:
+        version: '8.x'
+
+    - script: dotnet build --configuration $(buildConfiguration) /p:RunAnalyzers=true /p:TreatWarningsAsErrors=false
+      displayName: 'Build com análise de código'
+
+    - script: dotnet format --verify-no-changes --severity warn
+      displayName: 'Verificar formatação do código'
+      continueOnError: true
+
+# ─────────────────────────────────────────
+# STAGE 4 — DEPLOY
+# Envia para o Azure App Service (tier F1)
+# Só avança se a Qualidade tiver passado
+# ─────────────────────────────────────────
+- stage: Deploy
+  displayName: 'CD - Deploy para Azure'
+  dependsOn: Quality
+  condition: succeeded()
+  jobs:
   - deployment: DeployJob
+    displayName: 'Deploy para App Service'
     environment: 'production'
     strategy:
       runOnce:
         deploy:
           steps:
+
           - task: AzureWebApp@1
             displayName: 'Deploy para Azure App Service'
             inputs:
@@ -54,4 +134,4 @@ stages:
               appType: 'webAppLinux'
               appName: $(webAppName)
               package: '$(Pipeline.Workspace)/drop/$(Build.BuildId).zip'
-              runtimeStack: 'DOTNETCORE|8.0'
+              runtimeStack: 'DOTNET|8.0'
