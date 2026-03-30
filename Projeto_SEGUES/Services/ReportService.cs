@@ -8,17 +8,31 @@ using Projeto_SEGUES.Models.Ticket;
 
 namespace Projeto_SEGUES.Services;
 
+/// <summary>
+/// Service implementation for data analysis, reporting, and history retrieval.
+/// Aggregates complex data from orders, tickets, and transactions to provide 
+/// statistical insights for administrative and user-facing dashboards.
+/// </summary>
 public class ReportService : IReportService
 {
     private readonly AppDbContext _context;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ReportService"/>.
+    /// </summary>
+    /// <param name="context">The primary database context.</param>
     public ReportService(AppDbContext context)
     {
         _context = context;
     }
 
     #region General
-    
+
+    /// <summary>
+    /// Calculates the starting date for a given statistical period index.
+    /// </summary>
+    /// <param name="period">Period index (1: Today, 2: Week, 3: Month, 4: Year, 5: All Time).</param>
+    /// <returns>A DateTime representing the start of the interval.</returns>
     private DateTime GetStartDateForPeriod(int period)
     {
         var now = DateTime.Now;
@@ -32,11 +46,14 @@ public class ReportService : IReportService
             _ => now.Date
         };
     }
-    
+
     #endregion
-    
+
     #region Orders
-    
+
+    /// <summary>
+    /// Retrieves a list of orders (excluding carts and cancelled ones) starting from a specific date.
+    /// </summary>
     private async Task<List<Order>> GetOrdersAsync(DateTime start)
     {
         return await _context.Order
@@ -46,6 +63,10 @@ public class ReportService : IReportService
             .ToListAsync();
     }
 
+    /// <summary>
+    /// Groups orders by time intervals (hours, days, months) based on the selected period.
+    /// Prepares data for Chart.js bar graphs.
+    /// </summary>
     private List<ChartDataDto> GetBarGraphStatsAsync(List<Order> orders, int period)
     {
         if (orders.Count == 0) return [];
@@ -69,6 +90,9 @@ public class ReportService : IReportService
             .ToList();
     }
 
+    /// <summary>
+    /// Aggregates order volume by product category.
+    /// </summary>
     private List<CategoryDataDto> GetProductCategoryStatsAsync(List<Order> orders)
     {
         if (orders.Count == 0) return [];
@@ -85,6 +109,9 @@ public class ReportService : IReportService
             .ToList();
     }
 
+    /// <summary>
+    /// Identifies the top-selling products by quantity across the provided order list.
+    /// </summary>
     private List<ProductDataDto> GetTopProductsStatsAsync(List<Order> orders)
     {
         if (orders.Count == 0) return [];
@@ -94,20 +121,23 @@ public class ReportService : IReportService
             .GroupBy(ol => ol.Product.Name)
             .Select(g => new ProductDataDto
             {
-                 Name = g.Key,
-                 Quantity = g.Sum(ol => ol.Quantity)
+                Name = g.Key,
+                Quantity = g.Sum(ol => ol.Quantity)
             })
             .OrderByDescending(p => p.Quantity)
             .ToList();
     }
-    
+
+    /// <summary>
+    /// Compiles a comprehensive statistics DTO for Bar Orders based on a time period.
+    /// </summary>
     public async Task<ReportStatisticsOrderDto> GetOrdersStats(int period = 1)
     {
         var start = GetStartDateForPeriod(period);
         var orders = await GetOrdersAsync(start);
         int totalOrders = orders.Count;
         decimal totalRevenue = totalOrders == 0 ? 0m : orders.Sum(o => o.TotalValue);
-        
+
         return new ReportStatisticsOrderDto
         {
             TotalOrders = totalOrders,
@@ -119,24 +149,30 @@ public class ReportService : IReportService
             TopProducts = GetTopProductsStatsAsync(orders)
         };
     }
-    
+
+    /// <summary>
+    /// Constructs the base query for order history, allowing optional inclusion of product details.
+    /// </summary>
     private IQueryable<Order> BuildOrderHistoryBaseQuery(string? userId = null, bool includeProducts = false)
     {
         var query = _context.Order
             .Include(o => o.AppUser)
             .Where(o => o.Status != OrderStatus.Cart);
-        
+
         if (includeProducts)
             query = query.Include(o => o.ProductPurchases).ThenInclude(ol => ol.Product);
-    
+
         if (!string.IsNullOrEmpty(userId))
         {
             query = query.Where(o => o.AppUser.Id == userId);
         }
-    
+
         return query.AsNoTracking().AsQueryable();
     }
-    
+
+    /// <summary>
+    /// Applies search and status filters to an existing order query.
+    /// </summary>
     private IQueryable<Order> ApplyOrderHistorySearchFilters(IQueryable<Order> query, ReportOrderSearchViewModel model, bool filterOwner = false)
     {
         var searchString = model.SearchString?.Trim().ToLower();
@@ -148,38 +184,47 @@ public class ReportService : IReportService
                 (filterOwner && (o.AppUser.FirstName + " " + o.AppUser.LastName).ToLower().Contains(searchString))
             );
         }
-        
+
         if (model.StatusFilter.HasValue)
         {
             query = query.Where(o => o.Status == model.StatusFilter.Value);
         }
-        
+
         if (model.DateFilter.HasValue)
         {
             query = query.Where(o => o.OrderDate.Date == model.DateFilter.Value.Date);
         }
-    
+
         return query;
     }
-    
+
+    /// <summary>
+    /// Retrieves order history for a specific customer.
+    /// </summary>
     public async Task<List<Order>> GetOrderHistoryAsync(string userId, ReportOrderSearchViewModel model)
     {
         var query = BuildOrderHistoryBaseQuery(userId);
         query = ApplyOrderHistorySearchFilters(query, model);
         return await query.OrderByDescending(o => o.OrderDate).ToListAsync();
     }
-    
+
+    /// <summary>
+    /// Retrieves global order history for administrative review.
+    /// </summary>
     public async Task<List<Order>> GetAdminOrderHistoryAsync(ReportOrderSearchViewModel model, bool includeProducts = false)
     {
         var query = BuildOrderHistoryBaseQuery(null, includeProducts);
         query = ApplyOrderHistorySearchFilters(query, model, true);
         return await query.OrderByDescending(o => o.OrderDate).ToListAsync();
     }
-    
+
     #endregion
 
     #region Tickets
 
+    /// <summary>
+    /// Fetches used tickets with their associated purchase and owner category info.
+    /// </summary>
     private async Task<List<Ticket>> GetUsedTicketsAsync(DateTime start)
     {
         return await _context.Ticket
@@ -188,16 +233,19 @@ public class ReportService : IReportService
             .Where(t => t.IsUsed && t.UsedDate != null && t.UsedDate >= start)
             .ToListAsync();
     }
-    
+
+    /// <summary>
+    /// Prepares data for canteen usage charts, grouping by hour, day, or month.
+    /// </summary>
     private List<ChartDataDto> GetInfoGraphStatsAsync(List<Ticket> tickets, int period)
     {
         if (tickets.Count == 0) return [];
-        
+
         return tickets
             .GroupBy(t => period switch
             {
                 1 => new { Order = t.UsedDate!.Value.Hour, Label = t.UsedDate!.Value.ToString("HH:00") },
-                2 => new { Order = (int) t.UsedDate!.Value.DayOfWeek, Label = t.UsedDate!.Value.ToString("dd/MM") },
+                2 => new { Order = (int)t.UsedDate!.Value.DayOfWeek, Label = t.UsedDate!.Value.ToString("dd/MM") },
                 3 => new { Order = t.UsedDate!.Value.Day, Label = t.UsedDate!.Value.ToString("dd/MM") },
                 4 => new { Order = t.UsedDate!.Value.Month, Label = t.UsedDate!.Value.ToString("MMMM") },
                 5 => new { Order = t.UsedDate!.Value.Month, Label = t.UsedDate!.Value.ToString("MM/yyyy") },
@@ -212,6 +260,9 @@ public class ReportService : IReportService
             .ToList();
     }
 
+    /// <summary>
+    /// Breaks down meal consumption by user category (Student, Staff, etc.).
+    /// </summary>
     private List<CategoryDataDto> GetByCategoryAsync(List<Ticket> tickets)
     {
         if (tickets.Count == 0) return [];
@@ -226,6 +277,9 @@ public class ReportService : IReportService
             .ToList();
     }
 
+    /// <summary>
+    /// Compiles statistics for meal ticket usage within a given period.
+    /// </summary>
     public async Task<ReportStatisticsTicketDto> GetTicketsStats(int period = 1)
     {
         var start = GetStartDateForPeriod(period);
@@ -245,9 +299,14 @@ public class ReportService : IReportService
     }
 
     #endregion
-    
+
     #region Transactions
 
+    /// <summary>
+    /// Retrieves a detailed financial statement for a user, including top-ups and spending.
+    /// </summary>
+    /// <param name="userId">The unique identifier of the user.</param>
+    /// <param name="model">Filters for reference/description, type (In/Out), and date.</param>
     public async Task<List<Transaction>> GetTransactionHistoryAsync(string userId, ReportTransactionSearchViewModel model)
     {
         var query = _context.Transaction
@@ -255,18 +314,18 @@ public class ReportService : IReportService
             .Where(t => t.User.Id == userId)
             .AsNoTracking()
             .AsQueryable();
-        
-        // Text Filter
+
+        // Filter by Reference or Description
         var searchString = model.SearchString?.Trim().ToLower();
         if (!string.IsNullOrWhiteSpace(searchString))
         {
             query = query.Where(t =>
-                (t.Description != null && t.Description.ToLower().Contains(searchString)) 
+                (t.Description != null && t.Description.ToLower().Contains(searchString))
                 || t.Reference.ToLower().Contains(searchString)
             );
         }
-        
-        // Flow filter (Entrada/Saída)
+
+        // Filter by Transaction Flow (Incoming vs Outgoing)
         var typeFilter = model.TypeFilter;
         if (!string.IsNullOrWhiteSpace(typeFilter))
         {
@@ -277,16 +336,16 @@ public class ReportService : IReportService
                 _ => query
             };
         }
-        
-        // Date filter
+
+        // Filter by Date
         var dateFilter = model.DateFilter;
         if (dateFilter.HasValue)
         {
             query = query.Where(t => t.CreatedAt.Date >= dateFilter.Value.Date);
         }
-        
+
         return await query.OrderByDescending(t => t.CreatedAt).ToListAsync();
     }
-    
+
     #endregion
 }

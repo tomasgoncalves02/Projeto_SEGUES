@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Areas.Report.ViewModels;
 using Projeto_SEGUES.Data;
@@ -10,20 +10,35 @@ using Projeto_SEGUES.Models.User;
 
 namespace Projeto_SEGUES.Services;
 
+/// <summary>
+/// Service implementation for managing Meal Tickets.
+/// Handles the ticket lifecycle, including dynamic pricing, acquisition, 
+/// peer-to-peer transfers, expiration logic, and canteen validation.
+/// </summary>
 public class TicketService : ITicketService
 {
     private readonly AppDbContext _context;
     private readonly ILogger<TicketService> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TicketService"/> class.
+    /// </summary>
+    /// <param name="context">The primary database context.</param>
+    /// <param name="logger">The application logger.</param>
     public TicketService(AppDbContext context, ILogger<TicketService> logger)
     {
         _context = context;
         _logger = logger;
     }
-    
+
     #region Active Tickets
-    
-    // Get only active (available and not expired) tickets for a user
+
+    /// <summary>
+    /// Retrieves all valid, unused, and non-expired tickets for a specific user.
+    /// Triggers a local expiration check before fetching.
+    /// </summary>
+    /// <param name="userId">The unique identifier of the user.</param>
+    /// <returns>A list of available tickets for use or transfer.</returns>
     public async Task<List<Ticket>> GetActiveTicketsAsync(string userId)
     {
         // Ensure we update expired tickets before fetching
@@ -35,12 +50,16 @@ public class TicketService : ITicketService
             .OrderBy(t => t.ExpirationDate)
             .ToListAsync();
     }
-    
+
     #endregion
-    
+
     #region Expire Tickets
-    
-    // Set expired tickets state to expired
+
+    /// <summary>
+    /// Sets the state of expired tickets to 'Expired' for a specific user.
+    /// Uses high-performance <c>ExecuteUpdateAsync</c> to process records directly in the database.
+    /// </summary>
+    /// <param name="userId">The user ID to check.</param>
     private async Task ExpireUserTicketsAsync(string userId)
     {
         var now = DateTime.Now;
@@ -52,6 +71,9 @@ public class TicketService : ITicketService
             .ExecuteUpdateAsync(s => s.SetProperty(t => t.State, TicketState.Expired));
     }
 
+    /// <summary>
+    /// Global maintenance task to mark all available tickets in the system that have passed their expiration date.
+    /// </summary>
     private async Task ExpireTicketsGlobalAsync()
     {
         var now = DateTime.Now;
@@ -61,18 +83,22 @@ public class TicketService : ITicketService
                         && t.ExpirationDate < now)
             .ExecuteUpdateAsync(s => s.SetProperty(t => t.State, TicketState.Expired));
     }
-    
+
     #endregion
-    
+
     #region Order Tickets
-    
-    // Get current price for a user based on their category and current date
+
+    /// <summary>
+    /// Determines the unit price for a ticket based on the user's category and the current date.
+    /// </summary>
+    /// <param name="user">The user entity to evaluate.</param>
+    /// <returns>The decimal value of the current price.</returns>
     public async Task<decimal> GetCurrentPriceForUserAsync(AppUser user)
     {
         // Load navigation first and extract the category id into a local variable
         await _context.Entry(user).Reference(u => u.UserCategory).LoadAsync();
         var userCategoryId = user.UserCategory.Id;
-        
+
         var now = DateTime.Now;
         var price = await _context.TicketPrice
             .Where(p => p.UserCategory.Id == userCategoryId
@@ -83,8 +109,12 @@ public class TicketService : ITicketService
 
         return price?.Price ?? 0m;
     }
-    
-    // Get all tickets for a user (includes expired and used)
+
+    /// <summary>
+    /// Retrieves the complete ticket history for a user, including used and expired tickets.
+    /// </summary>
+    /// <param name="userId">The unique identifier of the user.</param>
+    /// <returns>A list of all tickets associated with the user.</returns>
     public async Task<List<Ticket>> GetUserTicketsAsync(string userId)
     {
         // Ensure we update expired tickets before fetching
@@ -96,21 +126,27 @@ public class TicketService : ITicketService
             .OrderByDescending(t => t.TicketPurchase.TransactionDate)
             .ToListAsync();
     }
-    
-    // Buy Tickets: checks balance, creates purchase record, creates tickets, updates user balance
+
+    /// <summary>
+    /// Processes a bulk purchase of meal tickets. 
+    /// Checks balance, creates purchase records, generates unique codes, and updates balance atomically.
+    /// </summary>
+    /// <param name="userId">Buyer's ID.</param>
+    /// <param name="quantity">Amount of tickets to buy.</param>
+    /// <returns>A ServiceResult indicating the outcome.</returns>
     public async Task<ServiceResult> BuyTicketsAsync(string userId, int quantity)
     {
         if (quantity <= 0) return ServiceResult.Fail("Quantidade inválida.");
-        
+
         var dbUser = await _context.Users
             .Include(u => u.UserCategory)
             .FirstOrDefaultAsync(u => u.Id == userId);
         if (dbUser == null) return ServiceResult.Fail("Utilizador não encontrado.");
-        
+
         var now = DateTime.Now;
         var pricePerUnit = await GetCurrentPriceForUserAsync(dbUser);
         if (pricePerUnit <= 0) return ServiceResult.Fail("Preçário não disponível. Contacte a administração.");
-        
+
         var totalCost = pricePerUnit * quantity;
         if (dbUser.Balance < totalCost)
             return ServiceResult.Fail("Saldo insuficiente para a operação.");
@@ -127,7 +163,7 @@ public class TicketService : ITicketService
                 Value = totalCost
             };
             _context.TicketPurchase.Add(purchase);
-            
+
             // Register transaction in the Transaction table
             var saldoMovimento = new Transaction
             {
@@ -145,7 +181,7 @@ public class TicketService : ITicketService
             if (validity == 0) validity = 365;
             var expiration = now.Date.AddDays(validity).AddHours(23).AddMinutes(59).AddSeconds(59);
             string code;
-            
+
             for (int i = 0; i < quantity; i++)
             {
                 do
@@ -179,11 +215,14 @@ public class TicketService : ITicketService
             return ServiceResult.Fail("Erro ao processar a compra.");
         }
     }
-    
+
     #endregion
-    
+
     #region Report Tickets
 
+    /// <summary>
+    /// Constructs the base query for ticket history reports, ensuring expiration checks are performed.
+    /// </summary>
     private async Task<IQueryable<Ticket>> BuildTicketHistoryBaseQuery(string? userId = null)
     {
         // Ensure we update expired tickets before fetching
@@ -195,22 +234,25 @@ public class TicketService : ITicketService
         {
             await ExpireUserTicketsAsync(userId);
         }
-        
-        var query =  _context.Ticket
+
+        var query = _context.Ticket
             .Include(t => t.Owner)
             .Include(t => t.TicketPurchase)
             .Include(t => t.Transfers).ThenInclude(tr => tr.Sender)
             .Include(t => t.Transfers).ThenInclude(tr => tr.Receiver)
             .AsNoTracking()
             .AsQueryable();
-        
+
         // Get tickets owned by the user or transferred to/from the user
         if (userId != null)
             query = query.Where(t => t.Owner.Id == userId || t.Transfers.Any(tr => tr.Sender.Id == userId || tr.Receiver.Id == userId));
-        
+
         return query;
     }
 
+    /// <summary>
+    /// Applies sophisticated search filters for tickets, including flow (sent/received) and ownership.
+    /// </summary>
     private IQueryable<Ticket> ApplyTicketHistorySearchFilters(IQueryable<Ticket> query, ReportTicketSearchViewModel model, string? userId = null)
     {
         bool isAdminLog = (userId == null);
@@ -227,7 +269,7 @@ public class TicketService : ITicketService
                 )
             );
         }
-        
+
         if (model.DateFilter.HasValue)
         {
             // From date forward
@@ -246,7 +288,7 @@ public class TicketService : ITicketService
                 query = query.Where(t => t.State == model.StateFilter.Value && t.Owner.Id == userId);
             }
         }
-        
+
         if (model.FlowFilter.HasValue)
         {
             switch (model.FlowFilter.Value)
@@ -286,18 +328,25 @@ public class TicketService : ITicketService
 
         return query;
     }
-    
+
+    /// <summary>
+    /// Retrieves a filtered list of tickets for history reporting.
+    /// </summary>
     public async Task<List<Ticket>> GetTicketHistoryAsync(string? userId, ReportTicketSearchViewModel model)
     {
         var query = await BuildTicketHistoryBaseQuery(userId);
         query = ApplyTicketHistorySearchFilters(query, model, userId);
         return await query.OrderByDescending(t => t.TicketPurchase.TransactionDate).ToListAsync();
     }
-    
+
     #endregion
 
     #region Transfer Tickets
-    
+
+    /// <summary>
+    /// Validates if a user is eligible to receive a ticket from another user.
+    /// Checks category equality to maintain subsidized pricing integrity.
+    /// </summary>
     public async Task<ServiceResult<string>> CheckTransferEligibilityAsync(string senderId, string recipientEmail)
     {
         var sender = await _context.Users
@@ -305,31 +354,35 @@ public class TicketService : ITicketService
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == senderId);
         if (sender == null) return ServiceResult<string>.Fail("Utilizador remetente não encontrado.");
-        
+
         if (sender.Email!.Equals(recipientEmail, StringComparison.OrdinalIgnoreCase))
             return ServiceResult<string>.Fail("Não pode transferir senhas para si próprio.");
-        
+
         var recipient = await _context.Users
             .Include(u => u.UserCategory)
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Email == recipientEmail);
-        
+
         if (recipient == null) return ServiceResult<string>.Fail("Não foi encontrado nenhum utilizador com esse e-mail.");
 
-        if (sender.UserCategory.Id != recipient.UserCategory.Id) 
+        if (sender.UserCategory.Id != recipient.UserCategory.Id)
             return ServiceResult<string>.Fail($"Transferência recusada: Só pode enviar senhas para utilizadores da categoria {sender.UserCategory.Name}. O destinatário é {recipient.UserCategory.Name}.");
 
         return ServiceResult<string>.Ok("Transferência válida.", $"{recipient.FirstName} {recipient.LastName}");
     }
-    
+
+    /// <summary>
+    /// Executes the peer-to-peer transfer of selected tickets.
+    /// Wraps owner changes and transfer records in a database transaction.
+    /// </summary>
     public async Task<ServiceResult> TransferTicketsAsync(string senderId, string recipientEmail, List<string> selectedTickets)
     {
         if (selectedTickets.Count == 0)
             return ServiceResult.Fail("Nenhuma senha foi selecionada.");
-        
+
         var eligibilityCheck = await CheckTransferEligibilityAsync(senderId, recipientEmail);
         if (!eligibilityCheck.Success) return ServiceResult.Fail(eligibilityCheck.Message);
-        
+
         // Get tickets to transfer: must be owned by sender, in available state, and match selected codes
         var ticketsToTransfer = await _context.Ticket
             .Include(t => t.Owner)
@@ -342,11 +395,11 @@ public class TicketService : ITicketService
         {
             return ServiceResult.Fail("Algumas das senhas selecionadas já não estão disponíveis ou já não lhe pertencem. Por favor, atualize a página.");
         }
-        
+
         // Load users
         var sender = await _context.Users.FindAsync(senderId);
         var receiver = await _context.Users.FirstOrDefaultAsync(u => u.Email == recipientEmail);
-        
+
         if (sender == null || receiver == null)
             return ServiceResult.Fail("Erro inesperado ao processar os dados dos utilizadores.");
 
@@ -379,12 +432,15 @@ public class TicketService : ITicketService
             return ServiceResult.Fail("Ocorreu um erro interno ao processar a transferência.");
         }
     }
-    
+
     #endregion
-    
+
     #region Validate Tickets
 
-    // Get recent used tickets (for admin/employee dashboard)
+    /// <summary>
+    /// Retrieves a list of recently used tickets for staff monitoring purposes.
+    /// </summary>
+    /// <param name="take">Number of records to retrieve.</param>
     [Authorize(Roles = "Admin, Employee")]
     public async Task<List<Ticket>> GetRecentUsedTicketsAsync(int take = 10)
     {
@@ -396,21 +452,26 @@ public class TicketService : ITicketService
             .ToListAsync();
     }
 
-    // Validate Ticket: checks code, updates the state to the used state if valid
+    /// <summary>
+    /// Validates a ticket code presented at the canteen.
+    /// Marks the ticket as used, records the usage date and the staff member responsible.
+    /// </summary>
+    /// <param name="code">Validation code presented by the user.</param>
+    /// <param name="validator">The staff member performing the validation.</param>
     [Authorize(Roles = "Admin, Employee")]
     public async Task<ServiceResult> ValidateTicketAsync(string code, AppUser validator)
     {
         if (string.IsNullOrWhiteSpace(code)) return ServiceResult.Fail("Código inválido.");
-        
+
         var ticket = await _context.Ticket
             .Include(t => t.Owner)
             .FirstOrDefaultAsync(t => t.ValidationCode == code.ToUpper());
 
         if (ticket == null) return ServiceResult.Fail("Bilhete não encontrado.");
-        
+
         if (ticket.State == TicketState.Used)
             return ServiceResult.Fail($"Bilhete já utilizado em {ticket.UsedDate:dd/MM HH:mm}.");
-        
+
         if (ticket.State == TicketState.Expired || ticket.ExpirationDate < DateTime.Now)
         {
             // Auto-update to expired if it wasn't already
@@ -421,7 +482,7 @@ public class TicketService : ITicketService
             }
             return ServiceResult.Fail("Bilhete expirado.");
         }
-        
+
         if (ticket.State != TicketState.Available)
             return ServiceResult.Fail("Bilhete não está disponível (Cancelado ou Pendente).");
 
@@ -435,6 +496,6 @@ public class TicketService : ITicketService
         _logger.LogAppUser($"User {validator.UserName} validated ticket {ticket.ValidationCode}", UserAction.ValidateTicket);
         return ServiceResult.Ok("Bilhete Válido.");
     }
-    
+
     #endregion
 }

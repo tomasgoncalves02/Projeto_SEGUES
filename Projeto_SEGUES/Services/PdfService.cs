@@ -9,11 +9,16 @@ using QuestPDF.Infrastructure;
 
 namespace Projeto_SEGUES.Services;
 
+/// <summary>
+/// Service implementation for PDF document generation using QuestPDF.
+/// Responsible for creating formatted administrative reports including 
+/// order history, ticket usage, user lists, and staff audit logs.
+/// </summary>
 public class PdfService : IPdfService
 {
     private static readonly string FontFamily = "Roboto";
     private static readonly string PrimaryColor = "#009697";
-    
+
     /// <summary>
     /// Configures the default page settings (size, margins, colors, fonts) for the PDF document.
     /// </summary>
@@ -25,7 +30,7 @@ public class PdfService : IPdfService
         page.PageColor(Colors.White);
         page.DefaultTextStyle(x => x.FontFamily(FontFamily).FontSize(9));
     }
-    
+
     /// <summary>
     /// Composes the header section of the PDF document.
     /// </summary>
@@ -46,7 +51,7 @@ public class PdfService : IPdfService
             });
         });
     }
-    
+
     /// <summary>
     /// Composes the footer section of the PDF document.
     /// </summary>
@@ -61,7 +66,7 @@ public class PdfService : IPdfService
             x.TotalPages();
         });
     }
-    
+
     /// <summary>
     /// Auxiliary method for adding a header cell to a table.
     /// </summary>
@@ -72,7 +77,7 @@ public class PdfService : IPdfService
         table.Cell().Background(PrimaryColor).Padding(4).AlignCenter()
             .Text(text).FontColor(Colors.White).FontSize(8).SemiBold();
     }
-    
+
     /// <summary>
     /// Auxiliary method for drawing a date cell in a table.
     /// </summary>
@@ -82,7 +87,7 @@ public class PdfService : IPdfService
     {
         dateString = date.HasValue ? date.Value.ToString("dd/MM/yyyy") : dateString ?? "---";
         timeString = date.HasValue ? date.Value.ToString("HH:mm") : timeString ?? "---";
-        container.Column(c => 
+        container.Column(c =>
         {
             c.Item().AlignCenter().Text(dateString).FontSize(8).SemiBold();
             c.Item().AlignCenter().Text(timeString).FontSize(7).FontColor(Colors.Grey.Medium);
@@ -113,7 +118,7 @@ public class PdfService : IPdfService
             });
         }
     }
-    
+
     /// <summary>
     /// Auxiliary method for drawing a products cell in a table.
     /// </summary>
@@ -127,7 +132,7 @@ public class PdfService : IPdfService
                 c.Item().Text($"• {p.Quantity}x {p.Product.Name} ({p.ProductValue:C})").FontSize(7);
         });
     }
-    
+
     /// <summary>
     /// Auxiliary method for styling the cells.
     /// </summary>
@@ -139,10 +144,13 @@ public class PdfService : IPdfService
             .AlignMiddle()
             .AlignCenter()
             .DefaultTextStyle(x => x.FontFamily(FontFamily).FontSize(8));
-    
+
     /// <summary>
-    /// Gera um relatório PDF com o histórico de pedidos filtrado.
+    /// Generates a PDF report containing the filtered historical record of bar orders.
     /// </summary>
+    /// <param name="orders">List of orders to include in the report.</param>
+    /// <param name="logoPath">Path to the logo image file.</param>
+    /// <returns>A byte array representing the generated PDF.</returns>
     public byte[] GenerateAdminOrderHistoryPdfAsync(List<Order> orders, string logoPath)
     {
         // Create pdf
@@ -154,7 +162,7 @@ public class PdfService : IPdfService
                 ConfigureDefaultPage(page);
                 page.Header().Element(c => ComposeHeader(c, "Histórico de Pedidos", logoPath));
                 page.Footer().Element(ComposeFooter);
-                
+
                 // Content
                 page.Content().PaddingTop(10).Table(table =>
                 {
@@ -186,30 +194,30 @@ public class PdfService : IPdfService
 
                         // Number
                         table.Cell().Element(CellStyle).Text($"#{o.Id:D5}");
-                        
+
                         // Code
                         table.Cell().Element(CellStyle).Text(o.RedemptionCode).FontSize(7);
-                        
+
                         // OrderDate
                         table.Cell().Element(CellStyle).Element(c => DrawDateCell(c, o.OrderDate));
-                        
+
                         // DeliveryTime
                         table.Cell().Element(CellStyle).Text(
                             (o.DeliveryTime.HasValue)
                             ? o.DeliveryTime.Value.ToString(@"hh\:mm")
                             : "Agora"
                         );
-                        
+
                         // Status
                         table.Cell().Element(CellStyle).Text(o.Status.ToDisplayName());
-                        
+
                         // PickupTime
                         table.Cell().Element(CellStyle).Text(
                             (o.PickupTime == null)
                                 ? "---"
                                 : o.PickupTime.Value.ToString(@"hh\:mm")
                         );
-                        
+
                         // Products
                         table.Cell().Element(CellStyle).Element(c => DrawProductsCell(c, o.ProductPurchases));
 
@@ -217,7 +225,7 @@ public class PdfService : IPdfService
                         table.Cell().Element(CellStyle).AlignRight().PaddingRight(4).Text($"{o.TotalValue:C}").SemiBold();
                     }
                 });
-                
+
             });
         });
 
@@ -225,6 +233,12 @@ public class PdfService : IPdfService
         return document.GeneratePdf();
     }
 
+    /// <summary>
+    /// Generates a PDF report containing the history of meal tickets including transfers.
+    /// </summary>
+    /// <param name="tickets">List of tickets to include in the report.</param>
+    /// <param name="logoPath">Path to the logo image file.</param>
+    /// <returns>A byte array representing the generated PDF.</returns>
     public byte[] GenerateAdminTicketHistoryPdfAsync(List<Ticket> tickets, string logoPath)
     {
         var document = Document.Create(container =>
@@ -261,19 +275,19 @@ public class PdfService : IPdfService
                     foreach (var t in tickets)
                     {
                         var lastTrans = t.Transfers.OrderByDescending(x => x.TransferDate).FirstOrDefault();
-                        
+
                         // Owner
                         table.Cell().Element(CellStyle).Element(c => DrawUserCell(c, t.Owner));
-                        
+
                         // Code
                         table.Cell().Element(CellStyle).Text(t.ValidationCode).FontSize(7);
-                        
+
                         // Purchase Date
                         table.Cell().Element(CellStyle).Element(c => DrawDateCell(c, t.TicketPurchase.TransactionDate));
-                        
+
                         // State
                         table.Cell().Element(CellStyle).Text(t.State.ToDisplayName());
-                        
+
                         // Transfer
                         if (lastTrans == null)
                         {
@@ -285,14 +299,14 @@ public class PdfService : IPdfService
                         {
                             // Date of transfer
                             table.Cell().Element(CellStyle).Element(c => DrawDateCell(c, lastTrans.TransferDate));
-                            
+
                             // Sender
                             table.Cell().Element(CellStyle).Element(c => DrawUserCell(c, lastTrans.Sender));
-                            
+
                             // Receiver
                             table.Cell().Element(CellStyle).Element(c => DrawUserCell(c, lastTrans.Receiver));
                         }
-                        
+
                         // Used date
                         if (t.UsedDate == null || t.IsUsed == false)
                         {
@@ -302,7 +316,7 @@ public class PdfService : IPdfService
                         {
                             table.Cell().Element(CellStyle).Element(c => DrawDateCell(c, t.UsedDate.Value));
                         }
-                        
+
                         // Expiration date
                         table.Cell().Element(CellStyle).Text(t.ExpirationDate.ToString("dd/MM/yyyy"));
                     }
@@ -313,22 +327,28 @@ public class PdfService : IPdfService
         return document.GeneratePdf();
     }
 
+    /// <summary>
+    /// Generates a PDF report with the list of registered users and their account details.
+    /// </summary>
+    /// <param name="users">List of user DTOs to include in the report.</param>
+    /// <param name="logoPath">Path to the logo image file.</param>
+    /// <returns>A byte array representing the generated PDF.</returns>
     public byte[] GenerateAdminUsersListPdfAsync(List<UserDto> users, string logoPath)
-    { 
-        var document = Document.Create(container => 
-        { 
-            container.Page(page => 
-            { 
+    {
+        var document = Document.Create(container =>
+        {
+            container.Page(page =>
+            {
                 // Global configuration
-                ConfigureDefaultPage(page); 
-                page.Header().Element(c => ComposeHeader(c, "Lista de Utilizadores", logoPath)); 
+                ConfigureDefaultPage(page);
+                page.Header().Element(c => ComposeHeader(c, "Lista de Utilizadores", logoPath));
                 page.Footer().Element(ComposeFooter);
 
                 // Table content
-                page.Content().PaddingTop(10).Table(table => 
-                { 
+                page.Content().PaddingTop(10).Table(table =>
+                {
                     // Columns
-                    table.ColumnsDefinition(columns => 
+                    table.ColumnsDefinition(columns =>
                     {
                         columns.RelativeColumn(2.5f); // Utilizador (Nome e Email)
                         columns.ConstantColumn(75);   // Role
@@ -341,10 +361,10 @@ public class PdfService : IPdfService
                     });
 
                     // Header
-                    table.Header(_ => 
-                    { 
-                        string[] colNames = { "Utilizador", "Role", "Categoria", "Estado", "Nascimento", "Género", "Criação", "Saldo" }; 
-                        foreach (var name in colNames) AddHeaderCell(table, name); 
+                    table.Header(_ =>
+                    {
+                        string[] colNames = { "Utilizador", "Role", "Categoria", "Estado", "Nascimento", "Género", "Criação", "Saldo" };
+                        foreach (var name in colNames) AddHeaderCell(table, name);
                     });
 
                     // Lines
@@ -352,28 +372,28 @@ public class PdfService : IPdfService
                     {
                         // User (Nome + Email)
                         table.Cell().Element(CellStyle).Element(c => DrawUserCell(c, null, u));
-                        
+
                         // Role
                         table.Cell().Element(CellStyle).Text(u.RoleName);
-                        
+
                         // Category
                         table.Cell().Element(CellStyle).Text(u.CategoryName);
-                        
+
                         // State
                         table.Cell().Element(CellStyle)
                             .Text(u.StatusDisplay)
                             .FontColor(u.IsActive ? Colors.Green.Medium : Colors.Red.Medium)
                             .SemiBold();
-                        
+
                         // Birthdate
                         table.Cell().Element(CellStyle).Text(u.BirthDateDisplay);
-                        
+
                         // Gender
                         table.Cell().Element(CellStyle).Text(u.GenderDisplay);
-                        
+
                         // Creation Date
                         table.Cell().Element(CellStyle).Text(u.CreationDateDisplay);
-                        
+
                         // Balance
                         table.Cell().Element(CellStyle)
                             .ExtendHorizontal()
@@ -381,14 +401,20 @@ public class PdfService : IPdfService
                             .PaddingRight(4)
                             .Text(u.BalanceFormatted)
                             .SemiBold();
-                    } 
-                }); 
-            }); 
+                    }
+                });
+            });
         });
-        
-        return document.GeneratePdf(); 
+
+        return document.GeneratePdf();
     }
 
+    /// <summary>
+    /// Generates a PDF report containing staff audit logs.
+    /// </summary>
+    /// <param name="logs">List of staff log DTOs to include in the report.</param>
+    /// <param name="logoPath">Path to the logo image file.</param>
+    /// <returns>A byte array representing the generated PDF.</returns>
     public byte[] GenerateAdminStaffLogPdfAsync(List<StaffLogDto> logs, string logoPath)
     {
         var document = Document.Create(container =>
