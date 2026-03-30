@@ -24,7 +24,7 @@ public class TransferTicketViewModel
     /// A list of unique identifiers (GUIDs or IDs) for the tickets selected by the user for transfer.
     /// </summary>
     [Required(ErrorMessage = "Selecione pelo menos uma senha.")]
-    public List<string> SelectedTickets { get; set; } = new();
+    public List<string> SelectedTickets { get; set; } = [];
 
     /// <summary>
     /// The collection of tickets currently owned by the user that are eligible for transfer.
@@ -34,5 +34,5 @@ public class TransferTicketViewModel
     /// the entire ticket entity tree during the POST request.
     /// </remarks>
     [ValidateNever]
-    public List<Models.Ticket.Ticket> AvailableTickets { get; set; } = new();
+    public List<Models.Ticket.Ticket> AvailableTickets { get; set; } = [];
 }

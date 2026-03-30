@@ -136,7 +136,7 @@ public class OrderService : IOrderService
             .FirstOrDefaultAsync(ol => ol.Order.Id == cart.Id && ol.ProductId == productId);
 
         if (line == null) return ServiceResult<OrderTotalViewModel>.Fail("Produto não encontrado no carrinho.");
-        cart.TotalValue -= (line.Quantity * line.ProductValue);
+        cart.TotalValue -= line.Quantity * line.ProductValue;
         if (cart.TotalValue < 0) cart.TotalValue = 0;
 
         _context.OrderLine.Remove(line);
@@ -209,7 +209,7 @@ public class OrderService : IOrderService
         // Generate a unique 8-character redemption code
         while (_context.Order.Any(o => o.RedemptionCode == cart.RedemptionCode))
         {
-            cart.RedemptionCode = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
+            cart.RedemptionCode = Guid.NewGuid().ToString()[..8].ToUpper();
         }
 
         await using var dbTransaction = await _context.Database.BeginTransactionAsync();
@@ -460,7 +460,7 @@ public class OrderService : IOrderService
 
             var displayStatus = order.Status.ToDisplayName();
 
-            string title = "Atualização do Pedido";
+            const string title = "Atualização do Pedido";
             string name = order.AppUser.FirstName;
             string customMessage = order.Status switch
             {

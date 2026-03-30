@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
-using Projeto_SEGUES.Areas.Inventory.ViewModels;
 using Projeto_SEGUES.Models.Inventory;
 
 namespace Projeto_SEGUES.Services;

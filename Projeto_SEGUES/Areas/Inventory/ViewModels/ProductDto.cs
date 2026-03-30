@@ -43,5 +43,5 @@ public class ProductDto
     public string StockBadgeClass => Stock <= 0 ? "bg-danger" : (Stock < MinimumStock ? "bg-warning" : "bg-success");
 
     /// <summary>Data structure used to populate the details or edit modal via JSON.</summary>
-    public object ModalInfo { get; set; } = null!;
+    public object ModalInfo { get; set; } = new();
 }

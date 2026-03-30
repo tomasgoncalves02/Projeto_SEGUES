@@ -54,7 +54,7 @@ public class Order
     /// </summary>
     [MaxLength(8)]
     [Display(Name = "Código")]
-    public string RedemptionCode { get; set; } = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
+    public string RedemptionCode { get; set; } = Guid.NewGuid().ToString()[..8].ToUpper();
 
     /// <summary>Current state of the order within the fulfillment pipeline.</summary>
     public OrderStatus Status { get; set; } = OrderStatus.Cart;

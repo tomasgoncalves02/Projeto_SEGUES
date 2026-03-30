@@ -33,6 +33,9 @@ public class EditUserViewModel
     [Display(Name = "Sobrenome")]
     public required string LastName { get; set; }
     
+    /// <summary>
+    /// First letter of the user's first name.'
+    /// </summary>
     [ValidateNever]
     public string Initial => FirstName[0].ToString().ToUpper();
 
@@ -123,6 +126,9 @@ public class EditUserViewModel
     [ValidateNever]
     public bool ShowSchool => IsEmployee || IsStudent || IsWorkerIps;
     
+    /// <summary>
+    /// List of available schools for the user.
+    /// </summary>
     [ValidateNever]
     public List<SelectListItem> Schools { get; set; } = [];
 }

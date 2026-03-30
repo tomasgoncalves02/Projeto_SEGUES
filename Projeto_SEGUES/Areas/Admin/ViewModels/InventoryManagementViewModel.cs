@@ -21,13 +21,13 @@ public class InventoryManagementViewModel
     /// for display purposes within the management dashboard.
     /// </remarks>
     [ValidateNever]
-    public List<ProductDto> Products { get; set; } = new();
+    public List<ProductDto> Products { get; set; } = [];
 
     /// <summary>
     /// List of product categories formatted for an HTML select (dropdown) element.
     /// </summary>
     [ValidateNever]
-    public List<SelectListItem> Categories { get; set; } = new();
+    public List<SelectListItem> Categories { get; set; } = [];
 
     /// <summary>
     /// Nested ViewModel dedicated to filtering and searching the inventory.

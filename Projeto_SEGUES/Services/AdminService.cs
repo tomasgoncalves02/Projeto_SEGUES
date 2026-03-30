@@ -327,7 +327,7 @@ public class AdminService : IAdminService
             protocol: scheme)!;
 
         // Template
-        string title = "Alteração de Email - SEGUES";
+        const string title = "Alteração de Email - SEGUES";
         string content = $"""
             <p>Foi solicitada uma alteração do endereço de email da sua conta para: <strong>{newEmail}</strong>.</p>
             <p>Para confirmar esta alteração, clique no botão abaixo:</p>
@@ -408,7 +408,8 @@ public class AdminService : IAdminService
         user = (await _context.Users.FindAsync(userId))!; // Refetch
         
         // Category enum
-        user.UserCategory = (await GetCategoryByNameAsync(model.Category)) ?? user.UserCategory;
+        var cat = await GetCategoryByNameAsync(model.Category);
+        if (cat != null) user.UserCategory = cat;
         
         // Balance
         user.Balance = model.Balance;
@@ -438,21 +439,17 @@ public class AdminService : IAdminService
         if (!result.Success) return result;
 
         // Email
-        if (!string.IsNullOrWhiteSpace(pendingEmail))
+        if (string.IsNullOrWhiteSpace(pendingEmail)) return ServiceResult.Ok("Utilizador atualizado com sucesso.");
+        try
         {
-            try
-            {
-                await RequestEmailChangeAsync(user, pendingEmail, url, scheme);
-                return ServiceResult.Ok("Utilizador atualizado! O link de confirmação foi enviado para o novo e-mail.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogAppError(AppErrors.EmailSenderError, TableName.User, AppOperation.Other, ex);
-                return ServiceResult.Fail("Utilizador salvo, mas ocorreu um erro ao enviar o email de confirmação.");
-            }
+            await RequestEmailChangeAsync(user, pendingEmail, url, scheme);
+            return ServiceResult.Ok("Utilizador atualizado! O link de confirmação foi enviado para o novo e-mail.");
         }
-
-        return ServiceResult.Ok("Utilizador atualizado com sucesso.");
+        catch (Exception ex)
+        {
+            _logger.LogAppError(AppErrors.EmailSenderError, TableName.User, AppOperation.Other, ex);
+            return ServiceResult.Fail("Utilizador salvo, mas ocorreu um erro ao enviar o email de confirmação.");
+        }
     }
 
     /// <summary>
@@ -592,7 +589,7 @@ public class AdminService : IAdminService
 
             await _context.SaveChangesAsync();
 
-            string dayTranslated = day.ToLower() == "saturday" ? "Sábado" : "Domingo";
+            string dayTranslated = day.Equals("saturday", StringComparison.CurrentCultureIgnoreCase) ? "Sábado" : "Domingo";
             string state = isOpen ? "aberto" : "fechado";
 
             return ServiceResult.Ok($"{dayTranslated} está agora {state} para pedidos.");

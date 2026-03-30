@@ -18,7 +18,7 @@ public class UserDto
     /// <summary>
     /// User's initial
     /// </summary>
-    public string Initial => FullName.Substring(0, 1).ToUpper();
+    public string Initial => FullName[..1].ToUpper();
     
     /// <summary>
     /// User's email

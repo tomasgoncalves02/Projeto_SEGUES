@@ -119,15 +119,27 @@ public class EditUserAdminViewModel
     [ValidateNever]
     public List<SelectListItem> SchoolsList { get; set; } = [];
     
+    /// <summary>
+    /// Flag indicating if the user is a student.
+    /// </summary>
     [ValidateNever]
     public bool IsStudent => Category.Equals("Estudante", StringComparison.OrdinalIgnoreCase);
     
+    /// <summary>
+    /// Flag indicating if the user is a worker IPS.
+    /// </summary>
     [ValidateNever]
     public bool IsWorkerIps => Category.Equals("Trabalhador IPS", StringComparison.OrdinalIgnoreCase);
     
+    /// <summary>
+    /// Flag indicating if the user is an employee.
+    /// </summary>
     [ValidateNever]
     public bool IsEmployee => Role.Equals("Employee", StringComparison.OrdinalIgnoreCase);
     
+    /// <summary>
+    /// Flag indicating if the user is affiliated with a school.
+    /// </summary>
     [ValidateNever]
     public bool ShowSchool => IsEmployee || IsStudent || IsWorkerIps;
 }

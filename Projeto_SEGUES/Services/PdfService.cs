@@ -16,8 +16,8 @@ namespace Projeto_SEGUES.Services;
 /// </summary>
 public class PdfService : IPdfService
 {
-    private static readonly string FontFamily = "Roboto";
-    private static readonly string PrimaryColor = "#009697";
+    private const string FontFamily = "Roboto";
+    private const string PrimaryColor = "#009697";
 
     /// <summary>
     /// Configures the default page settings (size, margins, colors, fonts) for the PDF document.
@@ -186,7 +186,8 @@ public class PdfService : IPdfService
                     // Table header
                     table.Header(_ =>
                     {
-                        string[] titles = { "Utilizador", "Nº", "Código", "Data", "Agendado", "Estado", "Recolhido em", "Produtos", "Total" };
+                        string[] titles = ["Utilizador", "Nº", "Código", "Data", "Agendado", "Estado", "Recolhido em", "Produtos", "Total"
+                        ];
                         foreach (var t in titles) AddHeaderCell(table, t);
                     });
 
@@ -206,7 +207,7 @@ public class PdfService : IPdfService
 
                         // DeliveryTime
                         table.Cell().Element(CellStyle).Text(
-                            (o.DeliveryTime.HasValue)
+                            o.DeliveryTime.HasValue
                             ? o.DeliveryTime.Value.ToString(@"hh\:mm")
                             : "Agora"
                         );
@@ -216,7 +217,7 @@ public class PdfService : IPdfService
 
                         // PickupTime
                         table.Cell().Element(CellStyle).Text(
-                            (o.PickupTime == null)
+                            o.PickupTime == null
                                 ? "---"
                                 : o.PickupTime.Value.ToString(@"hh\:mm")
                         );
@@ -271,7 +272,8 @@ public class PdfService : IPdfService
 
                     table.Header(_ =>
                     {
-                        string[] colNames = { "Titular", "Código", "Compra", "Estado", "Data Transf.", "Enviado Por", "Recebido Por", "Utilização", "Validade" };
+                        string[] colNames = ["Titular", "Código", "Compra", "Estado", "Data Transf.", "Enviado Por", "Recebido Por", "Utilização", "Validade"
+                        ];
                         foreach (var name in colNames) AddHeaderCell(table, name);
                     });
 
@@ -366,7 +368,8 @@ public class PdfService : IPdfService
                     // Header
                     table.Header(_ =>
                     {
-                        string[] colNames = { "Utilizador", "Role", "Categoria", "Estado", "Nascimento", "Género", "Criação", "Saldo" };
+                        string[] colNames = ["Utilizador", "Role", "Categoria", "Estado", "Nascimento", "Género", "Criação", "Saldo"
+                        ];
                         foreach (var name in colNames) AddHeaderCell(table, name);
                     });
 
@@ -443,7 +446,7 @@ public class PdfService : IPdfService
                     // Header
                     table.Header(_ =>
                     {
-                        string[] colNames = { "Funcionário", "Data/Hora", "Operação", "Mensagem" };
+                        string[] colNames = ["Funcionário", "Data/Hora", "Operação", "Mensagem"];
                         foreach (var name in colNames) AddHeaderCell(table, name);
                     });
 

@@ -33,7 +33,7 @@ public class ReportService : IReportService
     /// </summary>
     /// <param name="period">Period index (1: Today, 2: Week, 3: Month, 4: Year, 5: All Time).</param>
     /// <returns>A DateTime representing the start of the interval.</returns>
-    private DateTime GetStartDateForPeriod(int period)
+    private static DateTime GetStartDateForPeriod(int period)
     {
         var now = DateTime.Now;
         return period switch
@@ -67,7 +67,7 @@ public class ReportService : IReportService
     /// Groups orders by time intervals (hours, days, months) based on the selected period.
     /// Prepares data for Chart.js bar graphs.
     /// </summary>
-    private List<ChartDataDto> GetBarGraphStatsAsync(List<Order> orders, int period)
+    private static List<ChartDataDto> GetBarGraphStatsAsync(List<Order> orders, int period)
     {
         if (orders.Count == 0) return [];
 
@@ -93,7 +93,7 @@ public class ReportService : IReportService
     /// <summary>
     /// Aggregates order volume by product category.
     /// </summary>
-    private List<CategoryDataDto> GetProductCategoryStatsAsync(List<Order> orders)
+    private static List<CategoryDataDto> GetProductCategoryStatsAsync(List<Order> orders)
     {
         if (orders.Count == 0) return [];
 
@@ -112,7 +112,7 @@ public class ReportService : IReportService
     /// <summary>
     /// Identifies the top-selling products by quantity across the provided order list.
     /// </summary>
-    private List<ProductDataDto> GetTopProductsStatsAsync(List<Order> orders)
+    private static List<ProductDataDto> GetTopProductsStatsAsync(List<Order> orders)
     {
         if (orders.Count == 0) return [];
         return orders
@@ -173,7 +173,7 @@ public class ReportService : IReportService
     /// <summary>
     /// Applies search and status filters to an existing order query.
     /// </summary>
-    private IQueryable<Order> ApplyOrderHistorySearchFilters(IQueryable<Order> query, ReportOrderSearchViewModel model, bool filterOwner = false)
+    private static IQueryable<Order> ApplyOrderHistorySearchFilters(IQueryable<Order> query, ReportOrderSearchViewModel model, bool filterOwner = false)
     {
         var searchString = model.SearchString?.Trim().ToLower();
         if (!string.IsNullOrWhiteSpace(searchString))
@@ -237,7 +237,7 @@ public class ReportService : IReportService
     /// <summary>
     /// Prepares data for canteen usage charts, grouping by hour, day, or month.
     /// </summary>
-    private List<ChartDataDto> GetInfoGraphStatsAsync(List<Ticket> tickets, int period)
+    private static List<ChartDataDto> GetInfoGraphStatsAsync(List<Ticket> tickets, int period)
     {
         if (tickets.Count == 0) return [];
 
@@ -263,7 +263,7 @@ public class ReportService : IReportService
     /// <summary>
     /// Breaks down meal consumption by user category (Student, Staff, etc.).
     /// </summary>
-    private List<CategoryDataDto> GetByCategoryAsync(List<Ticket> tickets)
+    private static List<CategoryDataDto> GetByCategoryAsync(List<Ticket> tickets)
     {
         if (tickets.Count == 0) return [];
         return tickets

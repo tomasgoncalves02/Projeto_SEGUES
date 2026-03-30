@@ -65,10 +65,10 @@ public class PaymentController : Controller
         var successUrl = Url.Action("SuccessPayment", "Payment",
             new { reference = "REF_PLACEHOLDER", sessionId = "SESSION_PLACEHOLDER" }, Request.Scheme);
         var cancelUrl = Url.Action("CancelPayment", "Payment", null, Request.Scheme);
-
+        
         try
-        {           
-            var stripeUrl = await _paymentService.CreateStripeSessionAsync(user, model.Amount, successUrl, cancelUrl);
+        {
+            var stripeUrl = await _paymentService.CreateStripeSessionAsync(user, model.Amount, successUrl!, cancelUrl!);
             return Redirect(stripeUrl);
         }
         catch (HttpRequestException ex)

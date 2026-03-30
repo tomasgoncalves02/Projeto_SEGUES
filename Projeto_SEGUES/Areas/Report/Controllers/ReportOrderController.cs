@@ -45,6 +45,11 @@ public class ReportOrderController : Controller
         return View(model);
     }
 
+    /// <summary>
+    /// Returns the filtered order history table rows via HTMX.
+    /// </summary>
+    /// <param name="model">The search and filter criteria for the order history, including pagination and date range.</param>
+    /// <returns>A partial view containing the filtered list of orders, or a redirect to the login page if the user is not authenticated.</returns>
     [HttpGet]
     public async Task<IActionResult> GetFilteredOrders(ReportOrderSearchViewModel model)
     {

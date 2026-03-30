@@ -124,7 +124,7 @@ public class AdminUserManagementController : Controller
             CategoryName = user.UserCategory.Name,
             CategoryBadgeClass = user.UserCategory.Name.ToBadgeClass(),
             
-            IsActive = user.Status == UserStatus.Active,
+            IsActive = user.Status == UserStatus.Active
         };
 
         return View(dto);
@@ -302,6 +302,11 @@ public class AdminUserManagementController : Controller
         return PartialView("_StaffLogTableRowsPartial", model.Results);
     }
 
+    /// <summary>
+    /// Generates a PDF document containing the list of users with search and filter options.
+    /// </summary>
+    /// <param name="model">The search and filter parameters to apply to the user list.</param>
+    /// <returns>A FileResult containing the generated PDF document.</returns>
     [HttpGet]
     public async Task<IActionResult> ExportUsersPdf([Bind(Prefix = "SearchModel")] UserSearchViewModel model)
     {
@@ -315,6 +320,11 @@ public class AdminUserManagementController : Controller
         return File(pdfBytes, "application/pdf", $"Listagem_Utilizadores_{DateTime.Now:yyyyMMdd}.pdf");
     }
 
+    /// <summary>
+    /// Generates a PDF document containing the staff audit log with search and filter options.
+    /// </summary>
+    /// <param name="model">The search and filter parameters to apply to the staff log.</param>
+    /// <returns>A FileResult containing the generated PDF document.</returns>
     [HttpGet]
     public async Task<IActionResult> ExportStaffLogPdf(StaffLogSearchViewModel model)
     {

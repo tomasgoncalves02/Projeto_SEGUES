@@ -302,5 +302,8 @@ app.Run();
 //Makes it readable for Security Tests
 namespace Projeto_SEGUES
 {
+    /// <summary>
+    /// Main class for the application.
+    /// </summary>
     public partial class Program { }
 }
