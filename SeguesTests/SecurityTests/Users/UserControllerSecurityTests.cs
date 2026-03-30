@@ -1,29 +1,20 @@
 ﻿using System.Net;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+using SeguesTests.Helpers; // Onde está a tua CustomWebApplicationFactory
 using Projeto_SEGUES;
-using Projeto_SEGUES.Data;
+using Xunit;
 
 namespace SeguesTests.SecurityTests.Users;
 
-public class UserControllerSecurityTests : IClassFixture<WebApplicationFactory<Program>>
+// Alterado para usar CustomWebApplicationFactory para travar e-mails e injetar fakes
+public class UserControllerSecurityTests : IClassFixture<CustomWebApplicationFactory<Program>>
 {
     private readonly HttpClient _client;
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly CustomWebApplicationFactory<Program> _factory;
 
-    public UserControllerSecurityTests(WebApplicationFactory<Program> factory)
+    public UserControllerSecurityTests(CustomWebApplicationFactory<Program> factory)
     {
-        _factory = factory.WithWebHostBuilder(builder =>
-        {
-            builder.ConfigureServices(services =>
-            {
-                var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
-                if (descriptor != null) services.Remove(descriptor);
-
-                services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("UserSecurityTestDb"));
-            });
-        });
+        _factory = factory;
 
         _client = _factory.CreateClient(new WebApplicationFactoryClientOptions
         {
@@ -35,10 +26,10 @@ public class UserControllerSecurityTests : IClassFixture<WebApplicationFactory<P
     [Trait("Category", "Security")]
     public async Task Index_UnauthenticatedUser_ReturnsRedirectToLogin()
     {
-        _client.DefaultRequestHeaders.Authorization = null;
-
+        // Act
         var response = await _client.GetAsync("/User/User/Index");
 
+        // Assert
         Assert.True(
             response.StatusCode == HttpStatusCode.Unauthorized ||
             response.StatusCode == HttpStatusCode.Redirect ||
@@ -56,6 +47,7 @@ public class UserControllerSecurityTests : IClassFixture<WebApplicationFactory<P
     [Trait("Category", "Security")]
     public async Task UpdateProfile_MissingAntiForgeryToken_ReturnsBadRequestOrInternalError()
     {
+        // Arrange
         var formData = new Dictionary<string, string>
         {
             { "FirstName", "Pedro" },
@@ -63,10 +55,11 @@ public class UserControllerSecurityTests : IClassFixture<WebApplicationFactory<P
         };
         var content = new FormUrlEncodedContent(formData);
 
+        // Act
         var response = await _client.PostAsync("/User/User/UpdateProfile", content);
 
+        // Assert
         Assert.NotEqual(HttpStatusCode.OK, response.StatusCode);
-
         Assert.True(
             response.StatusCode == HttpStatusCode.BadRequest ||
             response.StatusCode == HttpStatusCode.Found ||
@@ -82,17 +75,20 @@ public class UserControllerSecurityTests : IClassFixture<WebApplicationFactory<P
     [InlineData("Pedro'; WAITFOR DELAY '0:0:5'--")]
     public async Task UpdateProfile_SqlInjectionPayload_IsHandledSafely(string maliciousPayload)
     {
+        // Arrange
         var formData = new Dictionary<string, string>
         {
             { "FirstName", maliciousPayload },
             { "LastName", "Jesus" },
             { "Email", "pedro@segues.pt" }
         };
-
         var content = new FormUrlEncodedContent(formData);
 
+        // Act
         var response = await _client.PostAsync("/User/User/UpdateProfile", content);
 
+        // Assert
+        // Com o CustomWebApplicationFactory, se isto disparasse e-mail, seria bloqueado.
         Assert.NotEqual(HttpStatusCode.InternalServerError, response.StatusCode);
     }
 }

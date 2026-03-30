@@ -1,17 +1,18 @@
 ﻿using Microsoft.AspNetCore.Mvc.Testing;
+using Projeto_SEGUES;
+using SeguesTests.Helpers;
 using System;
 using System.Net;
 using System.Threading.Tasks;
-using Projeto_SEGUES;
 using Xunit;
 
 namespace SeguesTests.SecurityTests.Report
 {
-    public class ReportOrderSecurityTests : IClassFixture<WebApplicationFactory<Program>>
+    public class ReportOrderSecurityTests : IClassFixture<CustomWebApplicationFactory<Program>>
     {
-        private readonly WebApplicationFactory<Program> _factory;
+        private readonly CustomWebApplicationFactory<Program> _factory;
 
-        public ReportOrderSecurityTests(WebApplicationFactory<Program> factory)
+        public ReportOrderSecurityTests(CustomWebApplicationFactory<Program> factory)
         {
             _factory = factory;
         }

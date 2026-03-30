@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
+using Projeto_SEGUES;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Order;
@@ -14,7 +17,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Projeto_SEGUES;
 using Xunit;
 
 namespace SeguesTests.IntegrationTests.Orders
@@ -33,13 +35,18 @@ namespace SeguesTests.IntegrationTests.Orders
                 builder.UseEnvironment("Testing");
                 builder.ConfigureServices(services =>
                 {
-                    var descriptors = services.Where(d =>
+                    var dbDescriptors = services.Where(d =>
                         d.ServiceType == typeof(DbContextOptions<AppDbContext>) ||
                         d.ServiceType == typeof(AppDbContext)).ToList();
-                    foreach (var d in descriptors) services.Remove(d);
+                    foreach (var d in dbDescriptors) services.Remove(d);
 
                     services.AddDbContext<AppDbContext>(options =>
                         options.UseInMemoryDatabase(_dbName));
+
+                    var emailDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailSender));
+                    if (emailDescriptor != null) services.Remove(emailDescriptor);
+
+                    services.AddTransient<IEmailSender, MockHelper.FakeEmailSender>();
 
                     services.AddSingleton<IAntiforgery, NoOpAntiforgery>();
 

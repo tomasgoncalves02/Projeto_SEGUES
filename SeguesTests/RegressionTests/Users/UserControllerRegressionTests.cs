@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using Projeto_SEGUES;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.Enums;
@@ -16,7 +19,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Projeto_SEGUES;
 using Xunit;
 
 namespace SeguesTests.RegressionTests.Users
@@ -29,6 +31,8 @@ namespace SeguesTests.RegressionTests.Users
         {
             _factory = factory.WithWebHostBuilder(builder =>
             {
+                builder.UseEnvironment("Testing"); 
+
                 builder.ConfigureServices(services =>
                 {
                     var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
@@ -36,6 +40,12 @@ namespace SeguesTests.RegressionTests.Users
 
                     services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("UserRegDb"));
 
+                    var emailDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailSender));
+                    if (emailDescriptor != null) services.Remove(emailDescriptor);
+
+                    services.AddTransient<IEmailSender, MockHelper.FakeEmailSender>();
+
+                    // 3. Mock do AdminService
                     var adminDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IAdminService));
                     if (adminDescriptor != null) services.Remove(adminDescriptor);
 

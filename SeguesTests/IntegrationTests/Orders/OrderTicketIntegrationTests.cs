@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
+using Projeto_SEGUES;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.Admin;
 using Projeto_SEGUES.Models.Enums;
@@ -15,7 +18,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Projeto_SEGUES;
 using Xunit;
 
 namespace SeguesTests.IntegrationTests.Orders
@@ -52,6 +54,11 @@ namespace SeguesTests.IntegrationTests.Orders
 
                     services.AddSingleton(_dbOptions);
                     services.AddSingleton(_sharedDb);
+
+                    var emailDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailSender));
+                    if (emailDescriptor != null) services.Remove(emailDescriptor);
+
+                    services.AddTransient<IEmailSender, MockHelper.FakeEmailSender>();
 
                     services.AddAuthentication(options =>
                     {

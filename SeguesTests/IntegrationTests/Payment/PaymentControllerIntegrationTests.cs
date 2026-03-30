@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using Projeto_SEGUES;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.Enums;
@@ -18,7 +21,6 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Projeto_SEGUES;
 using Xunit;
 
 namespace SeguesTests.IntegrationTests.Payment
@@ -31,11 +33,17 @@ namespace SeguesTests.IntegrationTests.Payment
         {
             _factory = factory.WithWebHostBuilder(builder =>
             {
+                builder.UseEnvironment("Testing");
                 builder.ConfigureServices(services =>
                 {
                     var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
                     if (descriptor != null) services.Remove(descriptor);
                     services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("PaymentIntDb_Definitive"));
+
+                    var emailDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailSender));
+                    if (emailDescriptor != null) services.Remove(emailDescriptor);
+
+                    services.AddTransient<IEmailSender, MockHelper.FakeEmailSender>();
 
                     var adminDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IAdminService));
                     if (adminDescriptor != null) services.Remove(adminDescriptor);

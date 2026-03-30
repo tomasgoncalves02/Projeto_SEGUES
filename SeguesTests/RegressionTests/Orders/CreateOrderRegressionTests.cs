@@ -23,52 +23,56 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Projeto_SEGUES;
 using Xunit;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace SeguesTests.RegressionTests.Orders
-{
-    public class CreateOrderRegressionTests : IClassFixture<WebApplicationFactory<Program>>
-    {
-        private readonly WebApplicationFactory<Program> _factory;
-        private readonly HttpClient _client;
-
-        public CreateOrderRegressionTests(WebApplicationFactory<Program> factory)
+{    
+        public class CreateOrderRegressionTests : IClassFixture<WebApplicationFactory<Program>>
         {
-            _factory = factory.WithWebHostBuilder(builder =>
+            private readonly WebApplicationFactory<Program> _factory;
+            private readonly HttpClient _client;
+
+            public CreateOrderRegressionTests(WebApplicationFactory<Program> factory)
             {
-                builder.UseEnvironment("Testing");
-
-                builder.ConfigureServices(services =>
+                _factory = factory.WithWebHostBuilder(builder =>
                 {
-                    var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
-                    if (descriptor != null) services.Remove(descriptor);
+                    builder.UseEnvironment("Testing");
 
-                    services.AddDbContext<AppDbContext>(options =>
-                        options.UseInMemoryDatabase("RegressionDb_CreateOrder_Pedro")
-                               .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning)));
-
-                    var mockAdmin = new Mock<IAdminService>();
-                    mockAdmin.Setup(s => s.GetMenuLinksAsync()).ReturnsAsync(new BarCanteenConfigViewModel());
-                    mockAdmin.Setup(s => s.GetScheduleAsync()).ReturnsAsync(new BarCanteenConfigViewModel());
-
-                    mockAdmin.Setup(s => s.IsBarOpenAsync(It.IsAny<TimeSpan>())).ReturnsAsync(true);
-
-                    services.AddSingleton(mockAdmin.Object);
-
-                    var antiforgeryDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IAntiforgery));
-                    if (antiforgeryDescriptor != null) services.Remove(antiforgeryDescriptor);
-                    services.AddSingleton<IAntiforgery, NoOpAntiforgery>();
-
-                    services.AddAuthentication(options =>
+                    builder.ConfigureServices(services =>
                     {
-                        options.DefaultAuthenticateScheme = "Test";
-                        options.DefaultChallengeScheme = "Test";
-                        options.DefaultScheme = "Test";
-                    })
-                    .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", null);
-                });
-            });
+                        var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
+                        if (descriptor != null) services.Remove(descriptor);
 
-            _client = _factory.CreateClient(new WebApplicationFactoryClientOptions
+                        services.AddDbContext<AppDbContext>(options =>
+                            options.UseInMemoryDatabase("RegressionDb_CreateOrder_Pedro")
+                                   .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning)));
+
+                        var emailDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailSender));
+                        if (emailDescriptor != null) services.Remove(emailDescriptor);
+
+                        services.AddTransient<IEmailSender, MockHelper.FakeEmailSender>();
+
+                        var mockAdmin = new Mock<IAdminService>();
+                        mockAdmin.Setup(s => s.GetMenuLinksAsync()).ReturnsAsync(new BarCanteenConfigViewModel());
+                        mockAdmin.Setup(s => s.GetScheduleAsync()).ReturnsAsync(new BarCanteenConfigViewModel());
+                        mockAdmin.Setup(s => s.IsBarOpenAsync(It.IsAny<TimeSpan>())).ReturnsAsync(true);
+                        services.AddSingleton(mockAdmin.Object);
+
+                        var antiforgeryDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IAntiforgery));
+                        if (antiforgeryDescriptor != null) services.Remove(antiforgeryDescriptor);
+                        services.AddSingleton<IAntiforgery, NoOpAntiforgery>();
+
+                        services.AddAuthentication(options =>
+                        {
+                            options.DefaultAuthenticateScheme = "Test";
+                            options.DefaultChallengeScheme = "Test";
+                            options.DefaultScheme = "Test";
+                        })
+                        .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", null);
+                    });
+                });
+
+                _client = _factory.CreateClient(new WebApplicationFactoryClientOptions
             {
                 AllowAutoRedirect = false
             });

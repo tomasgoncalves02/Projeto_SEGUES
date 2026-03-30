@@ -18,6 +18,7 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Projeto_SEGUES;
 using Xunit;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace SeguesTests.RegressionTests.Orders
 {
@@ -51,6 +52,12 @@ namespace SeguesTests.RegressionTests.Orders
                     foreach (var d in descriptors) services.Remove(d);
 
                     services.AddSingleton(_sharedDb);
+
+                    var emailDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailSender));
+                    if (emailDescriptor != null) services.Remove(emailDescriptor);
+
+                    services.AddTransient<IEmailSender, MockHelper.FakeEmailSender>();
+
                     services.AddSingleton<IAntiforgery, NoOpAntiforgery>();
                     services.AddAuthentication(options =>
                     {

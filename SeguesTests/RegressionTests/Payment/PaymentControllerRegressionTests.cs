@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using Projeto_SEGUES;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Services;
@@ -16,56 +19,65 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Projeto_SEGUES;
 using Xunit;
 
 namespace SeguesTests.RegressionTests.Payment
-{
-    public class PaymentControllerRegressionTests : IClassFixture<WebApplicationFactory<Program>>
-    {
-        private readonly WebApplicationFactory<Program> _factory;
+{   
 
-        public PaymentControllerRegressionTests(WebApplicationFactory<Program> factory)
+        public class PaymentControllerRegressionTests : IClassFixture<WebApplicationFactory<Program>>
         {
-            _factory = factory.WithWebHostBuilder(builder =>
+            private readonly WebApplicationFactory<Program> _factory;
+
+            public PaymentControllerRegressionTests(WebApplicationFactory<Program> factory)
             {
-                builder.ConfigureServices(services =>
+                _factory = factory.WithWebHostBuilder(builder =>
                 {
-                    var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
-                    if (descriptor != null) services.Remove(descriptor);
-                    services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("PayRegDb_Final_v2"));
+                    builder.UseEnvironment("Testing"); 
 
-                    var adminDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IAdminService));
-                    if (adminDescriptor != null) services.Remove(adminDescriptor);
-                    var mockAdmin = new Mock<IAdminService>();
-                    mockAdmin.Setup(s => s.GetMenuLinksAsync())
-                             .ReturnsAsync(new BarCanteenConfigViewModel { CanteenMenuLink = "/c", BarMenuLink = "/b" });
-                    services.AddSingleton(mockAdmin.Object);
-
-                    var payDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IPaymentService));
-                    if (payDescriptor != null) services.Remove(payDescriptor);
-                    services.AddSingleton(new Mock<IPaymentService>().Object);
-
-                    var antiforgeryDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IAntiforgery));
-                    if (antiforgeryDescriptor != null) services.Remove(antiforgeryDescriptor);
-
-                    var mockAntiforgery = new Mock<IAntiforgery>();
-                    mockAntiforgery.Setup(x => x.GetAndStoreTokens(It.IsAny<Microsoft.AspNetCore.Http.HttpContext>()))
-                                   .Returns(new AntiforgeryTokenSet("test", "test", "test", "test"));
-                    services.AddSingleton(mockAntiforgery.Object);
-
-                    services.AddAuthentication(options =>
+                    builder.ConfigureServices(services =>
                     {
-                        options.DefaultAuthenticateScheme = "Test";
-                        options.DefaultChallengeScheme = "Test";
-                        options.DefaultScheme = "Test";
-                    })
-                    .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", null);
-                });
-            });
-        }
+                        // 1. Configurar Base de Dados em Memória
+                        var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
+                        if (descriptor != null) services.Remove(descriptor);
+                        services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("PayRegDb_Final_v2"));
 
-        [Fact]
+                        var emailDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailSender));
+                        if (emailDescriptor != null) services.Remove(emailDescriptor);
+
+                        services.AddTransient<IEmailSender, MockHelper.FakeEmailSender>();
+
+                        var adminDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IAdminService));
+                        if (adminDescriptor != null) services.Remove(adminDescriptor);
+                        var mockAdmin = new Mock<IAdminService>();
+                        mockAdmin.Setup(s => s.GetMenuLinksAsync())
+                                 .ReturnsAsync(new BarCanteenConfigViewModel { CanteenMenuLink = "/c", BarMenuLink = "/b" });
+                        services.AddSingleton(mockAdmin.Object);
+
+                        var payDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IPaymentService));
+                        if (payDescriptor != null) services.Remove(payDescriptor);
+                        services.AddSingleton(new Mock<IPaymentService>().Object);
+
+  
+                        var antiforgeryDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IAntiforgery));
+                        if (antiforgeryDescriptor != null) services.Remove(antiforgeryDescriptor);
+
+                        var mockAntiforgery = new Mock<IAntiforgery>();
+                        mockAntiforgery.Setup(x => x.GetAndStoreTokens(It.IsAny<Microsoft.AspNetCore.Http.HttpContext>()))
+                                       .Returns(new AntiforgeryTokenSet("test", "test", "test", "test"));
+                        services.AddSingleton(mockAntiforgery.Object);
+
+                        services.AddAuthentication(options =>
+                        {
+                            options.DefaultAuthenticateScheme = "Test";
+                            options.DefaultChallengeScheme = "Test";
+                            options.DefaultScheme = "Test";
+                        })
+                        .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", null);
+                    });
+                });
+            }
+
+            [Fact]
         public async Task CreateCheckoutSession_InvalidAmount_ReturnsDepositView()
         {
             var client = _factory.CreateClient();

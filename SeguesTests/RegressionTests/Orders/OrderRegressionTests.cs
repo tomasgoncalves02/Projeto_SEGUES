@@ -20,6 +20,7 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Projeto_SEGUES;
 using Xunit;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace SeguesTests.RegressionTests.Orders
 {
@@ -36,12 +37,18 @@ namespace SeguesTests.RegressionTests.Orders
 
                 builder.ConfigureServices(services =>
                 {
+                    // 1. Configurar Base de Dados em Memória
                     var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
                     if (descriptor != null) services.Remove(descriptor);
 
                     services.AddDbContext<AppDbContext>(options =>
                         options.UseInMemoryDatabase("RegressionDb_Order_Pedro")
                                .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning)));
+
+                    var emailDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailSender));
+                    if (emailDescriptor != null) services.Remove(emailDescriptor);
+
+                    services.AddTransient<IEmailSender, MockHelper.FakeEmailSender>();
 
                     var mockAdmin = new Mock<IAdminService>();
                     mockAdmin.Setup(s => s.GetScheduleAsync()).ReturnsAsync(new BarCanteenConfigViewModel

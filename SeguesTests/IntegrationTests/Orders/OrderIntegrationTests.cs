@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
+using Projeto_SEGUES;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.Admin;
 using Projeto_SEGUES.Models.Enums;
@@ -16,7 +19,6 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Projeto_SEGUES;
 using Xunit;
 
 namespace SeguesTests.IntegrationTests.Orders
@@ -42,6 +44,11 @@ namespace SeguesTests.IntegrationTests.Orders
                         options.UseInMemoryDatabase("IntegDb_Order_Pedro")
                                .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning)));
 
+                    var emailDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailSender));
+                    if (emailDescriptor != null) services.Remove(emailDescriptor);
+
+                    services.AddTransient<IEmailSender, MockHelper.FakeEmailSender>();
+
                     services.AddSingleton<IAntiforgery, NoOpAntiforgery>();
 
                     services.AddAuthentication(options =>
@@ -53,7 +60,6 @@ namespace SeguesTests.IntegrationTests.Orders
                     .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", null);
                 });
             });
-
             _client = _factory.CreateClient(new WebApplicationFactoryClientOptions
             {
                 AllowAutoRedirect = false

@@ -10,25 +10,13 @@ using Xunit;
 
 namespace SeguesTests.SecurityTests.Report
 {
-    public class ReportStatisticsOrderSecurityTests : IClassFixture<WebApplicationFactory<Program>>
+    public class ReportStatisticsOrderSecurityTests : IClassFixture<CustomWebApplicationFactory<Program>>
     {
-        private readonly WebApplicationFactory<Program> _factory;
+        private readonly CustomWebApplicationFactory<Program> _factory;
 
-        public ReportStatisticsOrderSecurityTests(WebApplicationFactory<Program> factory)
+        public ReportStatisticsOrderSecurityTests(CustomWebApplicationFactory<Program> factory)
         {
-            _factory = factory.WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureServices(services =>
-                {
-                    services.AddAuthentication(options =>
-                    {
-                        options.DefaultAuthenticateScheme = "Test";
-                        options.DefaultChallengeScheme = "Test";
-                        options.DefaultScheme = "Test";
-                    })
-                    .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", null);
-                });
-            });
+            _factory = factory;
         }
 
         [Fact]

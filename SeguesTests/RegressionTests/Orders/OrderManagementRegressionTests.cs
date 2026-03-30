@@ -18,6 +18,7 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Projeto_SEGUES;
 using Xunit;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace SeguesTests.RegressionTests.Orders
 {
@@ -29,6 +30,7 @@ namespace SeguesTests.RegressionTests.Orders
 
         public OrderManagementRegressionTests(WebApplicationFactory<Program> factory)
         {
+            // Inicialização da conexão SQLite persistente para o teste
             _connection = new SqliteConnection("DataSource=:memory:");
             _connection.Open();
 
@@ -48,12 +50,19 @@ namespace SeguesTests.RegressionTests.Orders
                         d.ServiceType == typeof(DbContextOptions<AppDbContext>) ||
                         d.ServiceType == typeof(AppDbContext) ||
                         d.ServiceType == typeof(DbContextOptions)).ToList();
+
                     foreach (var d in descriptors) services.Remove(d);
 
                     services.AddSingleton(dbOptions);
                     services.AddSingleton(_sharedDb);
                     services.AddSingleton<DbContextOptions<AppDbContext>>(dbOptions);
 
+                    var emailDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailSender));
+                    if (emailDescriptor != null) services.Remove(emailDescriptor);
+
+                    services.AddTransient<IEmailSender, MockHelper.FakeEmailSender>();
+
+                    // 4. Configuração de Antiforgery e Autenticação de Teste
                     services.AddSingleton<IAntiforgery, NoOpAntiforgery>();
 
                     services.AddAuthentication(options =>

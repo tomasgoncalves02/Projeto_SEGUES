@@ -22,6 +22,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Projeto_SEGUES;
 using Xunit;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace SeguesTests.SecurityTests.Orders
 {
@@ -42,6 +43,11 @@ namespace SeguesTests.SecurityTests.Orders
 
                     services.AddDbContext<AppDbContext>(options =>
                         options.UseInMemoryDatabase("SecurityDb_Order_Pedro"));
+
+                    var emailDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailSender));
+                    if (emailDescriptor != null) services.Remove(emailDescriptor);
+
+                    services.AddTransient<IEmailSender, MockHelper.FakeEmailSender>();
 
                     var mockAdmin = new Mock<IAdminService>();
                     mockAdmin.Setup(s => s.GetScheduleAsync()).ReturnsAsync(new BarCanteenConfigViewModel
