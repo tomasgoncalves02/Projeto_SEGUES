@@ -127,5 +127,5 @@ public class EditUserAdminViewModel
     public bool IsEmployee => Role.Equals("Employee", StringComparison.OrdinalIgnoreCase);
     
     [ValidateNever]
-    public bool ShowSchool => IsEmployee || Role.Equals("Client", StringComparison.OrdinalIgnoreCase);
+    public bool ShowSchool => IsEmployee || IsStudent;
 }

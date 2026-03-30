@@ -108,7 +108,7 @@ public class EditUserViewModel
     public bool IsEmployee => Role.Name!.Equals("Employee", StringComparison.OrdinalIgnoreCase);
     
     [ValidateNever]
-    public bool ShowSchool => IsEmployee || Role.Name!.Equals("Client", StringComparison.OrdinalIgnoreCase);
+    public bool ShowSchool => IsEmployee || IsStudent;
     
     [ValidateNever]
     public List<SelectListItem> Schools { get; set; } = [];

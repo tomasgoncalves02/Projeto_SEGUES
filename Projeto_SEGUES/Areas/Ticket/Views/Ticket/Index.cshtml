@@ -22,7 +22,7 @@
     @* Schedule Banner *@
     <div class="row mb-5">
         <div class="col-12">
-            <div class="card border-0 shadow-sm @(Model.IsCanteenOpen ? "bg-color-ips-light" : "bg-color-danger-light" )" style="border-left: 5px solid var(--ips) !important;">
+            <div class="card border-0 shadow-sm @(Model.IsCanteenOpen ? "bg-color-ips-light" : "bg-color-danger-light")" style="border-left: 5px solid @(Model.IsCanteenOpen ? "var(--ips)" : "var(--deny)") !important;">
                 <div class="card-body py-3">
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                         <div class="d-flex align-items-center">
