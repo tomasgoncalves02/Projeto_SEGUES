@@ -1,42 +1,57 @@
 ﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Projeto_SEGUES.Data;
 using SeguesTests.Helpers;
 using System.Net;
 using System.Net.Http.Headers;
-using System.Threading.Tasks;
 using Projeto_SEGUES;
-using Xunit;
 
-namespace SeguesTests.RegressionTests.Report
+namespace SeguesTests.RegressionTests.Report;
+
+public class ReportRegressionTests : IClassFixture<WebApplicationFactory<Program>>
 {
-    public class ReportRegressionTests : IClassFixture<WebApplicationFactory<Program>>
+    private readonly WebApplicationFactory<Program> _factory;
+
+    public ReportRegressionTests(WebApplicationFactory<Program> factory)
     {
-        private readonly WebApplicationFactory<Program> _factory;
-
-        public ReportRegressionTests(WebApplicationFactory<Program> factory)
+        _factory = factory.WithWebHostBuilder(builder =>
         {
-            _factory = factory.WithWebHostBuilder(builder =>
+            builder.UseEnvironment("Testing");
+            builder.ConfigureServices(services =>
             {
-                builder.ConfigureServices(services =>
+                var dbDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
+                if (dbDescriptor != null) services.Remove(dbDescriptor);
+
+                services.AddDbContext<AppDbContext>(options =>
                 {
-                    services.AddAuthentication("Test")
-                        .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", null);
+                    options.UseInMemoryDatabase("RegressionReportDb_Pedro");
                 });
+
+                var emailDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailSender));
+                if (emailDescriptor != null) services.Remove(emailDescriptor);
+
+                services.AddTransient<IEmailSender, MockHelper.FakeEmailSender>();
+
+                services.AddAuthentication("Test")
+                    .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", null);
             });
-        }
+        });
+    }
 
-        [Fact]
-        public async Task ReportDashboard_Structure_RemainsConstant()
-        {
-            var client = _factory.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Test", "User");
+    [Fact]
+    public async Task ReportDashboard_Structure_RemainsConstant()
+    {
+        var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Test", "User");
 
-            var response = await client.GetAsync("/Report/Report/Index");
-            var content = await response.Content.ReadAsStringAsync();
+        var response = await client.GetAsync("/Report/Report/Index");
+        var content = await response.Content.ReadAsStringAsync();
 
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Contains("<html", content);
-        }
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("<html", content);
     }
 }

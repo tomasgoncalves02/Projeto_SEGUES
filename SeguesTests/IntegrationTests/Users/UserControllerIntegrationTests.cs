@@ -2,6 +2,7 @@
 using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +31,11 @@ public class UserControllerIntegrationTests : IClassFixture<WebApplicationFactor
                 services.AddDbContext<AppDbContext>(options =>
                     options.UseInMemoryDatabase("IntegrationTestDb"));
 
+                var emailDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailSender));
+                if (emailDescriptor != null) services.Remove(emailDescriptor);
+
+                services.AddTransient<IEmailSender, MockHelper.FakeEmailSender>();
+
                 services.AddAuthentication(options =>
                 {
                     options.DefaultAuthenticateScheme = "Test";
@@ -52,7 +58,7 @@ public class UserControllerIntegrationTests : IClassFixture<WebApplicationFactor
     [Fact]
     public async Task UpdateProfile_Integration_SuccessfullyUpdatesDatabase()
     {
-        var userId = "pedro-77";
+        const string userId = "pedro-77";
 
         using (var scope = _factory.Services.CreateScope())
         {
@@ -71,7 +77,7 @@ public class UserControllerIntegrationTests : IClassFixture<WebApplicationFactor
                 Email = "pedro@segues.pt",
                 FirstName = "Pedro",
                 LastName = "Original",
-                BirthDate = new System.DateTime(2000, 1, 1),
+                BirthDate = new DateTime(2000, 1, 1),
                 Gender = Projeto_SEGUES.Models.Enums.Gender.Male,
                 UserCategory = cat
             };

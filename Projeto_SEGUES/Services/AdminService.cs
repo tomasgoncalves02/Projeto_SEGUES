@@ -327,7 +327,7 @@ public class AdminService : IAdminService
             protocol: scheme)!;
 
         // Template
-        string title = "Alteração de Email - SEGUES";
+        const string title = "Alteração de Email - SEGUES";
         string content = $"""
             <p>Foi solicitada uma alteração do endereço de email da sua conta para: <strong>{newEmail}</strong>.</p>
             <p>Para confirmar esta alteração, clique no botão abaixo:</p>
@@ -356,6 +356,70 @@ public class AdminService : IAdminService
             if (emailExists != null) return ServiceResult.Fail("Este email já está em uso.");
             pendingEmail = model.Email;
         }
+        
+        var userId = user.Id;
+        
+        // Role
+        var oldRoles = await _userManager.GetRolesAsync(user);
+        var oldRole = oldRoles.First();
+        bool isCurrentlyEmployee = await _context.Employee.AnyAsync(em => em.Id == userId);
+        bool willBeEmployee = model.Role.Equals("Employee", StringComparison.OrdinalIgnoreCase);
+        if (model.Role != oldRole)
+        {
+            await _userManager.RemoveFromRolesAsync(user, oldRoles);
+            await _userManager.AddToRoleAsync(user, model.Role);
+            await _userManager.UpdateSecurityStampAsync(user);
+            // Transition TO Employee
+            if (willBeEmployee && !isCurrentlyEmployee)
+            {
+                // Bypass EF instantiation and insert directly into the derived table
+                await _context.Database.ExecuteSqlRawAsync("INSERT INTO Employee (Id, RoleDescription) VALUES ({0}, {1})", userId, model.RoleDescription ?? (object)DBNull.Value);
+            }
+            // Transition FROM Employee
+            else if (isCurrentlyEmployee && !willBeEmployee)
+            {
+                await _context.Database.ExecuteSqlRawAsync("DELETE FROM Employee WHERE Id = {0}", userId);
+            }
+        }
+        
+        // User Category
+        bool willBeStudent = model.Category.Equals("Estudante", StringComparison.OrdinalIgnoreCase);
+        bool isCurrentlyStudent = await _context.Student.AnyAsync(s => s.Id == userId);
+        if (willBeStudent && !isCurrentlyStudent)
+        {
+            await _context.Database.ExecuteSqlRawAsync("INSERT INTO Student (Id) VALUES ({0})", userId);
+        }
+        else if (!willBeStudent && isCurrentlyStudent)
+        {
+            await _context.Database.ExecuteSqlRawAsync("DELETE FROM Student WHERE Id = {0}", userId);
+        }
+        
+        bool willBeWorker = model.Category.Equals("Trabalhador IPS", StringComparison.OrdinalIgnoreCase);
+        bool isCurrentlyWorker = await _context.WorkerIps.AnyAsync(w => w.Id == userId);
+        if (willBeWorker && !isCurrentlyWorker)
+        {
+            await _context.Database.ExecuteSqlRawAsync("INSERT INTO WorkerIps (Id) VALUES ({0})", userId);
+        }
+        else if (!willBeWorker && isCurrentlyWorker)
+        {
+            await _context.Database.ExecuteSqlRawAsync("DELETE FROM WorkerIps WHERE Id = {0}", userId);
+        }
+        _context.ChangeTracker.Clear();
+        user = (await _context.Users.FindAsync(userId))!; // Refetch
+        
+        // Category enum
+        var cat = await GetCategoryByNameAsync(model.Category);
+        if (cat != null) user.UserCategory = cat;
+        
+        // Balance
+        user.Balance = model.Balance;
+        
+        // Role Description
+        if (!string.IsNullOrWhiteSpace(model.RoleDescription) && user is Employee e && willBeEmployee)
+        {
+            e.RoleDescription = model.RoleDescription;
+        }
+        await _context.SaveChangesAsync();
 
         // Update profile
         var result = await _userService.UpdateUserProfileAsync(user, new EditUserViewModel
@@ -369,42 +433,23 @@ public class AdminService : IAdminService
             Address = model.Address,
             City = model.City,
             PostalCode = model.PostalCode,
-            SchoolId = (user is Student ? model.SchoolId : (user is Employee ? model.SchoolId : null)),
-            StudentNumber = (user is Student ? model.StudentNumber : null)
+            SchoolId = (willBeStudent || willBeEmployee || willBeWorker) ? model.SchoolId : null,
+            StudentNumber = willBeStudent ? model.StudentNumber : null
         });
         if (!result.Success) return result;
 
-        // Balance, Role Description and category
-        user.Balance = model.Balance;
-        if (!string.IsNullOrWhiteSpace(model.RoleDescription) && user is Employee e) e.RoleDescription = model.RoleDescription;
-        user.UserCategory = (await GetCategoryByNameAsync(model.Category)) ?? user.UserCategory;
-        await _context.SaveChangesAsync();
-
-        // Role
-        var oldRoles = await _userManager.GetRolesAsync(user);
-        if (model.Role != oldRoles.First())
-        {
-            await _userManager.RemoveFromRolesAsync(user, oldRoles);
-            await _userManager.AddToRoleAsync(user, model.Role);
-            await _userManager.UpdateSecurityStampAsync(user);
-        }
-
         // Email
-        if (!string.IsNullOrWhiteSpace(pendingEmail))
+        if (string.IsNullOrWhiteSpace(pendingEmail)) return ServiceResult.Ok("Utilizador atualizado com sucesso.");
+        try
         {
-            try
-            {
-                await RequestEmailChangeAsync(user, pendingEmail, url, scheme);
-                return ServiceResult.Ok("Utilizador atualizado! O link de confirmação foi enviado para o novo e-mail.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogAppError(AppErrors.EmailSenderError, TableName.User, AppOperation.Other, ex);
-                return ServiceResult.Fail("Utilizador salvo, mas ocorreu um erro ao enviar o email de confirmação.");
-            }
+            await RequestEmailChangeAsync(user, pendingEmail, url, scheme);
+            return ServiceResult.Ok("Utilizador atualizado! O link de confirmação foi enviado para o novo e-mail.");
         }
-
-        return ServiceResult.Ok("Utilizador atualizado com sucesso.");
+        catch (Exception ex)
+        {
+            _logger.LogAppError(AppErrors.EmailSenderError, TableName.User, AppOperation.Other, ex);
+            return ServiceResult.Fail("Utilizador salvo, mas ocorreu um erro ao enviar o email de confirmação.");
+        }
     }
 
     /// <summary>
@@ -544,7 +589,7 @@ public class AdminService : IAdminService
 
             await _context.SaveChangesAsync();
 
-            string dayTranslated = day.ToLower() == "saturday" ? "Sábado" : "Domingo";
+            string dayTranslated = day.Equals("saturday", StringComparison.CurrentCultureIgnoreCase) ? "Sábado" : "Domingo";
             string state = isOpen ? "aberto" : "fechado";
 
             return ServiceResult.Ok($"{dayTranslated} está agora {state} para pedidos.");

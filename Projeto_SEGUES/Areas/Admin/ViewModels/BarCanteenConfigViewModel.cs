@@ -101,7 +101,7 @@ public class BarCanteenConfigViewModel
     /// <param name="start">The opening time.</param>
     /// <param name="end">The closing time.</param>
     /// <returns>True if current time is between start and end; otherwise false.</returns>
-    private bool IsNowWithinRange(TimeSpan? start, TimeSpan? end)
+    private static bool IsNowWithinRange(TimeSpan? start, TimeSpan? end)
     {
         if (!start.HasValue || !end.HasValue) return false;
         var currentTime = DateTime.Now.TimeOfDay;

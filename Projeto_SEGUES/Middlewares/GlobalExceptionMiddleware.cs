@@ -49,7 +49,7 @@ public class GlobalExceptionMiddleware
     /// <summary>
     /// Determines the appropriate redirection strategy based on the request headers.
     /// </summary>
-    private async Task HandleExceptionAsync(HttpContext context)
+    private static async Task HandleExceptionAsync(HttpContext context)
     {
         // Safety check: if the response stream has already begun, we cannot modify headers.
         if (context.Response.HasStarted)

@@ -47,7 +47,7 @@ public class PaymentService : IPaymentService
         var transaction = new Transaction
         {
             User = user,
-            Amount = amount,
+            Amount = amount
         };
 
         _context.Transaction.Add(transaction);
@@ -60,10 +60,10 @@ public class PaymentService : IPaymentService
 
         var options = new SessionCreateOptions
         {
-            PaymentMethodTypes = new List<string> { "card" },
-            LineItems = new List<SessionLineItemOptions>
-            {
-                new()
+            PaymentMethodTypes = ["card"],
+            LineItems =
+            [
+                new SessionLineItemOptions
                 {
                     PriceData = new SessionLineItemPriceDataOptions
                     {
@@ -77,7 +77,7 @@ public class PaymentService : IPaymentService
                     },
                     Quantity = 1
                 }
-            },
+            ],
             Mode = "payment",
             SuccessUrl = finalSuccessUrl,
             CancelUrl = cancelUrl

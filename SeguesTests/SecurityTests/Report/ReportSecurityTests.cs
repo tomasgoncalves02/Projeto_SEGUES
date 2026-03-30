@@ -1,39 +1,59 @@
-﻿using Microsoft.AspNetCore.Mvc.Testing;
-using System;
-using System.Net;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
+using Projeto_SEGUES.Data;
 using Projeto_SEGUES;
-using Xunit;
+using SeguesTests.Helpers;
+using System.Net;
 
-namespace SeguesTests.SecurityTests.Report
+namespace SeguesTests.SecurityTests.Report;
+
+public class ReportSecurityTests : IClassFixture<WebApplicationFactory<Program>>
 {
-    public class ReportSecurityTests : IClassFixture<WebApplicationFactory<Program>>
+    private readonly WebApplicationFactory<Program> _factory;
+
+    public ReportSecurityTests(WebApplicationFactory<Program> factory)
     {
-        private readonly WebApplicationFactory<Program> _factory;
-
-        public ReportSecurityTests(WebApplicationFactory<Program> factory)
+        _factory = factory.WithWebHostBuilder(builder =>
         {
-            _factory = factory;
-        }
-
-        [Fact]
-        public async Task Index_RedirectsToRoot_WhenAnonymous()
-        {
-            var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
+            builder.UseEnvironment("Testing");
+            builder.ConfigureServices(services =>
             {
-                AllowAutoRedirect = false
+                var dbDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
+                if (dbDescriptor != null) services.Remove(dbDescriptor);
+
+                services.AddDbContext<AppDbContext>(options =>
+                {
+                    options.UseInMemoryDatabase("SecurityReportIndexTestDb_Pedro");
+                });
+
+                var emailDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailSender));
+                if (emailDescriptor != null) services.Remove(emailDescriptor);
+
+                services.AddTransient<IEmailSender, MockHelper.FakeEmailSender>();
             });
+        });
+    }
 
-            var response = await client.GetAsync("/Report/Report/Index");
+    [Fact]
+    public async Task Index_RedirectsToRoot_WhenAnonymous()
+    {
+        var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = false
+        });
 
-            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        var response = await client.GetAsync("/Report/Report/Index");
 
-            var location = response.Headers.Location?.ToString();
-            Assert.NotNull(location);
-            var uri = new Uri(location, UriKind.RelativeOrAbsolute);
-            var path = uri.IsAbsoluteUri ? uri.AbsolutePath : location.Split('?')[0];
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
 
-            Assert.Equal("/", path);
-        }
+        var location = response.Headers.Location?.ToString();
+        Assert.NotNull(location);
+        var uri = new Uri(location, UriKind.RelativeOrAbsolute);
+        var path = uri.IsAbsoluteUri ? uri.AbsolutePath : location.Split('?')[0];
+
+        Assert.Equal("/", path);
     }
 }

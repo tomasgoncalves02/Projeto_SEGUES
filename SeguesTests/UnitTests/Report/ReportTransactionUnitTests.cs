@@ -3,62 +3,59 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Projeto_SEGUES.Areas.Report.Controllers;
 using Projeto_SEGUES.Areas.Report.ViewModels;
-using Projeto_SEGUES.Models.Payment;
 using Projeto_SEGUES.Services;
 using System.Security.Claims;
-using Xunit;
 
-namespace SeguesTests.UnitTests.Report
+namespace SeguesTests.UnitTests.Report;
+
+public class ReportTransactionUnitTests
 {
-    public class ReportTransactionUnitTests
+    private readonly Mock<IReportService> _mockService;
+    private readonly ReportTransactionController _controller;
+
+    public ReportTransactionUnitTests()
     {
-        private readonly Mock<IReportService> _mockService;
-        private readonly ReportTransactionController _controller;
+        _mockService = new Mock<IReportService>();
+        _controller = new ReportTransactionController(_mockService.Object);
+    }
 
-        public ReportTransactionUnitTests()
+    private void SetupUser(string userId)
+    {
+        var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, userId) };
+        var identity = new ClaimsIdentity(claims, "TestAuth");
+        var principal = new ClaimsPrincipal(identity);
+
+        _controller.ControllerContext = new ControllerContext
         {
-            _mockService = new Mock<IReportService>();
-            _controller = new ReportTransactionController(_mockService.Object);
-        }
+            HttpContext = new DefaultHttpContext { User = principal }
+        };
+    }
 
-        private void SetupUser(string userId)
-        {
-            var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, userId) };
-            var identity = new ClaimsIdentity(claims, "TestAuth");
-            var principal = new ClaimsPrincipal(identity);
+    [Fact]
+    public async Task Index_ReturnsViewWithModel()
+    {
+        SetupUser("pedro-77");
+        var model = new ReportTransactionSearchViewModel();
+        _mockService.Setup(s => s.GetTransactionHistoryAsync("pedro-77", model))
+            .ReturnsAsync([]);
 
-            _controller.ControllerContext = new ControllerContext
-            {
-                HttpContext = new DefaultHttpContext { User = principal }
-            };
-        }
+        var result = await _controller.Index(model);
 
-        [Fact]
-        public async Task Index_ReturnsViewWithModel()
-        {
-            SetupUser("pedro-77");
-            var model = new ReportTransactionSearchViewModel();
-            _mockService.Setup(s => s.GetTransactionHistoryAsync("pedro-77", model))
-                .ReturnsAsync(new List<Transaction>());
+        var viewResult = Assert.IsType<ViewResult>(result);
+        Assert.Equal(model, viewResult.Model);
+    }
 
-            var result = await _controller.Index(model);
+    [Fact]
+    public async Task GetFilteredBalance_ReturnsPartialView()
+    {
+        SetupUser("pedro-77");
+        var model = new ReportTransactionSearchViewModel();
+        _mockService.Setup(s => s.GetTransactionHistoryAsync("pedro-77", model))
+            .ReturnsAsync([]);
 
-            var viewResult = Assert.IsType<ViewResult>(result);
-            Assert.Equal(model, viewResult.Model);
-        }
+        var result = await _controller.GetFilteredBalance(model);
 
-        [Fact]
-        public async Task GetFilteredBalance_ReturnsPartialView()
-        {
-            SetupUser("pedro-77");
-            var model = new ReportTransactionSearchViewModel();
-            _mockService.Setup(s => s.GetTransactionHistoryAsync("pedro-77", model))
-                .ReturnsAsync(new List<Transaction>());
-
-            var result = await _controller.GetFilteredBalance(model);
-
-            var partialResult = Assert.IsType<PartialViewResult>(result);
-            Assert.Equal("_BalanceHistoryRows", partialResult.ViewName);
-        }
+        var partialResult = Assert.IsType<PartialViewResult>(result);
+        Assert.Equal("_BalanceHistoryRows", partialResult.ViewName);
     }
 }

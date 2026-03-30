@@ -43,7 +43,7 @@ public class EmailSender : IEmailSender
         var client = new SmtpClient(mailServer, port)
         {
             Credentials = new NetworkCredential(myEmail, myPassword),
-            EnableSsl = true,
+            EnableSsl = true
         };
 
         var mailMessage = new MailMessage(myEmail, email, subject, htmlMessage)

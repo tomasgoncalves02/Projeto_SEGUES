@@ -4,9 +4,7 @@ using Moq;
 using Projeto_SEGUES.Areas.Admin.Controllers;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Areas.Report.ViewModels;
-using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Services;
-using Xunit;
 
 namespace SeguesTests.UnitTests.Admin;
 
@@ -14,15 +12,14 @@ public class AdminTicketManagementUnitTests
 {
     private readonly Mock<IAdminService> _mockAdminService;
     private readonly Mock<ITicketService> _mockTicketService;
-    private readonly Mock<IPdfService> _mockPdfService;
     private readonly AdminTicketManagementController _controller;
 
     public AdminTicketManagementUnitTests()
     {
         _mockAdminService = new Mock<IAdminService>();
         _mockTicketService = new Mock<ITicketService>();
-        _mockPdfService = new Mock<IPdfService>();
-        _controller = new AdminTicketManagementController(_mockAdminService.Object, _mockTicketService.Object, _mockPdfService.Object);
+        var mockPdfService = new Mock<IPdfService>();
+        _controller = new AdminTicketManagementController(_mockAdminService.Object, _mockTicketService.Object, mockPdfService.Object);
         _controller.TempData = new Mock<ITempDataDictionary>().Object;
     }
 
@@ -32,8 +29,9 @@ public class AdminTicketManagementUnitTests
         var config = new BarCanteenConfigViewModel { CanteenLunchOpeningTimeString = "12:00", CanteenLunchClosingTimeString = "14:00" };
         _mockAdminService.Setup(s => s.GetScheduleAsync()).ReturnsAsync(config);
         _mockAdminService.Setup(s => s.GetTicketPricesAsync())
-            .ReturnsAsync(new List<TicketPrice>());
-        _mockTicketService.Setup(s => s.GetTicketHistoryAsync(null, It.IsAny<ReportTicketSearchViewModel>())).ReturnsAsync(new List<Ticket>());
+            .ReturnsAsync([]);
+        _mockTicketService.Setup(s => s.GetTicketHistoryAsync(null, It.IsAny<ReportTicketSearchViewModel>())).ReturnsAsync(
+            []);
 
         var result = await _controller.Index();
 
@@ -45,7 +43,7 @@ public class AdminTicketManagementUnitTests
     [Fact]
     public async Task UpdatePrices_EmptyList_RedirectsToIndex()
     {
-        var result = await _controller.UpdatePrices(new List<TicketPriceUpdateDto>());
+        var result = await _controller.UpdatePrices([]);
 
         var redirect = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal("Index", redirect.ActionName);

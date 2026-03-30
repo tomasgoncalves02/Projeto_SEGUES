@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -9,10 +8,6 @@ using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Xunit;
 
 namespace SeguesTests.UnitTests.Admin;
 
@@ -21,7 +16,6 @@ public class AdminUserManagementUnitTests
     private readonly Mock<UserManager<AppUser>> _userManagerMock;
     private readonly Mock<IAdminService> _adminServiceMock;
     private readonly Mock<IUserService> _userServiceMock;
-    private readonly Mock<ILogger<AdminUserManagementController>> _loggerMock;
     private readonly Mock<IPdfService> _pdfServiceMock;
     private readonly AdminUserManagementController _controller;
 
@@ -32,14 +26,14 @@ public class AdminUserManagementUnitTests
 
         _adminServiceMock = new Mock<IAdminService>();
         _userServiceMock = new Mock<IUserService>();
-        _loggerMock = new Mock<ILogger<AdminUserManagementController>>();
+        var loggerMock = new Mock<ILogger<AdminUserManagementController>>();
         _pdfServiceMock = new Mock<IPdfService>();
 
         _controller = new AdminUserManagementController(
             _userManagerMock.Object,
             _adminServiceMock.Object,
             _userServiceMock.Object,
-            _loggerMock.Object,
+            loggerMock.Object,
             _pdfServiceMock.Object);
 
         _controller.TempData = new Mock<ITempDataDictionary>().Object;
@@ -48,9 +42,9 @@ public class AdminUserManagementUnitTests
     [Fact]
     public async Task Index_ReturnsView_WithPopulatedDropdowns()
     {
-        _adminServiceMock.Setup(s => s.GetAllRolesForDropdownAsync()).ReturnsAsync(new List<SelectListItem>());
-        _adminServiceMock.Setup(s => s.GetAllCategoriesForDropdownAsync()).ReturnsAsync(new List<SelectListItem>());
-        _adminServiceMock.Setup(s => s.GetFilteredUsersAsync(null, null, null)).ReturnsAsync(new List<UserDto>());
+        _adminServiceMock.Setup(s => s.GetAllRolesForDropdownAsync()).ReturnsAsync([]);
+        _adminServiceMock.Setup(s => s.GetAllCategoriesForDropdownAsync()).ReturnsAsync([]);
+        _adminServiceMock.Setup(s => s.GetFilteredUsersAsync(null, null, null)).ReturnsAsync([]);
 
         var result = await _controller.Index();
 
@@ -64,7 +58,7 @@ public class AdminUserManagementUnitTests
     [Fact]
     public async Task Edit_Get_UserNotFound_RedirectsToError()
     {
-        _userServiceMock.Setup(s => s.GetUserForEditAsync("invalid-id")).ReturnsAsync((AppUser)null!);
+        _userServiceMock.Setup(s => s.GetUserForEditAsync("invalid-id")).ReturnsAsync((AppUser) null!);
 
         var result = await _controller.Edit("invalid-id");
 
@@ -77,7 +71,7 @@ public class AdminUserManagementUnitTests
     public async Task Edit_Post_InvalidModelState_ReturnsViewWithDropdowns()
     {
         _controller.ModelState.AddModelError("FirstName", "Required");
-        _adminServiceMock.Setup(s => s.GetAllRolesForDropdownAsync()).ReturnsAsync(new List<SelectListItem>());
+        _adminServiceMock.Setup(s => s.GetAllRolesForDropdownAsync()).ReturnsAsync([]);
 
         var model = new EditUserAdminViewModel
         {
@@ -101,7 +95,7 @@ public class AdminUserManagementUnitTests
     [Fact]
     public async Task Deactivate_UserNotFound_RedirectsToIndexWithError()
     {
-        _userManagerMock.Setup(m => m.FindByIdAsync("invalid")).ReturnsAsync((AppUser)null!);
+        _userManagerMock.Setup(m => m.FindByIdAsync("invalid")).ReturnsAsync((AppUser) null!);
 
         var result = await _controller.Deactivate("invalid");
 
@@ -113,10 +107,10 @@ public class AdminUserManagementUnitTests
     public async Task ExportUsersPdf_ReturnsFileResult()
     {
         _adminServiceMock.Setup(s => s.GetFilteredUsersAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-            .ReturnsAsync(new List<UserDto>());
+            .ReturnsAsync([]);
 
         _pdfServiceMock.Setup(s => s.GenerateAdminUsersListPdfAsync(It.IsAny<List<UserDto>>(), It.IsAny<string>()))
-            .Returns(new byte[] { 1, 2, 3 });
+            .Returns([1, 2, 3]);
 
         var searchModel = new UserSearchViewModel();
 
@@ -131,10 +125,10 @@ public class AdminUserManagementUnitTests
     public async Task ExportStaffLogPdf_ReturnsFileResult()
     {
         _adminServiceMock.Setup(s => s.GetStaffLogFilteredAsync(It.IsAny<string>(), It.IsAny<UserAction?>(), It.IsAny<DateTime?>()))
-            .ReturnsAsync(new List<StaffLogDto>());
+            .ReturnsAsync([]);
 
         _pdfServiceMock.Setup(s => s.GenerateAdminStaffLogPdfAsync(It.IsAny<List<StaffLogDto>>(), It.IsAny<string>()))
-            .Returns(new byte[] { 1, 2, 3 });
+            .Returns([1, 2, 3]);
 
         var model = new StaffLogSearchViewModel();
 

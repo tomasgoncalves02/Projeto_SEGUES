@@ -11,117 +11,118 @@ using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.User;
 using SeguesTests.Helpers;
-using System;
-using System.Linq;
-using System.Net;
 using System.Net.Http.Headers;
-using System.Threading.Tasks;
 using Projeto_SEGUES;
-using Xunit;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
-namespace SeguesTests.RegressionTests.Orders
+namespace SeguesTests.RegressionTests.Orders;
+
+public class OrderTicketRegressionTests : IClassFixture<WebApplicationFactory<Program>>, IDisposable
 {
-    public class OrderTicketRegressionTests : IClassFixture<WebApplicationFactory<Program>>, IDisposable
+    private readonly WebApplicationFactory<Program> _factory;
+    private readonly AppDbContext _sharedDb;
+    private readonly SqliteConnection _connection;
+
+    public OrderTicketRegressionTests(WebApplicationFactory<Program> factory)
     {
-        private readonly WebApplicationFactory<Program> _factory;
-        private readonly AppDbContext _sharedDb;
-        private readonly SqliteConnection _connection;
+        _connection = new SqliteConnection("DataSource=:memory:");
+        _connection.Open();
 
-        public OrderTicketRegressionTests(WebApplicationFactory<Program> factory)
+        var dbOptions = new DbContextOptionsBuilder<AppDbContext>()
+            .UseSqlite(_connection)
+            .Options;
+
+        _sharedDb = new AppDbContext(dbOptions);
+        _sharedDb.Database.EnsureCreated();
+
+        _factory = factory.WithWebHostBuilder(builder =>
         {
-            _connection = new SqliteConnection("DataSource=:memory:");
-            _connection.Open();
-
-            var dbOptions = new DbContextOptionsBuilder<AppDbContext>()
-                .UseSqlite(_connection)
-                .Options;
-
-            _sharedDb = new AppDbContext(dbOptions);
-            _sharedDb.Database.EnsureCreated();
-
-            _factory = factory.WithWebHostBuilder(builder =>
+            builder.UseEnvironment("Testing");
+            builder.ConfigureServices(services =>
             {
-                builder.UseEnvironment("Testing");
-                builder.ConfigureServices(services =>
-                {
-                    var descriptors = services.Where(d =>
-                        d.ServiceType == typeof(DbContextOptions<AppDbContext>) ||
-                        d.ServiceType == typeof(AppDbContext) ||
-                        d.ServiceType == typeof(DbContextOptions)).ToList();
-                    foreach (var d in descriptors) services.Remove(d);
+                var descriptors = services.Where(d =>
+                    d.ServiceType == typeof(DbContextOptions<AppDbContext>) ||
+                    d.ServiceType == typeof(AppDbContext) ||
+                    d.ServiceType == typeof(DbContextOptions)).ToList();
+                foreach (var d in descriptors) services.Remove(d);
 
-                    services.AddSingleton(_sharedDb);
-                    services.AddSingleton<IAntiforgery, NoOpAntiforgery>();
-                    services.AddAuthentication(options =>
+                services.AddSingleton(_sharedDb);
+
+                var emailDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailSender));
+                if (emailDescriptor != null) services.Remove(emailDescriptor);
+
+                services.AddTransient<IEmailSender, MockHelper.FakeEmailSender>();
+
+                services.AddSingleton<IAntiforgery, NoOpAntiforgery>();
+                services.AddAuthentication(options =>
                     {
                         options.DefaultAuthenticateScheme = "Test";
                         options.DefaultChallengeScheme = "Test";
                     })
                     .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", null);
-                });
             });
-        }
+        });
+    }
 
-        private async Task SeedPedro(decimal balance)
+    private async Task SeedPedro(decimal balance)
+    {
+        var category = new UserCategory { Name = "Estudante" };
+        _sharedDb.UserCategory.Add(category);
+
+        var config = new AppConfig { TicketValidityDays = 30 };
+        _sharedDb.AppConfig.Add(config);
+
+        var pedro = new AppUser
         {
-            var category = new UserCategory { Name = "Estudante" };
-            _sharedDb.UserCategory.Add(category);
+            Id = "pedro-77",       
+            UserName = "Pedro",
+            FirstName = "Pedro",
+            LastName = "Jesus",
+            Email = "pedro@segues.pt",
+            BirthDate = new DateTime(2000, 1, 1),
+            Balance = balance,
+            Gender = Gender.Male,
+            UserCategory = category,
+            SecurityStamp = Guid.NewGuid().ToString()
+        };
 
-            var config = new AppConfig { TicketValidityDays = 30 };
-            _sharedDb.AppConfig.Add(config);
-
-            var pedro = new AppUser
-            {
-                Id = "pedro-77",       
-                UserName = "Pedro",
-                FirstName = "Pedro",
-                LastName = "Jesus",
-                Email = "pedro@segues.pt",
-                BirthDate = new DateTime(2000, 1, 1),
-                Balance = balance,
-                Gender = Gender.Male,
-                UserCategory = category,
-                SecurityStamp = Guid.NewGuid().ToString()
-            };
-
-            var ticketPrice = new TicketPrice
-            {
-                Price = 2.50m,
-                UserCategory = category,
-                InitialDatePrice = DateTime.Now.AddDays(-1)
-            };
-
-            _sharedDb.Users.Add(pedro);
-            _sharedDb.TicketPrice.Add(ticketPrice);
-            await _sharedDb.SaveChangesAsync();
-        }
-
-        [Fact]
-        public async Task BuyTicket_Success_DeductsCorrectAmountFromBalance()
+        var ticketPrice = new TicketPrice
         {
-            decimal initialBalance = 10.00m;
-            decimal ticketPriceValue = 2.50m;
-            await SeedPedro(initialBalance);
+            Price = 2.50m,
+            UserCategory = category,
+            InitialDatePrice = DateTime.Now.AddDays(-1)
+        };
 
-            var client = _factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Test", "User");
+        _sharedDb.Users.Add(pedro);
+        _sharedDb.TicketPrice.Add(ticketPrice);
+        await _sharedDb.SaveChangesAsync();
+    }
 
-            var response = await client.PostAsync("/Order/OrderTicket/BuyTicket?quantity=2", null);
+    [Fact]
+    public async Task BuyTicket_Success_DeductsCorrectAmountFromBalance()
+    {
+        const decimal initialBalance = 10.00m;
+        const decimal ticketPriceValue = 2.50m;
+        await SeedPedro(initialBalance);
 
-            var location = response.Headers.Location?.ToString();
-            Assert.Contains("ActiveTickets", location);
+        var client = _factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Test", "User");
 
-            _sharedDb.ChangeTracker.Clear();
-            var pedroAfter = await _sharedDb.Users.FirstAsync(u => u.Id == "pedro-77"); 
+        var response = await client.PostAsync("/Order/OrderTicket/BuyTicket?quantity=2", null);
 
-            decimal expectedBalance = initialBalance - (ticketPriceValue * 2);
-            Assert.Equal(expectedBalance, pedroAfter.Balance);
-        }
+        var location = response.Headers.Location?.ToString();
+        Assert.Contains("ActiveTickets", location);
 
-        public void Dispose()
-        {
-            _sharedDb.Dispose();
-            _connection.Close();
-        }
+        _sharedDb.ChangeTracker.Clear();
+        var pedroAfter = await _sharedDb.Users.FirstAsync(u => u.Id == "pedro-77"); 
+
+        const decimal expectedBalance = initialBalance - (ticketPriceValue * 2);
+        Assert.Equal(expectedBalance, pedroAfter.Balance);
+    }
+
+    public void Dispose()
+    {
+        _sharedDb.Dispose();
+        _connection.Close();
     }
 }

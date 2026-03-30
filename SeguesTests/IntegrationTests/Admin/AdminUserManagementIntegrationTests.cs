@@ -1,8 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Projeto_SEGUES.Areas.Admin.Controllers;
@@ -10,7 +8,6 @@ using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using SeguesTests.Helpers;
-using Xunit;
 
 namespace SeguesTests.IntegrationTests.Admin;
 
@@ -118,21 +115,21 @@ public class AdminUserManagementIntegrationTests
     [Fact]
     public async Task ExportUsersPdf_GeneratesFileFromActualDatabaseData()
     {
-        var (context, userManager, roleManager) = MockHelper.GetIdentitySetup();
+        var (_, userManager, _) = MockHelper.GetIdentitySetup();
 
         var adminServiceMock = new Mock<IAdminService>();
         var pdfServiceMock = new Mock<IPdfService>();
 
         var userList = new List<UserDto>
         {
-            new UserDto { Id = "77", FullName = "Pedro PDF", Email = "pedro@pdf.pt" }
+            new() { Id = "77", FullName = "Pedro PDF", Email = "pedro@pdf.pt" }
         };
 
         adminServiceMock.Setup(s => s.GetFilteredUsersAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .ReturnsAsync(userList);
 
         pdfServiceMock.Setup(s => s.GenerateAdminUsersListPdfAsync(userList, It.IsAny<string>()))
-            .Returns(new byte[] { 0x10, 0x20, 0x30 });
+            .Returns([0x10, 0x20, 0x30]);
 
         var controller = new AdminUserManagementController(
             userManager, 

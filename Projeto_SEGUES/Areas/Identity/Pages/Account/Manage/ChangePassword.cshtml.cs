@@ -93,13 +93,9 @@ public class ChangePasswordModel : PageModel
         }
 
         var hasPassword = await _userManager.HasPasswordAsync(user);
-        if (!hasPassword)
-        {
-            TempData.SetSwalWarning("A sua conta não tem uma password local definida.");
-            return RedirectToPage("/Account/ResetPassword", new { Area = "Identity" });
-        }
-
-        return Page();
+        if (hasPassword) return Page();
+        TempData.SetSwalWarning("A sua conta não tem uma password local definida.");
+        return RedirectToPage("/Account/ResetPassword", new { Area = "Identity" });
     }
 
     /// <summary>

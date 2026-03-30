@@ -11,144 +11,148 @@ using Projeto_SEGUES.Models.Inventory;
 using Projeto_SEGUES.Models.Order;
 using Projeto_SEGUES.Models.User;
 using SeguesTests.Helpers;
-using System;
-using System.Linq;
 using System.Net;
 using System.Net.Http.Headers;
-using System.Threading.Tasks;
 using Projeto_SEGUES;
-using Xunit;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
-namespace SeguesTests.RegressionTests.Orders
+namespace SeguesTests.RegressionTests.Orders;
+
+public class OrderManagementRegressionTests : IClassFixture<WebApplicationFactory<Program>>
 {
-    public class OrderManagementRegressionTests : IClassFixture<WebApplicationFactory<Program>>
+    private readonly WebApplicationFactory<Program> _factory;
+    private readonly AppDbContext _sharedDb;
+
+    public OrderManagementRegressionTests(WebApplicationFactory<Program> factory)
     {
-        private readonly WebApplicationFactory<Program> _factory;
-        private readonly AppDbContext _sharedDb;
-        private readonly SqliteConnection _connection;
+        var connection =
+            // Inicialização da conexão SQLite persistente para o teste
+            new SqliteConnection("DataSource=:memory:");
+        connection.Open();
 
-        public OrderManagementRegressionTests(WebApplicationFactory<Program> factory)
+        var dbOptions = new DbContextOptionsBuilder<AppDbContext>()
+            .UseSqlite(connection)
+            .Options;
+
+        _sharedDb = new AppDbContext(dbOptions);
+        _sharedDb.Database.EnsureCreated();
+
+        _factory = factory.WithWebHostBuilder(builder =>
         {
-            _connection = new SqliteConnection("DataSource=:memory:");
-            _connection.Open();
-
-            var dbOptions = new DbContextOptionsBuilder<AppDbContext>()
-                .UseSqlite(_connection)
-                .Options;
-
-            _sharedDb = new AppDbContext(dbOptions);
-            _sharedDb.Database.EnsureCreated();
-
-            _factory = factory.WithWebHostBuilder(builder =>
+            builder.UseEnvironment("Testing");
+            builder.ConfigureServices(services =>
             {
-                builder.UseEnvironment("Testing");
-                builder.ConfigureServices(services =>
-                {
-                    var descriptors = services.Where(d =>
-                        d.ServiceType == typeof(DbContextOptions<AppDbContext>) ||
-                        d.ServiceType == typeof(AppDbContext) ||
-                        d.ServiceType == typeof(DbContextOptions)).ToList();
-                    foreach (var d in descriptors) services.Remove(d);
+                var descriptors = services.Where(d =>
+                    d.ServiceType == typeof(DbContextOptions<AppDbContext>) ||
+                    d.ServiceType == typeof(AppDbContext) ||
+                    d.ServiceType == typeof(DbContextOptions)).ToList();
 
-                    services.AddSingleton(dbOptions);
-                    services.AddSingleton(_sharedDb);
-                    services.AddSingleton<DbContextOptions<AppDbContext>>(dbOptions);
+                foreach (var d in descriptors) services.Remove(d);
 
-                    services.AddSingleton<IAntiforgery, NoOpAntiforgery>();
+                services.AddSingleton(dbOptions);
+                services.AddSingleton(_sharedDb);
+                services.AddSingleton(dbOptions);
 
-                    services.AddAuthentication(options =>
+                var emailDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailSender));
+                if (emailDescriptor != null) services.Remove(emailDescriptor);
+
+                services.AddTransient<IEmailSender, MockHelper.FakeEmailSender>();
+
+                // 4. Configuração de Antiforgery e Autenticação de Teste
+                services.AddSingleton<IAntiforgery, NoOpAntiforgery>();
+
+                services.AddAuthentication(options =>
                     {
                         options.DefaultAuthenticateScheme = "Test";
                         options.DefaultChallengeScheme = "Test";
                     })
                     .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", null);
-                });
             });
-        }
+        });
+    }
 
-        [Fact]
-        public async Task CancelOrder_ShouldRefundUserBalance_AndRestoreProductStock()
+    [Fact]
+    public async Task CancelOrder_ShouldRefundUserBalance_AndRestoreProductStock()
+    {
+        const decimal initialBalance = 50m;
+        const int currentStock = 10;
+        const decimal orderValue = 10m;
+
+        var category = new UserCategory { Name = "Vip" };
+        _sharedDb.UserCategory.Add(category);
+
+        var pedro = new AppUser
         {
-            decimal initialBalance = 50m;
-            int currentStock = 10;
-            decimal orderValue = 10m;
+            Id = "pedro-77",
+            UserName = "Pedro",
+            FirstName = "Pedro",
+            LastName = "Jesus",
+            Email = "pedro@segues.pt",
+            BirthDate = new DateTime(2000, 1, 1),
+            Balance = initialBalance,
+            Gender = Gender.Male,
+            UserCategory = category,
+            SecurityStamp = Guid.NewGuid().ToString()
+        };
 
-            var category = new UserCategory { Name = "Vip" };
-            _sharedDb.UserCategory.Add(category);
+        var product = new Product
+        {
+            Id = 1,
+            Name = "Cerveja de Teste",
+            Price = 10m,
+            Stock = currentStock,
+            MinimumStock = 5,
+            Description = "Teste",
+            Category = new ProductCategory { Name = "Bebidas", Description = "Bebidas" }
+        };
 
-            var pedro = new AppUser
-            {
-                Id = "pedro-77",
-                UserName = "Pedro",
-                FirstName = "Pedro",
-                LastName = "Jesus",
-                Email = "pedro@segues.pt",
-                BirthDate = new DateTime(2000, 1, 1),
-                Balance = initialBalance,
-                Gender = Gender.Male,
-                UserCategory = category,
-                SecurityStamp = Guid.NewGuid().ToString()
-            };
+        var order = new Order
+        {
+            Id = 1,
+            AppUser = pedro,
+            Status = OrderStatus.Pending,
+            TotalValue = 10m,
+            RedemptionCode = "REFUND77",
+            OrderDate = DateTime.Now
+        };
 
-            var product = new Product
-            {
-                Id = 1,
-                Name = "Cerveja de Teste",
-                Price = 10m,
-                Stock = currentStock,
-                MinimumStock = 5,
-                Description = "Teste",
-                Category = new ProductCategory { Name = "Bebidas", Description = "Bebidas" }
-            };
+        order.ProductPurchases.Add(new OrderLine
+        {
+            OrderId = 1,
+            Order = order,
+            ProductId = 1,
+            Product = product,
+            Quantity = 1,
+            ProductValue = 10m
+        });
 
-            var order = new Order
-            {
-                Id = 1,
-                AppUser = pedro,
-                Status = OrderStatus.Pending,
-                TotalValue = 10m,
-                RedemptionCode = "REFUND77",
-                OrderDate = DateTime.Now
-            };
+        _sharedDb.Users.Add(pedro);
+        _sharedDb.Product.Add(product);
+        _sharedDb.Order.Add(order);
+        await _sharedDb.SaveChangesAsync();
 
-            order.ProductPurchases.Add(new OrderLine
-            {
-                OrderId = 1,
-                Order = order,
-                ProductId = 1,
-                Product = product,
-                Quantity = 1,
-                ProductValue = 10m
-            });
+        var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = false
+        });
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Test", "User");
 
-            _sharedDb.Users.Add(pedro);
-            _sharedDb.Product.Add(product);
-            _sharedDb.Order.Add(order);
-            await _sharedDb.SaveChangesAsync();
+        var response = await client.PostAsync("/Order/ActiveOrder/CancelOrder/1", null);
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
 
-            var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
-            {
-                AllowAutoRedirect = false
-            });
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Test", "User");
+        _sharedDb.ChangeTracker.Clear();
 
-            var response = await client.PostAsync("/Order/ActiveOrder/CancelOrder/1", null);
-            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        var pedroUser = await _sharedDb.Users.FirstAsync(u => u.Id == "pedro-77");
+        var verifyProduct = await _sharedDb.Product.FirstAsync(p => p.Id == 1);
+        var verifyOrder = await _sharedDb.Order.FirstAsync(o => o.Id == 1);
+        var transaction = await _sharedDb.Transaction
+            .Include(t => t.User)
+            .FirstOrDefaultAsync(t => t.User.Id == "pedro-77");
 
-            _sharedDb.ChangeTracker.Clear();
-
-            var pedroUser = await _sharedDb.Users.FirstAsync(u => u.Id == "pedro-77");
-            var verifyProduct = await _sharedDb.Product.FirstAsync(p => p.Id == 1);
-            var verifyOrder = await _sharedDb.Order.FirstAsync(o => o.Id == 1);
-            var transaction = await _sharedDb.Transaction
-                .Include(t => t.User)
-                .FirstOrDefaultAsync(t => t.User.Id == "pedro-77");
-
-            Assert.Equal(initialBalance + orderValue, pedroUser.Balance);
-            Assert.Equal(currentStock + 1, verifyProduct.Stock);
-            Assert.Equal(OrderStatus.Cancelled, verifyOrder.Status);
-            Assert.NotNull(transaction);
-            Assert.Equal(orderValue, transaction.Amount);
-        }
+        Assert.Equal(initialBalance + orderValue, pedroUser.Balance);
+        Assert.Equal(currentStock + 1, verifyProduct.Stock);
+        Assert.Equal(OrderStatus.Cancelled, verifyOrder.Status);
+        Assert.NotNull(transaction);
+        Assert.Equal(orderValue, transaction.Amount);
     }
 }

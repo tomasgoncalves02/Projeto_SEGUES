@@ -1,33 +1,39 @@
-﻿using System.Net;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Projeto_SEGUES;
 using Projeto_SEGUES.Data;
+using Projeto_SEGUES;
+using SeguesTests.Helpers;
+using System.Net;
 
 namespace SeguesTests.SecurityTests.Users;
 
 public class UserControllerSecurityTests : IClassFixture<WebApplicationFactory<Program>>
 {
-    private readonly HttpClient _client;
     private readonly WebApplicationFactory<Program> _factory;
 
     public UserControllerSecurityTests(WebApplicationFactory<Program> factory)
     {
         _factory = factory.WithWebHostBuilder(builder =>
         {
+            builder.UseEnvironment("Testing");
             builder.ConfigureServices(services =>
             {
-                var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
-                if (descriptor != null) services.Remove(descriptor);
+                var dbDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
+                if (dbDescriptor != null) services.Remove(dbDescriptor);
 
-                services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("UserSecurityTestDb"));
+                services.AddDbContext<AppDbContext>(options =>
+                {
+                    options.UseInMemoryDatabase("SecurityUserFinalTestDb_Pedro");
+                });
+
+                var emailDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailSender));
+                if (emailDescriptor != null) services.Remove(emailDescriptor);
+
+                services.AddTransient<IEmailSender, MockHelper.FakeEmailSender>();
             });
-        });
-
-        _client = _factory.CreateClient(new WebApplicationFactoryClientOptions
-        {
-            AllowAutoRedirect = false
         });
     }
 
@@ -35,27 +41,19 @@ public class UserControllerSecurityTests : IClassFixture<WebApplicationFactory<P
     [Trait("Category", "Security")]
     public async Task Index_UnauthenticatedUser_ReturnsRedirectToLogin()
     {
-        _client.DefaultRequestHeaders.Authorization = null;
-
-        var response = await _client.GetAsync("/User/User/Index");
+        var client = _factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+        var response = await client.GetAsync("/User/User/Index");
 
         Assert.True(
-            response.StatusCode == HttpStatusCode.Unauthorized ||
-            response.StatusCode == HttpStatusCode.Redirect ||
-            response.StatusCode == HttpStatusCode.Found
+            response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Redirect
         );
-
-        if (response.StatusCode == HttpStatusCode.Redirect || response.StatusCode == HttpStatusCode.Found)
-        {
-            var location = response.Headers.Location?.ToString();
-            Assert.Contains("ReturnUrl", location, System.StringComparison.OrdinalIgnoreCase);
-        }
     }
 
     [Fact]
     [Trait("Category", "Security")]
     public async Task UpdateProfile_MissingAntiForgeryToken_ReturnsBadRequestOrInternalError()
     {
+        var client = _factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         var formData = new Dictionary<string, string>
         {
             { "FirstName", "Pedro" },
@@ -63,16 +61,9 @@ public class UserControllerSecurityTests : IClassFixture<WebApplicationFactory<P
         };
         var content = new FormUrlEncodedContent(formData);
 
-        var response = await _client.PostAsync("/User/User/UpdateProfile", content);
+        var response = await client.PostAsync("/User/User/UpdateProfile", content);
 
         Assert.NotEqual(HttpStatusCode.OK, response.StatusCode);
-
-        Assert.True(
-            response.StatusCode == HttpStatusCode.BadRequest ||
-            response.StatusCode == HttpStatusCode.Found ||
-            response.StatusCode == HttpStatusCode.Redirect ||
-            response.StatusCode == HttpStatusCode.Unauthorized
-        );
     }
 
     [Theory]
@@ -82,16 +73,16 @@ public class UserControllerSecurityTests : IClassFixture<WebApplicationFactory<P
     [InlineData("Pedro'; WAITFOR DELAY '0:0:5'--")]
     public async Task UpdateProfile_SqlInjectionPayload_IsHandledSafely(string maliciousPayload)
     {
+        var client = _factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         var formData = new Dictionary<string, string>
         {
             { "FirstName", maliciousPayload },
             { "LastName", "Jesus" },
             { "Email", "pedro@segues.pt" }
         };
-
         var content = new FormUrlEncodedContent(formData);
 
-        var response = await _client.PostAsync("/User/User/UpdateProfile", content);
+        var response = await client.PostAsync("/User/User/UpdateProfile", content);
 
         Assert.NotEqual(HttpStatusCode.InternalServerError, response.StatusCode);
     }

@@ -80,13 +80,25 @@ public enum UserAction : byte
     // Generic Database/CRUD Actions
     // ==========================================
 
+    /// <summary>
+    /// Creation of a new record in the database, such as a new user, order, or ticket.
+    /// </summary>
     Create,
+    /// <summary>
+    /// Retrieval or querying of existing data from the database, such as user details, order details, or ticket details.
+    /// </summary>
     Update,
+    /// <summary>
+    /// Deletion of a record from the database, such as a user, order, or ticket.
+    /// </summary>
     Delete,
 
     // ==========================================
     // Miscellaneous
     // ==========================================
 
-    Other,
+    /// <summary>
+    /// Any other action that does not fit into the above categories.
+    /// </summary>
+    Other
 }

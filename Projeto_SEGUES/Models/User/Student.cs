@@ -15,10 +15,9 @@ public class Student : AppUser
     /// <summary>
     /// The unique institutional identifier for the student (e.g., "A2024001").
     /// </summary>
-    [Required]
     [MaxLength(20, ErrorMessage = "O número de estudante deve ter no máximo {1} caracteres.")]
     [Display(Name = "Número de Estudante")]
-    public required string StudentNumber { get; set; }
+    public string? StudentNumber { get; set; }
 
     /// <summary>
     /// Navigation property to the school where the student is currently enrolled.

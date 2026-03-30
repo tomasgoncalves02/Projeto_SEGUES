@@ -1,9 +1,5 @@
-﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Moq;
 using Projeto_SEGUES.Areas.User.Controllers;
 using Projeto_SEGUES.Areas.User.ViewModels;
@@ -23,35 +19,19 @@ public class UserControllerTests
 
     public UserControllerTests()
     {
-        var userStoreMock = new Mock<IUserStore<AppUser>>();
-        _mockUserManager = new Mock<UserManager<AppUser>>(userStoreMock.Object, null!, null!, null!, null!, null!, null!, null!, null!);
-
-        var roleStoreMock = new Mock<IRoleStore<Role>>();
-        _mockRoleManager = new Mock<RoleManager<Role>>(roleStoreMock.Object, null!, null!, null!, null!);
-
+        _mockUserManager = MockHelper.MockUserManager(new List<AppUser>());
+        _mockRoleManager = MockHelper.MockRoleManager<Role>();
         _mockUserService = new Mock<IUserService>();
-
+        
         _controller = new UserController(_mockUserManager.Object, _mockRoleManager.Object, _mockUserService.Object);
-
-        var claimsUser = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
-        {
-            new Claim(ClaimTypes.Name, "Pedro"),
-            new Claim(ClaimTypes.NameIdentifier, TestUserId)
-        }, "mock"));
-
-        _controller.ControllerContext = new ControllerContext
-        {
-            HttpContext = new DefaultHttpContext { User = claimsUser }
-        };
-
-        _controller.TempData = new TempDataDictionary(_controller.HttpContext, Mock.Of<ITempDataProvider>());
+        MockHelper.SetupControllerContext(_controller); // TestUserId is default in this helper
     }
 
     [Fact]
     public async Task Index_UserNotFound_ReturnsChallengeResult()
     {
         _mockUserService.Setup(s => s.GetUserForEditAsync(TestUserId))
-            .ReturnsAsync((AppUser)null!);
+            .ReturnsAsync((AppUser) null!);
 
         var result = await _controller.Index();
 
@@ -75,7 +55,7 @@ public class UserControllerTests
             .ReturnsAsync(MockHelper.CreateValidRole());
 
         _mockUserService.Setup(s => s.GetSchoolsAsync())
-            .ReturnsAsync(new List<SelectListItem>());
+            .ReturnsAsync([]);
 
         var result = await _controller.Index();
 
@@ -89,7 +69,7 @@ public class UserControllerTests
     {
         var model = MockHelper.CreateValidEditUserViewModel();
         _mockUserService.Setup(s => s.GetUserForEditAsync(TestUserId))
-            .ReturnsAsync((AppUser)null!);
+            .ReturnsAsync((AppUser) null!);
 
         var result = await _controller.UpdateProfile(model);
 
@@ -109,7 +89,7 @@ public class UserControllerTests
             .ReturnsAsync(user);
 
         _mockUserService.Setup(s => s.GetSchoolsAsync())
-            .ReturnsAsync(new List<SelectListItem>());
+            .ReturnsAsync([]);
 
         _mockUserManager.Setup(u => u.GetRolesAsync(user))
             .ReturnsAsync(new List<string> { "Client" });
@@ -157,7 +137,7 @@ public class UserControllerTests
             .ReturnsAsync(new ServiceResult(false, "Erro"));
 
         _mockUserService.Setup(s => s.GetSchoolsAsync())
-            .ReturnsAsync(new List<SelectListItem>());
+            .ReturnsAsync([]);
 
         var result = await _controller.UpdateProfile(model);
 

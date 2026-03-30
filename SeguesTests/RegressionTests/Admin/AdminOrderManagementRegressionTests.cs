@@ -10,7 +10,6 @@ using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using SeguesTests.Helpers;
 using System.Security.Claims;
-using Xunit;
 
 namespace SeguesTests.RegressionTests.Admin;
 
@@ -82,7 +81,7 @@ public class AdminOrderManagementRegressionTests
         var reportService = new ReportService(context);
         var controller = new AdminOrderManagementController(Mock.Of<IAdminService>(), reportService, Mock.Of<IPdfService>());
 
-        var identity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, "pedro-77") }, "mock");
+        var identity = new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, "pedro-77")], "mock");
         var principal = new ClaimsPrincipal(identity);
 
         controller.ControllerContext = new ControllerContext

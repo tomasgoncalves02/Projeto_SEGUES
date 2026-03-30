@@ -6,11 +6,12 @@ using System.Text.Encodings.Web;
 
 namespace SeguesTests.Helpers;
 
-public class TestAuthHandlerWithRole : AuthenticationHandler<AuthenticationSchemeOptions>
+public class TestAuthHandlerWithRole(
+    IOptionsMonitor<AuthenticationSchemeOptions> options,
+    ILoggerFactory logger,
+    UrlEncoder encoder)
+    : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
-    public TestAuthHandlerWithRole(IOptionsMonitor<AuthenticationSchemeOptions> options,
-        ILoggerFactory logger, UrlEncoder encoder) : base(options, logger, encoder) { }
-
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         var claims = new[]

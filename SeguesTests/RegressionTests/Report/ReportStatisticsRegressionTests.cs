@@ -1,25 +1,41 @@
 ﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Projeto_SEGUES.Data;
 using SeguesTests.Helpers;
 using System.Net.Http.Headers;
-using System.Threading.Tasks;
 using Projeto_SEGUES;
-using Xunit;
 
-namespace SeguesTests.RegressionTests.Report
+namespace SeguesTests.RegressionTests.Report;
+
+public class ReportStatisticsRegressionTests : IClassFixture<WebApplicationFactory<Program>>
 {
-    public class ReportStatisticsRegressionTests : IClassFixture<WebApplicationFactory<Program>>
-    {
-        private readonly WebApplicationFactory<Program> _factory;
+    private readonly WebApplicationFactory<Program> _factory;
 
-        public ReportStatisticsRegressionTests(WebApplicationFactory<Program> factory)
+    public ReportStatisticsRegressionTests(WebApplicationFactory<Program> factory)
+    {
+        _factory = factory.WithWebHostBuilder(builder =>
         {
-            _factory = factory.WithWebHostBuilder(builder =>
+            builder.UseEnvironment("Testing");
+            builder.ConfigureServices(services =>
             {
-                builder.ConfigureServices(services =>
+                var dbDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
+                if (dbDescriptor != null) services.Remove(dbDescriptor);
+
+                services.AddDbContext<AppDbContext>(options =>
                 {
-                    services.AddAuthentication(options =>
+                    options.UseInMemoryDatabase("RegressionReportStatisticsDb_Pedro");
+                });
+
+                var emailDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailSender));
+                if (emailDescriptor != null) services.Remove(emailDescriptor);
+
+                services.AddTransient<IEmailSender, MockHelper.FakeEmailSender>();
+
+                services.AddAuthentication(options =>
                     {
                         options.DefaultAuthenticateScheme = "Test";
                         options.DefaultChallengeScheme = "Test";
@@ -27,31 +43,30 @@ namespace SeguesTests.RegressionTests.Report
                     })
                     .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", null);
 
-                    services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
-                    {
-                        options.JsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(System.Text.Unicode.UnicodeRanges.All);
-                    });
+                services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
+                {
+                    options.JsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(System.Text.Unicode.UnicodeRanges.All);
                 });
             });
-        }
+        });
+    }
 
-        [Fact]
-        public async Task StatisticsDashboard_ContainsChartsContainer()
+    [Fact]
+    public async Task StatisticsDashboard_ContainsChartsContainer()
+    {
+        var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
         {
-            var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
-            {
-                AllowAutoRedirect = false
-            });
+            AllowAutoRedirect = false
+        });
 
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Test", "Admin");
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Test", "Admin");
 
-            var response = await client.GetAsync("/Report/ReportStatistics/Index");
+        var response = await client.GetAsync("/Report/ReportStatistics/Index");
 
-            Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
 
-            var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync();
 
-            Assert.Contains("tatisticas", content);
-        }
+        Assert.Contains("tatisticas", content);
     }
 }

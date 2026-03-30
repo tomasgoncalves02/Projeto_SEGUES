@@ -21,6 +21,11 @@ public class ConfirmEmailModel : PageModel
     private readonly UserManager<AppUser> _userManager;
     private readonly ILogger<ConfirmEmailModel> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ConfirmEmailModel"/> class.
+    /// </summary>
+    /// <param name="userManager">Service for managing user accounts and operations.</param>
+    /// <param name="logger">Service for logging application events and errors.</param>
     public ConfirmEmailModel(
         UserManager<AppUser> userManager,
         ILogger<ConfirmEmailModel> logger)

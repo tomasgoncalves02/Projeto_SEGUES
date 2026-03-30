@@ -6,24 +6,22 @@ using System.Text.Encodings.Web;
 
 namespace SeguesTests.Helpers;
 
-public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+public class TestAuthHandler(
+    IOptionsMonitor<AuthenticationSchemeOptions> options,
+    ILoggerFactory logger,
+    UrlEncoder encoder)
+    : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
-    public TestAuthHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,
-        ILoggerFactory logger, UrlEncoder encoder) : base(options, logger, encoder) { }
-
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         var authHeader = Context.Request.Headers["Authorization"].ToString();
 
-        if (string.IsNullOrEmpty(authHeader))
-        {
-            return Task.FromResult(AuthenticateResult.NoResult());
-        }
+        if (string.IsNullOrEmpty(authHeader)) return Task.FromResult(AuthenticateResult.NoResult());
 
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.Name, "Pedro"),
-            new Claim(ClaimTypes.NameIdentifier, "pedro-77")
+            new(ClaimTypes.Name, "Pedro"),
+            new(ClaimTypes.NameIdentifier, "pedro-77")
         };
 
         var parts = authHeader.Split(' ');

@@ -115,7 +115,7 @@ public static class TempDataExtensions
             Text = message,
             AllowOutsideClick = false,
             AllowEscapeKey = false,
-            Footer = "Se o erro persistir, contacte o <a href='mailto:segues2026@gmail.com'>suporte</a>.",
+            Footer = "Se o erro persistir, contacte o <a href='mailto:segues2026@gmail.com'>suporte</a>."
         });
     }
 

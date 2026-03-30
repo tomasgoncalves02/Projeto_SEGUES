@@ -82,7 +82,7 @@ public class EmailModel : PageModel
 
         Input = new InputModel
         {
-            NewEmail = email,
+            NewEmail = email
         };
 
         IsEmailConfirmed = await _userManager.IsEmailConfirmedAsync(user);

@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
-using Projeto_SEGUES.Areas.Inventory.ViewModels;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Extensions;
 using Projeto_SEGUES.Models.Enums;
@@ -88,18 +87,13 @@ public class InventoryService : IInventoryService
         // Filter by Stock Status (In Stock, Low, Out of Stock)
         if (model.StockLevel.HasValue)
         {
-            switch (model.StockLevel.Value)
+            query = model.StockLevel.Value switch
             {
-                case StockLevel.InStock:
-                    query = query.Where(p => p.Stock > 0);
-                    break;
-                case StockLevel.LowStock:
-                    query = query.Where(p => p.Stock > 0 && p.Stock < p.MinimumStock);
-                    break;
-                case StockLevel.OutOfStock:
-                    query = query.Where(p => p.Stock == 0);
-                    break;
-            }
+                StockLevel.InStock => query.Where(p => p.Stock > 0),
+                StockLevel.LowStock => query.Where(p => p.Stock > 0 && p.Stock < p.MinimumStock),
+                StockLevel.OutOfStock => query.Where(p => p.Stock == 0),
+                _ => query
+            };
         }
 
         // Optional: Active products toggle

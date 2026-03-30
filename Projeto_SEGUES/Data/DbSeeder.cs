@@ -9,8 +9,15 @@ using Projeto_SEGUES.Models.User;
 
 namespace Projeto_SEGUES.Data;
 
+/// <summary>
+/// Seeds the database with initial data.
+/// </summary>
 public static class DbSeeder
 {
+    /// <summary>
+    /// Seeds the database with initial data.
+    /// </summary>
+    /// <param name="serviceProvider">The service provider to resolve required services.</param>
     public static async Task SeedInitialDataAsync(IServiceProvider serviceProvider)
     {
         await SeedRolesAndAdminAsync(serviceProvider);
@@ -102,7 +109,7 @@ public static class DbSeeder
 
         if (!admins.Any())
         {
-            var adminEmail = "admin@admin.com";
+            const string adminEmail = "admin@admin.com";
             var newAdmin = new AppUser
             {
                 UserName = adminEmail,
@@ -126,7 +133,7 @@ public static class DbSeeder
             }
         }
 
-        var testEmail = "testesegues2026@protonmail.com";
+        const string testEmail = "testesegues2026@protonmail.com";
         if (await userManager.FindByEmailAsync(testEmail) == null)
         {
             var testUser = new AppUser
@@ -241,7 +248,7 @@ public static class DbSeeder
 
         if (employeeUser == null)
         {
-            var employeeEmail = "employee@employee.com";
+            const string employeeEmail = "employee@employee.com";
             var employeeCategory = await context.UserCategory.FirstOrDefaultAsync(uc => uc.Name == "Externo");
             employeeUser = new Employee
             {

@@ -69,6 +69,7 @@ public class UserController : Controller
             {
                 Student student2 => student2.School?.Id,
                 Employee employee2 => employee2.School?.Id,
+                WorkerIps worker2 => worker2.School?.Id,
                 _ => null
             },
             PostalCode = user.PostalCode?.Code,

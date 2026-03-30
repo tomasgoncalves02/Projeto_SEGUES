@@ -2,55 +2,53 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 using Projeto_SEGUES.Data;
-using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Ticket;
-using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
+using SeguesTests.Helpers;
 
-namespace SeguesTests.UnitTests.Services
+namespace SeguesTests.UnitTests.Services;
+
+public class TicketUnitTests : IDisposable
 {
-    public class TicketUnitTests
+    private readonly AppDbContext _context;
+    private readonly TicketService _service;
+    
+    public TicketUnitTests()
     {
-        private AppDbContext GetContext()
-        {
-            var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;
-            return new AppDbContext(options);
-        }
+        // Set up a fresh In-Memory database for every test
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+            
+        _context = new AppDbContext(options);
+        _service = new TicketService(_context, Mock.Of<ILogger<TicketService>>());
+    }
 
-        [Fact]
-        public async Task GetCurrentPriceForUserAsync_ReturnsMostRecentActivePrice()
-        {
-            var context = GetContext();
-            var service = new TicketService(context, Mock.Of<ILogger<TicketService>>());
+    [Fact]
+    public async Task GetCurrentPriceForUserAsync_ReturnsMostRecentActivePrice()
+    {
+        var pedro = MockHelper.CreateValidAppUser();
+        pedro.UserCategory.Name = "Pedro-Student";
+        
+        _context.Users.Add(pedro);
+        var now = DateTime.Now;
 
-            var cat = new UserCategory { Id = 1, Name = "Pedro-Student" };
+        _context.TicketPrice.AddRange(
+            new TicketPrice { Price = 2.0m, UserCategory = pedro.UserCategory, InitialDatePrice = now.AddDays(-10), EndDatePrice = now.AddDays(-5) },
+            new TicketPrice { Price = 2.5m, UserCategory = pedro.UserCategory, InitialDatePrice = now.AddDays(-1), EndDatePrice = now.AddDays(1) }
+        );
 
-            var pedro = new AppUser
-            {
-                Id = "u1",
-                FirstName = "Pedro",
-                LastName = "S",
-                UserCategory = cat,
-                BirthDate = DateTime.Now.AddYears(-20),
-                Gender = Gender.Male,
-                Balance = 0,
-                Email = "p@t.pt",
-                UserName = "p@t.pt"
-            };
+        await _context.SaveChangesAsync();
 
-            context.Users.Add(pedro);
+        var result = await _service.GetCurrentPriceForUserAsync(pedro);
 
-            context.TicketPrice.AddRange(
-                new TicketPrice { Price = 2.0m, UserCategory = cat, InitialDatePrice = DateTime.Now.AddDays(-10), EndDatePrice = DateTime.Now.AddDays(-5) },
-                new TicketPrice { Price = 2.5m, UserCategory = cat, InitialDatePrice = DateTime.Now.AddDays(-1), EndDatePrice = DateTime.Now.AddDays(1) }
-            );
-
-            await context.SaveChangesAsync();
-
-            var result = await service.GetCurrentPriceForUserAsync(pedro);
-
-            Assert.Equal(2.5m, result);
-        }
+        Assert.Equal(2.5m, result);
+    }
+    
+    // xUnit automatically calls Dispose() after the test finishes
+    public void Dispose()
+    {
+        _context.Database.EnsureDeleted(); // Wipes the in-memory database
+        _context.Dispose();                // Frees up the DbContext
     }
 }

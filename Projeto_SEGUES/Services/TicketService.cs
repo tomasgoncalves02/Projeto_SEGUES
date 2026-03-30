@@ -253,7 +253,7 @@ public class TicketService : ITicketService
     /// <summary>
     /// Applies sophisticated search filters for tickets, including flow (sent/received) and ownership.
     /// </summary>
-    private IQueryable<Ticket> ApplyTicketHistorySearchFilters(IQueryable<Ticket> query, ReportTicketSearchViewModel model, string? userId = null)
+    private static IQueryable<Ticket> ApplyTicketHistorySearchFilters(IQueryable<Ticket> query, ReportTicketSearchViewModel model, string? userId = null)
     {
         bool isAdminLog = (userId == null);
         var searchString = model.SearchString?.Trim().ToLower();
@@ -278,53 +278,26 @@ public class TicketService : ITicketService
 
         if (model.StateFilter.HasValue)
         {
-            if (isAdminLog)
-            {
-                query = query.Where(t => t.State == model.StateFilter.Value);
-            }
-            else
-            {
+            query = isAdminLog ? query.Where(t => t.State == model.StateFilter.Value) :
                 // Exclude transferred tickets from state filter
-                query = query.Where(t => t.State == model.StateFilter.Value && t.Owner.Id == userId);
-            }
+                query.Where(t => t.State == model.StateFilter.Value && t.Owner.Id == userId);
         }
 
-        if (model.FlowFilter.HasValue)
+        if (!model.FlowFilter.HasValue) return query;
+
+        query = model.FlowFilter.Value switch
         {
-            switch (model.FlowFilter.Value)
-            {
-                case TicketFlow.Bought:
-                    if (isAdminLog)
-                    {
-                        query = query.Where(t => t.TicketPurchase.AppUser.Id == t.Owner.Id);
-                    }
-                    else
-                    {
-                        query = query.Where(t => t.TicketPurchase.AppUser.Id == userId);
-                    }
-                    break;
-                case TicketFlow.Sent:
-                    if (isAdminLog)
-                    {
-                        query = query.Where(t => t.Transfers.Any(tr => tr.Sender.Id == t.Owner.Id));
-                    }
-                    else
-                    {
-                        query = query.Where(t => t.Transfers.Any(tr => tr.Sender.Id == userId));
-                    }
-                    break;
-                case TicketFlow.Received:
-                    if (isAdminLog)
-                    {
-                        query = query.Where(t => t.Transfers.Any(tr => tr.Receiver.Id == t.Owner.Id));
-                    }
-                    else
-                    {
-                        query = query.Where(t => t.Transfers.Any(tr => tr.Receiver.Id == userId));
-                    }
-                    break;
-            }
-        }
+            TicketFlow.Bought => isAdminLog
+                ? query.Where(t => t.TicketPurchase.AppUser.Id == t.Owner.Id)
+                : query.Where(t => t.TicketPurchase.AppUser.Id == userId),
+            TicketFlow.Sent => isAdminLog
+                ? query.Where(t => t.Transfers.Any(tr => tr.Sender.Id == t.Owner.Id))
+                : query.Where(t => t.Transfers.Any(tr => tr.Sender.Id == userId)),
+            TicketFlow.Received => isAdminLog
+                ? query.Where(t => t.Transfers.Any(tr => tr.Receiver.Id == t.Owner.Id))
+                : query.Where(t => t.Transfers.Any(tr => tr.Receiver.Id == userId)),
+            _ => query
+        };
 
         return query;
     }
@@ -475,11 +448,9 @@ public class TicketService : ITicketService
         if (ticket.State == TicketState.Expired || ticket.ExpirationDate < DateTime.Now)
         {
             // Auto-update to expired if it wasn't already
-            if (ticket.State != TicketState.Expired)
-            {
-                ticket.State = TicketState.Expired;
-                await _context.SaveChangesAsync();
-            }
+            if (ticket.State == TicketState.Expired) return ServiceResult.Fail("Bilhete expirado.");
+            ticket.State = TicketState.Expired;
+            await _context.SaveChangesAsync();
             return ServiceResult.Fail("Bilhete expirado.");
         }
 

@@ -113,7 +113,7 @@ public class AdminTicketManagementController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdatePrices([Bind(Prefix = "Prices")] List<TicketPriceUpdateDto> updatedPrices)
     {
-        if (!updatedPrices.Any()) return RedirectToAction(nameof(Index));
+        if (updatedPrices.Count == 0) return RedirectToAction(nameof(Index));
 
         var result = await _adminService.UpdateTicketPricesAsync(updatedPrices);
         if (result.Success)

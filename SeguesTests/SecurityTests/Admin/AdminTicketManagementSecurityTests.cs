@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Projeto_SEGUES.Areas.Admin.Controllers;
 using System.Reflection;
-using Xunit;
 
 namespace SeguesTests.SecurityTests.Admin;
 

@@ -26,5 +26,5 @@ public class ValidateTicketViewModel
     /// <remarks>
     /// This list helps prevent double-processing and allows for quick verification of the last successful actions.
     /// </remarks>
-    public List<Models.Ticket.Ticket> RecentTickets { get; set; } = new();
+    public List<Models.Ticket.Ticket> RecentTickets { get; set; } = [];
 }

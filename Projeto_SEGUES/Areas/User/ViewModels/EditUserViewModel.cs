@@ -33,6 +33,9 @@ public class EditUserViewModel
     [Display(Name = "Sobrenome")]
     public required string LastName { get; set; }
     
+    /// <summary>
+    /// First letter of the user's first name.'
+    /// </summary>
     [ValidateNever]
     public string Initial => FirstName[0].ToString().ToUpper();
 
@@ -113,11 +116,19 @@ public class EditUserViewModel
     public bool IsEmployee => Role?.Name?.Equals("Employee", StringComparison.OrdinalIgnoreCase) ?? false;
     
     /// <summary>
+    /// Flag indicating if the user is categorized as a Worker IPS.
+    /// </summary>
+    public bool IsWorkerIps => Category.Equals("Trabalhador IPS", StringComparison.OrdinalIgnoreCase);
+    
+    /// <summary>
     /// Flag indicating if the user is affiliated with a school.
     /// </summary>
     [ValidateNever]
-    public bool ShowSchool => IsEmployee || IsStudent;
+    public bool ShowSchool => IsEmployee || IsStudent || IsWorkerIps;
     
+    /// <summary>
+    /// List of available schools for the user.
+    /// </summary>
     [ValidateNever]
     public List<SelectListItem> Schools { get; set; } = [];
 }

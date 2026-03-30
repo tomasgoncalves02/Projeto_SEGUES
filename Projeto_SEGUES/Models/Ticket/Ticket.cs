@@ -46,7 +46,7 @@ public class Ticket
     /// </summary>
     [MaxLength(8)]
     [Display(Name = "Código de Validação")]
-    public string ValidationCode { get; set; } = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
+    public string ValidationCode { get; set; } = Guid.NewGuid().ToString()[..8].ToUpper();
 
     /// <summary>
     /// Reference to the Staff/Employee who performed the ticket validation.

@@ -4,13 +4,7 @@ using Moq;
 using Projeto_SEGUES.Areas.Admin.Controllers;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Areas.Report.ViewModels;
-using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Xunit;
 
 namespace SeguesTests.RegressionTests.Admin;
 
@@ -55,7 +49,7 @@ public class AdminTicketManagementRegressionTests
 
         var result = await controller.UpdateValidity(-1);
 
-        var redirect = Assert.IsType<RedirectToActionResult>(result);
+        Assert.IsType<RedirectToActionResult>(result);
         tempDataMock.VerifySet(t => t[It.Is<string>(k => k.Contains("Swal"))] = It.IsAny<object>(), Times.Once);
     }
 

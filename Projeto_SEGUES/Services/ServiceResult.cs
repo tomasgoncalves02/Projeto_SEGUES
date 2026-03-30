@@ -49,7 +49,7 @@ public class ServiceResult<T> : ServiceResult
     /// <param name="success">Status of the operation.</param>
     /// <param name="message">Outcome description.</param>
     /// <param name="data">The data to return.</param>
-    public ServiceResult(bool success, string message, T? data = default)
+    private ServiceResult(bool success, string message, T? data = default)
         : base(success, message)
     {
         Data = data;
