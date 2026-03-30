@@ -29,19 +29,19 @@ else
             <td class="text-muted">@user.Email</td>
             
             <td>
-                <span class="badge p-2 @user.RoleBadgeClass">
+                <span class="badge fs-6 p-2 @user.RoleBadgeClass">
                     @user.RoleName
                 </span>
             </td>
             
             <td>
-                <span class="badge p-2 @user.CategoryBadgeClass">
+                <span class="badge fs-6 p-2 @user.CategoryBadgeClass">
                     @user.CategoryName
                 </span>
             </td>
             
             <td>
-                <span class="badge @(user.StatusBadgeClass) border-0 shadow-sm p-2 fw-bold">
+                <span class="badge @(user.StatusBadgeClass) border-0 shadow-sm p-2 fw-bold fs-6">
                     <i class="bi @(user.StatusIcon) me-1"></i>
                     @(user.StatusDisplay)
                 </span>

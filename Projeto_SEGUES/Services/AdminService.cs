@@ -322,7 +322,8 @@ public class AdminService : IAdminService
         });
         if (!result.Success) return result;
         
-        // Role Description and category
+        // Balance, Role Description and category
+        user.Balance = model.Balance;
         if (!string.IsNullOrWhiteSpace(model.RoleDescription) && user is Employee e) e.RoleDescription = model.RoleDescription;
         user.UserCategory = (await GetCategoryByNameAsync(model.Category)) ?? user.UserCategory;
         await _context.SaveChangesAsync();
