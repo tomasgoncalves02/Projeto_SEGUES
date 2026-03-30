@@ -80,5 +80,4 @@ public interface IOrderService
     /// <returns>A ServiceResult confirming delivery or invalid code.</returns>
     Task<ServiceResult> ValidateOrderCodeAsync(int id, string enteredCode, AppUser staffMember);
 
-    #endregion
 }
