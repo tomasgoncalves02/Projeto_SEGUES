@@ -284,26 +284,21 @@ public class TicketService : ITicketService
         }
 
         if (!model.FlowFilter.HasValue) return query;
-        
-        switch (model.FlowFilter.Value)
+
+        query = model.FlowFilter.Value switch
         {
-            case TicketFlow.Bought:
-                query = isAdminLog ? 
-                    query.Where(t => t.TicketPurchase.AppUser.Id == t.Owner.Id) 
-                    : query.Where(t => t.TicketPurchase.AppUser.Id == userId);
-                    break;
-            case TicketFlow.Sent:
-                query = isAdminLog ? 
-                    query.Where(t => t.Transfers.Any(tr => tr.Sender.Id == t.Owner.Id)) 
-                    : query.Where(t => t.Transfers.Any(tr => tr.Sender.Id == userId));
-                    break;
-            case TicketFlow.Received:
-                query = isAdminLog ? 
-                    query.Where(t => t.Transfers.Any(tr => tr.Receiver.Id == t.Owner.Id)) 
-                    : query.Where(t => t.Transfers.Any(tr => tr.Receiver.Id == userId));
-                break;
-        }
-    
+            TicketFlow.Bought => isAdminLog
+                ? query.Where(t => t.TicketPurchase.AppUser.Id == t.Owner.Id)
+                : query.Where(t => t.TicketPurchase.AppUser.Id == userId),
+            TicketFlow.Sent => isAdminLog
+                ? query.Where(t => t.Transfers.Any(tr => tr.Sender.Id == t.Owner.Id))
+                : query.Where(t => t.Transfers.Any(tr => tr.Sender.Id == userId)),
+            TicketFlow.Received => isAdminLog
+                ? query.Where(t => t.Transfers.Any(tr => tr.Receiver.Id == t.Owner.Id))
+                : query.Where(t => t.Transfers.Any(tr => tr.Receiver.Id == userId)),
+            _ => query
+        };
+
         return query;
     }
 

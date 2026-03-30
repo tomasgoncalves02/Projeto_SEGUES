@@ -3,12 +3,10 @@ using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Moq;
 using Projeto_SEGUES.Areas.Admin.Controllers;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
-using Projeto_SEGUES.Areas.Report.ViewModels;
 using Projeto_SEGUES.Models.Order;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using SeguesTests.Helpers;
-using Xunit;
 
 namespace SeguesTests.IntegrationTests.Admin;
 
@@ -72,7 +70,6 @@ public class AdminOrderManagementIntegrationTests
     [Fact]
     public async Task OperationalHoursAdjustment_PersistenceCheck()
     {
-        var (context, _, _) = MockHelper.GetIdentitySetup();
         var adminServiceMock = new Mock<IAdminService>();
 
         var open = new TimeSpan(9, 0, 0);
@@ -98,7 +95,6 @@ public class AdminOrderManagementIntegrationTests
     [Fact]
     public async Task WeekendServiceStatus_ChangeValidation()
     {
-        var (context, _, _) = MockHelper.GetIdentitySetup();
         var adminServiceMock = new Mock<IAdminService>();
 
         adminServiceMock.Setup(s => s.UpdateSpecificDayStatusAsync("Saturday", true))

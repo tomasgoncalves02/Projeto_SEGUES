@@ -6,128 +6,121 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using Projeto_SEGUES;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.Admin;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.User;
 using SeguesTests.Helpers;
-using System;
-using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Threading.Tasks;
-using Xunit;
 
-namespace SeguesTests.IntegrationTests.Orders
+namespace SeguesTests.IntegrationTests.Orders;
+
+public class OrderIntegrationTests : IClassFixture<WebApplicationFactory<Program>>
 {
-    public class OrderIntegrationTests : IClassFixture<WebApplicationFactory<Program>>
+    private readonly WebApplicationFactory<Program> _factory;
+    private readonly HttpClient _client;
+    private const string TestUserId = "pedro-77";
+
+    public OrderIntegrationTests(WebApplicationFactory<Program> factory)
     {
-        private readonly WebApplicationFactory<Program> _factory;
-        private readonly HttpClient _client;
-        private const string TestUserId = "pedro-77";
-
-        public OrderIntegrationTests(WebApplicationFactory<Program> factory)
+        _factory = factory.WithWebHostBuilder(builder =>
         {
-            _factory = factory.WithWebHostBuilder(builder =>
+            builder.UseEnvironment("Testing");
+
+            builder.ConfigureServices(services =>
             {
-                builder.UseEnvironment("Testing");
+                var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
+                if (descriptor != null) services.Remove(descriptor);
 
-                builder.ConfigureServices(services =>
-                {
-                    var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
-                    if (descriptor != null) services.Remove(descriptor);
+                services.AddDbContext<AppDbContext>(options =>
+                    options.UseInMemoryDatabase("IntegDb_Order_Pedro")
+                        .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning)));
 
-                    services.AddDbContext<AppDbContext>(options =>
-                        options.UseInMemoryDatabase("IntegDb_Order_Pedro")
-                               .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning)));
+                var emailDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailSender));
+                if (emailDescriptor != null) services.Remove(emailDescriptor);
 
-                    var emailDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailSender));
-                    if (emailDescriptor != null) services.Remove(emailDescriptor);
+                services.AddTransient<IEmailSender, MockHelper.FakeEmailSender>();
 
-                    services.AddTransient<IEmailSender, MockHelper.FakeEmailSender>();
+                services.AddSingleton<IAntiforgery, NoOpAntiforgery>();
 
-                    services.AddSingleton<IAntiforgery, NoOpAntiforgery>();
-
-                    services.AddAuthentication(options =>
+                services.AddAuthentication(options =>
                     {
                         options.DefaultAuthenticateScheme = "Test";
                         options.DefaultChallengeScheme = "Test";
                         options.DefaultScheme = "Test";
                     })
                     .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", null);
-                });
             });
-            _client = _factory.CreateClient(new WebApplicationFactoryClientOptions
-            {
-                AllowAutoRedirect = false
-            });
-
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Test", "User");
-
-            SeedDatabase().GetAwaiter().GetResult();
-        }
-
-        private async Task SeedDatabase()
+        });
+        _client = _factory.CreateClient(new WebApplicationFactoryClientOptions
         {
-            using var scope = _factory.Services.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            AllowAutoRedirect = false
+        });
 
-            context.Database.EnsureDeleted();
-            context.Database.EnsureCreated();
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Test", "User");
 
-            var config = new AppConfig
-            {
-                BarOpeningTime = new TimeSpan(0, 0, 0),
-                BarClosingTime = new TimeSpan(23, 59, 59),
-                BarLink = "http://bar.test",
-                CanteenLink = "http://canteen.test",
-                IsOpenSaturday = true,
-                IsOpenSunday = true,
-                TicketValidityDays = 365
-            };
-            context.AppConfig.Add(config);
+        SeedDatabase().GetAwaiter().GetResult();
+    }
 
-            var cat = new UserCategory { Name = "Estudante" };
-            var pedro = new AppUser
-            {
-                Id = TestUserId,
-                UserName = "Pedro",
-                NormalizedUserName = "PEDRO",
-                Email = "pedro@test.com",
-                NormalizedEmail = "PEDRO@TEST.COM",
-                FirstName = "Pedro",
-                LastName = "Integracao",
-                BirthDate = new DateTime(2000, 1, 1),
-                Gender = Gender.Male,
-                UserCategory = cat,
-                Balance = 42.50m,
-                EmailConfirmed = true,
-                SecurityStamp = Guid.NewGuid().ToString()
-            };
+    private async Task SeedDatabase()
+    {
+        using var scope = _factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-            context.UserCategory.Add(cat);
-            context.Users.Add(pedro);
-            await context.SaveChangesAsync();
-        }
+        context.Database.EnsureDeleted();
+        context.Database.EnsureCreated();
 
-        [Fact]
-        public async Task Index_Get_ReturnsSuccess_AndShowsCorrectBalance()
+        var config = new AppConfig
         {
-            var response = await _client.GetAsync("/Order/Order/Index");
+            BarOpeningTime = new TimeSpan(0, 0, 0),
+            BarClosingTime = new TimeSpan(23, 59, 59),
+            BarLink = "http://bar.test",
+            CanteenLink = "http://canteen.test",
+            IsOpenSaturday = true,
+            IsOpenSunday = true,
+            TicketValidityDays = 365
+        };
+        context.AppConfig.Add(config);
 
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var cat = new UserCategory { Name = "Estudante" };
+        var pedro = new AppUser
+        {
+            Id = TestUserId,
+            UserName = "Pedro",
+            NormalizedUserName = "PEDRO",
+            Email = "pedro@test.com",
+            NormalizedEmail = "PEDRO@TEST.COM",
+            FirstName = "Pedro",
+            LastName = "Integracao",
+            BirthDate = new DateTime(2000, 1, 1),
+            Gender = Gender.Male,
+            UserCategory = cat,
+            Balance = 42.50m,
+            EmailConfirmed = true,
+            SecurityStamp = Guid.NewGuid().ToString()
+        };
 
-            var html = await response.Content.ReadAsStringAsync();
+        context.UserCategory.Add(cat);
+        context.Users.Add(pedro);
+        await context.SaveChangesAsync();
+    }
 
-            Assert.Contains("Saldo Disponível", html);
-            Assert.Contains("42", html);
-            Assert.Contains("50", html);
+    [Fact]
+    public async Task Index_Get_ReturnsSuccess_AndShowsCorrectBalance()
+    {
+        var response = await _client.GetAsync("/Order/Order/Index");
 
-            Assert.Contains("Efetuar Pedido", html);
-            Assert.Contains("Ver Pedidos", html);
-        }
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var html = await response.Content.ReadAsStringAsync();
+
+        Assert.Contains("Saldo Disponível", html);
+        Assert.Contains("42", html);
+        Assert.Contains("50", html);
+
+        Assert.Contains("Efetuar Pedido", html);
+        Assert.Contains("Ver Pedidos", html);
     }
 }

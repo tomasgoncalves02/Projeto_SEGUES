@@ -1,25 +1,22 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Projeto_SEGUES.Areas.Report;
 using Projeto_SEGUES.Areas.Report.Controllers;
-using Xunit;
 
-namespace SeguesTests.UnitTests.Report
+namespace SeguesTests.UnitTests.Report;
+
+public class ReportStatisticsUnitTests
 {
-    public class ReportStatisticsUnitTests
+    private readonly ReportStatisticsController _controller;
+
+    public ReportStatisticsUnitTests()
     {
-        private readonly ReportStatisticsController _controller;
+        _controller = new ReportStatisticsController();
+    }
 
-        public ReportStatisticsUnitTests()
-        {
-            _controller = new ReportStatisticsController();
-        }
+    [Fact]
+    public void Index_ReturnsViewResult()
+    {
+        var result = _controller.Index();
 
-        [Fact]
-        public void Index_ReturnsViewResult()
-        {
-            var result = _controller.Index();
-
-            Assert.IsType<ViewResult>(result);
-        }
+        Assert.IsType<ViewResult>(result);
     }
 }

@@ -66,7 +66,7 @@ public class OrderService : IOrderService
         if (discount is not { IsActive: true } || discount.EndDate < DateTime.Now) return price;
         if (discount.DiscountType == DiscountType.Percentage)
         {
-            return price * (1 + discount.Value / 100);
+            return price * (1 - discount.Value / 100);
         }
         return price - discount.Value; // Fixed amount discount
     }

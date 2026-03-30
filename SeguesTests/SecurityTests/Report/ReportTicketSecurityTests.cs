@@ -7,57 +7,52 @@ using Microsoft.Extensions.DependencyInjection;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES;
 using SeguesTests.Helpers;
-using System.Linq;
 using System.Net;
-using System.Net.Http.Headers;
-using System.Threading.Tasks;
-using Xunit;
 
-namespace SeguesTests.SecurityTests.Report
+namespace SeguesTests.SecurityTests.Report;
+
+public class ReportTicketSecurityTests : IClassFixture<WebApplicationFactory<Program>>
 {
-    public class ReportTicketSecurityTests : IClassFixture<WebApplicationFactory<Program>>
+    private readonly WebApplicationFactory<Program> _factory;
+
+    public ReportTicketSecurityTests(WebApplicationFactory<Program> factory)
     {
-        private readonly WebApplicationFactory<Program> _factory;
-
-        public ReportTicketSecurityTests(WebApplicationFactory<Program> factory)
+        _factory = factory.WithWebHostBuilder(builder =>
         {
-            _factory = factory.WithWebHostBuilder(builder =>
+            builder.UseEnvironment("Testing");
+            builder.ConfigureServices(services =>
             {
-                builder.UseEnvironment("Testing");
-                builder.ConfigureServices(services =>
+                var dbDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
+                if (dbDescriptor != null) services.Remove(dbDescriptor);
+
+                services.AddDbContext<AppDbContext>(options =>
                 {
-                    var dbDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
-                    if (dbDescriptor != null) services.Remove(dbDescriptor);
+                    options.UseInMemoryDatabase("SecurityReportTicket_Final_Pedro");
+                });
 
-                    services.AddDbContext<AppDbContext>(options =>
-                    {
-                        options.UseInMemoryDatabase("SecurityReportTicket_Final_Pedro");
-                    });
+                var emailDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailSender));
+                if (emailDescriptor != null) services.Remove(emailDescriptor);
 
-                    var emailDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailSender));
-                    if (emailDescriptor != null) services.Remove(emailDescriptor);
+                services.AddTransient<IEmailSender, MockHelper.FakeEmailSender>();
 
-                    services.AddTransient<IEmailSender, MockHelper.FakeEmailSender>();
-
-                    services.AddAuthentication(options =>
+                services.AddAuthentication(options =>
                     {
                         options.DefaultAuthenticateScheme = "Test";
                         options.DefaultChallengeScheme = "Test";
                         options.DefaultScheme = "Test";
                     })
                     .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", null);
-                });
             });
-        }
+        });
+    }
 
-        [Fact]
-        public async Task Index_ReturnsUnauthorized_WhenAnonymous()
-        {
-            var client = _factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+    [Fact]
+    public async Task Index_ReturnsUnauthorized_WhenAnonymous()
+    {
+        var client = _factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
-            var response = await client.GetAsync("/Report/ReportTicket/Index");
+        var response = await client.GetAsync("/Report/ReportTicket/Index");
 
-            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-        }
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 }

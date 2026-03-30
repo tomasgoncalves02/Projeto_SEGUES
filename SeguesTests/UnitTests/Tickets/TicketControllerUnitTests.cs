@@ -1,171 +1,143 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Moq;
-using Projeto_SEGUES.Areas.Ticket;
 using Projeto_SEGUES.Areas.Ticket.ViewModels;
 using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using SeguesTests.Helpers; 
-using System;
-using System.Collections.Generic;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Projeto_SEGUES.Areas.Ticket.Controllers;
-using Xunit;
 
-namespace SeguesTests.UnitTests.Tickets
+namespace SeguesTests.UnitTests.Tickets;
+
+public class TicketControllerUnitTests
 {
-    public class TicketControllerUnitTests
+    private readonly Mock<ITicketService> _mockTicketService;
+    private readonly Mock<UserManager<AppUser>> _mockUserManager;
+    private readonly TicketController _controller;
+    private readonly List<AppUser> _users;
+
+    public TicketControllerUnitTests()
     {
-        private readonly Mock<ITicketService> _mockTicketService;
-        private readonly Mock<IAdminService> _mockAdminService;
-        private readonly Mock<UserManager<AppUser>> _mockUserManager;
-        private readonly TicketController _controller;
-        private readonly List<AppUser> _users;
+        var pedro = MockHelper.CreateValidAppUser(); // pedro-77 is the default user id in this helper
+        _users = [pedro];
 
-        public TicketControllerUnitTests()
+        _mockUserManager = MockHelper.MockUserManager(_users);
+        _mockTicketService = new Mock<ITicketService>();
+        var mockAdminService = new Mock<IAdminService>();
+        
+        _controller = new TicketController(
+            _mockUserManager.Object,
+            _mockTicketService.Object,
+            mockAdminService.Object);
+        
+        MockHelper.SetupControllerContext(_controller, pedro.UserName!, pedro.Id);
+    }
+    
+    [Fact]
+    public async Task Index_UserNotFound_ReturnsChallenge()
+    {
+        _mockUserManager.Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync((AppUser) null!);
+
+        var result = await _controller.Index();
+
+        Assert.IsType<ChallengeResult>(result);
+    }
+
+    [Fact]
+    public async Task ActiveTickets_ReturnsView_WithList()
+    {
+        var pedro = _users[0];
+
+        var mockTickets = new List<Ticket>
         {
-            var pedro = MockHelper.CreateValidAppUser("pedro-77");
-            _users = new List<AppUser> { pedro };
-
-            _mockUserManager = MockHelper.MockUserManager(_users);
-
-            _mockTicketService = new Mock<ITicketService>();
-            _mockAdminService = new Mock<IAdminService>();
-
-            _controller = new TicketController(
-                _mockUserManager.Object,
-                _mockTicketService.Object,
-                _mockAdminService.Object);
-
-            var httpContext = new DefaultHttpContext();
-            _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
-            _controller.TempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>());
-        }
-
-        private void MockUserAuth(string id, string name)
-        {
-            var identity = new ClaimsIdentity(new[] {
-                new Claim(ClaimTypes.NameIdentifier, id),
-                new Claim(ClaimTypes.Name, name)
-            }, "Test");
-            _controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(identity);
-        }
-
-        [Fact]
-        public async Task Index_UserNotFound_ReturnsChallenge()
-        {
-            _mockUserManager.Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync((AppUser)null!);
-
-            var result = await _controller.Index();
-
-            Assert.IsType<ChallengeResult>(result);
-        }
-
-        [Fact]
-        public async Task ActiveTickets_ReturnsView_WithList()
-        {
-            var pedro = _users[0];
-            MockUserAuth(pedro.Id, pedro.UserName!);
-
-            var mockTickets = new List<Ticket>
+            new()
             {
-                new Ticket
+                Owner = pedro,
+                TicketPurchase = new TicketPurchase
                 {
-                    Owner = pedro,
-                    TicketPurchase = new TicketPurchase
-                    {
-                        TransactionDate = DateTime.Now,
-                        AppUser = pedro,
-                        Quantity = 1,
-                        Value = 2.50m
-                    }
+                    TransactionDate = DateTime.Now,
+                    AppUser = pedro,
+                    Quantity = 1,
+                    Value = 2.50m
                 }
-            };
+            }
+        };
 
-            _mockTicketService.Setup(s => s.GetActiveTicketsAsync(pedro.Id))
-                               .ReturnsAsync(mockTickets);
+        _mockTicketService.Setup(s => s.GetActiveTicketsAsync(pedro.Id))
+            .ReturnsAsync(mockTickets);
 
-            var result = await _controller.ActiveTickets();
+        var result = await _controller.ActiveTickets();
 
-            var viewResult = Assert.IsType<ViewResult>(result);
-            Assert.NotNull(viewResult.Model);
-        }
+        var viewResult = Assert.IsType<ViewResult>(result);
+        Assert.NotNull(viewResult.Model);
+    }
 
-        [Fact]
-        public async Task GetUpdatedTickets_UserLogged_ReturnsPartialView()
+    [Fact]
+    public async Task GetUpdatedTickets_UserLogged_ReturnsPartialView()
+    {
+        _mockTicketService.Setup(s => s.GetUserTicketsAsync("pedro-77"))
+            .ReturnsAsync([]);
+
+        var result = await _controller.GetUpdatedTickets();
+
+        var partial = Assert.IsType<PartialViewResult>(result);
+        Assert.Equal("_TicketTablePartial", partial.ViewName);
+    }
+
+    [Fact]
+    public async Task TransferTickets_ServiceReturnsFailure_ReturnsViewWithError()
+    {
+        var model = new TransferTicketViewModel
         {
-            MockUserAuth("pedro-77", "Pedro");
-            _mockTicketService.Setup(s => s.GetUserTicketsAsync("pedro-77"))
-                .ReturnsAsync(new List<Ticket>());
+            RecipientEmail = "outro@test.com",
+            SelectedTickets = ["T1"]
+        };
 
-            var result = await _controller.GetUpdatedTickets();
+        _mockTicketService.Setup(s => s.TransferTicketsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<List<string>>()))
+            .ReturnsAsync(ServiceResult.Fail("Saldo Insuficiente, Pedro!"));
 
-            var partial = Assert.IsType<PartialViewResult>(result);
-            Assert.Equal("_TicketTablePartial", partial.ViewName);
-        }
+        var result = await _controller.TransferTickets(model);
 
-        [Fact]
-        public async Task TransferTickets_ServiceReturnsFailure_ReturnsViewWithError()
+        var viewResult = Assert.IsType<ViewResult>(result);
+        Assert.Equal(nameof(_controller.TransferTicket), viewResult.ViewName);
+        Assert.Contains("Saldo Insuficiente", _controller.TempData["SwalData"]?.ToString());
+    }
+
+    [Fact]
+    public async Task TransferTickets_Success_RedirectsWithSuccessMessage()
+    {
+        var model = new TransferTicketViewModel
         {
-            MockUserAuth("pedro-77", "Pedro");
-            var model = new TransferTicketViewModel
-            {
-                RecipientEmail = "outro@test.com",
-                SelectedTickets = new List<string> { "T1" }
-            };
+            RecipientEmail = "amigo@test.com",
+            SelectedTickets = ["T1"]
+        };
 
-            _mockTicketService.Setup(s => s.TransferTicketsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<List<string>>()))
-                               .ReturnsAsync(ServiceResult.Fail("Saldo Insuficiente, Pedro!"));
+        _mockTicketService.Setup(s => s.TransferTicketsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<List<string>>()))
+            .ReturnsAsync(ServiceResult.Ok("Transferencia concluida"));
 
-            var result = await _controller.TransferTickets(model);
+        var result = await _controller.TransferTickets(model);
 
-            var viewResult = Assert.IsType<ViewResult>(result);
-            Assert.Equal(nameof(_controller.TransferTicket), viewResult.ViewName);
-            Assert.Contains("Saldo Insuficiente", _controller.TempData["SwalData"]?.ToString());
-        }
+        var redirect = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal(nameof(_controller.TransferTicket), redirect.ActionName);
 
-        [Fact]
-        public async Task TransferTickets_Success_RedirectsWithSuccessMessage()
-        {
-            var pedro = _users[0];
-            MockUserAuth(pedro.Id, pedro.UserName!);
+        var swalData = _controller.TempData["SwalData"]?.ToString() ?? "";
+        Assert.Contains("success", swalData);
+        Assert.Contains("conclui", swalData.ToLower());
+    }
 
-            var model = new TransferTicketViewModel
-            {
-                RecipientEmail = "amigo@test.com",
-                SelectedTickets = new List<string> { "T1" }
-            };
+    [Fact]
+    public async Task CheckTransferEligibility_RecipientNotFound_ReturnsJsonFailure()
+    {
+        _mockTicketService.Setup(s => s.CheckTransferEligibilityAsync(It.IsAny<string>(), "fantasma@test.com"))
+            .ReturnsAsync(ServiceResult<string>.Fail("Utilizador não encontrado"));
 
-            _mockTicketService.Setup(s => s.TransferTicketsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<List<string>>()))
-                               .ReturnsAsync(ServiceResult.Ok("Transferencia concluida"));
+        var result = await _controller.CheckTransferEligibility("fantasma@test.com");
 
-            var result = await _controller.TransferTickets(model);
+        var jsonResult = Assert.IsType<JsonResult>(result);
 
-            var redirect = Assert.IsType<RedirectToActionResult>(result);
-            Assert.Equal(nameof(_controller.TransferTicket), redirect.ActionName);
-
-            var swalData = _controller.TempData["SwalData"]?.ToString() ?? "";
-            Assert.Contains("success", swalData);
-            Assert.Contains("conclui", swalData.ToLower());
-        }
-
-        [Fact]
-        public async Task CheckTransferEligibility_RecipientNotFound_ReturnsJsonFailure()
-        {
-            MockUserAuth("pedro-77", "Pedro");
-            _mockTicketService.Setup(s => s.CheckTransferEligibilityAsync(It.IsAny<string>(), "fantasma@test.com"))
-                               .ReturnsAsync(ServiceResult<string>.Fail("Utilizador não encontrado"));
-
-            var result = await _controller.CheckTransferEligibility("fantasma@test.com");
-
-            var jsonResult = Assert.IsType<JsonResult>(result);
-
-            var success = jsonResult.Value?.GetType().GetProperty("success")?.GetValue(jsonResult.Value, null);
-            Assert.Equal(false, success);
-        }
+        var success = jsonResult.Value?.GetType().GetProperty("success")?.GetValue(jsonResult.Value, null);
+        Assert.Equal(false, success);
     }
 }

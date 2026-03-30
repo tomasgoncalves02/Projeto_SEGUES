@@ -6,10 +6,7 @@ using Projeto_SEGUES.Data;
 using SeguesTests.Helpers;
 using System.Net;
 using System.Net.Http.Headers;
-using System.Threading.Tasks;
 using Projeto_SEGUES;
-using Xunit;
-using System.Linq;
 
 namespace SeguesTests.IntegrationTests.Report;
 

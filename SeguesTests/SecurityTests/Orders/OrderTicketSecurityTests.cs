@@ -6,82 +6,77 @@ using Microsoft.EntityFrameworkCore;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES;
 using SeguesTests.Helpers;
-using System;
-using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
-using Xunit;
 
-namespace SeguesTests.SecurityTests.Orders
+namespace SeguesTests.SecurityTests.Orders;
+
+public class OrderTicketSecurityTests : IClassFixture<WebApplicationFactory<Program>>
 {
-    public class OrderTicketSecurityTests : IClassFixture<WebApplicationFactory<Program>>
+    private readonly WebApplicationFactory<Program> _factory;
+
+    public OrderTicketSecurityTests(WebApplicationFactory<Program> factory)
     {
-        private readonly WebApplicationFactory<Program> _factory;
-
-        public OrderTicketSecurityTests(WebApplicationFactory<Program> factory)
+        _factory = factory.WithWebHostBuilder(builder =>
         {
-            _factory = factory.WithWebHostBuilder(builder =>
+            builder.UseEnvironment("Testing");
+            builder.ConfigureServices(services =>
             {
-                builder.UseEnvironment("Testing");
-                builder.ConfigureServices(services =>
+                var dbDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
+                if (dbDescriptor != null) services.Remove(dbDescriptor);
+
+                services.AddDbContext<AppDbContext>(options =>
                 {
-                    var dbDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
-                    if (dbDescriptor != null) services.Remove(dbDescriptor);
-
-                    services.AddDbContext<AppDbContext>(options =>
-                    {
-                        options.UseInMemoryDatabase("SecurityOrderTestDb_Pedro");
-                    });
-
-                    var emailDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailSender));
-                    if (emailDescriptor != null) services.Remove(emailDescriptor);
-
-                    services.AddTransient<IEmailSender, MockHelper.FakeEmailSender>();
+                    options.UseInMemoryDatabase("SecurityOrderTestDb_Pedro");
                 });
-            });
-        }
 
-        [Theory]
-        [InlineData("/Order/OrderTicket/Index")]
-        public async Task GetEndpoints_RedirectToRoot_WhenAnonymous(string url)
+                var emailDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailSender));
+                if (emailDescriptor != null) services.Remove(emailDescriptor);
+
+                services.AddTransient<IEmailSender, MockHelper.FakeEmailSender>();
+            });
+        });
+    }
+
+    [Theory]
+    [InlineData("/Order/OrderTicket/Index")]
+    public async Task GetEndpoints_RedirectToRoot_WhenAnonymous(string url)
+    {
+        var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
         {
-            var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
-            {
-                AllowAutoRedirect = false
-            });
+            AllowAutoRedirect = false
+        });
 
-            var response = await client.GetAsync(url);
+        var response = await client.GetAsync(url);
 
-            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
 
-            var location = response.Headers.Location?.ToString();
-            Assert.NotNull(location);
+        var location = response.Headers.Location?.ToString();
+        Assert.NotNull(location);
 
-            var uri = new Uri(location, UriKind.RelativeOrAbsolute);
-            var path = uri.IsAbsoluteUri ? uri.AbsolutePath : location.Split('?')[0];
+        var uri = new Uri(location, UriKind.RelativeOrAbsolute);
+        var path = uri.IsAbsoluteUri ? uri.AbsolutePath : location.Split('?')[0];
 
-            Assert.Equal("/", path);
-        }
+        Assert.Equal("/", path);
+    }
 
-        [Fact]
-        public async Task BuyTicket_Post_RedirectsToRoot_WhenAnonymous()
+    [Fact]
+    public async Task BuyTicket_Post_RedirectsToRoot_WhenAnonymous()
+    {
+        var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
         {
-            var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
-            {
-                AllowAutoRedirect = false
-            });
+            AllowAutoRedirect = false
+        });
 
-            var response = await client.PostAsync("/Order/OrderTicket/BuyTicket", null);
+        var response = await client.PostAsync("/Order/OrderTicket/BuyTicket", null);
 
-            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
 
-            var location = response.Headers.Location?.ToString();
-            Assert.NotNull(location);
+        var location = response.Headers.Location?.ToString();
+        Assert.NotNull(location);
 
-            var uri = new Uri(location, UriKind.RelativeOrAbsolute);
-            var path = uri.IsAbsoluteUri ? uri.AbsolutePath : location.Split('?')[0];
+        var uri = new Uri(location, UriKind.RelativeOrAbsolute);
+        var path = uri.IsAbsoluteUri ? uri.AbsolutePath : location.Split('?')[0];
 
-            Assert.Equal("/", path);
-        }
+        Assert.Equal("/", path);
     }
 }

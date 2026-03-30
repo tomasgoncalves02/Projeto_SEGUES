@@ -1,125 +1,115 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Moq;
-using Projeto_SEGUES.Areas.Ticket;
 using Projeto_SEGUES.Areas.Ticket.ViewModels;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Services;
-using System;
-using System.Collections.Generic;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Projeto_SEGUES.Areas.Ticket.Controllers;
-using Xunit;
+using SeguesTests.Helpers;
 
-namespace SeguesTests.UnitTests.Tickets
+namespace SeguesTests.UnitTests.Tickets;
+
+public class TicketValidationControllerUnitTests
 {
-    public class TicketValidationControllerUnitTests
+    private readonly Mock<ITicketService> _mockTicketService;
+    private readonly Mock<UserManager<AppUser>> _mockUserManager;
+    private readonly TicketValidationController _controller;
+
+    public TicketValidationControllerUnitTests()
     {
-        private readonly Mock<ITicketService> _mockTicketService;
-        private readonly Mock<UserManager<AppUser>> _mockUserManager;
-        private readonly TicketValidationController _controller;
+        _mockTicketService = new Mock<ITicketService>();
+        _mockUserManager = MockHelper.MockUserManager(new List<AppUser>());
+        
+        _controller = new TicketValidationController(_mockUserManager.Object, _mockTicketService.Object);
+        
+        MockHelper.SetupControllerContext(_controller, "pedro.staff", "pedro-staff-77");
+    }
 
-        public TicketValidationControllerUnitTests()
-        {
-            _mockTicketService = new Mock<ITicketService>();
-            var store = new Mock<IUserStore<AppUser>>();
-            _mockUserManager = new Mock<UserManager<AppUser>>(store.Object, null, null, null, null, null, null, null, null);
+    private static AppUser CreatePedroStaff() => new()
+    {
+        Id = "pedro-staff-77",
+        FirstName = "Pedro",
+        LastName = "Staff",
+        BirthDate = DateTime.Today.AddYears(-25),
+        Gender = Gender.Male,
+        UserCategory = new UserCategory { Name = "Employee"},
+        Email = "pedro.staff@segues.pt",
+        UserName = "pedro.staff"
+    };
 
-            _controller = new TicketValidationController(_mockUserManager.Object, _mockTicketService.Object);
+    [Fact]
+    public async Task Index_Get_ReturnsViewWithModel()
+    {
+        _mockTicketService.Setup(s => s.GetRecentUsedTicketsAsync(It.IsAny<int>()))
+            .ReturnsAsync([]);
 
-            var httpContext = new DefaultHttpContext();
-            _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
-            _controller.TempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>());
-        }
+        var result = await _controller.Index();
 
-        private AppUser CreatePedroStaff() => new()
-        {
-            Id = "pedro-staff-77",
-            FirstName = "Pedro",
-            LastName = "Staff",
-            BirthDate = DateTime.Today.AddYears(-25),
-            Gender = Gender.Male,
-            UserCategory = new UserCategory { Name = "Employee"},
-            Email = "pedro.staff@segues.pt",
-            UserName = "pedro.staff"
-        };
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var model = Assert.IsType<ValidateTicketViewModel>(viewResult.Model);
+        Assert.NotNull(model.RecentTickets);
+    }
 
-        [Fact]
-        public async Task Index_Get_ReturnsViewWithModel()
-        {
-            _mockTicketService.Setup(s => s.GetRecentUsedTicketsAsync(It.IsAny<int>()))
-                .ReturnsAsync(new List<Projeto_SEGUES.Models.Ticket.Ticket>());
+    [Fact]
+    public async Task Index_Post_InvalidModel_DoesNotValidate()
+    {
+        var model = new ValidateTicketViewModel { Code = "" };
+        _controller.ModelState.AddModelError("Code", "Required");
 
-            var result = await _controller.Index();
+        _mockTicketService.Setup(s => s.GetRecentUsedTicketsAsync(It.IsAny<int>()))
+            .ReturnsAsync([]);
 
-            var viewResult = Assert.IsType<ViewResult>(result);
-            var model = Assert.IsType<ValidateTicketViewModel>(viewResult.Model);
-            Assert.NotNull(model.RecentTickets);
-        }
+        var result = await _controller.Index(model);
 
-        [Fact]
-        public async Task Index_Post_InvalidModel_DoesNotValidate()
-        {
-            var model = new ValidateTicketViewModel { Code = "" };
-            _controller.ModelState.AddModelError("Code", "Required");
+        Assert.IsType<ViewResult>(result);
+        _mockTicketService.Verify(s => s.ValidateTicketAsync(It.IsAny<string>(), It.IsAny<AppUser>()), Times.Never);
+    }
 
-            _mockTicketService.Setup(s => s.GetRecentUsedTicketsAsync(It.IsAny<int>()))
-                .ReturnsAsync(new List<Projeto_SEGUES.Models.Ticket.Ticket>());
+    [Fact]
+    public async Task Index_Post_ValidTicket_SetsSuccessAndClearsForm()
+    {
+        var pedro = CreatePedroStaff();
+        var model = new ValidateTicketViewModel { Code = "TICKET123" };
 
-            var result = await _controller.Index(model);
+        _mockUserManager.Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(pedro);
+        _mockTicketService.Setup(s => s.ValidateTicketAsync("TICKET123", pedro))
+            .ReturnsAsync(ServiceResult.Ok("Validado com sucesso"));
 
-            Assert.IsType<ViewResult>(result);
-            _mockTicketService.Verify(s => s.ValidateTicketAsync(It.IsAny<string>(), It.IsAny<AppUser>()), Times.Never);
-        }
+        _mockTicketService.Setup(s => s.GetRecentUsedTicketsAsync(It.IsAny<int>()))
+            .ReturnsAsync([]);
 
-        [Fact]
-        public async Task Index_Post_ValidTicket_SetsSuccessAndClearsForm()
-        {
-            var pedro = CreatePedroStaff();
-            var model = new ValidateTicketViewModel { Code = "TICKET123" };
+        var result = await _controller.Index(model);
 
-            _mockUserManager.Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(pedro);
-            _mockTicketService.Setup(s => s.ValidateTicketAsync("TICKET123", pedro))
-                .ReturnsAsync(ServiceResult.Ok("Validado com sucesso"));
+        Assert.IsType<ViewResult>(result);
+        Assert.Contains("success", _controller.TempData["SwalData"]?.ToString()?.ToLower());
+        Assert.Empty(model.Code);
+        Assert.True(_controller.ModelState.IsValid);
+    }
 
-            _mockTicketService.Setup(s => s.GetRecentUsedTicketsAsync(It.IsAny<int>()))
-                .ReturnsAsync(new List<Projeto_SEGUES.Models.Ticket.Ticket>());
+    [Fact]
+    public async Task Index_Post_ExpiredTicket_SetsErrorMessage()
+    {
+        var pedro = CreatePedroStaff();
+        var model = new ValidateTicketViewModel { Code = "EXPIRADO" };
 
-            var result = await _controller.Index(model);
+        _mockUserManager.Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(pedro);
+        _mockTicketService.Setup(s => s.ValidateTicketAsync("EXPIRADO", pedro))
+            .ReturnsAsync(ServiceResult.Fail("Ticket expirado"));
 
-            Assert.IsType<ViewResult>(result);
-            Assert.Contains("success", _controller.TempData["SwalData"]?.ToString()?.ToLower());
-            Assert.Empty(model.Code);
-            Assert.True(_controller.ModelState.IsValid);
-        }
+        await _controller.Index(model);
 
-        [Fact]
-        public async Task Index_Post_ExpiredTicket_SetsErrorMessage()
-        {
-            var pedro = CreatePedroStaff();
-            var model = new ValidateTicketViewModel { Code = "EXPIRADO" };
+        Assert.Contains("error", _controller.TempData["SwalData"]?.ToString()?.ToLower());
+    }
 
-            _mockUserManager.Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(pedro);
-            _mockTicketService.Setup(s => s.ValidateTicketAsync("EXPIRADO", pedro))
-                .ReturnsAsync(ServiceResult.Fail("Ticket expirado"));
+    [Fact]
+    public async Task Index_Post_UserSessionExpired_ReturnsChallenge()
+    {
+        _mockUserManager.Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync((AppUser) null!);
 
-            await _controller.Index(model);
+        var result = await _controller.Index(new ValidateTicketViewModel { Code = "ANY" });
 
-            Assert.Contains("error", _controller.TempData["SwalData"]?.ToString()?.ToLower());
-        }
-
-        [Fact]
-        public async Task Index_Post_UserSessionExpired_ReturnsChallenge()
-        {
-            _mockUserManager.Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync((AppUser)null!);
-
-            var result = await _controller.Index(new ValidateTicketViewModel { Code = "ANY" });
-
-            Assert.IsType<ChallengeResult>(result);
-        }
+        Assert.IsType<ChallengeResult>(result);
     }
 }

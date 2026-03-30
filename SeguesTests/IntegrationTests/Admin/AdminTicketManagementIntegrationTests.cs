@@ -9,7 +9,6 @@ using Projeto_SEGUES.Models.Ticket;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using SeguesTests.Helpers;
-using Xunit;
 
 namespace SeguesTests.IntegrationTests.Admin;
 
@@ -18,7 +17,6 @@ public class AdminTicketManagementIntegrationTests
     [Fact]
     public async Task UpdateSchedule_Almoco_PersistsCorrectTimes()
     {
-        var (context, _, _) = MockHelper.GetIdentitySetup();
         var adminServiceMock = new Mock<IAdminService>();
 
         var open = new TimeSpan(12, 30, 0);

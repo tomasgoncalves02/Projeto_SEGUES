@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -10,7 +9,6 @@ using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Models.User;
 using Projeto_SEGUES.Services;
 using System.Security.Claims;
-using Xunit;
 
 namespace SeguesTests.RegressionTests.Admin;
 
@@ -42,7 +40,7 @@ public class AdminUserManagementRegressionTests
             Mock.Of<ILogger<AdminUserManagementController>>(),
             Mock.Of<IPdfService>());
 
-        var identity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, "pedro@admin.pt") }, "mock");
+        var identity = new ClaimsIdentity([new Claim(ClaimTypes.Name, "pedro@admin.pt")], "mock");
         controller.ControllerContext = new ControllerContext
         {
             HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal(identity) }
@@ -120,7 +118,7 @@ public class AdminUserManagementRegressionTests
         var result = await controller.Edit(model);
 
         var viewResult = Assert.IsType<ViewResult>(result);
-        var returnedModel = Assert.IsType<EditUserAdminViewModel>(viewResult.Model);
+        Assert.IsType<EditUserAdminViewModel>(viewResult.Model);
 
         adminServiceMock.Verify(s => s.GetAllRolesForDropdownAsync(), Times.Once);
         adminServiceMock.Verify(s => s.GetAllCategoriesForDropdownAsync(), Times.Once);

@@ -5,81 +5,77 @@ using Moq;
 using Projeto_SEGUES.Areas.Admin.Controllers;
 using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Services;
-using Xunit;
 
-namespace SeguesTests.RegressionTests.Admin
+namespace SeguesTests.RegressionTests.Admin;
+
+public class AdminMenuManagementRegressionTests
 {
-    public class AdminMenuManagementRegressionTests
+    private readonly Mock<IAdminService> _adminMock;
+    private readonly AdminMenuManagementController _controller;
+
+    public AdminMenuManagementRegressionTests()
     {
-        private readonly Mock<IAdminService> _adminMock;
-        private readonly Mock<ILogger<AdminMenuManagementController>> _loggerMock;
-        private readonly Mock<ITempDataDictionary> _tempDataMock;
-        private readonly AdminMenuManagementController _controller;
-
-        public AdminMenuManagementRegressionTests()
+        _adminMock = new Mock<IAdminService>();
+        var loggerMock = new Mock<ILogger<AdminMenuManagementController>>();
+        var tempDataMock = new Mock<ITempDataDictionary>();
+        _controller = new AdminMenuManagementController(_adminMock.Object, loggerMock.Object)
         {
-            _adminMock = new Mock<IAdminService>();
-            _loggerMock = new Mock<ILogger<AdminMenuManagementController>>();
-            _tempDataMock = new Mock<ITempDataDictionary>();
-            _controller = new AdminMenuManagementController(_adminMock.Object, _loggerMock.Object)
-            {
-                TempData = _tempDataMock.Object
-            };
-        }
+            TempData = tempDataMock.Object
+        };
+    }
 
-        [Fact]
-        public async Task Index_HandlesNullLinksFromService_ReturnsEmptyModel()
+    [Fact]
+    public async Task Index_HandlesNullLinksFromService_ReturnsEmptyModel()
+    {
+        var configFromService = new BarCanteenConfigViewModel
         {
-            var configFromService = new BarCanteenConfigViewModel
-            {
-                CanteenMenuLink = null,
-                BarMenuLink = null
-            };
+            CanteenMenuLink = null,
+            BarMenuLink = null
+        };
 
-            _adminMock.Setup(s => s.GetMenuLinksAsync()).ReturnsAsync(configFromService);
+        _adminMock.Setup(s => s.GetMenuLinksAsync()).ReturnsAsync(configFromService);
 
-            var result = await _controller.Index();
+        var result = await _controller.Index();
 
-            var viewResult = Assert.IsType<ViewResult>(result);
-            var model = Assert.IsType<MenuManagementViewModel>(viewResult.Model);
-            Assert.Null(model.CanteenUrl);
-            Assert.Null(model.BarUrl);
-        }
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var model = Assert.IsType<MenuManagementViewModel>(viewResult.Model);
+        Assert.Null(model.CanteenUrl);
+        Assert.Null(model.BarUrl);
+    }
 
-        [Fact]
-        public async Task SaveLinks_DatabaseException_PreservesPedroInputInView()
+    [Fact]
+    public async Task SaveLinks_DatabaseException_PreservesPedroInputInView()
+    {
+        _adminMock.Setup(s => s.UpdateMenuLinksAsync(It.IsAny<string>(), It.IsAny<string>()))
+            .ThrowsAsync(new Exception("Erro Crítico de DB"));
+
+        var model = new MenuManagementViewModel
         {
-            _adminMock.Setup(s => s.UpdateMenuLinksAsync(It.IsAny<string>(), It.IsAny<string>()))
-                     .ThrowsAsync(new System.Exception("Erro Crítico de DB"));
+            CanteenUrl = "https://ementa-pedro.pt",
+            BarUrl = "https://bar-pedro.pt"
+        };
 
-            var model = new MenuManagementViewModel
-            {
-                CanteenUrl = "https://ementa-pedro.pt",
-                BarUrl = "https://bar-pedro.pt"
-            };
+        var result = await _controller.SaveLinks(model);
 
-            var result = await _controller.SaveLinks(model);
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var modelReturned = Assert.IsType<MenuManagementViewModel>(viewResult.Model);
 
-            var viewResult = Assert.IsType<ViewResult>(result);
-            var modelReturned = Assert.IsType<MenuManagementViewModel>(viewResult.Model);
+        Assert.Equal("https://ementa-pedro.pt", modelReturned.CanteenUrl);
+        Assert.Equal("https://bar-pedro.pt", modelReturned.BarUrl);
+        Assert.Equal("Index", viewResult.ViewName);
+    }
 
-            Assert.Equal("https://ementa-pedro.pt", modelReturned.CanteenUrl);
-            Assert.Equal("https://bar-pedro.pt", modelReturned.BarUrl);
-            Assert.Equal("Index", viewResult.ViewName);
-        }
-
-        [Fact]
-        public async Task SaveLinks_SuccessfulUpdate_LogsUserAction()
+    [Fact]
+    public async Task SaveLinks_SuccessfulUpdate_LogsUserAction()
+    {
+        var model = new MenuManagementViewModel
         {
-            var model = new MenuManagementViewModel
-            {
-                CanteenUrl = "https://ips.pt",
-                BarUrl = "https://ips.pt"
-            };
+            CanteenUrl = "https://ips.pt",
+            BarUrl = "https://ips.pt"
+        };
 
-            await _controller.SaveLinks(model);
+        await _controller.SaveLinks(model);
 
-            _adminMock.Verify(s => s.UpdateMenuLinksAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-        }
+        _adminMock.Verify(s => s.UpdateMenuLinksAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
     }
 }
