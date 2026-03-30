@@ -2,11 +2,11 @@ trigger:
 - main
 
 pool:
-  vmImage: 'windows-latest'
+  vmImage: 'ubuntu-latest'
 
 variables:
   buildConfiguration: 'Release'
-  webAppName: 'segues-projeto-esa-pv'     
+  webAppName: 'projeto-segues-app-linux'     
   azureServiceConnection: 'ConexaoAzure' 
 
 stages:
@@ -51,6 +51,7 @@ stages:
             displayName: 'Deploy para Azure App Service'
             inputs:
               azureSubscription: $(azureServiceConnection)
-              appType: 'webApp'
+              appType: 'webAppLinux'
               appName: $(webAppName)
               package: '$(Pipeline.Workspace)/drop/$(Build.BuildId).zip'
+              runtimeStack: 'DOTNETCORE|8.0'
