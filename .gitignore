@@ -40,3 +40,4 @@ qodana.sarif.json
 [Pp]roperties/ServiceDependencies/
 *.pubxml
 *.pubxml.user
+Projeto_SEGUES/publish/
