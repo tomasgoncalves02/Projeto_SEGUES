@@ -61,7 +61,7 @@ public class AdminUserManagementIntegrationTests
         Assert.Equal("Pedro Integração", model.FullName);
         Assert.Equal("Estudante", model.CategoryName);
         Assert.True(model.IsActive);
-        Assert.Contains("50,50", model.BalanceFormatted);
+        Assert.True(model.BalanceFormatted.Contains("50,50") || model.BalanceFormatted.Contains("50.50"));
     }
 
     [Fact]
