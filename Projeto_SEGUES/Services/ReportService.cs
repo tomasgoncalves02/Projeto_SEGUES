@@ -117,7 +117,6 @@ public class ReportService : IReportService
         if (orders.Count == 0) return [];
         return orders
             .SelectMany(o => o.ProductPurchases)
-            .Where(ol => ol.Product.IsActive)
             .GroupBy(ol => ol.Product.Name)
             .Select(g => new ProductDataDto
             {
