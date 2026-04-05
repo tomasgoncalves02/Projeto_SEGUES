@@ -475,18 +475,18 @@ public static class DbSeeder
         /* 10 orders in the same week, in different days */
         for (int i = 0; i < 10; i++)
         {
-            var day = (i % dayOfWeekRange) + 1;
+            var day = (i % dayOfWeekRange);
             var date = startOfWeek.AddDays(day).AddHours(8 + (i % 8));
-            if (date > now) date = date.Date.AddHours(8 + (i % hourRange));
+            if (date > now) date = now.AddMinutes(-i);
             orders.Add(CreateOrder(date));
         }
 
         /* 10 orders in the same month in different days */
         for (int i = 0; i < 10; i++)
         {
-            var day = ((i * 3) % dayOfMonthRange) + 1;
+            var day = ((i * 3) % dayOfMonthRange);
             var date = startOfMonth.AddDays(day).AddHours(8 + (i % 8));
-            if (date > now) date = date.Date.AddHours(8 + (i % hourRange));
+            if (date > now) date = now.AddMinutes(-i);
             orders.Add(CreateOrder(date));
         }
 
