@@ -354,6 +354,7 @@ public static class DbSeeder
         {
             var hour = 8 + (i % hourRange); // Start at 8h, end at current hour, loop if more than available hours
             var usedDate = now.Date.AddHours(hour); // 08h–17h but no future time
+            if (usedDate > now) usedDate = now.AddMinutes(-i);
             tickets.Add(new Ticket
             {
                 ExpirationDate = expirationDate, 
@@ -371,9 +372,9 @@ public static class DbSeeder
         var dayOfWeekRange = Math.Max(1, (now.Date - startOfWeek).Days + 1);
         for (int i = 0; i < 10; i++)
         {
-            var day = (i % dayOfWeekRange) + 1; // Start at Sunday, end at current day, loop if more than available days
+            var day = (i % dayOfWeekRange); // Start at Sunday, end at current day, loop if more than available days
             var usedDate = startOfWeek.AddDays(day).AddHours(8 + (i % 8));
-            if (usedDate > now) usedDate = usedDate.Date.AddHours(8 + (i % hourRange)); // If future time, set to current day with hour loop
+            if (usedDate > now) usedDate = now.AddMinutes(-i); // If future time, set to current day with hour loop
             tickets.Add(new Ticket
             {
                 ExpirationDate = expirationDate,
@@ -391,9 +392,9 @@ public static class DbSeeder
         var dayOfMonthRange = Math.Max(1, (now.Date - startOfMonth).Days + 1);
         for (int i = 0; i < 10; i++)
         {
-            var day = ((i * 3) % dayOfMonthRange) + 1; // Start at 1st, end at current day, loop if more than available days
+            var day = ((i * 3) % dayOfMonthRange); // Start at 1st, end at current day, loop if more than available days
             var usedDate = startOfMonth.AddDays(day).AddHours(8 + (i % 8));
-            if (usedDate > now) usedDate = usedDate.Date.AddHours(8 + (i % hourRange)); // If future time, set to current day with hour loop
+            if (usedDate > now) usedDate = now.AddMinutes(-i); // If future time, set to current day with hour loop
             tickets.Add(new Ticket
             {
                 ExpirationDate = expirationDate,

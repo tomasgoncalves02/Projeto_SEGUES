@@ -373,7 +373,7 @@ public class AdminService : IAdminService
             if (willBeEmployee && !isCurrentlyEmployee)
             {
                 // Bypass EF instantiation and insert directly into the derived table
-                await _context.Database.ExecuteSqlRawAsync("INSERT INTO Employee (Id, RoleDescription) VALUES ({0}, {1})", userId, model.RoleDescription ?? (object)DBNull.Value);
+                await _context.Database.ExecuteSqlRawAsync("INSERT INTO Employee (Id, RoleDescription) VALUES ({0}, {1})", userId, (object)model.RoleDescription ?? null);
             }
             // Transition FROM Employee
             else if (isCurrentlyEmployee && !willBeEmployee)
