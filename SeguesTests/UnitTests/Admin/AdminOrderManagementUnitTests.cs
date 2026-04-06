@@ -36,8 +36,8 @@ public class AdminOrderManagementUnitTests
     {
         var config = new BarCanteenConfigViewModel
         {
-            BarOpeningTimeString = "08:00",
-            BarClosingTimeString = "20:00"
+            BarOpeningTime = new TimeSpan(8, 0, 0),
+            BarClosingTime = new TimeSpan(20, 0, 0)
         };
 
         var orders = new List<Order> { new()

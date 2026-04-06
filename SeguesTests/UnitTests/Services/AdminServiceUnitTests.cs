@@ -17,7 +17,7 @@ public class AdminServiceUnitTests : IDisposable
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
         _context = new AppDbContext(options);
-        _service = new AdminService(_context, null!, null!, null!, null!, null!, null!);
+        _service = new AdminService(_context, null!, null!, null!, null!, null!);
     }
     
     public void Dispose()

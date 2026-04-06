@@ -27,19 +27,13 @@ public interface IAdminService
 
     /// <summary>Retrieves users based on search strings and category/role filters.</summary>
     Task<List<UserDto>> GetFilteredUsersAsync(string? searchString = null, string? roleFilter = null, string? categoryFilter = null);
-
-    /// <summary>Gets a specific user category entity by its name.</summary>
-    Task<UserCategory?> GetCategoryByNameAsync(string modelCategory);
-
+    
     /// <summary>Gets a specific role entity by its name.</summary>
     Task<Role?> GetRoleByNameAsync(string roleName);
-
-    /// <summary>Initiates an email change process with token generation and delivery.</summary>
-    Task RequestEmailChangeAsync(AppUser user, string newEmail, IUrlHelper urlHelper, string scheme);
-
+    
     /// <summary>Updates a user's full profile, balance, and role from the admin panel.</summary>
     Task<ServiceResult> UpdateUserAdminAsync(AppUser user, EditUserAdminViewModel model, IUrlHelper url, string scheme);
-
+    
     /// <summary>Returns roles available for dropdowns, excluding the 'Client' role.</summary>
     Task<List<SelectListItem>> GetNonClientRolesForDropdownAsync();
 

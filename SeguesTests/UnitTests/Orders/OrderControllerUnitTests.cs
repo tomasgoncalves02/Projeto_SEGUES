@@ -51,8 +51,6 @@ public class OrderControllerUnitTests
         {
             BarOpeningTime = new TimeSpan(8, 0, 0),
             BarClosingTime = new TimeSpan(20, 0, 0),
-            BarOpeningTimeString = "08:00",
-            BarClosingTimeString = "20:00",
             IsOpenSaturday = true,
             IsOpenSunday = true,
             BarMenuLink = "http://menu.local"

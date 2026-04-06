@@ -26,7 +26,11 @@ public class AdminTicketManagementUnitTests
     [Fact]
     public async Task Index_ReturnsView_WithCorrectViewModel()
     {
-        var config = new BarCanteenConfigViewModel { CanteenLunchOpeningTimeString = "12:00", CanteenLunchClosingTimeString = "14:00" };
+        var config = new BarCanteenConfigViewModel
+        {
+            CanteenLunchOpeningTime = new TimeSpan(12, 0, 0), 
+            CanteenLunchClosingTime = new TimeSpan(14, 0, 0)
+        };
         _mockAdminService.Setup(s => s.GetScheduleAsync()).ReturnsAsync(config);
         _mockAdminService.Setup(s => s.GetTicketPricesAsync())
             .ReturnsAsync([]);

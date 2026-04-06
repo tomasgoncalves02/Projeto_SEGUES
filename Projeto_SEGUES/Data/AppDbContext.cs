@@ -105,10 +105,6 @@ public class AppDbContext : IdentityDbContext<AppUser, Role, string>
     /// </summary>
     public DbSet<OrderLine> OrderLine { get; set; }
     /// <summary>
-    /// Balance orders for users, representing pre-paid credits that can be used for purchases.
-    /// </summary>
-    public DbSet<BalanceOrder> BalanceOrder { get; set; }
-    /// <summary>
     /// Discount codes for promotions and discounts.
     /// </summary>
     public DbSet<Discount> Discount { get; set; }

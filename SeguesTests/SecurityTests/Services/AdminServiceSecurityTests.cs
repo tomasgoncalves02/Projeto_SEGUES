@@ -43,17 +43,13 @@ public class AdminServiceSecurityTests
         var context = GetContext();
         var roleManager = GetMockRoleManager();
         roleManager.Setup(r => r.FindByNameAsync("HackerRole")).ReturnsAsync((Role)null!);
-
-        var localizerMock = new Mock<IStringLocalizer<Errors>>();
-        localizerMock.Setup(l => l[It.IsAny<string>()]).Returns(new LocalizedString("key", "Erro: Role não encontrada"));
-
+        
         var service = new AdminService(
             context,
             GetMockUserManager().Object,
             roleManager.Object,
             Mock.Of<IEmailSender>(),
             Mock.Of<ILogger<AdminService>>(),
-            localizerMock.Object, 
             Mock.Of<IUserService>());
 
         var model = new CreateInternalUserViewModel
@@ -84,8 +80,7 @@ public class AdminServiceSecurityTests
         userManager.Setup(u => u.FindByEmailAsync("ja-existe@test.pt")).ReturnsAsync(outro);
 
         var service = new AdminService(context, userManager.Object, GetMockRoleManager().Object,
-            Mock.Of<IEmailSender>(), Mock.Of<ILogger<AdminService>>(),
-            Mock.Of<IStringLocalizer<Errors>>(), Mock.Of<IUserService>());
+            Mock.Of<IEmailSender>(), Mock.Of<ILogger<AdminService>>(), Mock.Of<IUserService>());
 
         var model = new EditUserAdminViewModel
         {

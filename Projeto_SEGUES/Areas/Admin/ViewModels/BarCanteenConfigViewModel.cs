@@ -17,13 +17,13 @@ public class BarCanteenConfigViewModel
     public TimeSpan? BarOpeningTime { get; set; }
 
     /// <summary>String representation of the Bar's opening time (e.g., "08:30").</summary>
-    public string? BarOpeningTimeString { get; set; }
+    public string? BarOpeningTimeString => BarOpeningTime?.ToString(@"hh\:mm");
 
     /// <summary>The exact time the Bar closes and stops accepting orders.</summary>
     public TimeSpan? BarClosingTime { get; set; }
 
     /// <summary>String representation of the Bar's closing time (e.g., "21:00").</summary>
-    public string? BarClosingTimeString { get; set; }
+    public string? BarClosingTimeString => BarClosingTime?.ToString(@"hh\:mm");
 
     /// <summary>External URL or file path for the Bar's digital menu.</summary>
     public string? BarMenuLink { get; set; }
@@ -36,34 +36,29 @@ public class BarCanteenConfigViewModel
     public TimeSpan? CanteenLunchOpeningTime { get; set; }
 
     /// <summary>String representation of the lunch opening time.</summary>
-    public string? CanteenLunchOpeningTimeString { get; set; }
+    public string? CanteenLunchOpeningTimeString => CanteenLunchOpeningTime?.ToString(@"hh\:mm");
 
     /// <summary>End of the Canteen's lunch service window.</summary>
     public TimeSpan? CanteenLunchClosingTime { get; set; }
 
     /// <summary>String representation of the lunch closing time.</summary>
-    public string? CanteenLunchClosingTimeString { get; set; }
+    public string? CanteenLunchClosingTimeString => CanteenLunchClosingTime?.ToString(@"hh\:mm");
 
     /// <summary>Start of the Canteen's dinner service window.</summary>
     public TimeSpan? CanteenDinnerOpeningTime { get; set; }
 
     /// <summary>String representation of the dinner opening time.</summary>
-    public string? CanteenDinnerOpeningTimeString { get; set; }
+    public string? CanteenDinnerOpeningTimeString => CanteenDinnerOpeningTime?.ToString(@"hh\:mm");
 
     /// <summary>End of the Canteen's dinner service window.</summary>
     public TimeSpan? CanteenDinnerClosingTime { get; set; }
 
     /// <summary>String representation of the dinner closing time.</summary>
-    public string? CanteenDinnerClosingTimeString { get; set; }
+    public string? CanteenDinnerClosingTimeString => CanteenDinnerClosingTime?.ToString(@"hh\:mm");
 
     /// <summary>External URL or file path for the Canteen's daily/weekly menu.</summary>
     public string? CanteenMenuLink { get; set; }
     
-    /// <summary>
-    /// Flag indicating if the Canteen is currently open.
-    /// </summary>
-    public bool IsCanteenOpen { get; set; } = DateTime.Now.DayOfWeek is not DayOfWeek.Saturday and not DayOfWeek.Sunday;
-
     // ==========================================
     // Availability Configuration
     // ==========================================
@@ -100,7 +95,7 @@ public class BarCanteenConfigViewModel
     /// </summary>
     /// <param name="start">The opening time.</param>
     /// <param name="end">The closing time.</param>
-    /// <returns>True if current time is between start and end; otherwise false.</returns>
+    /// <returns>True if the current time is between start and end; otherwise false.</returns>
     private static bool IsNowWithinRange(TimeSpan? start, TimeSpan? end)
     {
         if (!start.HasValue || !end.HasValue) return false;

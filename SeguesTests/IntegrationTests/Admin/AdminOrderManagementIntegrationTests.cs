@@ -51,7 +51,11 @@ public class AdminOrderManagementIntegrationTests
         var adminServiceMock = new Mock<IAdminService>();
 
         adminServiceMock.Setup(s => s.GetScheduleAsync())
-            .ReturnsAsync(new BarCanteenConfigViewModel { BarOpeningTimeString = "08:00", BarClosingTimeString = "20:00" });
+            .ReturnsAsync(new BarCanteenConfigViewModel
+            {
+                BarOpeningTime = new TimeSpan(8, 0, 0), 
+                BarClosingTime = new TimeSpan(20, 0, 0)
+            });
 
         var controller = new AdminOrderManagementController(
             adminServiceMock.Object,

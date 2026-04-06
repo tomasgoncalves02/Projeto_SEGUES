@@ -73,7 +73,7 @@ public class AdminServiceRegressionTests
         context.UserRoles.Add(new IdentityUserRole<string> { UserId = "u2", RoleId = "r2" });
         await context.SaveChangesAsync();
 
-        var service = new AdminService(context, userManager, roleManager, new FakeEmailSender(), Mock.Of<ILogger<AdminService>>(), Mock.Of<IStringLocalizer<Errors>>(), Mock.Of<IUserService>());
+        var service = new AdminService(context, userManager, roleManager, new FakeEmailSender(), Mock.Of<ILogger<AdminService>>(), Mock.Of<IUserService>());
 
         var result = await service.GetFilteredUsersAsync(search, role, cat);
 
@@ -92,7 +92,7 @@ public class AdminServiceRegressionTests
         );
         await context.SaveChangesAsync();
 
-        var service = new AdminService(context, userManager, roleManager, new FakeEmailSender(), Mock.Of<ILogger<AdminService>>(), Mock.Of<IStringLocalizer<Errors>>(), Mock.Of<IUserService>());
+        var service = new AdminService(context, userManager, roleManager, new FakeEmailSender(), Mock.Of<ILogger<AdminService>>(), Mock.Of<IUserService>());
 
         var result = await service.GetTicketPricesAsync();
 

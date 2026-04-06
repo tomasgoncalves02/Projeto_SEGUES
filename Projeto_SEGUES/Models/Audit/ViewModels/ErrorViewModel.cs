@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 namespace Projeto_SEGUES.Models.Audit.ViewModels;
 
 /// <summary>
-/// ViewModel used to display error information to the end-user in a graceful manner.
+/// ViewModel used to display error information to the end-user gracefully.
 /// </summary>
 /// <remarks>
 /// This model contains the unique request identifier for support tracing and 

@@ -31,12 +31,9 @@ public class AdminServiceIntegrationTests
         await context.SaveChangesAsync();
 
         var fakeEmail = new FakeEmailSender();
-        var localizerMock = new Mock<IStringLocalizer<Errors>>();
-        localizerMock.Setup(l => l[It.IsAny<string>()]).Returns(new LocalizedString("key", "value"));
-
+        
         var service = new AdminService(context, userManager, roleManager,
-            fakeEmail, Mock.Of<ILogger<AdminService>>(),
-            localizerMock.Object, Mock.Of<IUserService>());
+            fakeEmail, Mock.Of<ILogger<AdminService>>(), Mock.Of<IUserService>());
 
         var model = new CreateInternalUserViewModel
         {
@@ -83,8 +80,7 @@ public class AdminServiceIntegrationTests
         await userManager.AddToRoleAsync(pedro, "Client");
 
         var service = new AdminService(context, userManager, roleManager,
-            Mock.Of<IEmailSender>(), Mock.Of<ILogger<AdminService>>(),
-            Mock.Of<IStringLocalizer<Errors>>(), Mock.Of<IUserService>());
+            Mock.Of<IEmailSender>(), Mock.Of<ILogger<AdminService>>(), Mock.Of<IUserService>());
 
         var result = await service.GetFilteredUsersAsync("pedro", null, "Student");
 
@@ -109,8 +105,7 @@ public class AdminServiceIntegrationTests
         await context.SaveChangesAsync();
 
         var service = new AdminService(context, userManager, roleManager,
-            Mock.Of<IEmailSender>(), Mock.Of<ILogger<AdminService>>(),
-            Mock.Of<IStringLocalizer<Errors>>(), Mock.Of<IUserService>());
+            Mock.Of<IEmailSender>(), Mock.Of<ILogger<AdminService>>(), Mock.Of<IUserService>());
 
         var newSchedule = new BarCanteenConfigViewModel
         {

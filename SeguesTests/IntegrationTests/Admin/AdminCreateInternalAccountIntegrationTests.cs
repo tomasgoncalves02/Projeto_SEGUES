@@ -28,7 +28,6 @@ public class AdminCreateInternalAccountIntegrationTests
             roleManager,
             new MockHelper.FakeEmailSender(),
             Mock.Of<ILogger<AdminService>>(),
-            Mock.Of<IStringLocalizer<Errors>>(),
             Mock.Of<IUserService>());
 
         _controller = new AdminCreateInternalAccountController(service);

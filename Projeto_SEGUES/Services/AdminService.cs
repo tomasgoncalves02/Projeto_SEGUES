@@ -36,8 +36,6 @@ public class AdminService : IAdminService
     private readonly IEmailSender _emailSender;
     /// <summary>Logger for administrative actions and errors.</summary>
     private readonly ILogger<AdminService> _logger;
-    /// <summary>Localizer for translated error messages.</summary>
-    private readonly IStringLocalizer<Errors> _localizer;
     /// <summary>General user service for profile updates.</summary>
     private readonly IUserService _userService;
 
@@ -50,7 +48,6 @@ public class AdminService : IAdminService
         RoleManager<Role> roleManager,
         IEmailSender emailSender,
         ILogger<AdminService> logger,
-        IStringLocalizer<Errors> localizer,
         IUserService userService)
     {
         _context = context;
@@ -58,7 +55,6 @@ public class AdminService : IAdminService
         _roleManager = roleManager;
         _emailSender = emailSender;
         _logger = logger;
-        _localizer = localizer;
         _userService = userService;
     }
 
@@ -87,10 +83,8 @@ public class AdminService : IAdminService
         // Validate role exists
         if (await _roleManager.FindByNameAsync(model.AccountType) == null)
         {
-            _logger.LogError(
-                Errors.ResourceManager.GetString(nameof(AppErrors.DataNotFoundError), System.Globalization.CultureInfo.InvariantCulture)
-                , "Error", TableName.Identity, AppOperation.Create);
-            return ServiceResult.Fail(_localizer[nameof(AppErrors.DataNotFoundError)].Value);
+            _logger.LogAppError(AppErrors.DataNotFoundError, TableName.Identity, AppOperation.Create);
+            return ServiceResult.Fail(AppErrors.DataNotFoundError.GetViewErrorMessage());
         }
 
         await using var transaction = await _context.Database.BeginTransactionAsync();
@@ -185,8 +179,8 @@ public class AdminService : IAdminService
     /// <summary>
     /// Sends a welcome email containing initial login credentials.
     /// </summary>
-    /// <param name="email">The user email.</param>
-    /// <param name="name">The user first name.</param>
+    /// <param name="email">The user's email.</param>
+    /// <param name="name">The user's first name.</param>
     /// <param name="type">The account role.</param>
     /// <param name="password">The temporary password.</param>
     private async Task SendWelcomeEmailAsync(string email, string name, string type, string password)
@@ -299,7 +293,7 @@ public class AdminService : IAdminService
     }
 
     /// <summary>Finds a user category by its name.</summary>
-    public Task<UserCategory?> GetCategoryByNameAsync(string modelCategory)
+    private Task<UserCategory?> GetCategoryByNameAsync(string modelCategory)
     {
         return _context.UserCategory.FirstOrDefaultAsync(c => c.Name == modelCategory);
     }
@@ -313,7 +307,7 @@ public class AdminService : IAdminService
     /// <summary>
     /// Processes a request to change a user email, sending a confirmation token.
     /// </summary>
-    public async Task RequestEmailChangeAsync(AppUser user, string newEmail, IUrlHelper urlHelper, string scheme)
+    private async Task RequestEmailChangeAsync(AppUser user, string newEmail, IUrlHelper urlHelper, string scheme)
     {
         // Create token
         var code = await _userManager.GenerateChangeEmailTokenAsync(user, newEmail);
@@ -550,18 +544,12 @@ public class AdminService : IAdminService
         return new BarCanteenConfigViewModel
         {
             BarOpeningTime = config.BarOpeningTime,
-            BarOpeningTimeString = config.BarOpeningTime.ToString(@"hh\:mm"),
             BarClosingTime = config.BarClosingTime,
-            BarClosingTimeString = config.BarClosingTime.ToString(@"hh\:mm"),
             BarMenuLink = config.BarLink,
             CanteenLunchOpeningTime = config.CanteenLunchOpeningTime,
-            CanteenLunchOpeningTimeString = config.CanteenLunchOpeningTime.ToString(@"hh\:mm"),
             CanteenLunchClosingTime = config.CanteenLunchClosingTime,
-            CanteenLunchClosingTimeString = config.CanteenLunchClosingTime.ToString(@"hh\:mm"),
             CanteenDinnerOpeningTime = config.CanteenDinnerOpeningTime,
-            CanteenDinnerOpeningTimeString = config.CanteenDinnerOpeningTime.ToString(@"hh\:mm"),
             CanteenDinnerClosingTime = config.CanteenDinnerClosingTime,
-            CanteenDinnerClosingTimeString = config.CanteenDinnerClosingTime.ToString(@"hh\:mm"),
             CanteenMenuLink = config.CanteenLink,
             IsOpenSaturday = config.IsOpenSaturday,
             IsOpenSunday = config.IsOpenSunday
