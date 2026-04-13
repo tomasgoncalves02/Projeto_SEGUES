@@ -1,12 +1,15 @@
 ﻿@{
-    ViewData["Title"] = "Estatisticas"; 
+    ViewData["Title"] = "Estatísticas";
 }
 
 <div class="container mt-5">
     <div class="d-flex justify-content-between align-items-center col-12 col-md-auto mb-4 flex-column flex-md-row">
         <div class="mb-2 mb-md-0">
-            <h2 class="fw-bold display-6 title-underline mb-1">@ViewData["Title"]</h2>
-            <p class="text-muted small mb-0 mt-1">Visualize as estatísticas do refeitório e do bar</p>
+            <h2 class="fw-bold display-6 title-underline mb-1">
+                <i class="bi bi-bar-chart-line me-2 text-color-ips"></i>
+                @ViewData["Title"]
+            </h2>
+            <p class="text-muted small mb-0 mt-1">Visualize as estatísticas do refeitório e do bar.</p>
         </div>
         <a asp-area="Admin" asp-controller="Admin" asp-action="Index" class="btn btn-ips-outline-secondary col-12 col-md-auto fw-bold px-4 shadow-sm order-first order-md-last mb-3 mb-md-0">
             <i class="bi bi-arrow-left me-2"></i>Voltar
@@ -23,12 +26,12 @@
                         <i class="bi bi-graph-up-arrow fs-1"></i>
                     </div>
                     <h3 class="card-title fw-bold">Estatísticas do Bar</h3>
-                    <p class="text-muted">Visualizar estatísticas correspondentes ao Bar</p>
+                    <p class="text-muted">Visualizar estatísticas correspondentes ao Bar.</p>
 
                     <div class="mt-auto pt-3">
                         <a asp-area="Report" asp-controller="ReportStatisticsOrder" asp-action="Index"
                            class="btn btn-ips w-100 py-2 fw-bold">
-                            Ver estatísticas
+                            Ver Estatísticas
                         </a>
                     </div>
                 </div>
@@ -43,11 +46,11 @@
                         <i class="bi bi-graph-up-arrow fs-1"></i>
                     </div>
                     <h3 class="card-title fw-bold">Estatísticas do Refeitório</h3>
-                    <p class="text-muted">Visualizar estatísticas correspondentes ao Refeitório</p>
+                    <p class="text-muted">Visualizar estatísticas correspondentes ao Refeitório.</p>
 
                     <div class="mt-auto pt-3">
                         <a asp-area="Report" asp-controller="ReportStatisticsTicket" asp-action="Index" class="btn btn-ips w-100 py-2 fw-bold">
-                            Ver estatísticas
+                            Ver Estatísticas
                         </a>
                     </div>
                 </div>

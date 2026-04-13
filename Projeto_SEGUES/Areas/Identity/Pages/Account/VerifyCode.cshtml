@@ -25,7 +25,7 @@
 
                 @* Verification Code Input *@
                 <div class="mb-3 mb-md-4 text-start px-md-4">
-                    <label for="verificationCodeInput" class="form-label fw-bold text-muted small ms-1">Código de Verificação</label>
+                    <label for="verificationCodeInput" class="fw-bold text-muted small ms-1">Código de Verificação</label>
                     <input asp-for="Input.Code" id="verificationCodeInput" class="form-control form-control-lg text-center fw-bold code-input"
                            placeholder="000000" maxlength="6" inputmode="numeric" pattern="[0-9]*" autofocus required />
                     <span asp-validation-for="Input.Code" class="text-danger small d-block text-center mt-1"></span>

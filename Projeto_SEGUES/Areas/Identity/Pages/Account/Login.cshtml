@@ -20,7 +20,7 @@
                 @* Email *@
                 <div class="form-floating mb-3 mb-md-4">
                     <input asp-for="Input.Email" class="form-control" autocomplete="username" placeholder="name@example.com" />
-                    <label asp-for="Input.Email">Endereço de Email</label>
+                    <label asp-for="Input.Email"></label>
                     <span asp-validation-for="Input.Email" class="text-danger small"></span>
                 </div>
 
@@ -45,7 +45,7 @@
                 <div class="d-flex justify-content-between align-items-sm-center mb-4 mb-md-5 gap-3">
                     <div class="form-check m-0">
                         <input class="form-check-input shadow-none" asp-for="Input.RememberMe" style="cursor: pointer;" />
-                        <label class="form-check-label small" asp-for="Input.RememberMe" style="cursor: pointer;">Lembrar-me</label>
+                        <label class="form-check-label small" asp-for="Input.RememberMe" style="cursor: pointer;"></label>
                     </div>
                     <a asp-area="Identity" asp-page="./ForgotPassword" class="small fw-bold">Esqueceu-se da senha?</a>
                 </div>

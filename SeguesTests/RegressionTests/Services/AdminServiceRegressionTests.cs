@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Projeto_SEGUES.Areas.Admin.ViewModels;
 using Projeto_SEGUES.Data;
 using Projeto_SEGUES.Models.Enums;
 using Projeto_SEGUES.Models.Ticket;
@@ -75,7 +76,7 @@ public class AdminServiceRegressionTests
 
         var service = new AdminService(context, userManager, roleManager, new FakeEmailSender(), Mock.Of<ILogger<AdminService>>(), Mock.Of<IUserService>());
 
-        var result = await service.GetFilteredUsersAsync(search, role, cat);
+        var result = await service.GetFilteredUsersAsync(new UserSearchViewModel { SearchString = search, RoleFilter = role, CategoryFilter = cat });
 
         Assert.Equal(expectedCount, result.Count);
     }

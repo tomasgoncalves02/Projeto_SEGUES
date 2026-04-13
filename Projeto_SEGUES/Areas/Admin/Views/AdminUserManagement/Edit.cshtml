@@ -35,14 +35,14 @@
                     <div class="col-md-6">
                         <div class="form-floating">
                             <input asp-for="FirstName" class="form-control"/>
-                            <label asp-for="FirstName" class="fw-bold small" placeholder="Nome"></label>
+                            <label asp-for="FirstName" placeholder="Nome"></label>
                         </div>
                         <span asp-validation-for="FirstName" class="text-danger small d-block mt-1"></span>
                     </div>
                     <div class="col-md-6">
                         <div class="form-floating">
                             <input asp-for="LastName" class="form-control"/>
-                            <label asp-for="LastName" class="fw-bold small" placeholder="Apelido"></label>
+                            <label asp-for="LastName" placeholder="Apelido"></label>
                         </div>
                         <span asp-validation-for="LastName" class="text-danger small d-block mt-1"></span>
                     </div>
@@ -52,21 +52,21 @@
                             <select asp-for="Gender" class="form-select" asp-items="Html.GetEnumSelectList<Gender>()">
                                 <option value="">Selecione...</option>
                             </select>
-                            <label asp-for="Gender" class="fw-bold small"></label>
+                            <label asp-for="Gender"></label>
                         </div>
                         <span asp-validation-for="Gender" class="text-danger small d-block mt-1"></span>
                     </div>
                     <div class="col-md-4">
                         <div class="form-floating">
                             <input asp-for="BirthDate" type="date" class="form-control"/>
-                            <label asp-for="BirthDate" class="fw-bold small"></label>
+                            <label asp-for="BirthDate"></label>
                         </div>
                         <span asp-validation-for="BirthDate" class="text-danger small d-block mt-1"></span>
                     </div>
                     <div class="col-md-4">
                         <div class="form-floating">
                             <input asp-for="FiscalNumber" class="form-control" placeholder="NIF"/>
-                            <label asp-for="FiscalNumber" class="fw-bold small"></label>
+                            <label asp-for="FiscalNumber"></label>
                         </div>
                         <span asp-validation-for="FiscalNumber" class="text-danger small d-block mt-1"></span>
                     </div>
@@ -78,21 +78,21 @@
                     <div class="col-12">
                         <div class="form-floating">
                             <input asp-for="Address" class="form-control" placeholder="Morada" />
-                            <label asp-for="Address" class="fw-bold small"></label>
+                            <label asp-for="Address"></label>
                         </div>
                         <span asp-validation-for="Address" class="text-danger small d-block mt-1"></span>
                     </div>
                     <div class="col-md-8">
                         <div class="form-floating">
                             <input asp-for="City" class="form-control" placeholder="Cidade" />
-                            <label asp-for="City" class="fw-bold small"></label>
+                            <label asp-for="City"></label>
                         </div>
                         <span asp-validation-for="City" class="text-danger small d-block mt-1"></span>
                     </div>
                     <div class="col-md-4">
                         <div class="form-floating">
                             <input asp-for="PostalCode" class="form-control" placeholder="Código Postal" />
-                            <label asp-for="PostalCode" class="fw-bold small"></label>
+                            <label asp-for="PostalCode"></label>
                         </div>
                         <span asp-validation-for="PostalCode" class="text-danger small d-block mt-1"></span>
                     </div>
@@ -108,7 +108,7 @@
                             <div class="col-md-6">
                                 <div class="form-floating">
                                     <input asp-for="StudentNumber" class="form-control" placeholder="Nº Estudante"/>
-                                    <label asp-for="StudentNumber" class="fw-bold small"></label>
+                                    <label asp-for="StudentNumber"></label>
                                 </div>
                                 <span asp-validation-for="StudentNumber" class="text-danger small d-block mt-1"></span>
                             </div>
@@ -118,7 +118,7 @@
                             <div class="col-md-6">
                                 <div class="form-floating">
                                     <input asp-for="RoleDescription" class="form-control" placeholder="Cargo"/>
-                                    <label asp-for="RoleDescription" class="fw-bold small"></label>
+                                    <label asp-for="RoleDescription"></label>
                                 </div>
                                 <span asp-validation-for="RoleDescription" class="text-danger small d-block mt-1"></span>
                             </div>
@@ -128,7 +128,7 @@
                                 <select asp-for="SchoolId" class="form-select" asp-items="Model.SchoolsList">
                                     <option value="">Selecione a Escola/Faculdade...</option>
                                 </select>
-                                <label asp-for="SchoolId" class="fw-bold small"></label>
+                                <label asp-for="SchoolId"></label>
                             </div>
                             <span asp-validation-for="SchoolId" class="text-danger small d-block mt-1"></span>
                         </div>
@@ -140,10 +140,9 @@
                 <div class="row g-3 mb-3 mb-md-4 text-start">
                     @* Email Field *@
                     <div class="col-md-12">
-                        <label asp-for="Email" class="fw-bold small"></label>
                         <div class="form-floating">
                             <input asp-for="Email" class="form-control" placeholder="exemplo@ips.pt"/>
-                            <label asp-for="Email" class="fw-bold small"></label>
+                            <label asp-for="Email"></label>
                         </div>
                         <span asp-validation-for="Email" class="text-danger small d-block mt-1"></span>
                     </div>
@@ -151,14 +150,14 @@
                     <div class="col-md-6">
                         <div class="form-floating">
                             <select asp-for="Role" class="form-select" asp-items="Model.RolesList"></select>
-                            <label asp-for="Role" class="fw-bold small"></label>
+                            <label asp-for="Role"></label>
                         </div>
                         <span asp-validation-for="Role" class="text-danger small d-block mt-1"></span>
                     </div>
                     <div class="col-md-6">
                         <div class="form-floating">
                             <select asp-for="Category" class="form-select" asp-items="Model.CategoriesList"></select>
-                            <label asp-for="Category" class="fw-bold small"></label>
+                            <label asp-for="Category"></label>
                         </div>
                         <span asp-validation-for="Category" class="text-danger small d-block mt-1"></span>
                     </div>
@@ -170,7 +169,7 @@
                 <div class="row g-3 mb-4 text-start">
                     <div class="col-md-4">
                         <div class="input-group input-group-lg shadow-sm">
-                            <span class="input-group-text bg-color-ips text-white fw-bold border-0">€</span>
+                            <span class="input-group-text bg-color-ips-light text-color-ips fw-bold border-0">€</span>
                             <div class="form-floating flex-grow-1">
                                 <input asp-for="Balance" type="number" step="0.01" max="30000" class="form-control fw-bold border-start-0" placeholder="Saldo" style="border-top-left-radius: 0; border-bottom-left-radius: 0;" />
                                 <label asp-for="Balance"></label>

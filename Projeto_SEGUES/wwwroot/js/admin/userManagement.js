@@ -55,6 +55,7 @@ function syncExportData(e) {
     DOM.byId('exportPdfSearch').value = DOM.byId('searchFilter')?.value || '';
     DOM.byId('exportPdfRole').value = DOM.byId('roleFilter')?.value || '';
     DOM.byId('exportPdfCategory').value = DOM.byId('categoryFilter')?.value || '';
+    DOM.byId('exportPdfActiveOnly').value = DOM.byId('activeOnlySwitch')?.checked ? 'true' : 'false';
 
     form.submit();
 }

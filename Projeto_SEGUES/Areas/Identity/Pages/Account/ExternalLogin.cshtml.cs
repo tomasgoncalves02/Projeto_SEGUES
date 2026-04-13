@@ -92,6 +92,7 @@ public class ExternalLoginModel : PageModel
 
         /// <summary>User's gender (as per <see cref="Gender"/>).</summary>
         [Required]
+        [Display(Name = "Género")]
         public Gender Gender { get; init; }
 
         /// <summary>Date of birth with minimum age validation.</summary>

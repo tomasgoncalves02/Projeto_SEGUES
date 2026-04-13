@@ -58,7 +58,7 @@ public class ForgotPasswordModel : PageModel
         /// </summary>
         [Required(ErrorMessage = "O email é obrigatório.")]
         [EmailAddress(ErrorMessage = "Endereço de email inválido.")]
-        [Display(Name = "Endereço de email")]
+        [Display(Name = "Endereço de Email")]
         public required string Email { get; init; }
     }
 

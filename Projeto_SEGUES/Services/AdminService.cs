@@ -249,7 +249,7 @@ public class AdminService : IAdminService
     /// <summary>
     /// Retrieves a list of users filtered by search criteria, role, and category.
     /// </summary>
-    public async Task<List<UserDto>> GetFilteredUsersAsync(string? searchString = null, string? roleFilter = null, string? categoryFilter = null)
+    public async Task<List<UserDto>> GetFilteredUsersAsync(UserSearchViewModel? model = null)
     {
         // All users
         var query = _userManager.Users
@@ -260,19 +260,25 @@ public class AdminService : IAdminService
         // Roles
         var roles = await _roleManager.Roles.ToListAsync();
 
-        // Filter users by name or email
-        if (!string.IsNullOrWhiteSpace(searchString))
+        if (model == null)
         {
-            searchString = searchString.Trim().ToLower();
+            var allUsers = await query.OrderBy(u => u.FirstName).ThenBy(u => u.LastName).ToListAsync();
+            return await MapUsersToDtoAsync(allUsers, roles);
+        }
+
+        // Filter users by name or email
+        if (!string.IsNullOrWhiteSpace(model.SearchString))
+        {
+            var searchString = model.SearchString.Trim().ToLower();
             query = query.Where(u => u.FirstName.ToLower().Contains(searchString)
                                      || u.LastName.ToLower().Contains(searchString)
                                      || u.Email!.ToLower().Contains(searchString));
         }
 
         // Role
-        if (!string.IsNullOrWhiteSpace(roleFilter))
+        if (!string.IsNullOrWhiteSpace(model.RoleFilter))
         {
-            var role = roles.FirstOrDefault(r => r.Name == roleFilter.Trim());
+            var role = roles.FirstOrDefault(r => r.Name == model.RoleFilter.Trim());
             if (role != null)
             {
                 var userIdsInRole = _context.UserRoles
@@ -283,12 +289,18 @@ public class AdminService : IAdminService
         }
 
         // Category
-        if (!string.IsNullOrWhiteSpace(categoryFilter))
+        if (!string.IsNullOrWhiteSpace(model.CategoryFilter))
         {
-            query = query.Where(u => u.UserCategory.Name == categoryFilter.Trim());
+            query = query.Where(u => u.UserCategory.Name == model.CategoryFilter.Trim());
+        }
+        
+        // Active
+        if (model.ActiveOnly)
+        {
+            query = query.Where(u => u.Status == UserStatus.Active);
         }
 
-        var users = await query.ToListAsync();
+        var users = await query.OrderBy(u => u.FirstName).ThenBy(u => u.LastName).ToListAsync();
         return await MapUsersToDtoAsync(users, roles);
     }
 
@@ -630,7 +642,7 @@ public class AdminService : IAdminService
         config.CanteenDinnerClosingTime = model.CanteenDinnerClosingTime ?? config.CanteenDinnerClosingTime;
 
         await _context.SaveChangesAsync();
-        return ServiceResult.Ok("Horario de funcionamento alterado com sucessso");
+        return ServiceResult.Ok("Horario de funcionamento alterado com sucesso.");
     }
 
     /// <summary>Checks if the bar is currently open based on configuration.</summary>

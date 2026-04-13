@@ -10,9 +10,9 @@
     <div class="d-flex mb-3 mb-md-4 justify-content-between align-items-center col-12 col-md-auto flex-column flex-md-row">
         <div class="mb-2 mb-md-0">
             <h1 class="fw-bold display-6 title-underline mb-1">
-                <i class="bi bi-shield-lock me-2 text-color-ips"></i>Gestão de Senhas
+                <i class="bi bi-ticket-perforated me-2 text-color-ips"></i>Gestão de Senhas
             </h1>
-            <p class="text-muted mb-0 mt-1">Administração de Preçários e Registo Global de Senhas</p>
+            <p class="text-muted mb-0 mt-1">Administração de Preçários e Registo Global de Senhas.</p>
         </div>
         <a asp-area="Admin" asp-controller="Admin" asp-action="Index" class="btn btn-ips-outline-secondary col-12 col-md-auto fw-bold shadow-sm order-first order-md-last mb-3 mb-md-0">
             <i class="bi bi-arrow-left me-2"></i>Voltar
@@ -20,30 +20,31 @@
     </div>
     
     @* Canteen Schedule *@
-    <div class="row g-4 mb-5">
+    <div class="row g-4 mb-4">
         @foreach (var servico in new[] { "Almoço", "Jantar" })
         {
             <div class="col-lg-6">
-                <div class="card card-ips hover-shadow-ips shadow-sm border-0 rounded-3 h-100 small fs-md-6">
-                    <div class="card-body p-3 p-md-4 bg-color-ips-very-light">
-                        <h6 class="fw-bold mb-2 mb-md-3 d-flex align-items-center text-color-ips">
-                            <i class="bi bi-clock me-2"></i> Definição de Horário: @servico
+                <div class="card card-ips hover-shadow-ips shadow-sm border-0 rounded-3 h-100 small fs-md-6 bg-color-ips-very-light">
+                    <div class="card-header bg-white py-2 py-md-3 border-bottom-0">
+                        <h6 class="mb-0 fw-bold text-color-ips">
+                            <i class="bi bi-clock me-2"></i>Definição de Horário: @servico
                         </h6>
-
+                    </div>
+                    <div class="card-body p-2 p-md-3">
                         <form asp-area="Admin" asp-controller="AdminTicketManagement" asp-action="UpdateSchedule" method="post">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="serviceName" value="@servico"/>
 
                             <div class="row g-3 align-items-end">
                                 <div class="col-auto">
-                                    <label class="form-label fw-semibold small mb-1">Início</label>
+                                    <label class="fw-bold small mb-1">Início</label>
                                     <input type="time" name="openTime" class="form-control shadow-none"
                                            value="@(servico == "Almoço" ? Model.LunchOpeningTime : Model.DinnerOpeningTime)"
                                            style="width: 140px;"/>
                                 </div>
 
                                 <div class="col-auto">
-                                    <label class="form-label fw-semibold small mb-1">Fecho</label>
+                                    <label class="fw-bold small mb-1">Fecho</label>
                                     <input type="time" name="closeTime" class="form-control shadow-none"
                                            value="@(servico == "Almoço" ? Model.LunchClosingTime : Model.DinnerClosingTime)"
                                            style="width: 140px;"/>
@@ -69,12 +70,12 @@
             @* Prices *@
             <div class="col-lg-8">
                 <div class="card shadow-sm card-ips hover-shadow-ips h-100 bg-color-ips-very-light">
-                    <div class="card-header bg-white py-3 py-md-3 border-bottom-0">
+                    <div class="card-header bg-white py-2 py-md-3 border-bottom-0">
                         <h6 class="mb-0 fw-bold text-color-ips">
                             <i class="bi bi-currency-euro me-2"></i>Definição de Preçário
                         </h6>
                     </div>
-                    <div class="card-body rounded-bottom">
+                    <div class="card-body p-2 p-md-3">
                         <form asp-area="Admin" asp-controller="AdminTicketManagement" asp-action="UpdatePrices" method="post">
                             <div class="row g-3 align-items-end">
                                 @for (int i = 0; i < Model.Prices.Count; i++)
@@ -82,16 +83,16 @@
                                     <div class="col-md">
                                         <input type="hidden" asp-for="Prices[i].Id" />
                                         
-                                        <label class="form-label small fw-bold">@Model.Prices[i].UserCategory.Name</label>
+                                        <label class="small fw-bold">@Model.Prices[i].UserCategory.Name</label>
                                         <div class="input-group">
-                                            <span class="input-group-text">€</span>
-                                            <input asp-for="Prices[i].Price" type="number" class="form-control fw-bold" min="0" step="0.01" max="100" />
+                                            <span class="input-group-text text-color-ips bg-color-ips-light">€</span>
+                                            <input asp-for="Prices[i].Price" type="number" class="form-control" style="border-top-right-radius: var(--bs-border-radius); border-bottom-right-radius: var(--bs-border-radius);" min="0" step="0.01" max="100" />
                                         </div>
                                     </div>
                                 }
                                 <div class="col-md-auto ms-auto">
                                     <button type="submit" class="btn btn-ips fw-bold shadow-sm px-4">
-                                        <i class="bi bi-arrow-repeat me-2"></i> Atualizar
+                                        Atualizar
                                     </button>
                                 </div>
                             </div>
@@ -103,24 +104,24 @@
             @* Validity *@
             <div class="col-lg-4">
                 <div class="card shadow-sm card-ips hover-shadow-ips h-100 bg-color-ips-very-light">
-                    <div class="card-header bg-white py-2 py-md-2 border-bottom-0">
+                    <div class="card-header bg-white py-2 py-md-3 border-bottom-0">
                         <h6 class="mb-0 fw-bold text-color-ips">
                             <i class="bi bi-calendar-check me-2"></i>Validade Global
                         </h6>
                     </div>
-                    <div class="card-body rounded-bottom">
+                    <div class="card-body p-2 p-md-3">
                         <form asp-area="Admin" asp-controller="AdminTicketManagement" asp-action="UpdateValidity" method="post">
                             <div class="row g-2 align-items-end">
                                 <div class="col">
-                                    <label class="form-label small fw-bold text-muted mb-1">Dias de Validade</label>
+                                    <label class="small fw-bold mb-1">Dias de Validade</label>
                                     <div class="input-group">
-                                        <input type="number" name="validityDays" class="form-control fw-bold" value="@Model.CurrentValidityDays" min="1" step="1"/>
-                                        <span class="input-group-text bg-white text-muted small fw-bold">Dias</span>
+                                        <input type="number" name="validityDays" class="form-control" value="@Model.CurrentValidityDays" min="1" step="1"/>
+                                        <span class="input-group-text bg-color-ips-light text-color-ips small fw-bold">Dias</span>
                                     </div>
                                 </div>
                                 <div class="col-auto">
-                                    <button type="submit" class="btn btn-ips fw-bold shadow-sm">
-                                        <i class="bi bi-check-lg"></i>
+                                    <button type="submit" class="btn btn-ips fw-bold shadow-sm px-4">
+                                        Atualizar
                                     </button>
                                 </div>
                             </div>
@@ -192,7 +193,7 @@
         <div class="card-header bg-white py-2 py-md-3 border-bottom">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                 <h5 class="mb-0 fw-bold text-color-ips">
-                    <i class="bi bi-receipt-cutoff me-2"></i>Registo de Senhas
+                    <i class="bi bi-list-check me-2"></i>Registo de Senhas
                 </h5>
 
                 <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2 gap-md-3">

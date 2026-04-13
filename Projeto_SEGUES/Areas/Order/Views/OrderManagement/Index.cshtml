@@ -28,12 +28,18 @@
 
         @* Right panel: current orders table *@
         <div class="col-lg-8">
-            <h5 class="fw-bold"><i class="bi bi-clock-history me-2 text-color-ips"></i> Histórico Recente</h5>
-            <div
-                hx-get="/Order/OrderManagement/GetOrdersTable"
-                hx-trigger="orderUpdated from:body, every 30s"
-                hx-swap="innerHTML">
-                <partial name="_ManageOrdersTablePartial" model="Model"/>
+            <div class="card card-ips shadow-sm h-100 small fs-md-6">
+                <div class="card-header bg-white py-3 border-bottom d-flex align-items-center">
+                    <h5 class="mb-0 fw-bold text-color-ips">
+                        <i class="bi bi-clock-history me-2"></i>Histórico Recente
+                    </h5>
+                </div>
+                <div
+                    hx-get="/Order/OrderManagement/GetOrdersTable"
+                    hx-trigger="orderUpdated from:body, every 30s"
+                    hx-swap="innerHTML">
+                    <partial name="_ManageOrdersTablePartial" model="Model"/>
+                </div>
             </div>
         </div>
     </div>

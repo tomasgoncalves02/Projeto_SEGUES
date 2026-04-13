@@ -27,38 +27,40 @@ function showStaffLogDetails(e) {
             `<div class="text-start p-1 p-md-2 mt-3">
                 
                 <div class="row g-2 g-md-3 mb-3">
-                    <div class="col-12 col-md-6">
+                    <div class="col-12 col-md-6 mb-1">
                         <div class="card bg-color-ips-very-light border-0 shadow-sm rounded-3 h-100">
                             <div class="card-body py-2 py-md-3 px-3">
-                                <h6 class="text-color-ips fw-bold mb-1 fs-6 text-uppercase small">Operação</h6>
+                                <h6 class="text-color-ips fw-bold mb-1 fs-6 small">Operação</h6>
                                 <p class="mb-0 fs-6 fw-bold text-dark lh-sm">${action || '---'}</p>
                             </div>
                         </div>
                     </div>
-                    <div class="col-12 col-md-6">
+                    <div class="col-12 col-md-6 mb-1">
                         <div class="card bg-color-ips-very-light border-0 shadow-sm rounded-3 h-100">
                             <div class="card-body py-2 py-md-3 px-3">
-                                <h6 class="text-color-ips fw-bold mb-1 fs-6 text-uppercase small">Data e Hora</h6>
+                                <h6 class="text-color-ips fw-bold mb-1 fs-6 small">Data e Hora</h6>
                                 <p class="mb-0 fs-6 fw-bold text-dark lh-sm">${timestamp || '---'}</p>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <div class="mb-3">
-                    <h6 class="text-color-ips fw-bold mb-2 fs-6 text-uppercase small">Caminho / Área</h6>
-                    <div class="p-3 bg-color-ips-very-light rounded-3 shadow-sm border-0">
-                        <p class="mb-0 fs-6 text-muted font-monospace" style="word-break: break-all;">${friendlyPath}</p>
+                    
+                    <div class="col-12 mb-1">
+                        <div class="card bg-color-ips-very-light border-0 shadow-sm rounded-3 h-100">
+                            <div class="card-body py-2 py-md-3 px-3">
+                                <h6 class="text-color-ips fw-bold mb-2 fs-6 small">Caminho / Área</h6>
+                                <p class="mb-0 fs-6 text-muted font-monospace" style="word-break: break-all;">${friendlyPath}</p>
+                            </div>
+                        </div>
                     </div>
-                </div>
-
-                <div class="mb-1">
-                    <h6 class="text-color-ips fw-bold mb-2 fs-6 text-uppercase small">Mensagem Técnica</h6>
-                    <div class="p-3 bg-color-ips-very-light rounded-3 shadow-sm border-0">
-                        <p class="text-muted mb-0 fs-6" style="white-space: pre-wrap;">${message || 'Sem descrição disponível.'}</p>
+                    
+                    <div class="col-12">
+                        <div class="card bg-color-ips-very-light border-0 shadow-sm rounded-3 h-100">
+                            <div class="card-body py-2 py-md-3 px-3">
+                                <h6 class="text-color-ips fw-bold mb-2 fs-6 small">Mensagem Técnica</h6>
+                                <p class="text-muted mb-0 fs-6">${message || 'Sem descrição disponível.'}</p>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                
             </div>`,
         confirmButtonText: 'Fechar Detalhes',
         customClass: {

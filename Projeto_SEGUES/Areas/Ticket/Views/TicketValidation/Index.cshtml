@@ -31,7 +31,7 @@
                                 <i class="bi bi-info-circle me-1 text-color-ips"></i> Instruções:
                             </small>
                             <small class="text-muted">
-                                Use um dispositivo de leitura ou digite manualmente o código de 8 dígitos.
+                                Use um dispositivo de leitura ou digite manualmente o código de 8 caracteres.
                             </small>
                         </div>
                     </div>
@@ -57,8 +57,8 @@
         <div class="col-xl-7 col-lg-6">
             <div class="card card-ips shadow-sm h-100 small fs-md-6">
                 <div class="card-header bg-white py-3 border-bottom d-flex align-items-center">
-                    <h5 class="mb-0 fw-bold">
-                        <i class="bi bi-clock-history me-2 text-color-ips"></i>Histórico Recente
+                    <h5 class="mb-0 fw-bold text-color-ips">
+                        <i class="bi bi-clock-history me-2"></i>Histórico Recente
                     </h5>
                 </div>
                 <div class="table-responsive" style="max-height: 500px;">
@@ -82,13 +82,13 @@
                                         </code>
                                     </td>
                                     <td>
-                                        <div class="fw-bold text-truncate" style="max-width: 250px;">
+                                        <div class="fw-bold">
                                             @ticket.Owner.FirstName @ticket.Owner.LastName
                                         </div>
                                         <div class="text-muted small">@ticket.Owner.Email</div>
                                     </td>
                                     <td class="fw-bold">
-                                        <div class="fw-bold text-truncate" style="max-width: 250px;">
+                                        <div class="fw-bold">
                                             @ticket.UsedDate?.ToString("dd/MM/yyyy")
                                         </div>
                                         <div class="text-muted small">@ticket.UsedDate?.ToString(@"HH\:mm")</div>
@@ -101,7 +101,7 @@
                             <tr>
                                 <td colspan="3" class="text-center text-muted py-5">
                                     <div class="py-4">
-                                        <i class="bi bi-inbox fs-1 d-block mb-3 opacity-25"></i>
+                                        <i class="bi bi-inbox-fill fs-1 d-block mb-3 opacity-25"></i>
                                         <span class="fw-bold">Nenhuma validação recente.</span>
                                         <p class="small mb-0">As últimas senhas validadas aparecerão aqui.</p>
                                     </div>

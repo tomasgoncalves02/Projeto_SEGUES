@@ -9,8 +9,10 @@
     @* Header *@
     <div class="d-flex mb-3 mb-md-4 align-items-center justify-content-between col-12 col-md-auto flex-column flex-md-row">
         <div class="mb-2 mb-md-0">
-            <h1 class="fw-bold display-6 title-underline mb-1">Histórico de Bar</h1>
-            <p class="text-muted mt-1 mb-0">Consulta detalhada de todas as suas compras no Bar.</p>
+            <h1 class="fw-bold display-6 title-underline mb-1">
+                <i class="bi bi-cup-straw me-2 text-color-ips"></i>Histórico do Bar
+            </h1>
+            <p class="text-muted mt-1 mb-0 small">Consulta detalhada de todas as suas compras no Bar.</p>
         </div>
         <a asp-area="Report" asp-controller="Report" asp-action="Index" class="btn btn-ips-outline-secondary col-12 col-md-auto px-4 fw-bold shadow-sm order-first order-md-last mb-3 mb-md-0">
             <i class="bi bi-arrow-left me-2"></i>Voltar
@@ -73,7 +75,7 @@
             <table class="table table-hover align-middle mb-0 text-center" id="historyTable">
                 <thead class="bg-color-ips text-white" style="position: sticky; top: 0;">
                 <tr>
-                    <th class="py-2 py-md-3 ps-3 ps-md-4">Nº Pedido</th>
+                    <th class="py-2 py-md-3 ps-3 ps-md-4 text-start">Nº Pedido</th>
                     <th class="py-2 py-md-3">Código</th>
                     <th class="py-2 py-md-3">Data/Hora Compra</th>
                     <th class="py-2 py-md-3">Agendado p/</th>

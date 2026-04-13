@@ -370,7 +370,7 @@ public class OrderService : IOrderService
         OrderStatus newStatus = (OrderStatus)newStatusId;
 
         if (!Enum.IsDefined(typeof(OrderStatus), newStatus) || newStatus == OrderStatus.Cart)
-            return ServiceResult.Fail("Status inválido.");
+            return ServiceResult.Fail("Estado inválido.");
 
         if (!ActiveStatus.Contains(newStatus) && newStatus != OrderStatus.Delivered)
         {
@@ -378,7 +378,7 @@ public class OrderService : IOrderService
         }
 
         if (newStatus != order.Status + 1 && newStatus != order.Status - 1)
-            return ServiceResult.Fail("Transição de status inválida.");
+            return ServiceResult.Fail("Transição de estado inválida.");
 
         if (newStatus == OrderStatus.Cancelled)
             return ServiceResult.Fail("Use a função específica para cancelar pedidos.");
@@ -400,11 +400,11 @@ public class OrderService : IOrderService
         try
         {
             await SendStatusUpdateEmailAsync(order);
-            return ServiceResult.Ok("Status do pedido atualizado com sucesso.");
+            return ServiceResult.Ok("Estado do pedido atualizado com sucesso.");
         }
         catch (Exception)
         {
-            return ServiceResult.Ok("Status atualizado com sucesso! (Nota: Falha ao enviar email de notificação ao cliente).");
+            return ServiceResult.Ok("Estado atualizado com sucesso! (Nota: Falha ao enviar email de notificação ao cliente).");
         }
     }
 

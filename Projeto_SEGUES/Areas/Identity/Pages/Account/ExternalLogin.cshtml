@@ -40,13 +40,13 @@
                 <select asp-for="Input.Gender" class="form-control" asp-items="Html.GetEnumSelectList<Gender>()">
                     <option value="">Selecione o Género</option>
                 </select>
-                <label asp-for="Input.Gender">Género</label>
+                <label asp-for="Input.Gender"></label>
                 <span asp-validation-for="Input.Gender" class="text-danger"></span>
             </div>
             @* BirthDate *@
             <div class="form-floating mb-3">
                 <input asp-for="Input.BirthDate" type="date" class="form-control" value="@DateTime.Today"/>
-                <label asp-for="Input.BirthDate">Data de Nascimento</label>
+                <label asp-for="Input.BirthDate"></label>
                 <span asp-validation-for="Input.BirthDate" class="text-danger"></span>
             </div>
             <button type="submit" class="w-100 btn btn-lg btn-primary">Registar</button>

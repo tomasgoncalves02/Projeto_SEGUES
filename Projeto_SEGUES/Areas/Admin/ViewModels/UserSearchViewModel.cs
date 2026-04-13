@@ -22,6 +22,11 @@ public class UserSearchViewModel
     public string? CategoryFilter { get; set; }
     
     /// <summary>
+    /// Flag indicating whether to only show active users.
+    /// </summary>
+    public bool ActiveOnly { get; set; }
+    
+    /// <summary>
     /// The collection of user entities that match the specified search and filter criteria.
     /// </summary>
     public IEnumerable<UserDto> Results { get; set; } = new List<UserDto>();

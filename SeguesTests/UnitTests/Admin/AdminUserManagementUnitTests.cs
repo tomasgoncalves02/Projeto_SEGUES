@@ -44,7 +44,7 @@ public class AdminUserManagementUnitTests
     {
         _adminServiceMock.Setup(s => s.GetAllRolesForDropdownAsync()).ReturnsAsync([]);
         _adminServiceMock.Setup(s => s.GetAllCategoriesForDropdownAsync()).ReturnsAsync([]);
-        _adminServiceMock.Setup(s => s.GetFilteredUsersAsync(null, null, null)).ReturnsAsync([]);
+        _adminServiceMock.Setup(s => s.GetFilteredUsersAsync(null)).ReturnsAsync([]);
 
         var result = await _controller.Index();
 
@@ -106,7 +106,7 @@ public class AdminUserManagementUnitTests
     [Fact]
     public async Task ExportUsersPdf_ReturnsFileResult()
     {
-        _adminServiceMock.Setup(s => s.GetFilteredUsersAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+        _adminServiceMock.Setup(s => s.GetFilteredUsersAsync(It.IsAny<UserSearchViewModel>()))
             .ReturnsAsync([]);
 
         _pdfServiceMock.Setup(s => s.GenerateAdminUsersListPdfAsync(It.IsAny<List<UserDto>>(), It.IsAny<string>()))

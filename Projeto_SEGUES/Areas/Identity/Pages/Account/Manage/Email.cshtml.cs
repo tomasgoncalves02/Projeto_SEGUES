@@ -67,7 +67,7 @@ public class EmailModel : PageModel
         /// </summary>
         [Required(ErrorMessage = "O email é obrigatório.")]
         [EmailAddress(ErrorMessage = "Endereço de email inválido.")]
-        [Display(Name = "Novo email")]
+        [Display(Name = "Novo Email")]
         public required string NewEmail { get; init; }
     }
 

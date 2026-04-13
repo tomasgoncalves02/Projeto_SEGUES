@@ -76,12 +76,7 @@ public class AdminUserManagementController : Controller
     [HttpGet]
     public async Task<IActionResult> GetFilteredUsers([Bind(Prefix = "SearchModel")] UserSearchViewModel model)
     {
-        model.Results = await _adminService.GetFilteredUsersAsync(
-            model.SearchString, 
-            model.RoleFilter, 
-            model.CategoryFilter
-        );
-
+        model.Results = await _adminService.GetFilteredUsersAsync(model);
         return PartialView("_UserTableRowsPartial", model.Results);
     }
 
@@ -271,7 +266,7 @@ public class AdminUserManagementController : Controller
         await _userManager.SetLockoutEndDateAsync(user, null);
         await _userManager.UpdateAsync(user);
 
-        TempData.SetSwalSuccess($"A conta de {user.FirstName} está novamente ativa.");
+        TempData.SetSwalSuccess($"A conta de {user.FirstName} foi ativada.");
         return RedirectToAction(nameof(Details), new { id });
     }
 
@@ -310,11 +305,8 @@ public class AdminUserManagementController : Controller
     [HttpGet]
     public async Task<IActionResult> ExportUsersPdf([Bind(Prefix = "SearchModel")] UserSearchViewModel model)
     {
-        var users = await _adminService.GetFilteredUsersAsync(
-            model.SearchString, 
-            model.RoleFilter, 
-            model.CategoryFilter
-        );
+        var users = await _adminService.GetFilteredUsersAsync(model);
+        
         var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo-ips.png");
         byte[] pdfBytes = _pdfService.GenerateAdminUsersListPdfAsync(users, logoPath);
         return File(pdfBytes, "application/pdf", $"Listagem_Utilizadores_{DateTime.Now:yyyyMMdd}.pdf");

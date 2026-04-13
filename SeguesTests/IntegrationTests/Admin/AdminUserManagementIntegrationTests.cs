@@ -125,7 +125,7 @@ public class AdminUserManagementIntegrationTests
             new() { Id = "77", FullName = "Pedro PDF", Email = "pedro@pdf.pt" }
         };
 
-        adminServiceMock.Setup(s => s.GetFilteredUsersAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+        adminServiceMock.Setup(s => s.GetFilteredUsersAsync(It.IsAny<UserSearchViewModel>()))
             .ReturnsAsync(userList);
 
         pdfServiceMock.Setup(s => s.GenerateAdminUsersListPdfAsync(userList, It.IsAny<string>()))

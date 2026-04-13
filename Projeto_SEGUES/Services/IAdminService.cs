@@ -26,7 +26,7 @@ public interface IAdminService
     #region User Management
 
     /// <summary>Retrieves users based on search strings and category/role filters.</summary>
-    Task<List<UserDto>> GetFilteredUsersAsync(string? searchString = null, string? roleFilter = null, string? categoryFilter = null);
+    Task<List<UserDto>> GetFilteredUsersAsync(UserSearchViewModel? model = null);
     
     /// <summary>Gets a specific role entity by its name.</summary>
     Task<Role?> GetRoleByNameAsync(string roleName);

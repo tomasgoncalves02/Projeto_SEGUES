@@ -82,7 +82,7 @@ public class AdminServiceIntegrationTests
         var service = new AdminService(context, userManager, roleManager,
             Mock.Of<IEmailSender>(), Mock.Of<ILogger<AdminService>>(), Mock.Of<IUserService>());
 
-        var result = await service.GetFilteredUsersAsync("pedro", null, "Student");
+        var result = await service.GetFilteredUsersAsync(new UserSearchViewModel { SearchString = "pedro", RoleFilter = null, CategoryFilter = "Student" });
 
         Assert.Single(result);
         Assert.Equal("Pedro Silva", result[0].FullName);

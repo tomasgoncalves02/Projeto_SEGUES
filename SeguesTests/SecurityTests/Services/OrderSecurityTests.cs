@@ -153,7 +153,7 @@ public class OrderSecurityTests
         var result = await service.UpdateOrderStatusAsync(50, (int)OrderStatus.Delivered, user);
 
         Assert.False(result.Success);
-        Assert.Equal("Transição de status inválida.", result.Message);
+        Assert.Equal("Transição de estado inválida.", result.Message);
     }
 
     [Fact]
