@@ -1,1 +1,0 @@
-search_result['15']=["topic_0000000000000005.html","AdminCreateInternalAccountController Class","Controller responsável pela criação de contas internas (funcionários/administradores) no sistema."];

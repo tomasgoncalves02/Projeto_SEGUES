@@ -1,1 +1,0 @@
-search_result['1032']=["topic_000000000000028B.html","UserCategory.TicketPrices Property",""];

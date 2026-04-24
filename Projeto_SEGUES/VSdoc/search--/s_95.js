@@ -1,1 +1,0 @@
-search_result['95']=["topic_000000000000002E.html","EmployeeController.Index Method","Apresenta a página inicial ou o dashboard do funcionário."];

@@ -1,1 +1,0 @@
-search_result['1049']=["topic_0000000000000297.html","AdminService.GetCloseLunchTimeAsync Method",""];

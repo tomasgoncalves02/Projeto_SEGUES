@@ -1,1 +1,0 @@
-search_result['59']=["topic_000000000000001B.html","AdminTicketManagementController Class","Controller responsável pela gestão global de senhas (tickets), preçários, validade e auditoria."];

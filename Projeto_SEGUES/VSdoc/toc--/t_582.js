@@ -1,1 +1,0 @@
-c['582']=[['583',"StripeSettings Class","topic_000000000000023B.html",1],['587',"Transaction Class","topic_000000000000023E.html",1]];

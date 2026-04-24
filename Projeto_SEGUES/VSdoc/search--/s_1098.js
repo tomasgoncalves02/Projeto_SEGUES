@@ -1,1 +1,0 @@
-search_result['1098']=["topic_00000000000002BB.html","IAdminService.GetOpenLunchTimeAsync Method",""];

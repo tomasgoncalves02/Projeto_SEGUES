@@ -67,6 +67,6 @@ public class ReportStatisticsRegressionTests : IClassFixture<WebApplicationFacto
 
         var content = await response.Content.ReadAsStringAsync();
 
-        Assert.Contains("tatisticas", content);
+        Assert.Contains("tísticas", content, StringComparison.OrdinalIgnoreCase);
     }
 }

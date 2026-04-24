@@ -1,1 +1,0 @@
-search_result['522']=["topic_000000000000010C.html","ReportTransactionController.GetFilteredBalance Method","Filtra o histórico de transações com base em critérios de pesquisa, tipo e data."];

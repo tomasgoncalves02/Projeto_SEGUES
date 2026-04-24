@@ -1,1 +1,0 @@
-search_result['21']=["topic_0000000000000006.html","AdminCreateInternalAccountController Constructor","Inicializa uma nova instância do controlador com o serviço de administração."];

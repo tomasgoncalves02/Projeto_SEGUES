@@ -1,1 +1,0 @@
-search_result['84']=["topic_0000000000000028_overloads--.html","AdminUserManagementController.Edit Method","Processa as alterações de dados, categoria e função (role) de um utilizador."];

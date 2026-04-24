@@ -1,1 +1,0 @@
-search_result['326']=["topic_00000000000000A7.html","RegisterModel.OnGetAsync Method","Prepara a página de registo e carrega os esquemas de autenticação externa."];

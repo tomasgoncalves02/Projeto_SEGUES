@@ -1,1 +1,0 @@
-search_result['108']=["topic_0000000000000036.html","CreateInternalUserViewModel.AccountType Property","Obtém ou define o tipo de conta (Role) a atribuir ao utilizador interno."];

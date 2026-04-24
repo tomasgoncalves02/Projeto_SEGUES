@@ -1,1 +1,0 @@
-search_result['1086']=["topic_00000000000002B1.html","IAdminService.GetCategoryByNameAsync Method",""];

@@ -1,1 +1,0 @@
-search_result['818']=["topic_000000000000020F.html","Product.Stock Property",""];

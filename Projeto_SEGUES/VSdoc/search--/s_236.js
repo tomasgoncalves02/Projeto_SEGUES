@@ -1,1 +1,0 @@
-search_result['236']=["topic_000000000000007F.html","ForgotPasswordModel.Input Property","Transporta o email do utilizador submetido no formulário."];

@@ -1,1 +1,0 @@
-search_result['71']=["topic_0000000000000022.html","AdminTicketManagementController.ExportTicketsPDF Method","Gera um relatório PDF detalhado para auditoria de todas as senhas do sistema."];

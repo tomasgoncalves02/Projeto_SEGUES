@@ -1,1 +1,0 @@
-c['280']=[['281',"AddToCart Method","topic_00000000000000E0.html",0],['282',"Checkout Method","topic_00000000000000E2.html",0],['283',"Index Method","topic_00000000000000DF.html",0],['284',"RemoveFromCart Method","topic_00000000000000E1.html",0],['285',"SubmitOrder Method","topic_00000000000000E3.html",0]];

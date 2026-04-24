@@ -1,1 +1,0 @@
-search_result['397']=["topic_00000000000000CB.html","InventoryController.Index Method","Apresenta a página inicial do módulo de inventário."];

@@ -1,1 +1,0 @@
-var breadcrumbs=[['-1',"",""],['2',"Projeto_SEGUES Reference","topic_000000000000031A.html"],['412',"Projeto_SEGUES.Data Namespace","topic_000000000000014F.html"],['413',"AppDbContext Class","topic_0000000000000150.html"],['415',"Properties","topic_0000000000000150_props--.html"],['433',"Transaction Property","topic_0000000000000161.html"]];

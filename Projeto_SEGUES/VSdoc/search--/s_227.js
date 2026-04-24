@@ -1,1 +1,0 @@
-search_result['227']=["topic_000000000000007B.html","ExternalLoginModel.OnGetCallbackAsync Method","Processa o retorno do fornecedor externo e verifica se o utilizador já possui conta."];

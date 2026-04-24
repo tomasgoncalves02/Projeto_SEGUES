@@ -1,1 +1,0 @@
-c['413']=[['414',"AppDbContext Constructor","topic_0000000000000151.html",0],['415',"Properties","topic_0000000000000150_props--.html",1],['436',"Methods","topic_0000000000000150_methods--.html",1]];

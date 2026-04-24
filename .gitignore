@@ -40,3 +40,7 @@ qodana.sarif.json
 [Pp]roperties/ServiceDependencies/
 *.pubxml
 *.pubxml.user
+
+**/VSdoc/
+**/*.vsdoc
+**/SeguesTests/*.vsdoc

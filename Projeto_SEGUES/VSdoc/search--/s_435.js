@@ -1,1 +1,0 @@
-search_result['435']=["topic_00000000000000E2.html","CreateOrderController.Checkout Method","Apresenta a página de finalização de compra (Checkout), mostrando o resumo do pedido e saldo do utilizador."];

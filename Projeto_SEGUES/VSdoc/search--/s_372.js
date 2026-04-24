@@ -1,1 +1,0 @@
-search_result['372']=["topic_00000000000000BC.html","VerifyCodeModel.OnPostAsync Method","Valida o código introduzido e cria a conta do utilizador na base de dados."];

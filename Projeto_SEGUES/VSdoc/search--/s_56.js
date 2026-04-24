@@ -1,1 +1,0 @@
-search_result['56']=["topic_0000000000000018.html","AdminOrderManagementController.Index Method","Apresenta a página principal de gestão de pedidos, listando o histórico e horários atuais."];

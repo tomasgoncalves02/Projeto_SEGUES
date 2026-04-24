@@ -1,1 +1,0 @@
-search_result['463']=["topic_00000000000000EF.html","OrderTicketController Constructor","Inicializa uma nova instância do controlador com os serviços de senhas e utilizadores."];

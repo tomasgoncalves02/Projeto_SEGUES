@@ -1,1 +1,0 @@
-search_result['229']=["topic_000000000000007D.html","ForgotPasswordModel Class","Model responsável pela lógica de solicitação de recuperação de senha (esqueci-me da senha)."];

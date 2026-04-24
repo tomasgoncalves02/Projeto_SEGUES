@@ -1,1 +1,0 @@
-var breadcrumbs=[['-1',"",""],['2',"Projeto_SEGUES Reference","topic_000000000000031A.html"],['56',"Projeto_SEGUES.Areas.Admin.Controllers Namespace","topic_0000000000000011.html"],['57',"AdminMenuManagementController Class","topic_0000000000000012.html"],['59',"Methods","topic_0000000000000012_methods--.html"],['61',"SaveLinks Method","topic_0000000000000015.html"]];

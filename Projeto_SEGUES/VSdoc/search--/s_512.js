@@ -1,1 +1,0 @@
-search_result['512']=["topic_0000000000000107.html","ReportTicketsController.GetFilteredHistory Method","Endpoint para atualização dinâmica (AJAX) da tabela de histórico de senhas."];

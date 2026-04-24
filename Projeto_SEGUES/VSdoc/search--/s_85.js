@@ -1,1 +1,0 @@
-search_result['85']=["topic_0000000000000029.html","AdminUserManagementController.Deactivate Method","Desativa um utilizador, impedindo o login através de Lockout permanente."];

@@ -1,1 +1,0 @@
-search_result['164']=["topic_0000000000000050.html","ExternalLoginsModel.CurrentLogins Property","Lista dos fornecedores de login atualmente associados à conta do utilizador."];

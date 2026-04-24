@@ -1,1 +1,0 @@
-search_result['37']=["topic_0000000000000010.html","AdminInventoryManagementController.Edit (ProductViewModel) Method","Processa as alterações efetuadas num produto existente."];

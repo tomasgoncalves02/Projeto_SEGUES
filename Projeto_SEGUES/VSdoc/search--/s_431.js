@@ -1,1 +1,0 @@
-search_result['431']=["topic_00000000000000DE.html","CreateOrderController Constructor","Inicializa uma nova instância do controlador com os serviços de inventário, encomendas, utilizadores e administração."];

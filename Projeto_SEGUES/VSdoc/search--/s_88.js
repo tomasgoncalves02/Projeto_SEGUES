@@ -1,1 +1,0 @@
-search_result['88']=["topic_000000000000002C.html","AdminUserManagementController.StaffLog Method","Lista os logs de atividade realizados pelos membros do Staff (auditoria interna)."];

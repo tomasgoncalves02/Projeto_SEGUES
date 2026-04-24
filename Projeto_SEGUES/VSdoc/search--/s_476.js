@@ -1,1 +1,0 @@
-search_result['476']=["topic_00000000000000F7.html","PaymentController Class","Controller responsável por gerir os pagamentos e carregamentos de saldo via Stripe."];

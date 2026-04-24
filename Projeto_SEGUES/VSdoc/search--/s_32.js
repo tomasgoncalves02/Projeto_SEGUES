@@ -1,1 +1,0 @@
-search_result['32']=["topic_000000000000000C.html","AdminInventoryManagementController.GetProducts Method","Obtém a lista de produtos formatada para uma atualização parcial da interface."];

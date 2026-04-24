@@ -1,1 +1,0 @@
-search_result['328']=["topic_00000000000000A9.html","ResetPasswordModel Class","Model responsável pela redefinição da password de um utilizador através de um token de segurança."];

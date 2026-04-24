@@ -1,1 +1,0 @@
-search_result['195']=["topic_000000000000006A.html","ConfirmEmailChangeModel Class","Modelo responsável pela confirmação da alteração do endereço de email do utilizador."];

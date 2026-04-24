@@ -1,1 +1,0 @@
-search_result['170']=["topic_0000000000000056.html","ExternalLoginsModel.OnGetLinkLoginCallbackAsync Method","Callback processado após o utilizador autorizar a vinculação no fornecedor externo."];

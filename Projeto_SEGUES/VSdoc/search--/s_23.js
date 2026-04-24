@@ -1,1 +1,0 @@
-search_result['23']=["topic_0000000000000008.html","AdminCreateInternalAccountController.Create Method","Processa a submissão do formulário para criar um novo utilizador interno."];

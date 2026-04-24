@@ -1,1 +1,0 @@
-search_result['925']=["topic_0000000000000252.html","TicketPrice Class",""];

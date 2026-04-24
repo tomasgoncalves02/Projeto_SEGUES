@@ -1,1 +1,0 @@
-search_result['80']=["topic_0000000000000026.html","AdminUserManagementController.Details Method","Apresenta os detalhes completos de um utilizador específico."];

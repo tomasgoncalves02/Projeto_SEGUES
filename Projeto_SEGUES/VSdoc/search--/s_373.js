@@ -1,1 +1,0 @@
-search_result['373']=["topic_00000000000000BD.html","VerifyCodeModel.OnPostResendCodeAsync Method","Gera e envia um novo código de verificação para o utilizador."];

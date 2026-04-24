@@ -1,1 +1,0 @@
-c['32']=[['33',"AdminTicketManagementController Constructor","topic_000000000000001C.html",0],['34',"Methods","topic_000000000000001B_methods--.html",1]];

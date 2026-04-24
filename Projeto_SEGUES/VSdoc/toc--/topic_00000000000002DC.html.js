@@ -1,1 +1,0 @@
-var breadcrumbs=[['-1',"",""],['2',"Projeto_SEGUES Reference","topic_000000000000031A.html"],['678',"Projeto_SEGUES.Services Namespace","topic_000000000000028E.html"],['801',"IOrderService Interface","topic_00000000000002D3.html"],['802',"Methods","topic_00000000000002D3_methods--.html"],['809',"GetOrderByIdAsync Method","topic_00000000000002DC.html"]];

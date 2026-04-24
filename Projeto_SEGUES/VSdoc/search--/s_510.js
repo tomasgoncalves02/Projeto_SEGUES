@@ -1,1 +1,0 @@
-search_result['510']=["topic_0000000000000105.html","ReportTicketsController Constructor","Inicializa uma nova instância do controlador com os serviços de senhas e utilizadores."];

@@ -1,1 +1,0 @@
-search_result['300']=["topic_000000000000009C.html","LoginWith2FaModel.OnPostAsync Method","Processa e valida o código 2FA submetido pelo utilizador."];

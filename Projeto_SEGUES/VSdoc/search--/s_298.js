@@ -1,1 +1,0 @@
-search_result['298']=["topic_000000000000009A.html","InputModel.RememberMachine Property","Se verdadeiro, o navegador será \"lembrado\", não solicitando 2FA neste dispositivo por um período definido."];

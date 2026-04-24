@@ -1,1 +1,0 @@
-search_result['391']=["topic_00000000000000CA.html","InventoryController Class","Controller principal para a gestão e visualização do inventário de produtos."];

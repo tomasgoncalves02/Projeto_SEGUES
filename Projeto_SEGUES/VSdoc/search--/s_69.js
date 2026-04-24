@@ -1,1 +1,0 @@
-search_result['69']=["topic_0000000000000020.html","AdminTicketManagementController.GetUpdatedAuditTable Method","Filtra o histórico de senhas para atualização dinâmica da tabela de auditoria."];

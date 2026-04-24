@@ -1,1 +1,0 @@
-search_result['473']=["topic_00000000000000F4.html","OrderTotalViewModel.TotalQuantity Property","Soma total de todos os itens individuais presentes na encomenda ou carrinho."];

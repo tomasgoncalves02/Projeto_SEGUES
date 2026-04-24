@@ -1,1 +1,0 @@
-var breadcrumbs=[['-1',"",""],['2',"Projeto_SEGUES Reference","topic_000000000000031A.html"],['513',"Projeto_SEGUES.Models.Enums Namespace","topic_00000000000001A6.html"],['519',"DiscountType Enumeration","topic_00000000000001C7.html"]];

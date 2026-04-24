@@ -1,1 +1,0 @@
-search_result['485']=["topic_00000000000000FB.html","PaymentController.SuccessPayment Method","Processa a confirmação de pagamento bem-sucedido vinda do Stripe."];

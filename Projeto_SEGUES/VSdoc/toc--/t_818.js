@@ -1,1 +1,0 @@
-c['818']=[['819',"GetBarStats Method","topic_00000000000002E4.html",0],['820',"GetTicketsStats Method","topic_00000000000002E3.html",0]];

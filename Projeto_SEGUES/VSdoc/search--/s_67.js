@@ -1,1 +1,0 @@
-search_result['67']=["topic_000000000000001E.html","AdminTicketManagementController.UpdatePrices Method","Atualiza os valores do preçário das senhas no sistema."];
